@@ -18,7 +18,7 @@
 ! License along with this library; if not, write to the Free Software
 ! Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-subroutine pca(ff, ns, nt, nkeep, eof, pc, ev, weights, useteof)
+subroutine pca(ff, ns, nt, nkeep, xeof, pc, ev, weights, useteof)
 
 	use spanlib, only: sl_pca
 
@@ -29,7 +29,7 @@ subroutine pca(ff, ns, nt, nkeep, eof, pc, ev, weights, useteof)
 	integer, intent(in)           :: ns,nt
 	real,    intent(in)           :: ff(ns,nt)
 	integer, intent(in)           :: nkeep
-	real,    intent(out)          :: pc(nt,nkeep), eof(ns,nkeep), ev(nkeep)
+	real,    intent(out)          :: pc(nt,nkeep), xeof(ns,nkeep), ev(nkeep)
 	real,    intent(in)           :: weights(ns)
 	integer, intent(in), optional :: useteof
 
@@ -39,15 +39,18 @@ subroutine pca(ff, ns, nt, nkeep, eof, pc, ev, weights, useteof)
 
 	! Call to original subroutine
 	! ---------------------------
-	call sl_pca(ff, nkeep=nkeep, eof=myeof, pc=mypc, ev=myev, weights=weights, useteof=useteof)
-	eof=myeof
-	pc=mypc
-	ev=myev
+	call sl_pca(ff, nkeep=nkeep, xeof=myeof, pc=mypc, ev=myev, weights=weights, useteof=useteof)
+
+	! Recover results
+	! ---------------
+	xeof = myeof
+	pc   = mypc
+	ev   = myev
 
 end subroutine pca
 
 
-subroutine pcarec(eof, pc, ns, nt, nkept, ffrec, istart, iend)
+subroutine pcarec(xeof, pc, ns, nt, nkept, ffrec, istart, iend)
 
 	use spanlib, only: sl_pcarec
 	
@@ -56,7 +59,7 @@ subroutine pcarec(eof, pc, ns, nt, nkept, ffrec, istart, iend)
 	! External
 	! --------
 	integer, intent(in)  :: ns, nt, nkept, istart, iend
-	real,    intent(in)  :: eof(ns,nkept), pc(nt,nkept)
+	real,    intent(in)  :: xeof(ns,nkept), pc(nt,nkept)
 	real,    intent(out) :: ffrec(ns,nt)
 
 	! Internal
@@ -65,7 +68,7 @@ subroutine pcarec(eof, pc, ns, nt, nkept, ffrec, istart, iend)
 
 	! Call to original subroutine
 	! ---------------------------
-	call sl_pcarec(eof, pc, ffrec=myffrec, istart=istart, iend=iend)
+	call sl_pcarec(xeof, pc, ffrec=myffrec, istart=istart, iend=iend)
 
 	! Recover results
 	! ---------------
@@ -75,7 +78,7 @@ end subroutine pcarec
 
 
 
-subroutine mssa_python(ff, nchan, nt, nwindow, nkeep, steof, stpc, ev)
+subroutine mssa(ff, nchan, nt, nwindow, nkeep, steof, stpc, ev)
 	
 	use spanlib, only: sl_mssa
 	
@@ -135,8 +138,7 @@ end subroutine mssarec
 
 
 
-
-subroutine phasecomp(ffrec, ns, nt, nphases,  phases, weights, offset, firstphase)
+subroutine phasecomp(ffrec, ns, nt, np,  phases, weights, offset, firstphase)
 
 	use spanlib, only: sl_phasecomp
 
@@ -144,11 +146,11 @@ subroutine phasecomp(ffrec, ns, nt, nphases,  phases, weights, offset, firstphas
 
 	! External
 	! --------
-	integer, intent(in)           :: ns, nt, nphases
+	integer, intent(in)           :: ns, nt, np
 	real,    intent(in)           :: ffrec(ns,nt)
 	real,    intent(in)           :: weights(ns)
 	real,    intent(in), optional :: offset, firstphase
-	real,    intent(out)          :: phases(ns, nphases)
+	real,    intent(out)          :: phases(ns, np)
 
 	! Internal
 	! --------
@@ -156,7 +158,7 @@ subroutine phasecomp(ffrec, ns, nt, nphases,  phases, weights, offset, firstphas
 
 	! Call to original subroutine
 	! ---------------------------
-	call sl_phasecomp(ffrec, nphases, myphases, weights=weights, offset=offset, firstphase=firstphase)
+	call sl_phasecomp(ffrec, np, myphases, weights=weights, offset=offset, firstphase=firstphase)
 
 	! Recover results
 	! ---------------
@@ -164,52 +166,52 @@ subroutine phasecomp(ffrec, ns, nt, nphases,  phases, weights, offset, firstphas
 
 end subroutine phasecomp
 
-_phyton
+
 
 subroutine pack3d(ff3d, mask, ns1, ns2, nt, ff2d, ns)
 
-		implicit none
+	implicit none
 
-		! External
-		! --------
-		integer, intent(in)  :: ns1, ns2, nt, ns
-		real,    intent(in)  :: ff3d(ns1,ns2,nt)
-		logical, intent(in)  :: mask(ns1,ns2)
-		real,    intent(out) :: ff2d(ns,nt)
+	! External
+	! --------
+	integer, intent(in)  :: ns1, ns2, nt, ns
+	real,    intent(in)  :: ff3d(ns1,ns2,nt)
+	logical, intent(in)  :: mask(ns1,ns2)
+	real,    intent(out) :: ff2d(ns,nt)
 
-		! Internal
-		! --------
-		integer :: it
+	! Internal
+	! --------
+	integer :: it
 
-		! Call to pack
-		! ------------
-		do it = 1, nt
-			ff2d(:,it) = pack(ff3d(:,:,it), mask)
-		end do
+	! Call to pack
+	! ------------
+	do it = 1, nt
+		ff2d(:,it) = pack(ff3d(:,:,it), mask)
+	end do
 
-	end subroutine pack3d
+end subroutine pack3d
 
 
-	subroutine unpack3d(ff3d, mask, ns1, ns2, nt, ff2d, ns, missing_value)
+subroutine unpack3d(ff3d, mask, ns1, ns2, nt, ff2d, ns, missing_value)
 
-		implicit none
+	implicit none
 
-		! External
-		! --------
-		integer, intent(in)  :: ns1, ns2, nt, ns
-		real,    intent(out) :: ff3d(ns1,ns2,nt)
-		logical, intent(in)  :: mask(ns1,ns2)
-		real,    intent(in)  :: ff2d(ns,nt)
-		real                 :: missing_value
+	! External
+	! --------
+	integer, intent(in)  :: ns1, ns2, nt, ns
+	real,    intent(out) :: ff3d(ns1,ns2,nt)
+	logical, intent(in)  :: mask(ns1,ns2)
+	real,    intent(in)  :: ff2d(ns,nt)
+	real                 :: missing_value
 
-		! Internal
-		! --------
-		integer :: it
+	! Internal
+	! --------
+	integer :: it
 
-		! Call to pack
-		! ------------
-		do it = 1, nt
-			ff3d(:,:,it) = unpack(ff2d(:,it), mask, missing_value)
-		end do
+	! Call to pack
+	! ------------
+	do it = 1, nt
+		ff3d(:,:,it) = unpack(ff2d(:,it), mask, missing_value)
+	end do
 
-	end subroutine unpack3d
+end subroutine unpack3d

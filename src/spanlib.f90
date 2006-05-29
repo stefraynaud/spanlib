@@ -33,7 +33,7 @@ contains
 	! ############################################################
 	! ############################################################
 
-	subroutine sl_pca(ff, nkeep, eof, pc, ev, weights, useteof)
+	subroutine sl_pca(ff, nkeep, xeof, pc, ev, weights, useteof)
 
 	! Title:
 	!	Principal Component Analysis
@@ -51,14 +51,14 @@ contains
 	!
 	! Optional arguments:
 	!	- nkeep:		Maximum number of modes to keep in outputs
-	!	- eof:		Space-mode array of EOFs
+	!	- xeof:		Space-mode array of EOFs
 	!	- pc:			Time-mode array of PCs
 	!	- ev:			Mode array of eigen values (variances)
 	!	- weights:	Space array of weights
 	!	- useteof:	To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]
 	!
 	! Dependencies:
-	!	diasym
+	!	sl_diasym
 
 
 	! Declarations
@@ -70,7 +70,7 @@ contains
 	! --------
 	real,    intent(in)                        :: ff(:,:)
 	integer, intent(in),	optional              :: nkeep
-	real,    intent(out),optional, allocatable :: pc(:,:), eof(:,:), ev(:)
+	real,    intent(out),optional, allocatable :: pc(:,:), xeof(:,:), ev(:)
 	real,    intent(in),	optional              :: weights(:)
 	integer, intent(in),	optional              :: useteof
 	
@@ -98,7 +98,7 @@ contains
 		print*,'[pca] You want to keep a nomber of PCs greater than 50!'
 		return
 	end if
-	if(not(present(eof)).and.not(present(pc)).and.not(present(ev)))then
+	if(not(present(xeof)).and.not(present(pc)).and.not(present(ev)))then
 		print*,'[pca] Nothing to do. Quit.'
 		return
 	end if
@@ -165,10 +165,10 @@ contains
 		deallocate(wff)
 
 		! Diagonalising (cov: input=cov, output=eof)
-		call diasym(cov,eig)
+		call sl_diasym(cov,eig)
 
 		! Back to S-EOFs
-		if(present(pc).or.present(eof))then
+		if(present(pc).or.present(xeof))then
 			allocate(zeof(ns,nkeep))
 			zeof = matmul(zff, cov(:,nt:nt-nkeep+1:-1))
 			deallocate(cov)
@@ -201,10 +201,10 @@ contains
 		deallocate(wff)
 
 		! Diagonalisation (cov: input=cov, output=eof)
-		call diasym(cov,eig)
+		call sl_diasym(cov,eig)
 
 		! Formatting S-EOFs
-		if(present(eof).or.present(pc))then
+		if(present(xeof).or.present(pc))then
 			allocate(zeof(ns,nkeep))
 			do i = 1, nkeep
 !				zeof(:,i) = cov(:,ns:ns-nkeep+1:-1) / sqrt(ww(:,1:nkeep))
@@ -215,9 +215,9 @@ contains
 
 	end if
 	
-	if(present(eof))then
-		if(not(allocated(eof))) allocate(eof(ns,nkeep))
-		eof = zeof
+	if(present(xeof))then
+		if(not(allocated(xeof))) allocate(xeof(ns,nkeep))
+		xeof = zeof
 		if(not(present(pc))) deallocate(zeof)
 	end if
 
@@ -249,7 +249,7 @@ contains
 
 
 
-	subroutine sl_pcarec(eof, pc, ffrec, istart, iend)
+	subroutine sl_pcarec(xeof, pc, ffrec, istart, iend)
 
 	! Title:
 	!	Reconstruction of a set of PCA components
@@ -261,7 +261,7 @@ contains
 	!	by its PC. The sum of all reconstructed component is the original field.
 	!
 	! Necessary arguments:
-	!	- eof:	Space-mode array of EOFs
+	!	- xeof:	Space-mode array of EOFs
 	!	- pc:		Time-mode array of PCs
 	!	- ffrec:	Space-time array of the reconstructed field
 	!
@@ -277,7 +277,7 @@ contains
 
 	! External
 	! --------
-	real,	intent(in)				:: eof(:,:), pc(:,:)
+	real,	intent(in)				:: xeof(:,:), pc(:,:)
 	real,	intent(out),allocatable	:: ffrec(:,:)
 	integer,intent(in),	optional	:: istart, iend
 
@@ -288,7 +288,7 @@ contains
 
 	! Setup
 	! =====
-	nkept = size(eof,2)
+	nkept = size(xeof,2)
 	if(present(istart))zistart=istart
 	if(present(iend))then
 		ziend=iend
@@ -313,9 +313,9 @@ contains
 
 	! Computation
 	! ===========
-	if(not(allocated(ffrec)))allocate(ffrec(size(eof,1), size(pc,1)))
+	if(not(allocated(ffrec)))allocate(ffrec(size(xeof,1), size(pc,1)))
 	ffrec = 0.
-	ffrec = matmul( eof(:, zistart:ziend), transpose(pc(:, zistart:ziend)) )
+	ffrec = matmul( xeof(:, zistart:ziend), transpose(pc(:, zistart:ziend)) )
 	
 	end subroutine sl_pcarec
 
@@ -350,7 +350,7 @@ contains
 	!	- ev:			Mode array of eigen values (variances)
 	!
 	! Dependencies:
-	!	diasym
+	!	sl_diasym
 
 	implicit none
 
@@ -408,7 +408,7 @@ contains
 	! Diagonalisation
 	! ===============
 	allocate(eig(nsteof))
-	call diasym(cov,eig)
+	call sl_diasym(cov,eig)
 
 
 	! Get ST-EOFs and eigenvalues
@@ -571,7 +571,7 @@ contains
   ! ############################################################
   ! ############################################################
 
-	subroutine sl_phasecomp(ffrec, nphases, phases, weights, offset, firstphase)
+	subroutine sl_phasecomp(ffrec, np, phases, weights, offset, firstphase)
 	
 	! Title:
 	!	Phase composites
@@ -591,7 +591,7 @@ contains
 	!
 	! Necessary arguments:
 	!	- ffrec:		Space-time array
-	!	- nphases:	Number of requested phases over the 360 degrees cycle (default = 8)
+	!	- np:	Number of requested phases over the 360 degrees cycle (default = 8)
 	!
 	! Optional arguments:
 	!	- weights:	Space array of weights
@@ -609,7 +609,7 @@ contains
 
 	! External
 	! --------
-	integer, intent(in)	:: nphases
+	integer, intent(in)	:: np
 	real,	intent(in)   :: ffrec(:,:)
 	real,	intent(in), optional :: weights(:)
 	real,	intent(in), optional :: offset, firstphase
@@ -617,10 +617,10 @@ contains
 
 	! Internal
 	! --------
-	real, allocatable :: eof(:,:), pc(:,:)
+	real, allocatable :: xeof(:,:), pc(:,:)
 	real :: dpc(size(ffrec,2)), amp(size(ffrec,2))
-	integer :: nt, iphase, useteof
-	real :: angles(nphases), projection(size(ffrec,2))
+	integer :: nt, iphase
+	real :: angles(np), projection(size(ffrec,2))
 	real :: pi, deltarad, pcos, psin, zoffset, zfirstphase
 	logical :: select_amplitude(size(ffrec,2)), select_phase(size(ffrec,2))
 	integer :: itime(size(ffrec,2)), nsel, i, ns
@@ -631,7 +631,6 @@ contains
 	! =====
 	nt = size(ffrec,2)
 	pi = acos(-1.)
-	useteof=0
 	itime = (/ (i, i=1, nt) /)
 	ns = size(ffrec, 1)
 	if(present(offset))then
@@ -642,7 +641,7 @@ contains
 
 	! Find the first PC and its derivative
 	! ====================================
-	call sl_pca(ffrec, 1, eof=eof, pc=pc, weights=weights)
+	call sl_pca(ffrec, 1, pc=pc, weights=weights)
 	pc = pc * sqrt(real(nt)/sum(pc**2))
 	dpc = 0.5 * (eoshift(pc(:,1), 1, pc(nt,1)) - eoshift(pc(:,1), -1, pc(1,1)))
 	dpc((/1,nt/)) = dpc((/1,nt/)) * 2.
@@ -655,20 +654,20 @@ contains
 
 	! Define the marks
 	! ----------------
-	deltarad = 2 * pi / real(nphases)
+	deltarad = 2 * pi / real(np)
 	if(present(firstphase))then
 		zfirstphase = modulo(firstphase * 2 * pi / 360., 360.)
 	else
 	   zfirstphase = 0.
 	end if
-	angles = (/ (real(iphase) + zfirstphase, iphase=0,nphases-1) /) * deltarad
+	angles = (/ (real(iphase) + zfirstphase, iphase=0,np-1) /) * deltarad
 
 	! Compute the phase maps
 	! ----------------------
-	if(not(allocated(phases))) allocate(phases(ns, nphases))
+	if(not(allocated(phases))) allocate(phases(ns, np))
 	phases = 0.
 	select_amplitude = amp >= zoffset
-	do iphase = 1, nphases
+	do iphase = 1, np
 		pcos = cos(angles(iphase))
 		psin = sin(angles(iphase))
 		projection =  (pc(:,1)*pcos+dpc*psin) / amp
