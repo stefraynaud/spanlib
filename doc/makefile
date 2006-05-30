@@ -22,6 +22,9 @@ SRC_EXAMPLE=$(EXADIR)/example.f90
 
 .SUFFIXES: .html
 
+html:
+	xsltproc -o index.html mystyle.xsl template.xml
+
 all: install
 
 install: install-doc
