@@ -23,7 +23,8 @@ SRC_EXAMPLE=$(EXADIR)/example.f90
 .SUFFIXES: .html
 
 html:
-	xsltproc -o index.html mystyle.xsl template.xml
+	xsltproc --docbook -o index.html spanlib.xsl template.xml
+##	xsltproc --docbook -o index.html --stringparam  html.stylesheet "$(DOC_CSS)" spanlib.xsl template.xml
 
 all: install
 

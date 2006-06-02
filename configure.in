@@ -1,0 +1,43 @@
+#####################################################################
+# Configure.in file for spanlib
+# Stephane Raynaud 2006
+#####################################################################
+
+AC_INIT(README)
+
+AC_SR_HEADER([what is this world?])
+AC_CONFIG_AUX_DIR(admin)
+
+
+AC_CANONICAL_SYSTEM
+
+AC_PREREQ(2.59)
+
+
+AC_COPYRIGHT
+
+AM_INIT_AUTOMAKE(spanlib,1.0.0)
+
+AC_PREFIX_DEFAULT(/usr/local)
+
+AC_SR_HEADER([Fortran])
+#AC_CONFIG_SRCDIR([src/spanlib.f90])
+
+AC_SR_HEADER([Checking misc configurations])
+#AC_SR_NETCDF
+#AC_SR_NCVIEW
+AC_SR_HEADER([Perl])
+AC_PROG_PERL_VERSION(5.6.0)
+
+AC_SR_HEADER([Python])
+AC_SR_PYTHON
+
+AC_SR_HEADER([Docbook])
+AX_CHECK_DOCBOOK
+
+
+AC_SR_HEADER([Creating Makefiles])
+AC_OUTPUT([Makefile])
+#           src/Makefile,
+#           doc/Makefile
+#           example/makefile])

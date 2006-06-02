@@ -26,10 +26,12 @@ use File::Basename;
 # Inputs
 my ($doc_top, $doc_mid, $doc_bot, $src_main, $src_example, $doc_main, $doc_code) = @ARGV;
 
-# Declarations
-my (@partNames, $partName, %parts, $line, $subroutineName, $arguments, $inside);
+# Basic declarations
+my (@partNames, @subNames, $partName, %parts, $line, $subroutineName, $arguments, $inside);
 my ($vars, $type, $intent, $optional, $allocatable, $var, $name, @argDesc, $desc, $opt, %argRef, %arg);
 my ($tmp, $tmp2, $i);
+
+# Look
 my %cols = (
 	'name' => {
 		'class' => 'b',
@@ -44,6 +46,17 @@ my %cols = (
 		'width' => '70'
 	}
 );
+my %cssF2xColors = (
+	'comments'		=> 'e i',
+	'digits' 		=> 'r',
+	'strings'		=> 'o',
+	'mySubs'			=> 'b',
+	'attributes'	=> 'gr',
+	'functions'		=> 'cy',
+	'routines'		=> 'vi'
+);
+	
+
 my $toc = "\t\t<ul>\n";
 my $docdir = dirname($doc_main);
 #my $doc_toc = "$docdir/fortran_toc.html";
@@ -57,25 +70,25 @@ sub gen_init_args {
 	my $type = shift ;
 	print SUBFILE "<h4>$type arguments</h4>\n\n<table width=\"100%\">\n";
 }
-sub f90tohtml {
+sub f90toxml {
 	my $code = shift;
-	my ($comment, $indent, $newline);
+	my ($comment, $indent, $newline, %cssF2xColors, @subNames);
 	$code =~ s/\&/\&amp;/g;
 	$code =~ s/</\&lt;/g;
 	$code =~ s/>/\&gt;/g;
-	$code =~ s/ /\&nbsp;/g;
-	$code =~ s/\t/\&nbsp;\&nbsp;\&nbsp;/g;
-	$newline = ($code =~ s/\n//);
+#	$code =~ s/ /\&nbsp;/g;
+#	$code =~ s/\t/\&nbsp;\&nbsp;\&nbsp;/g;
+#	$newline = ($code =~ s/\n//);
 	$comment = "";
-	$comment = "<span class=\"e i\">$2<\/span>" if 	$code =~ s/^([^!]*)(!.*)$/$1/;
-	$code =~ s/['"]([^'"]*)['"]/"<span class="o">$1<\/span>"/g;
-	$code =~ s/(\b|&nbsp;)(\d+)(\b|&nbsp;)/$1<span class="r">$2<\/span>$3/g;
-	$code =~ s/(\b|&nbsp;)(pcamssa|pca|pcarec|mssa|mssarec|phasecomp|diasym)(\b|&nbsp;)/$1<span class="b">$2<\/span>$3/g;
-	$code =~ s/(\b|&nbsp;)(procedure|parameter|optional|intent|allocatable|none)(\b|&nbsp;)/$1<span class="gr">$2<\/span>$3/g;
-	$code =~ s/(\b|&nbsp;)(dot_product|trim|eoshift|modulo|ssyev|not|allocated|allocate|spread|present|sum|matmul|sqrt|transpose|deallocate|pack|unpack|present)(\b|&nbsp;)/$1<span class="cy">$2<\/span>$3/g;
-	$code =~ s/(\b|&nbsp;)(print|module|contains|interface|logical|subroutine|if|then|else|endif|enddo|do|end|close|call|program|integer|real|open|write|character|use|implicit)(\b|&nbsp;)/$1<span class="vi">$2<\/span>$3/g;
+	$comment = "<phrase role=\"$cssF2xColors{'comments'}\">$2<\/phrase>" if 	$code =~ s/^([^!]*)(!.*)$/$1/;
+	$code =~ s/['"]([^'"]*)['"]/<phrase role="$cssF2xColors{'strings'}">$1<\/phrase>/g;
+	$code =~ s/\b(\d+)\b/<phrase role="$cssF2xColors{'digits'}">$1<\/phrase>/g;
+	$code =~ s/\b(pcamssa|pca|pcarec|mssa|mssarec|phasecomp|diasym)\b/<phrase role="$cssF2xColors{'mySubs'}">$1<\/phrase>/g;
+	$code =~ s/\b(procedure|parameter|optional|intent|allocatable|none)\b/<phrase role="$cssF2xColors{'attributes'}">$1<\/phrase>/g;
+	$code =~ s/\b(dot_product|trim|eoshift|modulo|ssyev|not|allocated|allocate|spread|present|sum|matmul|sqrt|transpose|deallocate|pack|unpack|present)\b/<phrase role="$cssF2xColors{'functions'}">$1<\/phrase>/g;
+	$code =~ s/\b(print|module|contains|interface|logical|subroutine|if|then|else|endif|enddo|do|end|close|call|program|integer|real|open|write|character|use|implicit)\b/<phrase role="$cssF2xColors{'routines'}">$1<\/phrase>/g;
 	$code = "$code$comment";
-	$code = "$code<br \/>\n" if $newline;
+#	$code = "$code<br \/>\n" if $newline;
 	return $code;
 }
 
@@ -84,13 +97,14 @@ open(SUBFILE,"> $doc_sub");
 open(F90FILE,$src_main);
 while(<F90FILE>){
 	# A subroutine starts here
-	if(!/python/ && /^[ \t]*subroutine\s+([\w]+)\s*\(([^\)]+)\)/i){
+	if(/^[\s\t]*subroutine\s+([\w]+)\s*\(([^\)]+)\)/i){
 		undef %parts;
 		undef @argDesc;
 		undef %argRef;
 		@partNames = ();
 		$partName = "";
 		$subroutineName = "$1";
+		push(@subNames, "$1");
 		$arguments = "$2";
 
 		# Initialize arguments description whatever they are
@@ -158,15 +172,15 @@ while(<F90FILE>){
 
 		# Now, generate the xhtml block
 		if ($partName ne "") {
-			$toc = "$toc\t\t\t<li><code class=\"b\"><a href=\"#$subroutineName\">$subroutineName</a></code></li>\n";
-			print SUBFILE "<h3>$parts{'Title'}: <code><a name=\"$subroutineName\" class=\"b\">$subroutineName</a></code></h3>\n<div class=\"sh3\">\n\n";
-			$arguments =~ s/(^|[,=\s]+)(\w+)\b(?!=)/$1<span class=\"b\">$2<\/span>/g;
+			$toc = "$toc\t\t\t<li><code role=\"$cssF2xColors{'mySubs'}\"><a href=\"#$subroutineName\">$subroutineName</a></code></li>\n";
+			print SUBFILE "<h3>$parts{'Title'}: <code><a name=\"$subroutineName\" role=\"$cssF2xColors{'mySubs'}\">$subroutineName</a></code></h3>\n<div role=\"sh3\">\n\n";
+			$arguments =~ s/(^|[,=\s]+)(\w+)\b(?!=)/$1<phrase role=\"$cssF2xColors{'mySubs'}\">$2<\/phrase>/g;
 			$arguments =~ s/,/, /g;
-			print SUBFILE "<h4>Usage:</h4>\n<code><p>call <span class=\"b\">$subroutineName</span>($arguments)</p></code>\n\n";
+			print SUBFILE "<h4>Usage:</h4>\n<code><p>call <phrase role=\"$cssF2xColors{'mySubs'}\">$subroutineName</phrase>($arguments)</p></code>\n\n";
 			for $partName (@partNames){
 				if($partName eq "Dependencies"){
 					$parts{$partName} =~ s/([\w]+)/<a href=\"#$1\">$1<\/a>/g;
-					$parts{$partName} = "<span class='b'><code>$parts{$partName}</code></span>";
+					$parts{$partName} = "<phrase role=\"$cssF2xColors{'mySubs'}\"><code>$parts{$partName}</code></phrase>";
 				}
 				print SUBFILE "<h4>$partName</h4>\n<p>\n$parts{$partName}\n</p>\n\n" if $parts{$partName} ne "";
 				if($partName eq "Description"){
@@ -182,7 +196,7 @@ while(<F90FILE>){
 						print SUBFILE "\t<tr>\n";
 						for $tmp ('name','type','long_name') {
 							print SUBFILE "\t\t<td";
-							print SUBFILE " class=\"$cols{$tmp}{'class'}\"" if $cols{$tmp}{'class'} ne "";
+							print SUBFILE " role=\"$cols{$tmp}{'class'}\"" if $cols{$tmp}{'class'} ne "";
 							print SUBFILE " width=\"$cols{$tmp}{'width'}%\">";
 							print SUBFILE "<code>" if ($tmp eq 'name');
 							print SUBFILE $argDesc[$i]{$tmp};
@@ -229,7 +243,7 @@ while(<FILE>){print MAINFILE $_;}
 close(FILE);
 
 # 5) Example with syntax colorization and indentation (an attempt)
-print MAINFILE "<h2><a name=\"exam\"></a>4. Example <a href=\"#top\" class=\"top\">[Top]</a></h2>\n\n<code><p>\n\n";
+print MAINFILE "<h2><a name=\"exam\"></a>4. Example <a href=\"#top\" role=\"top\">[Top]</a></h2>\n\n<code><p>\n\n";
 open(FILE,$src_example);
 while(<FILE>){print MAINFILE f90tohtml($_);}
 print MAINFILE "</p></code>\n\n";
@@ -238,7 +252,7 @@ print MAINFILE "</p></code>\n\n";
 open(FILE,$doc_bot);
 while(<FILE>){print MAINFILE $_;}
 close(FILE);
-print MAINFILE "\n\n<hr>\n<p class=\"i\">Document generated by Perl (<a href=\"gendoc.pl\"><code>gendoc.pl</code></a>)</p>\n\n</body>\n";
+print MAINFILE "\n\n<hr>\n<p role=\"i\">Document generated by Perl (<a href=\"gendoc.pl\"><code>gendoc.pl</code></a>)</p>\n\n</body>\n";
 close(MAINFILE);
 
 # Generate the html version of our f90 code
