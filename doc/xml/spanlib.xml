@@ -1,0 +1,168 @@
+<?xml version="1.0"?>
+<!DOCTYPE article PUBLIC "-//KDE//DTD DocBook XML V4.2-Based Variant V1.1//EN" "/usr/share/sgml/docbook/xml-dtd-4.2-1.0-17.2/docbookx.dtd">
+
+<article xmlns:xi="http://www.w3.org/2001/XInclude">
+	
+	<artheader>
+		<title>SpanLib - Spectral Analysis Library</title>
+		<authorgroup>
+			<author><firstname>Stephane</firstname> <surname>Raynaud</surname></author>
+			<author><firstname>Charles</firstname> <surname>Doutriaux</surname></author>
+		</authorgroup>
+		<keywordset>
+			<keyword>statistics</keyword>
+			<keyword>physics</keyword>
+			<keyword>climate variability</keyword>
+			<keyword>FFT</keyword>
+			<keyword>wavelets</keyword>
+			<keyword>spatio-temporal</keyword>
+			<keyword>MSSA</keyword>
+			<keyword>PCA</keyword>
+			<keyword>EOF</keyword>
+			<keyword>POP</keyword>
+		</keywordset>
+	</artheader>
+
+	<articleinfo>
+		<address>
+			<affiliation>LSCE, Laboratoire CEA-CNRS-UVSQ</affiliation>
+			<street>Bât. 712, Orme des Merisiers</street>
+			<postcode>91300</postcode>
+			<city>GIF-SUR-YVETTE CEDEX</city>
+			<country>France</country>
+		</address>
+	</articleinfo>
+
+	<!--#################################################################-->
+	<sect1 id="doc_intro">
+		<title>Introduction</title>
+		<para class='red'>
+			This package provides a F90 module containing a minmal collection of subroutines to perform
+			<emphasis>Principal Componant Analysis</emphasis> (PCA),
+			<emphasis>Multi-channel Singular Spectrum Analysis</emphasis> (MSSA), reconstruction
+			of components and phase composites.
+		</para>
+		<para>
+			<emphasis>PCA</emphasis> is also know as Empirical Orthogonal Functions (EOFs) decomposition:
+			it decomposes a space-time signal in pairs of spatial EOFs and temporal PCs
+			that are the eigen solutions of the covariance (or correlation) matrix of the initial signal.
+		</para>
+		<para>
+			<emphasis>MSSA</emphasis> works in the same way except that EOF are spatio-temporal, and that the diagonalized
+			matrix is built not only using covariances (or correlations) between spatial points,
+			but also lag covariances.
+			Therefore, MSSA is particularly efficient to remove white noise, and extract oscillations and nonlinear
+			trends, even on short sample.
+			It uses a window parameter that corresponds to the maximal lag for lag correlations.
+			Oscillations with a period lower than this window can be typically extracted by MSSA.
+		</para>
+		
+		<para>
+			The package also provides the possibility to <emphasis>reconstruct part of the signal</emphasis>
+			due to selected modes, for both PCA and MSSA.
+			Finally, <emphasis>oscillations</emphasis> extracted by MSSA and reconstructed can be reorganized
+			in <emphasis>phases composites</emphasis>: the oscillations are presented over their averaged cycle,
+			decomposed in a fixed number of phases
+			(like one can do for the annual cycle over 12 months for example).
+		</para>
+			
+		<para>
+			More information about PCA and MSSA may be found in papers and on the web.
+			See for example:
+			<itemizedlist>
+				<listitem>MSSA: <link linkend="#plva94">Plaut and Vautard, 1994</link>.</listitem>
+			</itemizedlist>
+		</para>
+
+		<para>
+			An html version of the source code is available here:
+			<filename><link linkend="f90_spanlib.html">spanlib.f90</link></filename>.
+		</para>
+	</sect1>
+
+	<!--#################################################################-->
+	<xi:include href="doc_subroutines.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+
+	<!--#################################################################-->
+	<sect1 id="doc_examples">
+		<title>Examples</title>
+		
+		<sect2>
+			<title>A pure Fortran 90 example</title>
+			<para>
+				This is an example of how to use this the Fortran 90 component of Spanlib.
+				In this example, an analysis of Sea surface Temperature anomalies using data
+				stored in the netcdf format.
+				The dominant oscillatory mode of the El Nino variability is then extracted
+				and stored in a netcdf file.
+			</para>
+			<example>
+				<title>F90 example</title>
+				<xi:include href="f90_example.xml"  xmlns:xi="http://www.w3.org/2001/XInclude" />
+			</example>	
+		</sect2>
+
+		<sect2>
+			<title>A example using the Python interface</title>
+			<example>
+				<title>Python example</title>
+				<!--MY_PYTHON_EXAMPLE-->
+			</example>
+		</sect2>
+
+	</sect1>
+
+	<!--#################################################################-->
+	<sect1 id="doc_ref">
+		<title>References</title>
+		<itemizedlist>
+			<listitem>MSSA: <anchor id="#plva94" />Plaut and Vautard, 1994.</listitem>
+		</itemizedlist>
+	</sect1>
+
+	<!--#################################################################-->
+	<bibliography id="doc_biblio">
+
+		<!-- Normal -->
+		<biblioentry>
+			<abbrev>AhoSethiUllman96</abbrev>
+			<authorgroup>
+			<author>
+					<firstname>Alfred V.</firstname><surname>Aho</surname>
+				</author>
+			<author>
+					<firstname>Ravi</firstname><surname>Sethi</surname>
+				</author>
+		</authorgroup>
+		<year>3020</year>
+		<copyright><year>1996</year>
+			<holder>Bell Telephone Laboratories, Inc.</holder></copyright>
+		<editor>
+				<firstname>James T.</firstname><surname>DeWolf</surname>
+			</editor>
+		<publisher>
+			<publishername>Addison-Wesley Publishing Company</publishername>
+		</publisher>
+		<title>Compilers, Principles, Techniques, and Tools</title>
+
+		</biblioentry>
+		
+		<!-- Mixed -->
+		<bibliomixed>
+			<bibliomset relation='article'>Walsh, Norman.
+				<title role='article'>Introduction to Cascading Style Sheets</title>.
+			</bibliomset>
+			<bibliomset relation='journal'>
+				<title>The World Wide Web Journal</title>
+				<volumenum>2</volumenum><issuenum>1</issuenum>.
+				<publishername>O'Reilly &amp; Associates, Inc.</publishername> and
+				The World Wide Web Consortium. Winter, 1996
+			</bibliomset>.
+		</bibliomixed>
+		
+	</bibliography>
+
+	
+	
+
+</article>

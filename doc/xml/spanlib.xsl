@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE stylesheet [
-	<!ENTITY css SYSTEM "spanlib.css">
+	
 ]>
 
 <!-- Customization layer -->
@@ -21,7 +21,7 @@
 	
 	<!-- Automatic numbering -->
 	<xsl:param name="section.autolabel" select="1"/>
-	<xsl:param name="section.autolabel.max.depth" select="2"/>
+	<xsl:param name="section.autolabel.max.depth" select="3"/>
 	<xsl:param name="appendix.autolabel" select="1"/>
 	<xsl:param name="appendix.autolabel.max.depth" select="2"/>
 
@@ -46,11 +46,4 @@
 		<div class="generated">This document was generated <?dbtimestamp format="Y-m-d H:M:S"?>  using xml/xsl and perl.</div>
 	</xsl:template>
 
-	<!-- HTML inclusion -->
-	<xsl:template match="processing-instruction('htmlcode')">
-		<!--xsl:variable name="codefile" select="document(normalize-space(.),/)"/-->
-		<xsl:variable name="codefile" select="document('tata.html',/)"/>
-		<xsl:copy-of select="$codefile/*/node()"/>
-  </xsl:template>
-	
 </xsl:stylesheet>
