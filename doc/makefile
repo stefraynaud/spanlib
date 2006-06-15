@@ -1,50 +1,64 @@
 ################################
 ## MAKEFILE FOR DOCUMENTATION ##
 ################################
-TARGET=pcamssa
 TOPDIR=..
 SRCDIR=$(TOPDIR)/src
 DOCDIR=$(TOPDIR)/doc
 EXADIR=$(TOPDIR)/example
 SCRIPTDIR=$(TOPDIR)/scripts
-INSTALLDIR=$(HOME)
-INSTALLDOCDIR=$(INSTALLDIR)/doc/$(TARGET)
+HTMLDIR=$(DOCDIR)/html
+XMLDIR=$(DOCDIR)/xml
+##INSTALLDIR=$(HOME)
+##INSTALLDOCDIR=$(INSTALLDIR)/doc/$(TARGET)
 GENDOC=$(SCRIPTDIR)/gendoc.pl
-DOC_MAIN=$(DOCDIR)/fortran_main.html
-DOC_CODE=$(DOCDIR)/fortran_code.html
-DOC_CSS=$(DOCDIR)/fortran.css
-DOC_TEMPLATES=$(DOCDIR)/fortran_top.html $(DOCDIR)/fortran_mid.html $(DOCDIR)/fortran_bottom.html
-SRC_MAIN=$(SRCDIR)/$(TARGET).f90
-SRC_EXAMPLE=$(EXADIR)/example.f90
-
+XML_LIBRARY=$(XMLDIR)/f90_library.xml
+HTML_LIBRARY=$(HTMLDIR)/f90_library.html
+F90_LIBRARY=$(SRCDIR)/spanlib.f90
+XML_EXAMPLE=$(XMLDIR)/f90_example.xml
+HTML_EXAMPLE=$(HTMLDIR)/f90_example.html
+F90_EXAMPLE=$(EXADIR)/example.f90
+HTML=$(HTMLDIR)/index.html
+CSS=$(HTMLDIR)/spanlib.css
+XSL=$(XMLDIR)/spanlib.xsl
+XML=$(XMLDIR)/spanlib.xml
+XSLTARGS=--xinclude
+DIRS=$(XMLDIR) $(HTMLDIR)
+XMLS=$(XML) $(XML_LIBRARY) $(XML_EXAMPLE)
 
 ######################################################################
 
-.SUFFIXES: .html
+.SUFFIXES: .html .xml .xsl .css
 
-html:
-	xsltproc --docbook -o index.html spanlib.xsl template.xml
-##	xsltproc --docbook -o index.html --stringparam  html.stylesheet "$(DOC_CSS)" spanlib.xsl template.xml
+.PHONY: html
 
-all: install
+$(HTML): $(XSL) $(CSS) $(XMLS) $(HTMLDIR)
+	xsltproc $(XSLTARGS) -o $(HTML_LIBRARY) --stringparam  html.stylesheet "$(CSS)" $(XSL) $(XML_LIBRARY)
+	xsltproc $(XSLTARGS) -o $(HTML_EXAMPLE) --stringparam  html.stylesheet "$(CSS)" $(XSL) $(XML_EXAMPLE)
+	xsltproc $(XSLTARGS) -o $(HTML) $(XSL) $(XML)
 
-install: install-doc
+$(XMLS): $(GENDOC) $(XMLDIR) $(F90_LIBRARY) $(F90_EXAMPLE)
+	$^
 
-install-doc: $(DOC_MAIN) $(DOC_CODE) $(DOC_CSS)
-	install -d --mode=755 $(INSTALLDOCDIR)
-	install --mode=644 $(DOC_MAIN) $(DOC_CODE) $(DOC_CSS) $(INSTALLDOCDIR)
+$(DIRS):
+	mkdir -p $@
 
-doc: $(DOC_MAIN) $(DOC_CODE)
+doc: $(HTML)
 
-$(DOC_MAIN): $(GENDOC) $(DOC_TEMPLATES) $(SRC_MAIN) $(SRC_EXAMPLE)
-	$^ $(DOC_MAIN) $(DOC_CODE)
-
-$(DOC_CODE): $(DOC_MAIN)
+all: doc
 
 clear:
-	rm -f $(DOC_MAIN) $(DOC_CODE)
+	rm -f $(XML) $(DOC_CODE)
 
 
+
+######################################################################
+##	xsltproc --docbook -o index.html --stringparam  html.stylesheet "$(DOC_CSS)" spanlib.xsl template.xml
+
+##install: install-doc
+
+##install-doc: $(DOC_MAIN) $(DOC_CODE) $(DOC_CSS)
+##	install -d --mode=755 $(INSTALLDOCDIR)
+##	install --mode=644 $(DOC_MAIN) $(DOC_CODE) $(DOC_CSS) $(INSTALLDOCDIR)
 
 
 
