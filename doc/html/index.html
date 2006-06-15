@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>SpanLib - Spectral Analysis Library</title><link rel="stylesheet" href="spanlib.css" type="text/css"/><meta name="generator" content="DocBook XSL Stylesheets V1.61.2"/><meta name="keywords" content="statistics, physics, climate variability, FFT, wavelets, spatio-temporal, MSSA, PCA, EOF, POP"/><link rel="home" href="index.html" title="SpanLib - Spectral Analysis Library"/><link rel="next" href="doc_f90subs.html" title="2. F90 subroutines"/></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">SpanLib - Spectral Analysis Library</th></tr><tr><td width="20%" align="left"> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="doc_f90subs.html">Next</a></td></tr></table><hr/></div><div class="article" lang="en" id="id3126580"><div class="titlepage"><div><div><h1 class="title"><a id="id3255911"/>SpanLib - Spectral Analysis Library</h1></div><div><div class="authorgroup"><div class="author"><h3 class="author"><span class="firstname">Stephane</span> <span class="surname">Raynaud</span></h3></div><div class="author"><h3 class="author"><span class="firstname">Charles</span> <span class="surname">Doutriaux</span></h3></div></div></div></div><div/><hr/></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt>1. <a href="index.html#doc_intro">Introduction</a></dt><dt>2. <a href="doc_f90subs.html">F90 subroutines</a></dt><dd><dl><dt>2.1. <a href="doc_f90subs.html#sl_pca">Principal Component Analysis: sl_pca</a></dt><dt>2.2. <a href="doc_f90subs.html#sl_pcarec">Reconstruction of a set of PCA components: sl_pcarec</a></dt><dt>2.3. <a href="doc_f90subs.html#sl_mssa">Multi-channel Singular Spectrum Analysis: sl_mssa</a></dt><dt>2.4. <a href="doc_f90subs.html#sl_mssarec">Reconstruction of a set of MSSA components: sl_mssarec</a></dt><dt>2.5. <a href="doc_f90subs.html#sl_phasecomp">Phase composites: sl_phasecomp</a></dt><dt>2.6. <a href="doc_f90subs.html#sl_diasym">Diagonalisation of a symetric matrix: sl_diasym</a></dt></dl></dd><dt>3. <a href="doc_examples.html">Examples</a></dt><dd><dl><dt>3.1. <a href="doc_examples.html#id3189323">A pure Fortran 90 example</a></dt><dt>3.2. <a href="doc_examples.html#id3187327">A example using the Python interface</a></dt></dl></dd><dt>4. <a href="doc_ref.html">References</a></dt><dt><a href="doc_biblio.html">Bibliography</a></dt></dl></div><div class="sect1" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="doc_intro"/>1. Introduction</h2></div></div><div/></div><p>
+			This package provides a F90 module containing a minmal collection of subroutines to perform
+			<span class="emphasis"><em>Principal Componant Analysis</em></span> (PCA),
+			<span class="emphasis"><em>Multi-channel Singular Spectrum Analysis</em></span> (MSSA), reconstruction
+			of components and phase composites.
+		</p><p>
+			<span class="emphasis"><em>PCA</em></span> is also know as Empirical Orthogonal Functions (EOFs) decomposition:
+			it decomposes a space-time signal in pairs of spatial EOFs and temporal PCs
+			that are the eigen solutions of the covariance (or correlation) matrix of the initial signal.
+		</p><p>
+			<span class="emphasis"><em>MSSA</em></span> works in the same way except that EOF are spatio-temporal, and that the diagonalized
+			matrix is built not only using covariances (or correlations) between spatial points,
+			but also lag covariances.
+			Therefore, MSSA is particularly efficient to remove white noise, and extract oscillations and nonlinear
+			trends, even on short sample.
+			It uses a window parameter that corresponds to the maximal lag for lag correlations.
+			Oscillations with a period lower than this window can be typically extracted by MSSA.
+		</p><p>
+			The package also provides the possibility to <span class="emphasis"><em>reconstruct part of the signal</em></span>
+			due to selected modes, for both PCA and MSSA.
+			Finally, <span class="emphasis"><em>oscillations</em></span> extracted by MSSA and reconstructed can be reorganized
+			in <span class="emphasis"><em>phases composites</em></span>: the oscillations are presented over their averaged cycle,
+			decomposed in a fixed number of phases
+			(like one can do for the annual cycle over 12 months for example).
+		</p><p>
+			More information about PCA and MSSA may be found in papers and on the web.
+			See for example:
+			</p><div class="itemizedlist"><ul type="disc"><li>MSSA: <a href="doc_ref.html##plva94">Plaut and Vautard, 1994</a>.</li></ul></div><p>
+		</p><p>
+			An html version of the source code is available here:
+			<tt class="filename"><a href="">spanlib.f90</a></tt>.
+		</p></div></div><div xmlns="" class="generated">This document was generated   using xml/xsl and perl.</div><div class="navfooter"><hr/><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="doc_f90subs.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top"> </td><td width="20%" align="center"> </td><td width="40%" align="right" valign="top"> 2. F90 subroutines</td></tr></table></div></body></html>

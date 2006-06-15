@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>3. Examples</title><link rel="stylesheet" href="spanlib.css" type="text/css"/><meta name="generator" content="DocBook XSL Stylesheets V1.61.2"/><meta name="keywords" content="statistics, physics, climate variability, FFT, wavelets, spatio-temporal, MSSA, PCA, EOF, POP"/><link rel="home" href="index.html" title="SpanLib - Spectral Analysis Library"/><link rel="up" href="index.html" title="SpanLib - Spectral Analysis Library"/><link rel="previous" href="doc_f90subs.html" title="2. F90 subroutines"/><link rel="next" href="doc_ref.html" title="4. References"/></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">3. Examples</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="doc_f90subs.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="doc_ref.html">Next</a></td></tr></table><hr/></div><div class="sect1" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="doc_examples"/>3. Examples</h2></div></div><div/></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="id3189323"/>3.1. A pure Fortran 90 example</h3></div></div><div/></div><p>
+				This is an example of how to use this the Fortran 90 component of Spanlib.
+				In this example, an analysis of Sea surface Temperature anomalies using data
+				stored in the netcdf format.
+				The dominant oscillatory mode of the El Nino variability is then extracted
+				and stored in a netcdf file.
+			</p><div class="example"><a id="id3187311"/><p class="title"><b>Example 1. F90 example</b></p><table bgcolor="" width="100%" align="center" border="0"><tr><td><pre class="programlisting"><span class="e i">! File: example.f90</span>
+<span class="e i">!</span>
+<span class="e i">! This file is part of the SpanLib library.</span>
+<span class="e i">! Copyright (C) 2006  Stephane Raynaud</span>
+<span class="e i">! Contact: stephane dot raynaud at gmail dot com</span>
+<span class="e i">! </span>
+<span class="e i">! This library is free software; you can redistribute it and/or</span>
+<span class="e i">! modify it under the terms of the GNU Lesser General Public</span>
+<span class="e i">! License as published by the Free Software Foundation; either</span>
+<span class="e i">! version 2.1 of the License, or (at your option) any later version.</span>
+<span class="e i">!</span>
+<span class="e i">! This library is distributed in the hope that it will be useful,</span>
+<span class="e i">! but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="e i">! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU</span>
+<span class="e i">! Lesser General Public License for more details.</span>
+<span class="e i">! </span>
+<span class="e i">! You should have received a copy of the GNU Lesser General Public</span>
+<span class="e i">! License along with this library; if not, write to the Free Software</span>
+<span class="e i">! Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA</span>
+
+<span class="vi">program</span> example
+
+	<span class="e i">! This simple example shows how to use all subroutines from this package.</span>
+	<span class="e i">! Warning: it requires netcdf for in/outputs.</span>
+	<span class="e i">!</span>
+	<span class="e i">! We start from longitude/latitude/time value of Pacific Sea Surface Temperature</span>
+	<span class="e i">! that include the El Nino Southern Oscillation signal.</span>
+	<span class="e i">! Input is the netcdf file data.cdf.</span>
+	<span class="e i">! We remove land points from the initial array according</span>
+	<span class="e i">! to the netcdf missing_value attribute of the analysed variable (data are &quot;packed&quot;).</span>
+	<span class="e i">! A PCA is used to reduce the degrees of freedoom before MSSA analysis.</span>
+	<span class="e i">! Weights for PCA are computed as a fonction of latitude.</span>
+	<span class="e i">! Then, we assume that we have already identified an oscillation (after tests).</span>
+	<span class="e i">! This oscillation, given by a pair of MSSA modes, is then </span>
+	<span class="e i">! reconstructed from the MSSA and PCA spaces.</span>
+	<span class="e i">! Finally, phase composites are computed from this reconstructed oscillation.</span>
+	<span class="e i">! The oscillation is outputed in a netcdf file (pair_1.cdf).</span>
+	<span class="e i">!</span>
+	<span class="e i">! The initial data set (data.cdf):</span>
+	<span class="e i">! - origin: updated Reynolds and Smith (1996) SST (netcdf file)</span>
+	<span class="e i">! - origin url: data selector from http://iridl.ldeo.columbia.edu</span>
+	<span class="e i">! - how to get it [10Mb]: http://stefdeperou.free.fr/pub/data.cdf</span>
+	<span class="e i">! - area of study: tropical pacific [130.5E:75.5W, 29.5S:29.5N] (155x60 grid points)</span>
+	<span class="e i">! - period of study: Jan1982:Dec2005 (288 time steps)</span>
+	<span class="e i">!</span>
+	<span class="e i">! Parameters:</span>
+	<span class="e i">! - Only the first 20 PCs are retainedand given to the MSSA</span>
+	<span class="e i">! - A window of 7 years (84 months) is chosen for the MSSA</span>
+	<span class="e i">! - Phase composites use 8 phases</span>
+	<span class="e i">! - An offset of 0.4 and is used for composites</span>
+	<span class="e i">! - The first phase of composites is set at 180 degrees (minimal value)</span>
+	
+
+	<span class="vi">use</span> pcamssa
+	<span class="vi">use</span> netcdf
+
+	<span class="vi">implicit</span> <span class="gr">none</span>
+	
+	<span class="e i">! Parameters</span>
+	<span class="e i">! ----------</span>
+	<span class="vi">integer</span>,<span class="gr">parameter</span> :: nkeep_pca=<span class="r">5</span>, nwindow=<span class="r">84</span>, first_mode=<span class="r">1</span>, nphases=<span class="r">8</span>
+	<span class="vi">real</span>, <span class="gr">parameter</span> :: offset=<span class="r">0</span>., first_phase=<span class="r">180</span>., new_missing_value=-<span class="r">999</span>.
+	<span class="vi">character</span>(len=<span class="r">20</span>), <span class="gr">parameter</span> :: input_nc_file=<span class="o">&quot;data.cdf&quot;</span>, output_nc_file=<span class="o">&quot;pair_1.nc&quot;</span>, &amp;
+		var_name=<span class="o">'ssta'</span>
+
+	<span class="e i">! Other declarations</span>
+	<span class="e i">! ------------------</span>
+	<span class="vi">real</span>, <span class="gr">allocatable</span> :: field(:,:,:), weights(:,:), lat(:), lon(:), time(:)
+	<span class="vi">real</span>, <span class="gr">allocatable</span> :: reco(:,:,:), phasecomps(:,:,:)
+	<span class="vi">logical</span>, <span class="gr">allocatable</span> :: mask(:,:)
+	<span class="vi">real</span>, <span class="gr">allocatable</span> :: packed_field(:,:), packed_weights(:), packed_phasecomps(:,:)
+	<span class="vi">real</span>, <span class="gr">allocatable</span> :: eof(:,:), ev(:), pc(:,:), stpair(:,:), pair(:,:)
+	<span class="vi">real</span>, <span class="gr">allocatable</span> :: steof(:,:),stpc(:,:),stev(:)
+	<span class="vi">character</span>(len=<span class="r">20</span>) :: dim_names(<span class="r">3</span>), dim_name, lon_units, lat_units, var_units, &amp;
+		&amp;	lon_name, lat_name, time_name, time_units
+	<span class="vi">integer</span> :: ncid, dimid, dimids(<span class="r">4</span>), varid, dims(<span class="r">3</span>), thisdim, &amp;
+		&amp; lonid, latid, phaseid, timeid, phcoid, recoid, origid
+	<span class="vi">integer</span>(kind=<span class="r">4</span>) :: i, nspace, nlon, nlat, ntime
+	<span class="vi">real</span> :: pi, missing_value
+
+	<span class="e i">! Get the initial sst field from the netcdf file</span>
+	<span class="e i">! ----------------------------------------------</span>
+	<span class="vi">print</span>*,<span class="o">'Reading inputs...'</span>
+	<span class="vi">call</span> err(nf90_open(input_nc_file, nf90_nowrite, ncid))
+	<span class="vi">call</span> err(nf90_inq_varid(ncid, var_name, varid))
+	<span class="vi">call</span> err(nf90_inquire_variable(ncid, varid, dimids=dimids(<span class="r">1</span>:<span class="r">4</span>)))
+	<span class="vi">call</span> err(nf90_inquire_dimension(ncid, dimids(<span class="r">1</span>), &amp;
+		&amp;	name=lon_name, len=nlon))
+	<span class="vi">call</span> err(nf90_inquire_dimension(ncid, dimids(<span class="r">2</span>), &amp;
+		&amp;	name=lat_name, len=nlat))
+	<span class="vi">call</span> err(nf90_inquire_dimension(ncid, dimids(<span class="r">3</span>), &amp;
+		&amp;	name=time_name, len=ntime))
+	<span class="cy">allocate</span>(field(nlon,nlat,ntime))
+	<span class="cy">allocate</span>(mask(nlon,nlat))
+	<span class="cy">allocate</span>(weights(nlon,nlat))
+	<span class="cy">allocate</span>(lon(nlon))
+	<span class="cy">allocate</span>(lat(nlat))
+	<span class="cy">allocate</span>(time(ntime))
+	<span class="vi">call</span> err(nf90_get_var(ncid, varid, field))
+	<span class="vi">call</span> err(nf90_get_att(ncid, varid, <span class="o">'missing_value'</span>, missing_value))
+	<span class="vi">call</span> err(nf90_get_att(ncid, varid, <span class="o">'units'</span>, var_units))
+	<span class="vi">call</span> err(nf90_inq_varid(ncid, lon_name, varid))
+	<span class="vi">call</span> err(nf90_get_var(ncid, varid, lon))
+	<span class="vi">call</span> err(nf90_get_att(ncid, varid, <span class="o">'units'</span>, lon_units))
+	<span class="vi">call</span> err(nf90_inq_varid(ncid, lat_name, varid))
+	<span class="vi">call</span> err(nf90_get_var(ncid, varid, lat))
+	<span class="vi">call</span> err(nf90_get_att(ncid, varid, <span class="o">'units'</span>, lat_units))
+	<span class="vi">call</span> err(nf90_inq_varid(ncid, time_name, varid))
+	<span class="vi">call</span> err(nf90_get_var(ncid, varid, time))
+	<span class="vi">call</span> err(nf90_get_att(ncid, varid, <span class="o">'units'</span>, time_units))
+	<span class="vi">call</span> err(nf90_close(ncid))
+
+	<span class="e i">! Format (pack) data to have only one space dimension</span>
+	<span class="e i">! ---------------------------------------------------</span>
+	<span class="vi">print</span>*,<span class="o">'Packaging...'</span>
+	
+	<span class="e i">! Compute weights proportional to grid point area</span>
+	pi = cos(-<span class="r">1</span>.)
+	<span class="vi">do</span> i=<span class="r">1</span>,nlat
+		weights(:,i) = cos(lat(i)*pi/<span class="r">180</span>.)
+	<span class="vi">end</span> <span class="vi">do</span>
+	
+	<span class="e i">! Now pack</span>
+	<span class="vi">if</span>(isnan(missing_value))<span class="vi">then</span>
+		mask = <span class="cy">not</span>(isnan(field(:,:,<span class="r">1</span>)))
+	<span class="vi">else</span>
+		mask = (field(:,:,<span class="r">1</span>) /= missing_value)
+	<span class="vi">end</span> <span class="vi">if</span>
+	<span class="cy">allocate</span>(packed_field(count(mask), ntime))
+	<span class="vi">do</span> i=<span class="r">1</span>, ntime
+		packed_field(:,i) = <span class="cy">pack</span>(field(:,:,i), mask)
+	<span class="vi">end</span> <span class="vi">do</span>
+	<span class="cy">allocate</span>(packed_weights(count(mask)))
+	packed_weights = <span class="cy">pack</span>(weights, mask)
+
+	<span class="e i">! Perform a PCA to reduce the d.o.f</span>
+	<span class="e i">! ---------------------------------</span>
+	<span class="vi">print</span>*,<span class="o">'PCA...'</span>
+	<span class="vi">call</span> pca(packed_field, nkeep=nkeep_pca, eof=eof, pc=pc, weights=packed_weights)
+	<span class="cy">deallocate</span>(packed_field)
+
+	<span class="e i">! We send results from PCA to MSSA</span>
+	<span class="e i">! --------------------------------</span>
+	<span class="vi">print</span>*,<span class="o">'MSSA...'</span>
+	<span class="vi">call</span> mssa(<span class="cy">transpose</span>(pc), nwindow, nkeep=first_mode+<span class="r">1</span>, steof=steof, stpc=stpc, ev=stev)
+
+	<span class="e i">! We reconstruct modes [first_mode + first_mode+1] of MSSA</span>
+	<span class="e i">! --------------------------------------------------------</span>
+	
+	<span class="vi">print</span>*,<span class="o">'MSSAREC...'</span>
+	<span class="vi">call</span> mssarec(steof, stpc, nwindow, stpair, istart=first_mode, iend=first_mode+<span class="r">1</span>)
+	<span class="cy">deallocate</span>(steof, stpc)
+
+	<span class="vi">print</span>*,<span class="o">'PCAREC...'</span>
+	<span class="vi">call</span> pcarec(eof, <span class="cy">transpose</span>(stpair), pair)
+<span class="e i">!	call pcarec(eof, pc, pair)</span>
+	<span class="cy">deallocate</span>(stpair, eof)
+
+	<span class="e i">! We compute phases composites for the reconstructed oscillation</span>
+	<span class="e i">! ---------------------------------------------------------------</span>
+	<span class="vi">print</span>*,<span class="o">'PHASECOMP...'</span>
+	<span class="vi">call</span> phasecomp(pair, nphases, packed_phasecomps, weights=packed_weights, &amp;
+		&amp; offset=offset, firstphase=first_phase)
+
+
+	<span class="e i">! Unpacking</span>
+	<span class="e i">! ---------</span>
+	<span class="vi">print</span>*,<span class="o">'Unpacking...'</span>
+	<span class="cy">allocate</span>(reco(nlon,nlat,ntime))
+	<span class="vi">do</span> i=<span class="r">1</span>, ntime
+		reco(:,:,i) = <span class="cy">unpack</span>(pair(:,i), mask, new_missing_value)
+		where(mask == .false.)
+			field(:,:,i) = new_missing_value
+		<span class="vi">end</span> where
+	<span class="vi">end</span> <span class="vi">do</span>
+	<span class="cy">allocate</span>(phasecomps(nlon,nlat,nphases))
+	<span class="vi">do</span> i=<span class="r">1</span>, nphases
+		phasecomps(:,:,i) = <span class="cy">unpack</span>(packed_phasecomps(:,i), mask, new_missing_value)
+	<span class="vi">end</span> <span class="vi">do</span>
+	
+	<span class="e i">! Write out the phase composites of the first oscillation</span>
+	<span class="e i">! -------------------------------------------------------</span>
+	<span class="vi">print</span>*,<span class="o">'Writing out...'</span>
+	<span class="e i">! File</span>
+	<span class="vi">call</span> err(nf90_create(output_nc_file, nf90_write, ncid))
+	<span class="e i">! Dimensions</span>
+	<span class="vi">call</span> err(nf90_def_dim(ncid, <span class="o">'lon'</span>, nlon, dimids(<span class="r">1</span>)))
+	<span class="vi">call</span> err(nf90_def_dim(ncid, <span class="o">'lat'</span>, nlat, dimids(<span class="r">2</span>)))
+	<span class="vi">call</span> err(nf90_def_dim(ncid, <span class="o">'time'</span>, ntime, dimids(<span class="r">3</span>)))
+	<span class="vi">call</span> err(nf90_def_dim(ncid, <span class="o">'phase'</span>, nphases, dimids(<span class="r">4</span>)))
+	<span class="e i">! Variables</span>
+	<span class="vi">call</span> err(nf90_def_var(ncid, <span class="o">'lon'</span>, nf90_float, dimids(<span class="r">1</span>), lonid))
+	<span class="vi">call</span> err(nf90_put_att(ncid, lonid, <span class="o">'long_name'</span>, <span class="o">'Longitude'</span>))
+	<span class="vi">call</span> err(nf90_put_att(ncid, lonid, <span class="o">'units'</span>, lon_units))
+	<span class="vi">call</span> err(nf90_def_var(ncid, <span class="o">'lat'</span>, nf90_float, dimids(<span class="r">2</span>), latid))
+	<span class="vi">call</span> err(nf90_put_att(ncid, latid, <span class="o">'long_name'</span>, <span class="o">'Latitude'</span>))
+	<span class="vi">call</span> err(nf90_put_att(ncid, latid, <span class="o">'units'</span>, lat_units))
+	<span class="vi">call</span> err(nf90_def_var(ncid, <span class="o">'time'</span>, nf90_float, dimids(<span class="r">3</span>), timeid))
+	<span class="vi">call</span> err(nf90_put_att(ncid, timeid, <span class="o">'long_name'</span>, <span class="o">'Time'</span>))
+	<span class="vi">call</span> err(nf90_put_att(ncid, timeid, <span class="o">'units'</span>, time_units))
+	<span class="vi">call</span> err(nf90_def_var(ncid, <span class="o">'phase'</span>, nf90_float, dimids(<span class="r">4</span>), phaseid))
+	<span class="vi">call</span> err(nf90_put_att(ncid, phaseid, <span class="o">'long_name'</span>, <span class="o">'Phase'</span>))
+	<span class="vi">call</span> err(nf90_put_att(ncid, phaseid, <span class="o">'units'</span>, <span class="o">'level'</span>))
+	<span class="vi">call</span> err(nf90_def_var(ncid, <span class="o">'orig'</span>, nf90_float, dimids(<span class="r">1</span>:<span class="r">3</span>), origid))
+	<span class="vi">call</span> err(nf90_put_att(ncid, origid, <span class="o">'long_name'</span>, <span class="o">'SST anomaly / original field'</span>))
+	<span class="vi">call</span> err(nf90_put_att(ncid, origid, <span class="o">'units'</span>, var_units))
+	<span class="vi">call</span> err(nf90_put_att(ncid, origid, <span class="o">'missing_value'</span>, new_missing_value))
+	<span class="vi">call</span> err(nf90_def_var(ncid, <span class="o">'reco1'</span>, nf90_float, dimids(<span class="r">1</span>:<span class="r">3</span>), recoid))
+	<span class="vi">call</span> err(nf90_put_att(ncid, recoid, <span class="o">'long_name'</span>, <span class="o">'SST anomaly / reconstruction of first pair'</span>))
+	<span class="vi">call</span> err(nf90_put_att(ncid, recoid, <span class="o">'units'</span>, var_units))
+	<span class="vi">call</span> err(nf90_put_att(ncid, recoid, <span class="o">'missing_value'</span>, new_missing_value))
+	<span class="vi">call</span> err(nf90_def_var(ncid, <span class="o">'pair1'</span>, nf90_float, (/dimids(<span class="r">1</span>),dimids(<span class="r">2</span>),dimids(<span class="r">4</span>)/), phcoid))
+	<span class="vi">call</span> err(nf90_put_att(ncid, phcoid, <span class="o">'long_name'</span>, <span class="o">'SST anomaly / phase composite of first pair'</span>))
+	<span class="vi">call</span> err(nf90_put_att(ncid, phcoid, <span class="o">'units'</span>, var_units))
+	<span class="vi">call</span> err(nf90_put_att(ncid, phcoid, <span class="o">'missing_value'</span>, new_missing_value))
+	<span class="e i">! Values</span>
+	<span class="vi">call</span> err(nf90_enddef(ncid))
+	<span class="vi">call</span> err(nf90_put_var(ncid, lonid, lon))
+	<span class="vi">call</span> err(nf90_put_var(ncid, latid, lat))
+	<span class="vi">call</span> err(nf90_put_var(ncid, timeid, time))
+	<span class="vi">call</span> err(nf90_put_var(ncid, phaseid, float((/(i,i=<span class="r">1</span>,nphases)/))))
+	<span class="vi">call</span> err(nf90_put_var(ncid, origid, field))
+	<span class="vi">call</span> err(nf90_put_var(ncid, recoid, reco))
+	<span class="vi">call</span> err(nf90_put_var(ncid, phcoid, phasecomps))
+	<span class="vi">call</span> err(nf90_close(ncid))
+
+<span class="vi">end</span> <span class="vi">program</span> example
+
+<span class="vi">subroutine</span> err(jstatus)
+
+	<span class="vi">use</span> netcdf
+
+	<span class="vi">integer</span> :: jstatus
+
+	<span class="vi">if</span> (jstatus .ne. nf90_noerr) <span class="vi">then</span>
+		<span class="vi">print</span> *, <span class="cy">trim</span>(nf90_strerror(jstatus))
+		stop
+	<span class="vi">end</span> <span class="vi">if</span>
+
+<span class="vi">end</span> <span class="vi">subroutine</span> err
+
+</pre></td></tr></table></div></div><div class="sect2" lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="id3187327"/>3.2. A example using the Python interface</h3></div></div><div/></div><div class="example"><a id="id3187333"/><p class="title"><b>Example 2. Python example</b></p></div></div></div><div xmlns="" class="generated">This document was generated   using xml/xsl and perl.</div><div class="navfooter"><hr/><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="doc_f90subs.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="index.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="doc_ref.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">2. F90 subroutines </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 4. References</td></tr></table></div></body></html>

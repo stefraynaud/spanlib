@@ -1,0 +1,536 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE table PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<table xmlns="http://www.w3.org/1999/xhtml" bgcolor="" width="100%" align="center" border="0"><tr><td><pre class="programlisting"><span class="e i">! File: spanlib.f90</span>
+<span class="e i">!</span>
+<span class="e i">! This file is part of the SpanLib library.</span>
+<span class="e i">! Copyright (C) 2006  Stephane Raynaud</span>
+<span class="e i">! Contact: stephane dot raynaud at gmail dot com</span>
+<span class="e i">! </span>
+<span class="e i">! This library is free software; you can redistribute it and/or</span>
+<span class="e i">! modify it under the terms of the GNU Lesser General Public</span>
+<span class="e i">! License as published by the Free Software Foundation; either</span>
+<span class="e i">! version 2.1 of the License, or (at your option) any later version.</span>
+
+<span class="e i">! This library is distributed in the hope that it will be useful,</span>
+<span class="e i">! but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="e i">! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU</span>
+<span class="e i">! Lesser General Public License for more details.</span>
+<span class="e i">! </span>
+<span class="e i">! You should have received a copy of the GNU Lesser General Public</span>
+<span class="e i">! License along with this library; if not, write to the Free Software</span>
+<span class="e i">! Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA</span>
+
+<span class="vi">module</span> spanlib
+
+<span class="e i">!	interface spanlib_interface</span>
+<span class="e i">!		module procedure sl_pca, sl_pcarec, sl_mssa, sl_mssarec, sl_phasecomp, sl_diasym</span>
+<span class="e i">!	end interface</span>
+
+
+<span class="vi">contains</span>
+
+	<span class="e i">! ############################################################</span>
+	<span class="e i">! ############################################################</span>
+	<span class="e i">! ## PCA PART ################################################</span>
+	<span class="e i">! ############################################################</span>
+	<span class="e i">! ############################################################</span>
+
+	<span class="vi">subroutine</span> <span class="b">sl_pca</span>(ff, nkeep, xeof, pc, ev, weights, useteof)
+	<span class="e i">! Internal</span>
+	<span class="e i">! --------</span>
+	<span class="vi">integer</span>           :: ii,ij,nn,ns,nt
+	<span class="vi">real</span>, <span class="gr">allocatable</span> :: cov(:,:)
+	<span class="vi">real</span>, <span class="gr">allocatable</span> :: wff(:,:), ww(:), zeof(:,:), zff(:,:)
+	<span class="vi">real</span>, <span class="gr">allocatable</span> :: eig(:)
+	<span class="vi">integer</span>           :: zuseteof = -<span class="r">1</span>, znkeep, znkeepmax=<span class="r">100</span>, i,j
+	
+	<span class="e i">! Setups</span>
+	<span class="e i">! ======</span>
+
+	<span class="e i">! Sizes</span>
+	<span class="e i">! -----</span>
+	ns=size(ff,<span class="r">1</span>)
+	nt=size(ff,<span class="r">2</span>)
+	<span class="vi">if</span>(<span class="cy">present</span>(nkeep))<span class="vi">then</span>
+		znkeep = nkeep
+	<span class="vi">else</span>
+		znkeep = minval(ubound(ff))
+	<span class="vi">end</span> <span class="vi">if</span>
+	<span class="vi">if</span>(znkeep&gt;<span class="r">50</span>)<span class="vi">then</span>
+		<span class="vi">print</span>*,'[pca] You want to keep a nomber of PCs greater than <span class="r">50</span><span class="e i">!'</span>
+		return
+	<span class="vi">end</span> <span class="vi">if</span>
+	<span class="vi">if</span>(<span class="cy">not</span>(<span class="cy">present</span>(xeof)).and.<span class="cy">not</span>(<span class="cy">present</span>(pc)).and.<span class="cy">not</span>(<span class="cy">present</span>(ev)))<span class="vi">then</span>
+		<span class="vi">print</span>*,<span class="o">'[pca] Nothing to <span class="vi">do</span>. Quit.'</span>
+		return
+	<span class="vi">end</span> <span class="vi">if</span>
+
+	<span class="e i">! By default, T-EOF decompostion if ns &gt; nt</span>
+	<span class="e i">! -----------------------------------------</span>
+	<span class="vi">if</span>(<span class="cy">present</span>(useteof))zuseteof = useteof
+	<span class="vi">if</span>(zuseteof.ne.<span class="r">0</span>.and.zuseteof.ne.<span class="r">1</span>)<span class="vi">then</span>
+		<span class="vi">if</span>(ns&gt;nt)<span class="vi">then</span> 
+			zuseteof=<span class="r">1</span>
+		<span class="vi">else</span>
+			zuseteof=<span class="r">0</span>
+		<span class="vi">endif</span>
+	<span class="vi">endif</span>
+	
+	<span class="e i">! Remove the mean</span>
+	<span class="e i">! ---------------</span>
+	<span class="cy">allocate</span>(zff(ns,nt))
+	zff = ff - <span class="cy">spread</span>(<span class="cy">sum</span>(ff,dim=<span class="r">2</span>)/<span class="vi">real</span>(nt), ncopies=nt, dim=<span class="r">2</span>)
+	
+	<span class="e i">! Default weights = 1.</span>
+	<span class="e i">! --------------------</span>
+	<span class="cy">allocate</span>(ww(ns))
+	<span class="cy">allocate</span>(wff(ns,nt))
+	ww = <span class="r">1</span>.
+	<span class="vi">if</span>(<span class="cy">present</span>(weights))<span class="vi">then</span>
+		ww(:) = weights * <span class="vi">real</span>(ns) / <span class="cy">sum</span>(weights)
+		where(ww==<span class="r">0</span>.)
+			ww = <span class="r">1</span>.
+		<span class="vi">end</span> where
+		<span class="vi">do</span> i = <span class="r">1</span>, nt
+			wff(:,i) = zff(:,i) * <span class="cy">sqrt</span>(ww)
+		<span class="vi">end</span> <span class="vi">do</span>
+	<span class="vi">else</span>
+		wff = zff
+	<span class="vi">end</span> <span class="vi">if</span>
+
+   
+	<span class="e i">! EOF decomposition</span>
+	<span class="e i">! =================</span>
+
+	<span class="vi">if</span>(zuseteof==<span class="r">1</span>)<span class="vi">then</span>
+
+
+		<span class="e i">! T-EOF case</span>
+		<span class="e i">! ----------</span>
+
+		<span class="e i">! Covariance</span>
+		<span class="cy">allocate</span>(cov(nt,nt))
+		<span class="cy">allocate</span>(eig(nt))
+	   <span class="vi">do</span> i=<span class="r">1</span>,nt
+			<span class="vi">do</span> j=<span class="r">1</span>,i
+				cov(i,j) = <span class="cy">dot_product</span>(wff(:,i),wff(:,j))
+				cov(j,i) = cov(i,j)
+			<span class="vi">end</span> <span class="vi">do</span>
+		<span class="vi">end</span> <span class="vi">do</span>
+	   <span class="vi">do</span> i=<span class="r">1</span>,nt
+			<span class="vi">do</span> j=<span class="r">1</span>,i
+				cov(i,j) = <span class="cy">dot_product</span>(ww(:)*zff(:,i),zff(:,j))
+				cov(j,i) = cov(i,j)
+			<span class="vi">end</span> <span class="vi">do</span>
+		<span class="vi">end</span> <span class="vi">do</span>
+		cov = cov / float(ns)
+		<span class="cy">deallocate</span>(wff)
+
+		<span class="e i">! Diagonalising (cov: input=cov, output=eof)</span>
+		<span class="vi">call</span> <span class="b">sl_diasym</span>(cov,eig)
+
+		<span class="e i">! Back to S-EOFs</span>
+		<span class="vi">if</span>(<span class="cy">present</span>(pc).or.<span class="cy">present</span>(xeof))<span class="vi">then</span>
+			<span class="cy">allocate</span>(zeof(ns,nkeep))
+			zeof = <span class="cy">matmul</span>(zff, cov(:,nt:nt-nkeep+<span class="r">1</span>:-<span class="r">1</span>))
+			<span class="cy">deallocate</span>(cov)
+			<span class="vi">do</span> i = <span class="r">1</span>, nkeep
+		   	zeof(:,i) = zeof(:,i) / <span class="cy">sqrt</span>(<span class="cy">dot_product</span>(ww(:), zeof(:,i)**<span class="r">2</span>))
+			<span class="vi">end</span> <span class="vi">do</span>
+			<span class="vi">if</span>(<span class="cy">not</span>(<span class="cy">present</span>(pc)))<span class="vi">then</span>
+				<span class="cy">deallocate</span>(ww)
+			<span class="vi">end</span> <span class="vi">if</span>
+		<span class="vi">else</span>
+			<span class="cy">deallocate</span>(cov)
+		<span class="vi">end</span> <span class="vi">if</span>
+
+	<span class="vi">else</span>
+
+
+		<span class="e i">! S-EOF case (classical)</span>
+		<span class="e i">! ----------------------</span>
+
+		<span class="e i">! Covariance</span>
+		<span class="cy">allocate</span>(cov(ns,ns))
+		<span class="cy">allocate</span>(eig(ns))
+	   <span class="vi">do</span> i=<span class="r">1</span>,nt
+			<span class="vi">do</span> j=<span class="r">1</span>,i
+				cov(i,j) = <span class="cy">dot_product</span>(wff(i,:), wff(j,:))
+				cov(j,i) = cov(i,j)
+			<span class="vi">end</span> <span class="vi">do</span>
+		<span class="vi">end</span> <span class="vi">do</span>
+		cov = cov / float(nt)
+		<span class="cy">deallocate</span>(wff)
+
+		<span class="e i">! Diagonalisation (cov: input=cov, output=eof)</span>
+		<span class="vi">call</span> <span class="b">sl_diasym</span>(cov,eig)
+
+		<span class="e i">! Formatting S-EOFs</span>
+		<span class="vi">if</span>(<span class="cy">present</span>(xeof).or.<span class="cy">present</span>(pc))<span class="vi">then</span>
+			<span class="cy">allocate</span>(zeof(ns,nkeep))
+			<span class="vi">do</span> i = <span class="r">1</span>, nkeep
+<span class="e i">!				zeof(:,i) = cov(:,ns:ns-nkeep+1:-1) / sqrt(ww(:,1:nkeep))</span>
+				zeof(:,i) = cov(:,ns-i+<span class="r">1</span>) / <span class="cy">sqrt</span>(ww(:))
+			<span class="vi">end</span> <span class="vi">do</span>
+		<span class="vi">end</span> <span class="vi">if</span>
+	   <span class="cy">deallocate</span>(cov)
+
+	<span class="vi">end</span> <span class="vi">if</span>
+	
+	<span class="vi">if</span>(<span class="cy">present</span>(xeof))<span class="vi">then</span>
+		<span class="vi">if</span>(<span class="cy">not</span>(<span class="cy">allocated</span>(xeof))) <span class="cy">allocate</span>(xeof(ns,nkeep))
+		xeof = zeof
+		<span class="vi">if</span>(<span class="cy">not</span>(<span class="cy">present</span>(pc))) <span class="cy">deallocate</span>(zeof)
+	<span class="vi">end</span> <span class="vi">if</span>
+
+
+	<span class="e i">! Eigenvalues</span>
+	<span class="e i">! ===========</span>
+	<span class="vi">if</span>(<span class="cy">present</span>(ev))<span class="vi">then</span>
+		<span class="vi">if</span>(<span class="cy">not</span>(<span class="cy">allocated</span>(ev))) <span class="cy">allocate</span>(ev(nkeep))
+		ev = eig(ns:ns-nkeep+<span class="r">1</span>:-<span class="r">1</span>)
+	<span class="vi">end</span> <span class="vi">if</span>
+
+
+	<span class="e i">! Finally get PCs</span>
+	<span class="e i">! ===============</span>
+	<span class="vi">if</span>(<span class="cy">present</span>(pc))<span class="vi">then</span>
+		<span class="vi">if</span>(<span class="cy">not</span>(<span class="cy">allocated</span>(pc))) <span class="cy">allocate</span>(pc(nt,nkeep))
+		<span class="vi">if</span>(<span class="cy">present</span>(weights))<span class="vi">then</span>
+			<span class="vi">do</span> i=<span class="r">1</span>, nt
+				zff(:,i) = zff(:,i) * ww(:)
+			<span class="vi">end</span> <span class="vi">do</span>
+		<span class="vi">end</span> <span class="vi">if</span>
+		pc = <span class="cy">matmul</span>( <span class="cy">transpose</span>(zff), zeof)
+		<span class="vi">do</span> i = <span class="r">1</span>, nkeep
+			pc(:,i) = pc(:,i) / <span class="cy">dot_product</span>(zeof(:,i)**<span class="r">2</span>, ww(:))
+		<span class="vi">end</span> <span class="vi">do</span>
+	<span class="vi">end</span> <span class="vi">if</span>
+	
+	<span class="vi">end</span> <span class="vi">subroutine</span> <span class="b">sl_pca</span>
+
+
+
+	<span class="vi">subroutine</span> <span class="b">sl_pcarec</span>(xeof, pc, ffrec, istart, iend)
+	<span class="e i">! Internal</span>
+	<span class="e i">! --------</span>
+	<span class="vi">integer</span> :: nkept, itmp, zistart=<span class="r">1</span>, ziend
+
+
+	<span class="e i">! Setup</span>
+	<span class="e i">! =====</span>
+	nkept = size(xeof,<span class="r">2</span>)
+	<span class="vi">if</span>(<span class="cy">present</span>(istart))zistart=istart
+	<span class="vi">if</span>(<span class="cy">present</span>(iend))<span class="vi">then</span>
+		ziend=iend
+	<span class="vi">else</span> 
+		ziend=nkept
+	<span class="vi">end</span> <span class="vi">if</span>
+	<span class="vi">if</span>(zistart.lt.<span class="r">1</span>.or.zistart.gt.nkept)<span class="vi">then</span>
+		zistart=<span class="r">1</span>
+		<span class="vi">print</span>*,<span class="o">'[pcarec] istart lower than <span class="r">1</span> =&gt; set to <span class="r">1</span>'</span>
+	<span class="vi">end</span> <span class="vi">if</span>
+	<span class="vi">if</span>(ziend.lt.<span class="r">1</span>.or.ziend.gt.nkept)<span class="vi">then</span>
+		ziend=nkept
+		<span class="vi">print</span>*,<span class="o">'[pcarec] iend greater than the number of avalaible modes =&gt; reduced to'</span>,iend
+	<span class="vi">end</span> <span class="vi">if</span>
+	<span class="vi">if</span>(zistart&gt;ziend)<span class="vi">then</span>
+		itmp=ziend
+		ziend=zistart
+		zistart=itmp
+		<span class="vi">print</span>*,<span class="o">'[pcarec] istart &gt; iend =&gt; inversion'</span>
+	<span class="vi">end</span> <span class="vi">if</span>
+
+
+	<span class="e i">! Computation</span>
+	<span class="e i">! ===========</span>
+	<span class="vi">if</span>(<span class="cy">not</span>(<span class="cy">allocated</span>(ffrec)))<span class="cy">allocate</span>(ffrec(size(xeof,<span class="r">1</span>), size(pc,<span class="r">1</span>)))
+	ffrec = <span class="r">0</span>.
+	ffrec = <span class="cy">matmul</span>( xeof(:, zistart:ziend), <span class="cy">transpose</span>(pc(:, zistart:ziend)) )
+	
+	<span class="vi">end</span> <span class="vi">subroutine</span> <span class="b">sl_pcarec</span>
+
+
+
+
+  <span class="e i">!############################################################</span>
+  <span class="e i">!############################################################</span>
+  <span class="e i">!## MSSA PART ###############################################</span>
+  <span class="e i">!############################################################</span>
+  <span class="e i">!############################################################</span>
+
+	<span class="vi">subroutine</span> <span class="b">sl_mssa</span>(ff, nwindow, nkeep, steof, stpc, ev)
+	<span class="e i">! Internal</span>
+	<span class="e i">! --------</span>
+	<span class="vi">real</span>, <span class="gr">allocatable</span> :: cov(:,:), eig(:), trff(:,:), zff(:,:), zsteof(:,:)
+	<span class="vi">real</span> :: wsteof
+	<span class="vi">integer</span> :: nchan, nsteof, nt
+	<span class="vi">integer</span> :: iw, iw1, iw2, i1, i2, im, ic1, ic2
+
+
+	<span class="e i">! Setup</span>
+	<span class="e i">! =====</span>
+
+	<span class="e i">! Sizes</span>
+	<span class="e i">! -----</span>
+	nchan = size(ff,<span class="r">1</span>)
+	nsteof = nchan * nwindow
+	nt = size(ff,<span class="r">2</span>)
+
+	<span class="e i">! Remove the mean</span>
+	<span class="e i">! ---------------</span>
+	<span class="cy">allocate</span>(zff(nchan, nt))
+	zff = ff - <span class="cy">spread</span>(<span class="cy">sum</span>(ff,dim=<span class="r">2</span>)/<span class="vi">real</span>(nt), ncopies=nt, dim=<span class="r">2</span>)
+	
+	<span class="e i">! Set the block-Toeplitz covariance matrix</span>
+	<span class="e i">! ========================================</span>
+	<span class="cy">allocate</span>(cov(nsteof, nsteof))
+	<span class="vi">do</span> ic1 = <span class="r">1</span>, nchan
+		<span class="vi">do</span> ic2 = <span class="r">1</span>, nchan
+			<span class="vi">do</span> iw2 = <span class="r">1</span>, nwindow
+				<span class="vi">do</span> iw1 = <span class="r">1</span>, iw2
+					i1 = (ic1-<span class="r">1</span>) * nwindow + iw1
+					i2 = (ic2-<span class="r">1</span>) * nwindow + iw2
+					iw = iw2 - iw1 + <span class="r">1</span>
+					cov(i1,i2) = &amp;
+						&amp; <span class="cy">dot_product</span>(zff(ic1, <span class="r">1</span>  : nt-iw+<span class="r">1</span>), &amp;
+						&amp;			 zff(ic2, iw : nt	 )) / <span class="vi">real</span>(nt-iw+<span class="r">1</span>)
+					cov(i2,i1) = cov(i1,i2)
+				<span class="vi">end</span> <span class="vi">do</span>
+			<span class="vi">end</span> <span class="vi">do</span>
+		<span class="vi">end</span> <span class="vi">do</span>
+	<span class="vi">end</span> <span class="vi">do</span>
+
+
+	<span class="e i">! Diagonalisation</span>
+	<span class="e i">! ===============</span>
+	<span class="cy">allocate</span>(eig(nsteof))
+	<span class="vi">call</span> <span class="b">sl_diasym</span>(cov,eig)
+
+
+	<span class="e i">! Get ST-EOFs and eigenvalues</span>
+	<span class="e i">! ===========================</span>
+	<span class="vi">if</span>(<span class="cy">present</span>(steof).or.<span class="cy">present</span>(stpc))<span class="vi">then</span>
+		<span class="cy">allocate</span>(zsteof(nsteof, nkeep))
+		zsteof = cov(:, nsteof : nsteof-nkeep+<span class="r">1</span> : -<span class="r">1</span>)
+		<span class="cy">deallocate</span>(cov)
+		<span class="vi">if</span>(<span class="cy">present</span>(steof))<span class="vi">then</span>
+			<span class="vi">if</span>(<span class="cy">not</span>(<span class="cy">allocated</span>(steof))) <span class="cy">allocate</span>(steof(nsteof, nkeep))
+			steof = zsteof
+			<span class="cy">deallocate</span>(zsteof)
+		<span class="vi">end</span> <span class="vi">if</span>
+	<span class="vi">end</span> <span class="vi">if</span>
+
+	<span class="e i">! Eigen values</span>
+	<span class="e i">! ------------</span>
+	<span class="vi">if</span>(<span class="cy">present</span>(ev))<span class="vi">then</span>
+		<span class="vi">if</span>(<span class="cy">not</span>(<span class="cy">allocated</span>(ev))) <span class="cy">allocate</span>(ev(nkeep))
+		ev = eig(nsteof : nsteof-nkeep+<span class="r">1</span> : -<span class="r">1</span>)
+	<span class="vi">end</span> <span class="vi">if</span>
+	<span class="cy">deallocate</span>(eig)
+	
+
+	<span class="e i">! Get ST-PCs</span>
+	<span class="e i">! ==========</span>
+	<span class="vi">if</span>(<span class="cy">present</span>(stpc))<span class="vi">then</span> 
+		<span class="vi">if</span>(<span class="cy">not</span>(<span class="cy">allocated</span>(stpc))) <span class="cy">allocate</span>(stpc(nt-nwindow+<span class="r">1</span>, nkeep))
+		<span class="cy">allocate</span>(trff(nt, nchan))
+		trff = <span class="cy">transpose</span>(zff)
+		<span class="vi">do</span> im = <span class="r">1</span>, nkeep
+			wsteof = <span class="cy">sum</span>(steof(:,im)**<span class="r">2</span>)
+			<span class="vi">do</span> iw = <span class="r">1</span>, nwindow
+				stpc(:, im)  =  stpc(:, im) + <span class="cy">matmul</span>( &amp;
+					&amp; trff ( iw : iw+nt-nwindow, :), &amp;
+					&amp; steof( iw : iw+(nchan-<span class="r">1</span>)*nwindow : nwindow , im ) ) / wsteof
+			<span class="vi">end</span> <span class="vi">do</span>
+		<span class="vi">end</span> <span class="vi">do</span>
+	<span class="vi">end</span> <span class="vi">if</span>
+
+  <span class="vi">end</span> <span class="vi">subroutine</span> <span class="b">sl_mssa</span>
+
+
+
+	<span class="vi">subroutine</span> <span class="b">sl_mssarec</span>(steof, stpc, nwindow, ffrec, istart, iend)
+	<span class="e i">! Internal</span>
+	<span class="e i">! --------</span>
+	<span class="vi">integer</span> :: ntpc, nchan, nt, ic, im, iw, nkept, itmp, zistart=<span class="r">1</span>, ziend
+	<span class="vi">real</span>, <span class="gr">allocatable</span> :: reof(:), epc(:,:)
+
+
+	<span class="e i">! Setup</span>
+	<span class="e i">! =====</span>
+
+	<span class="e i">! Sizes</span>
+	<span class="e i">! -----</span>
+	ntpc  = size(stpc, <span class="r">1</span>)
+	nt    = ntpc+nwindow-<span class="r">1</span>
+	nchan = size(steof, <span class="r">1</span>)/nwindow
+	nkept = size(steof, <span class="r">2</span>)
+	<span class="cy">allocate</span>(reof(nwindow))
+	<span class="cy">allocate</span>(epc(nwindow, ntpc-nwindow+<span class="r">1</span>))
+	<span class="vi">if</span>(<span class="cy">not</span>(<span class="cy">allocated</span>(ffrec))) <span class="cy">allocate</span>(ffrec(nchan, nt))
+	ffrec = <span class="r">0</span>.
+
+	<span class="e i">! Range</span>
+	<span class="e i">! -----</span>
+	<span class="vi">if</span>(<span class="cy">present</span>(istart))zistart=istart
+	<span class="vi">if</span>(<span class="cy">present</span>(iend))<span class="vi">then</span>
+		ziend=iend
+	<span class="vi">else</span> 
+		ziend=nkept
+	<span class="vi">end</span> <span class="vi">if</span>
+	<span class="vi">if</span>(zistart.lt.<span class="r">1</span>.or.zistart.gt.nkept)<span class="vi">then</span>
+		zistart = <span class="r">1</span>
+		<span class="vi">print</span>*,<span class="o">'[mssarec] istart lower than <span class="r">1</span> =&gt; set to <span class="r">1</span>'</span>
+	<span class="vi">end</span> <span class="vi">if</span>
+	<span class="vi">if</span>(ziend.lt.<span class="r">1</span>.or.ziend.gt.nkept)<span class="vi">then</span>
+		ziend = nkept
+		<span class="vi">print</span>*,<span class="o">'[mssarec] iend greater than the number of avalaible modes =&gt; reduced to'</span>,iend
+	<span class="vi">end</span> <span class="vi">if</span>
+	<span class="vi">if</span>(zistart&gt;ziend)<span class="vi">then</span>
+		itmp    = ziend
+		ziend   = zistart
+		zistart = itmp
+		<span class="vi">print</span>*,<span class="o">'[mssarec] istart &gt; iend =&gt; inversion'</span>
+	<span class="vi">end</span> <span class="vi">if</span>
+
+	<span class="e i">! Computation</span>
+	<span class="e i">! ===========</span>
+	<span class="vi">do</span> im = zistart, ziend <span class="e i">! sum over the selection of modes</span>
+
+		<span class="e i">! (ntpc-nwindow+1) length slices</span>
+		<span class="vi">do</span> iw = <span class="r">1</span>, nwindow
+			epc(iw,:) = stpc(iw : iw+ntpc-nwindow, im)
+		<span class="vi">end</span> <span class="vi">do</span>
+
+		<span class="vi">do</span> ic = <span class="r">1</span>, nchan <span class="e i">! sum over the channels (= space or PCs from simple PCA)</span>
+
+			<span class="e i">! reversed eof</span>
+			reof = steof(nwindow+(ic-<span class="r">1</span>)*nwindow : <span class="r">1</span>+(ic-<span class="r">1</span>)*nwindow : -<span class="r">1</span>, im)
+
+			<span class="e i">! * middle * [nwindow length projections]</span>
+			ffrec(ic, nwindow : ntpc) =  ffrec(ic, nwindow : ntpc) + &amp;
+				&amp; <span class="cy">matmul</span>(reof, epc) / <span class="vi">real</span>(nwindow)
+
+		  <span class="vi">do</span> iw = <span class="r">1</span>, nwindow-<span class="r">1</span>
+
+			 <span class="e i">! * beginning * [iw length projections]</span>
+			 ffrec(ic, iw) = ffrec(ic, iw) + &amp; 
+				  &amp; <span class="cy">dot_product</span>( reof(nwindow-iw+<span class="r">1</span>:nwindow),  stpc(<span class="r">1</span>		:iw,   im) ) / <span class="vi">real</span>(iw)
+<span class="e i">!</span>
+			 <span class="e i">! * end * [iw length projections]</span>
+			 ffrec(ic, nt-iw+<span class="r">1</span>) = ffrec(ic, nt-iw+<span class="r">1</span>) + &amp;
+				  &amp; <span class="cy">dot_product</span>( reof(<span class="r">1</span>		   :iw),	   stpc(ntpc-iw+<span class="r">1</span>:ntpc, im) ) / <span class="vi">real</span>(iw)
+
+			<span class="vi">end</span> <span class="vi">do</span>
+
+		<span class="vi">end</span> <span class="vi">do</span>
+ 
+	<span class="vi">end</span> <span class="vi">do</span>
+
+	<span class="vi">end</span> <span class="vi">subroutine</span> <span class="b">sl_mssarec</span>
+
+
+
+  <span class="e i">! ############################################################</span>
+  <span class="e i">! ############################################################</span>
+  <span class="e i">! ## TOOLS PART ##############################################</span>
+  <span class="e i">! ############################################################</span>
+  <span class="e i">! ############################################################</span>
+
+	<span class="vi">subroutine</span> <span class="b">sl_phasecomp</span>(ffrec, np, phases, weights, offset, firstphase)
+	<span class="e i">! Internal</span>
+	<span class="e i">! --------</span>
+	<span class="vi">real</span>, <span class="gr">allocatable</span> :: xeof(:,:), pc(:,:)
+	<span class="vi">real</span> :: dpc(size(ffrec,<span class="r">2</span>)), amp(size(ffrec,<span class="r">2</span>))
+	<span class="vi">integer</span> :: nt, iphase
+	<span class="vi">real</span> :: angles(np), projection(size(ffrec,<span class="r">2</span>))
+	<span class="vi">real</span> :: pi, deltarad, pcos, psin, zoffset, zfirstphase
+	<span class="vi">logical</span> :: select_amplitude(size(ffrec,<span class="r">2</span>)), select_phase(size(ffrec,<span class="r">2</span>))
+	<span class="vi">integer</span> :: itime(size(ffrec,<span class="r">2</span>)), nsel, i, ns
+	<span class="vi">integer</span>, <span class="gr">allocatable</span> :: isel(:)
+	
+
+	<span class="e i">! Setup</span>
+	<span class="e i">! =====</span>
+	nt = size(ffrec,<span class="r">2</span>)
+	pi = acos(-<span class="r">1</span>.)
+	itime = (/ (i, i=<span class="r">1</span>, nt) /)
+	ns = size(ffrec, <span class="r">1</span>)
+	<span class="vi">if</span>(<span class="cy">present</span>(offset))<span class="vi">then</span>
+		zoffset=offset
+	<span class="vi">else</span>
+		zoffset=<span class="r">0</span>.
+	<span class="vi">end</span> <span class="vi">if</span>
+
+	<span class="e i">! Find the first PC and its derivative</span>
+	<span class="e i">! ====================================</span>
+	<span class="vi">call</span> <span class="b">sl_pca</span>(ffrec, <span class="r">1</span>, pc=pc, weights=weights)
+	pc = pc * <span class="cy">sqrt</span>(<span class="vi">real</span>(nt)/<span class="cy">sum</span>(pc**<span class="r">2</span>))
+	dpc = <span class="r">0</span>.<span class="r">5</span> * (<span class="cy">eoshift</span>(pc(:,<span class="r">1</span>), <span class="r">1</span>, pc(nt,<span class="r">1</span>)) - <span class="cy">eoshift</span>(pc(:,<span class="r">1</span>), -<span class="r">1</span>, pc(<span class="r">1</span>,<span class="r">1</span>)))
+	dpc((/<span class="r">1</span>,nt/)) = dpc((/<span class="r">1</span>,nt/)) * <span class="r">2</span>.
+	dpc = dpc * <span class="cy">sqrt</span>(<span class="vi">real</span>(nt)/<span class="cy">sum</span>(dpc**<span class="r">2</span>))
+	amp = <span class="cy">sqrt</span>(pc(:,<span class="r">1</span>)**<span class="r">2</span> + dpc**<span class="r">2</span>)
+
+
+	<span class="e i">! Compute the maps</span>
+	<span class="e i">! ================</span>
+
+	<span class="e i">! Define the marks</span>
+	<span class="e i">! ----------------</span>
+	deltarad = <span class="r">2</span> * pi / <span class="vi">real</span>(np)
+	<span class="vi">if</span>(<span class="cy">present</span>(firstphase))<span class="vi">then</span>
+		zfirstphase = <span class="cy">modulo</span>(firstphase * <span class="r">2</span> * pi / <span class="r">360</span>., <span class="r">360</span>.)
+	<span class="vi">else</span>
+	   zfirstphase = <span class="r">0</span>.
+	<span class="vi">end</span> <span class="vi">if</span>
+	angles = (/ (<span class="vi">real</span>(iphase) + zfirstphase, iphase=<span class="r">0</span>,np-<span class="r">1</span>) /) * deltarad
+
+	<span class="e i">! Compute the phase maps</span>
+	<span class="e i">! ----------------------</span>
+	<span class="vi">if</span>(<span class="cy">not</span>(<span class="cy">allocated</span>(phases))) <span class="cy">allocate</span>(phases(ns, np))
+	phases = <span class="r">0</span>.
+	select_amplitude = amp &gt;= zoffset
+	<span class="vi">do</span> iphase = <span class="r">1</span>, np
+		pcos = cos(angles(iphase))
+		psin = sin(angles(iphase))
+		projection =  (pc(:,<span class="r">1</span>)*pcos+dpc*psin) / amp
+		select_phase = ( projection &gt;= cos(<span class="r">0</span>.<span class="r">5</span>*deltarad) ) .and. select_amplitude
+		<span class="vi">if</span>(any(select_phase))<span class="vi">then</span>
+			nsel = count(select_phase)
+			<span class="cy">allocate</span>(isel(nsel))
+			isel = <span class="cy">pack</span>(itime, select_phase)
+			phases(:,iphase) = <span class="cy">sum</span>(ffrec(:,isel), dim=<span class="r">2</span>) / <span class="vi">real</span>(nsel)
+			<span class="cy">deallocate</span>(isel)
+		<span class="vi">end</span> <span class="vi">if</span>
+	<span class="vi">end</span> <span class="vi">do</span>
+
+	<span class="vi">end</span> <span class="vi">subroutine</span> <span class="b">sl_phasecomp</span>
+
+
+
+  <span class="vi">subroutine</span> <span class="b">sl_diasym</span>(a,eig)
+	<span class="e i">! Internal</span>
+	<span class="e i">! --------</span>
+	<span class="vi">integer</span> :: n,lwork,inf 
+	<span class="vi">real</span>, <span class="gr">allocatable</span> :: work(:)  
+
+	<span class="e i">! Sizes</span>
+	<span class="e i">! -----</span>
+
+	<span class="e i">! Data set</span>
+	n=size(a,<span class="r">1</span>)
+	<span class="cy">allocate</span>(eig(n))
+
+	<span class="e i">! Working array [other values of lwork: (N+2)*N, n*(3+n/2)]</span>
+	lwork=<span class="r">1</span>+ <span class="r">6</span>*N + <span class="r">2</span>*N**<span class="r">2</span>
+	<span class="cy">allocate</span>(work(lwork))
+
+	<span class="e i">! Diagonalisation</span>
+	<span class="e i">! ---------------</span>
+	<span class="vi">call</span> <span class="cy">ssyev</span>(<span class="o">'V'</span>,<span class="o">'U'</span>,n,a,n,eig,work,lwork,inf)
+
+	<span class="vi">end</span> <span class="vi">subroutine</span> <span class="b">sl_diasym</span>
+
+<span class="vi">end</span> <span class="vi">module</span> spanlib
+</pre></td></tr></table>
