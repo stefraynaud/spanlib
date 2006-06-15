@@ -599,7 +599,7 @@ contains
 	!	- firstphase:	Value in degrees of the first phase (default = 0)
 	!
 	! Dependencies:
-	!	pca
+	!	sl_pca
 
 
 	implicit none

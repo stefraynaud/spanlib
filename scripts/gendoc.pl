@@ -24,10 +24,10 @@ use strict;
 use File::Basename;
 
 # Inputs
-my ($doc_top, $doc_mid, $doc_bot, $src_main, $src_example, $doc_main, $doc_code) = @ARGV;
+my ($xmldir, $f90_library, $f90_example) = @ARGV;
 
 # Basic declarations
-my (@partNames, @subNames, $partName, %parts, $line, $subroutineName, $arguments, $inside);
+my (@partNames, $f2xPersonalised, $partName, %parts, $line, $subroutineName, $arguments, $inside);
 my ($vars, $type, $intent, $optional, $allocatable, $var, $name, @argDesc, $desc, $opt, %argRef, %arg);
 my ($tmp, $tmp2, $i);
 
@@ -35,67 +35,96 @@ my ($tmp, $tmp2, $i);
 my %cols = (
 	'name' => {
 		'class' => 'b',
-		'width' => '15'
+		'width' => '15%'
 	},
 	'type' => {
 		'class' => 's',
-		'width' => '15'
+		'width' => '15%'
 	},
 	'long_name' => {
 		'class' => '',
-		'width' => '70'
+		'width' => '705'
 	}
 );
-my %cssF2xColors = (
+my %f2xCssColors = (
+	'personalised'	=> 'b',
 	'comments'		=> 'e i',
 	'digits' 		=> 'r',
 	'strings'		=> 'o',
-	'mySubs'			=> 'b',
 	'attributes'	=> 'gr',
 	'functions'		=> 'cy',
 	'routines'		=> 'vi'
 );
-	
+my %f2xTags = (
+	'functions'		=> 'dot_product|trim|eoshift|modulo|ssyev|not|allocated|allocate|spread|present|sum|matmul|sqrt|transpose|deallocate|pack|unpack|present',
+	'routines'		=> 'print|module|contains|interface|logical|subroutine|if|then|else|endif|enddo|do|end|close|call|program|integer|real|open|write|character|use|implicit',
+	'attributes'	=> 'procedure|parameter|optional|intent|allocatable|none'
+);
 
-my $toc = "\t\t<ul>\n";
-my $docdir = dirname($doc_main);
-#my $doc_toc = "$docdir/fortran_toc.html";
-my $doc_sub = "$docdir/fortran_sub.html";
-my $doc_exa = "$docdir/fortran_exa.html";
-#print "$doc_sub\n";
-#exit;
+# xml header
+my $xmlHeader = "<?xml version=\"1.0\"?>\n<!DOCTYPE article PUBLIC \"-//KDE//DTD DocBook XML V4.2-Based Variant V1.1//EN\"\n\"/usr/share/sgml/docbook/xml-dtd-4.2-1.0-17.2/docbookx.dtd\">\n\n";
+	
+# Files
+my %xmlFiles = (
+	'subroutines'	=> "$xmldir/doc_subroutines.xml",
+	'library'		=> "$xmldir/f90_library.xml",
+	'example'		=> "$xmldir/f90_example.xml"
+);
+
+
 
 # Useful subroutines
 sub gen_init_args {
 	my $type = shift ;
-	print SUBFILE "<h4>$type arguments</h4>\n\n<table width=\"100%\">\n";
+	print XML_SUBROUTINES "\t<simplesect>\n\t\t<title>$type arguments</title>\n\t\t<informaltable pgwide=\"1\" label=\"\">\n\t\t\t<tgroup cols=\"3\">\n";
+	
+	my $i = 1;
+	for $tmp ('name','type','long_name') {
+		print XML_SUBROUTINES "\t\t\t\t<colspec colname=\"col$i\" colnum=\"$i\" width=\"$cols{$tmp}{'width'}\"/>\n";
+		$i++;
+	}
+	print XML_SUBROUTINES "\t\t\t\t<tbody>\n";
 }
 sub f90toxml {
 	my $code = shift;
-	my ($comment, $indent, $newline, %cssF2xColors, @subNames);
+	my $comment;
 	$code =~ s/\&/\&amp;/g;
 	$code =~ s/</\&lt;/g;
 	$code =~ s/>/\&gt;/g;
-#	$code =~ s/ /\&nbsp;/g;
-#	$code =~ s/\t/\&nbsp;\&nbsp;\&nbsp;/g;
-#	$newline = ($code =~ s/\n//);
 	$comment = "";
-	$comment = "<phrase role=\"$cssF2xColors{'comments'}\">$2<\/phrase>" if 	$code =~ s/^([^!]*)(!.*)$/$1/;
-	$code =~ s/['"]([^'"]*)['"]/<phrase role="$cssF2xColors{'strings'}">$1<\/phrase>/g;
-	$code =~ s/\b(\d+)\b/<phrase role="$cssF2xColors{'digits'}">$1<\/phrase>/g;
-	$code =~ s/\b(pcamssa|pca|pcarec|mssa|mssarec|phasecomp|diasym)\b/<phrase role="$cssF2xColors{'mySubs'}">$1<\/phrase>/g;
-	$code =~ s/\b(procedure|parameter|optional|intent|allocatable|none)\b/<phrase role="$cssF2xColors{'attributes'}">$1<\/phrase>/g;
-	$code =~ s/\b(dot_product|trim|eoshift|modulo|ssyev|not|allocated|allocate|spread|present|sum|matmul|sqrt|transpose|deallocate|pack|unpack|present)\b/<phrase role="$cssF2xColors{'functions'}">$1<\/phrase>/g;
-	$code =~ s/\b(print|module|contains|interface|logical|subroutine|if|then|else|endif|enddo|do|end|close|call|program|integer|real|open|write|character|use|implicit)\b/<phrase role="$cssF2xColors{'routines'}">$1<\/phrase>/g;
-	$code = "$code$comment";
-#	$code = "$code<br \/>\n" if $newline;
+	$comment = "<phrase role=\"$f2xCssColors{'comments'}\">$2<\/phrase>" if $code =~ s/^([^!]*)(!.*)$/$1/;
+	$code =~ s/(['"][^'"]*['"])/<phrase role="$f2xCssColors{'strings'}">$1<\/phrase>/g;
+	$code =~ s/\b(\d+)\b/<phrase role="$f2xCssColors{'digits'}">$1<\/phrase>/g;
+	$code =~ s/\b($f2xPersonalised)\b/<phrase role="$f2xCssColors{'personalised'}">$1<\/phrase>/g;
+	foreach $type ('attributes', 'functions', 'routines') {
+		$code =~ s/\b($f2xTags{$type})\b/<phrase role="$f2xCssColors{$type}">$1<\/phrase>/g;
+	}
+	$code =~ s/(\n)/$comment$1/;
 	return $code;
 }
 
+# First loop to get subroutine names
+$f2xPersonalised="";
+open(F90_LIBRARY,$f90_library);
+while(<F90_LIBRARY>){
+	if(/^[\s\t]*subroutine\s+([\w]+)\b/i) {
+		$f2xPersonalised .= "|" if $f2xPersonalised ne "";
+		$f2xPersonalised .= "$1";
+	}
+}
+close(F90_LIBRARY);
+
 # Generate the subroutine help file by parsing the f90 sources
-open(SUBFILE,"> $doc_sub");
-open(F90FILE,$src_main);
-while(<F90FILE>){
+open(XML_LIBRARY,"> $xmlFiles{'library'}");
+open(XML_SUBROUTINES,"> $xmlFiles{'subroutines'}");
+open(F90_LIBRARY,$f90_library);
+print XML_LIBRARY "$xmlHeader<programlisting>";
+print XML_SUBROUTINES "\t<sect1 id=\"doc_f90subs\">\n\t\t<title>F90 subroutines</title>\n";
+while(<F90_LIBRARY>){
+
+	# F90 to XML
+	print XML_LIBRARY f90toxml($_);
+	
 	# A subroutine starts here
 	if(/^[\s\t]*subroutine\s+([\w]+)\s*\(([^\)]+)\)/i){
 		undef %parts;
@@ -104,7 +133,6 @@ while(<F90FILE>){
 		@partNames = ();
 		$partName = "";
 		$subroutineName = "$1";
-		push(@subNames, "$1");
 		$arguments = "$2";
 
 		# Initialize arguments description whatever they are
@@ -121,7 +149,7 @@ while(<F90FILE>){
 	
 		# Parse header
 		$inside=0;
-		HEADERLOOP: while(<F90FILE>) {
+		HEADERLOOP: while(<F90_LIBRARY>) {
 			if(/^[ \t]*!/) {
 				$inside = 1;
 				if(/! ([ \w]+):$/) {
@@ -147,7 +175,7 @@ while(<F90FILE>){
 
 		# Parse declarations of external subroutine arguments
 		$inside = 0;
-		DECLLOOP: while(<F90FILE>) {
+		DECLLOOP: while(<F90_LIBRARY>) {
 			if(/^[ \t]*! External/) {
 				$inside = 1;
 			} elsif($inside==1){
@@ -162,6 +190,7 @@ while(<F90FILE>){
 						$argDesc[$tmp]{'type'} = $desc;
 						$argDesc[$tmp]{'optional'} = $opt;
 						$arguments =~ s/([(, ]+)$var([), ]*)/$1$var=$var$2/ if $opt == 1
+						
 					}
 				} elsif(/^[ \t]*$/){
 					$inside=0;
@@ -170,96 +199,90 @@ while(<F90FILE>){
 			}
 		}
 
-		# Now, generate the xhtml block
+		# Now, generate the xml block
 		if ($partName ne "") {
-			$toc = "$toc\t\t\t<li><code role=\"$cssF2xColors{'mySubs'}\"><a href=\"#$subroutineName\">$subroutineName</a></code></li>\n";
-			print SUBFILE "<h3>$parts{'Title'}: <code><a name=\"$subroutineName\" role=\"$cssF2xColors{'mySubs'}\">$subroutineName</a></code></h3>\n<div role=\"sh3\">\n\n";
-			$arguments =~ s/(^|[,=\s]+)(\w+)\b(?!=)/$1<phrase role=\"$cssF2xColors{'mySubs'}\">$2<\/phrase>/g;
+			print XML_SUBROUTINES "<sect2 id=\"$subroutineName\">\n\t<title>$parts{'Title'}: <literal role=\"$f2xCssColors{'personalised'}\">$subroutineName</literal></title>\n"; #\t\t<para role=\"sh3\">\n\n";
+			$arguments =~ s/(^|[,=\s]+)(\w+)\b(?!=)/$1<phrase role=\"$f2xCssColors{'personalised'}\">$2<\/phrase>/g;
 			$arguments =~ s/,/, /g;
-			print SUBFILE "<h4>Usage:</h4>\n<code><p>call <phrase role=\"$cssF2xColors{'mySubs'}\">$subroutineName</phrase>($arguments)</p></code>\n\n";
+			# Usage part
+			print XML_SUBROUTINES "\t<simplesect>\n\t\t<title>Usage</title>\n\t\t<programlisting>call <phrase role=\"$f2xCssColors{'personalised'}\">$subroutineName</phrase>($arguments)</programlisting>\n\t</simplesect>\n";
+			# Other parts
 			for $partName (@partNames){
+				# Dependencies part
 				if($partName eq "Dependencies"){
-					$parts{$partName} =~ s/([\w]+)/<a href=\"#$1\">$1<\/a>/g;
-					$parts{$partName} = "<phrase role=\"$cssF2xColors{'mySubs'}\"><code>$parts{$partName}</code></phrase>";
+					if($parts{$partName} !~ /(LAPACK|BLAS)/){
+						$parts{$partName} =~ s/([\w]+)/<link linkend=\"$1\">$1<\/link>/g;
+						$parts{$partName} = "\t\t\t<phrase role=\"$f2xCssColors{'personalised'}\"><literal>$parts{$partName}</literal></phrase>";
+					} else {
+						$parts{$partName} = "<literal>$parts{$partName}</literal>";
+					}
 				}
-				print SUBFILE "<h4>$partName</h4>\n<p>\n$parts{$partName}\n</p>\n\n" if $parts{$partName} ne "";
+				# Title of the part
+				print XML_SUBROUTINES "\t<simplesect>\n\t\t<title>$partName</title>\n\t\t<para>\n$parts{$partName}\n\t\t</para>\n" if $parts{$partName} ne "";
+				# Description part
 				if($partName eq "Description"){
+					print XML_SUBROUTINES "\t</simplesect>\n";
 					$tmp2 = "Necessary";
 					gen_init_args($tmp2);
 					my $n = @argDesc;
 					for ($i=0;$i<$n;$i++) {
 						if($argDesc[$i]{'optional'}==1 && $tmp2 eq "Necessary") {
-							print SUBFILE "</table>\n\n";
+							print XML_SUBROUTINES "\t\t\t\t</tbody>\n\t\t\t</tgroup>\n\t\t</informaltable>\n\t</simplesect>\n";
 							$tmp2 = "Optional";
 							gen_init_args($tmp2);
 						}
-						print SUBFILE "\t<tr>\n";
+						print XML_SUBROUTINES "\t\t\t\t\t<row>\n";
 						for $tmp ('name','type','long_name') {
-							print SUBFILE "\t\t<td";
-							print SUBFILE " role=\"$cols{$tmp}{'class'}\"" if $cols{$tmp}{'class'} ne "";
-							print SUBFILE " width=\"$cols{$tmp}{'width'}%\">";
-							print SUBFILE "<code>" if ($tmp eq 'name');
-							print SUBFILE $argDesc[$i]{$tmp};
-							print SUBFILE "</code>" if ($tmp eq 'name');
-							print SUBFILE "</td>\n";
+							print XML_SUBROUTINES "\t\t\t\t\t\t<entry";
+							print XML_SUBROUTINES " role=\"$cols{$tmp}{'class'}\"" if $cols{$tmp}{'class'} ne "";
+#							print XML_SUBROUTINES " width=\"$cols{$tmp}{'width'}%\">";
+							print XML_SUBROUTINES ">";
+							print XML_SUBROUTINES "<varname>" if ($tmp eq 'name');
+							print XML_SUBROUTINES $argDesc[$i]{$tmp};
+							print XML_SUBROUTINES "</varname>" if ($tmp eq 'name');
+							print XML_SUBROUTINES "</entry>\n";
 						}
-						print SUBFILE "\t</tr>\n";
+						print XML_SUBROUTINES "\t\t\t\t\t</row>\n";
 					}
-					print SUBFILE "</table>\n\n";
+					print XML_SUBROUTINES "\t\t\t\t</tbody>\n\t\t\t</tgroup>\n\t\t</informaltable>\n\t</simplesect>\n";
 				}
+				print XML_SUBROUTINES "\t</simplesect>\n" if $partName eq "Dependencies";
 			}
-			print SUBFILE "</div>\n<br />\n\n";
+			print XML_SUBROUTINES "</sect2>\n";
+#			print XML_SUBROUTINES "\t\t</para>\n\t</simplesect>\n";
 		}
 		
 	}
 	
 }
-$toc = "$toc\t\t</ul>\n";
-close(F90FILE);
-close(SUBFILE);
+print XML_SUBROUTINES "\t</sect1>\n";
+print XML_LIBRARY "</programlisting>\n";
+close(F90_LIBRARY);
+close(XML_LIBRARY);
+close(XML_SUBROUTINES);
 
-# Now build the main file
-open(MAINFILE,"> $doc_main");
+# Example source code
+open(XML_EXAMPLE,"> $xmlFiles{'example'}");
+open(F90_EXAMPLE,$f90_example);
+print XML_EXAMPLE $xmlHeader;
+print XML_EXAMPLE "<programlisting>";
+while(<F90_EXAMPLE>){print XML_EXAMPLE f90toxml($_);}
+print XML_EXAMPLE "</programlisting>\n";
+close(XML_EXAMPLE);
+close(F90_EXAMPLE);
 
-# 1) Top
-open(FILE,"$doc_top");
-while(<FILE>){print MAINFILE $_;}
-close(FILE);
+##################################
+#my $toc = "\t\t<ul>\n";
+#my $docdir = dirname($doc_main);
 
-# 2) TOC
-print MAINFILE $toc;
+#	my ($comment, $indent, $newline, %f2xCssColors, @subNames);
 
-# 3) mid
-open(FILE,$doc_mid);
-while(<FILE>){
-	$_ =~ s/<DOC_CODE>/$doc_code/;
-	print MAINFILE $_;
-}
-close(FILE);
+#	$code =~ s/ /\&nbsp;/g;
+#	$code =~ s/\t/\&nbsp;\&nbsp;\&nbsp;/g;
+#	$newline = ($code =~ s/\n//);
 
-# 4) subroutines
-open(FILE,$doc_sub);
-while(<FILE>){print MAINFILE $_;}
-close(FILE);
+#	$code = "$code<br \/>\n" if $newline;
 
-# 5) Example with syntax colorization and indentation (an attempt)
-print MAINFILE "<h2><a name=\"exam\"></a>4. Example <a href=\"#top\" role=\"top\">[Top]</a></h2>\n\n<code><p>\n\n";
-open(FILE,$src_example);
-while(<FILE>){print MAINFILE f90tohtml($_);}
-print MAINFILE "</p></code>\n\n";
+#			$toc = "$toc\t\t\t<li><code role=\"$f2xCssColors{'personalised'}\"><a href=\"#$subroutineName\">$subroutineName</a></code></li>\n";
 
-# 6) bottom
-open(FILE,$doc_bot);
-while(<FILE>){print MAINFILE $_;}
-close(FILE);
-print MAINFILE "\n\n<hr>\n<p role=\"i\">Document generated by Perl (<a href=\"gendoc.pl\"><code>gendoc.pl</code></a>)</p>\n\n</body>\n";
-close(MAINFILE);
-
-# Generate the html version of our f90 code
-open(FILE,"> $doc_code");
-print FILE "<head>\n\t<title>pcamssa.f90</title>\n\t<link rel=\"stylesheet\" type=\"text/css\" href=\"fortran.css\">\n</head>\n\n<body>\n<code>\n\n";
-open(CODE,$src_main);
-while(<CODE>){print FILE f90tohtml($_);}
-close(CODE);
-print FILE "</code>\n\n</body>";
-close(FILE);
+#$toc = "$toc\t\t</ul>\n";
