@@ -186,7 +186,7 @@ subroutine pack3d(ff3d, mask, ns1, ns2, nt, ff2d, ns)
 	! Call to pack
 	! ------------
 	do it = 1, nt
-		ff2d(:,it) = pack(ff3d(:,:,it), mask)
+		ff2d(:,it) = pack(ff3d(:,:,it), mask==1)
 	end do
 
 end subroutine pack3d
@@ -211,7 +211,7 @@ subroutine unpack3d(ff3d, mask, ns1, ns2, nt, ff2d, ns, missing_value)
 	! Call to pack
 	! ------------
 	do it = 1, nt
-		ff3d(:,:,it) = unpack(ff2d(:,it), mask, missing_value)
+		ff3d(:,:,it) = unpack(ff2d(:,it), mask==1, missing_value)
 	end do
 
 end subroutine unpack3d

@@ -1,6 +1,9 @@
 #!/usr/bin/perl -w
-# Spanlib - Spectral Analysis Library
+# File: gendoc.pl
+#
+# This file is part of the SpanLib library.
 # Copyright (C) 2006  Stephane Raynaud
+# Contact: stephane dot raynaud at gmail dot com
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -15,10 +18,6 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-# 
-# Contact: stephane dot raynaud at gmail dot com
-#
-# This script generates the documentation of pcamssa.f90
 
 use strict;
 use File::Basename;
@@ -176,7 +175,7 @@ while(<F90_LIBRARY>){
 		# Parse declarations of external subroutine arguments
 		$inside = 0;
 		DECLLOOP: while(<F90_LIBRARY>) {
-			if(/^[ \t]*! External/) {
+			if(/^[\s\t]*! External/) {
 				$inside = 1;
 			} elsif($inside==1){
 				if(/(real|integer),[ \t]*intent\((in|out|inout)\)[^:]*::(.+)$/i) {
