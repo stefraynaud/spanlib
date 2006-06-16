@@ -1,1 +1,0 @@
-pyf('spanlib.pyf', sources=['spanlib_pywrap.f90'], libraries='spanlib blas lapack blas lapack', library_directories='. /usr/local/install/lapack-3.0/lib/', compiler_options='-I.', python_directory='../lib', package_name='spanlib', freeform=1)
