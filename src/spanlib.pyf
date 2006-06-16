@@ -1,12 +1,12 @@
 ! -*- Mode: f90 -*-
 
 SUBROUTINE pca(ff, ns, nt, nkeep, xeof, pc, ev, weights, useteof)
-  integer, intent(in)           :: ns,nt
-  real,    intent(in)           :: ff(ns,nt)
-  integer, intent(in)           :: nkeep
-  real,    intent(out)          :: pc(nt,nkeep), xeof(ns,nkeep), ev(nkeep)
-  real,    intent(in)           :: weights(ns)
-  integer, intent(in), optional :: useteof
+  integer, intent(in)  :: ns,nt
+  real,    intent(in)  :: ff(ns,nt)
+  integer, intent(in)  :: nkeep
+  real,    intent(out) :: pc(nt,nkeep), xeof(ns,nkeep), ev(nkeep)
+  real,    intent(in)  :: weights(ns)
+  integer, intent(in)  :: useteof
 END SUBROUTINE pca
 
 SUBROUTINE pcarec(xeof, pc, ns, nt, nkept, ffrec, istart, iend)
@@ -18,22 +18,22 @@ END SUBROUTINE pcarec
 SUBROUTINE mssa(ff, nchan, nt, nwindow, nkeep, steof, stpc, ev)
   integer,intent(in)  :: nchan, nt, nwindow, nkeep
   real,   intent(in)  :: ff(nchan,nt)
-  real,	  intent(out) :: steof(nchan*nwindow,nkeep), stpc(nt-nwindow+1,nkeep), ev(nkeep)
+  real,	 intent(out) :: steof(nchan*nwindow,nkeep), stpc(nt-nwindow+1,nkeep), ev(nkeep)
 END SUBROUTINE mssa
 
 SUBROUTINE mssarec(steof, stpc, nchan, nt, nkeep, nwindow, ffrec, istart, iend)
-  integer,intent(in)           :: nchan, nt, nwindow, nkeep
-  integer,intent(in), optional :: istart, iend
-  real,	  intent(in)           :: steof(nchan*nwindow,nkeep), stpc(nt-nwindow+1,nkeep)
-  real,   intent(out)          :: ffrec(nchan,nt)
+  integer,intent(in)  :: nchan, nt, nwindow, nkeep
+  integer,intent(in)  :: istart, iend
+  real,	  intent(in) :: steof(nchan*nwindow,nkeep), stpc(nt-nwindow+1,nkeep)
+  real,   intent(out) :: ffrec(nchan,nt)
 END SUBROUTINE mssarec
 
 SUBROUTINE phasecomp(ffrec, ns, nt, np,  phases, weights, offset, firstphase)
-  integer, intent(in)           :: ns, nt, np
-  real,    intent(in)           :: ffrec(ns,nt)
-  real,    intent(in)           :: weights(ns)
-  real,    intent(in), optional :: offset, firstphase
-  real,    intent(out)          :: phases(ns, np)
+  integer, intent(in)  :: ns, nt, np
+  real,    intent(in)  :: ffrec(ns,nt)
+  real,    intent(in)  :: weights(ns)
+  real,    intent(in)  :: offset, firstphase
+  real,    intent(out) :: phases(ns, np)
 END SUBROUTINE phasecomp
 
 SUBROUTINE pack3d(ff3d, mask, ns1, ns2, nt, ff2d, ns)

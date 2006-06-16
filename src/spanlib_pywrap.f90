@@ -26,12 +26,12 @@ subroutine pca(ff, ns, nt, nkeep, xeof, pc, ev, weights, useteof)
 
 	! External
 	! --------
-	integer, intent(in)           :: ns,nt
-	real,    intent(in)           :: ff(ns,nt)
-	integer, intent(in)           :: nkeep
-	real,    intent(out)          :: pc(nt,nkeep), xeof(ns,nkeep), ev(nkeep)
-	real,    intent(in)           :: weights(ns)
-	integer, intent(in), optional :: useteof
+	integer, intent(in)  :: ns,nt
+	real,    intent(in)  :: ff(ns,nt)
+	integer, intent(in)  :: nkeep
+	real,    intent(out) :: pc(nt,nkeep), xeof(ns,nkeep), ev(nkeep)
+	real,    intent(in)  :: weights(ns)
+	integer, intent(in)  :: useteof
 
 	! Internal
 	! --------
@@ -117,10 +117,10 @@ subroutine mssarec(steof, stpc, nchan, nt, nkeep, nwindow, ffrec, istart, iend)
 
 	! External
 	! --------
-	integer,intent(in)           :: nchan, nt, nwindow, nkeep
-	integer,intent(in), optional :: istart, iend
-	real,	  intent(in)           :: steof(nchan*nwindow,nkeep), stpc(nt-nwindow+1,nkeep)
-	real,   intent(out)          :: ffrec(nchan,nt)
+	integer,intent(in)  :: nchan, nt, nwindow, nkeep
+	integer,intent(in)  :: istart, iend
+	real,	  intent(in)  :: steof(nchan*nwindow,nkeep), stpc(nt-nwindow+1,nkeep)
+	real,   intent(out) :: ffrec(nchan,nt)
 
 	! Internal
 	! --------
@@ -146,11 +146,11 @@ subroutine phasecomp(ffrec, ns, nt, np,  phases, weights, offset, firstphase)
 
 	! External
 	! --------
-	integer, intent(in)           :: ns, nt, np
-	real,    intent(in)           :: ffrec(ns,nt)
-	real,    intent(in)           :: weights(ns)
-	real,    intent(in), optional :: offset, firstphase
-	real,    intent(out)          :: phases(ns, np)
+	integer, intent(in)  :: ns, nt, np
+	real,    intent(in)  :: ffrec(ns,nt)
+	real,    intent(in)  :: weights(ns)
+	real,    intent(in)  :: offset, firstphase
+	real,    intent(out) :: phases(ns, np)
 
 	! Internal
 	! --------
@@ -176,7 +176,7 @@ subroutine pack3d(ff3d, mask, ns1, ns2, nt, ff2d, ns)
 	! --------
 	integer, intent(in)  :: ns1, ns2, nt, ns
 	real,    intent(in)  :: ff3d(ns1,ns2,nt)
-	logical, intent(in)  :: mask(ns1,ns2)
+	integer, intent(in)  :: mask(ns1,ns2)
 	real,    intent(out) :: ff2d(ns,nt)
 
 	! Internal
@@ -200,7 +200,7 @@ subroutine unpack3d(ff3d, mask, ns1, ns2, nt, ff2d, ns, missing_value)
 	! --------
 	integer, intent(in)  :: ns1, ns2, nt, ns
 	real,    intent(out) :: ff3d(ns1,ns2,nt)
-	logical, intent(in)  :: mask(ns1,ns2)
+	integer, intent(in)  :: mask(ns1,ns2)
 	real,    intent(in)  :: ff2d(ns,nt)
 	real                 :: missing_value
 

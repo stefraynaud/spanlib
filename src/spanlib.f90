@@ -149,15 +149,9 @@ contains
 		! Covariance
 		allocate(cov(nt,nt))
 		allocate(eig(nt))
-	   do i=1,nt
+		do i=1,nt
 			do j=1,i
 				cov(i,j) = dot_product(wff(:,i),wff(:,j))
-				cov(j,i) = cov(i,j)
-			end do
-		end do
-	   do i=1,nt
-			do j=1,i
-				cov(i,j) = dot_product(ww(:)*zff(:,i),zff(:,j))
 				cov(j,i) = cov(i,j)
 			end do
 		end do
@@ -182,8 +176,14 @@ contains
 			deallocate(cov)
 		end if
 
-	else
+		! Eigenvalues
+		! -----------
+		if(present(ev))then
+			if(not(allocated(ev))) allocate(ev(nkeep))
+			ev = eig(nt:nt-nkeep+1:-1)
+		end if
 
+	else
 
 		! S-EOF case (classical)
 		! ----------------------
@@ -213,22 +213,22 @@ contains
 		end if
 	   deallocate(cov)
 
+		! Eigenvalues
+		! -----------
+		if(present(ev))then
+			if(not(allocated(ev))) allocate(ev(nkeep))
+			ev = eig(ns:ns-nkeep+1:-1)
+		end if
+
 	end if
-	
+
+	! Free eof array
+	! --------------
 	if(present(xeof))then
 		if(not(allocated(xeof))) allocate(xeof(ns,nkeep))
 		xeof = zeof
 		if(not(present(pc))) deallocate(zeof)
 	end if
-
-
-	! Eigenvalues
-	! ===========
-	if(present(ev))then
-		if(not(allocated(ev))) allocate(ev(nkeep))
-		ev = eig(ns:ns-nkeep+1:-1)
-	end if
-
 
 	! Finally get PCs
 	! ===============
