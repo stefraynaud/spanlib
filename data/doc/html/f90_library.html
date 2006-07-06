@@ -111,15 +111,9 @@
 		<span class="e i">! Covariance</span>
 		<span class="cy">allocate</span>(cov(nt,nt))
 		<span class="cy">allocate</span>(eig(nt))
-	   <span class="vi">do</span> i=<span class="r">1</span>,nt
+		<span class="vi">do</span> i=<span class="r">1</span>,nt
 			<span class="vi">do</span> j=<span class="r">1</span>,i
 				cov(i,j) = <span class="cy">dot_product</span>(wff(:,i),wff(:,j))
-				cov(j,i) = cov(i,j)
-			<span class="vi">end</span> <span class="vi">do</span>
-		<span class="vi">end</span> <span class="vi">do</span>
-	   <span class="vi">do</span> i=<span class="r">1</span>,nt
-			<span class="vi">do</span> j=<span class="r">1</span>,i
-				cov(i,j) = <span class="cy">dot_product</span>(ww(:)*zff(:,i),zff(:,j))
 				cov(j,i) = cov(i,j)
 			<span class="vi">end</span> <span class="vi">do</span>
 		<span class="vi">end</span> <span class="vi">do</span>
@@ -144,8 +138,14 @@
 			<span class="cy">deallocate</span>(cov)
 		<span class="vi">end</span> <span class="vi">if</span>
 
-	<span class="vi">else</span>
+		<span class="e i">! Eigenvalues</span>
+		<span class="e i">! -----------</span>
+		<span class="vi">if</span>(<span class="cy">present</span>(ev))<span class="vi">then</span>
+			<span class="vi">if</span>(<span class="cy">not</span>(<span class="cy">allocated</span>(ev))) <span class="cy">allocate</span>(ev(nkeep))
+			ev = eig(nt:nt-nkeep+<span class="r">1</span>:-<span class="r">1</span>)
+		<span class="vi">end</span> <span class="vi">if</span>
 
+	<span class="vi">else</span>
 
 		<span class="e i">! S-EOF case (classical)</span>
 		<span class="e i">! ----------------------</span>
@@ -175,22 +175,22 @@
 		<span class="vi">end</span> <span class="vi">if</span>
 	   <span class="cy">deallocate</span>(cov)
 
+		<span class="e i">! Eigenvalues</span>
+		<span class="e i">! -----------</span>
+		<span class="vi">if</span>(<span class="cy">present</span>(ev))<span class="vi">then</span>
+			<span class="vi">if</span>(<span class="cy">not</span>(<span class="cy">allocated</span>(ev))) <span class="cy">allocate</span>(ev(nkeep))
+			ev = eig(ns:ns-nkeep+<span class="r">1</span>:-<span class="r">1</span>)
+		<span class="vi">end</span> <span class="vi">if</span>
+
 	<span class="vi">end</span> <span class="vi">if</span>
-	
+
+	<span class="e i">! Free eof array</span>
+	<span class="e i">! --------------</span>
 	<span class="vi">if</span>(<span class="cy">present</span>(xeof))<span class="vi">then</span>
 		<span class="vi">if</span>(<span class="cy">not</span>(<span class="cy">allocated</span>(xeof))) <span class="cy">allocate</span>(xeof(ns,nkeep))
 		xeof = zeof
 		<span class="vi">if</span>(<span class="cy">not</span>(<span class="cy">present</span>(pc))) <span class="cy">deallocate</span>(zeof)
 	<span class="vi">end</span> <span class="vi">if</span>
-
-
-	<span class="e i">! Eigenvalues</span>
-	<span class="e i">! ===========</span>
-	<span class="vi">if</span>(<span class="cy">present</span>(ev))<span class="vi">then</span>
-		<span class="vi">if</span>(<span class="cy">not</span>(<span class="cy">allocated</span>(ev))) <span class="cy">allocate</span>(ev(nkeep))
-		ev = eig(ns:ns-nkeep+<span class="r">1</span>:-<span class="r">1</span>)
-	<span class="vi">end</span> <span class="vi">if</span>
-
 
 	<span class="e i">! Finally get PCs</span>
 	<span class="e i">! ===============</span>

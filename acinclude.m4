@@ -1,23 +1,595 @@
-#####################################################################
-# AC macros for spanlib
-# Stephane Raynaud 2006
-#####################################################################
+################################################################################
+# BLAS and LAPACK
+# Raynaud 2006
+################################################################################
 
+AC_DEFUN([AC_SR_BLASLAPACK],
+[dnl
+
+#################################
+# Initialisations
+#################################
+AS_VAR_SET(save_libs,$LIBS)
+AS_VAR_SET(save_fcflags,$FCFLAGS)
+
+LIBS=$FLIBS
+
+
+#################################
+# BLAS
+#################################
+
+# Library name or LIBS
+AC_ARG_VAR(BLAS,[Library name or LIBS flag(s)])
+AC_ARG_WITH(blas, dnl
+ 	AS_HELP_STRING(--with-blas=LIB, dnl
+ 		[Library name or LIBS flag(s)]),
+ 		[case AS_VAR_GET(with_blas) in
+			no)AC_SR_ERROR([You cant disable blas]);;
+			yes)AS_VAR_SET(BLAS,-lblas);;
+			*)AS_VAR_SET(BLAS,-l$with_blas);;
+		esac]
+)
+AS_VAR_SET_IF([BLAS],,[AS_VAR_SET(BLAS,-lblas)])
+case AS_VAR_GET(BLAS) in
+	-l* | */* | *.a | *.so | *.so.* | *.o):;;
+	*)AS_VAR_SET(BLAS,"-l$BLAS");;
+esac
+AS_VAR_SET(LIBS,"$BLAS $LIBS")
+
+# Directory where to find the library
+AC_ARG_VAR(BLAS_LIBDIR,[Location of the BLAS library (compile-time)])
+AC_ARG_WITH(blas-libdir, dnl
+	AS_HELP_STRING(--with-blas-libdir=DIR, dnl
+		[Location of the BLAS library (compile-time)]), dnl
+		AS_IF([test $with_blas_libdir != yes -a $with_blas_libdir != no],
+				AS_VAR_SET(BLAS_LIBDIR,$with_blas_libdir))
+)
+AS_VAR_SET_IF([BLAS_LIBDIR],[
+	case AS_VAR_GET(BLAS_LIBDIR) in
+		-L*):;;
+		*)AS_VAR_SET(BLAS_LIBDIR,"-L$BLAS_LIBDIR");;
+	esac
+	AS_VAR_SET(FCFLAGS,"$BLAS_LIBDIR $FCFLAGS")
+])
+
+# Try sgemm with blas
+AC_CACHE_CHECK([for sgemm of the blas library],ac_cv_blasok,
+[AC_TRY_LINK_FUNC([sgemm],
+                 [AS_VAR_SET(ac_cv_blasok,yes)],
+                 [AS_VAR_SET(ac_cv_blasok,no)])
+])
+
+# Error
+AS_IF([test AS_VAR_GET(ac_cv_blasok) = yes],,
+		[AC_SR_ERROR([Impossible to find blas library. Try with --with-blas and --with-blas-libdir])])
+
+
+#################################
+# LAPACK
+#################################
+
+# Library name or LIBS
+AC_ARG_VAR(LAPACK,Library name or LIBS flag(s))
+AC_ARG_WITH(lapack, dnl
+ 	AS_HELP_STRING(--with-lapack=LIB, dnl
+ 		[Library name or LIBS flag(s)]),
+		[case AS_VAR_GET(with_lapack) in
+			no)AC_SR_ERROR([You cant disable lapack]);;
+			yes)AS_VAR_SET(LAPACK,-llapack);;
+			*)AS_VAR_SET(LAPACK,-l$with_lapack);;
+		esac]
+)
+AS_VAR_SET_IF([LAPACK],,[AS_VAR_SET(LAPACK,-llapack)])
+case AS_VAR_GET(LAPACK) in
+	-l* | */* | *.a | *.so | *.so.* | *.o):;;
+	*)AS_VAR_SET(LAPACK,"-l$LAPACK");;
+esac
+AS_VAR_SET(LIBS,"$LAPACK $LIBS")
+
+# Library dir name or FCFLAGS
+AC_ARG_VAR(LAPACK_LIBDIR,Location of the LAPACK library (compile-time))
+AC_ARG_WITH(lapack-libdir, dnl
+	AS_HELP_STRING(--with-lapack-libdir=DIR, dnl
+		[Location of the LAPACK library (compile-time)]), dnl
+		AS_IF([test $with_lapack_libdir != yes -a $with_lapack_libdir != no],
+				AS_VAR_SET(LAPACK_LIBDIR,$with_lapack_libdir))
+)
+AS_VAR_SET_IF([LAPACK_LIBDIR],[
+	case AS_VAR_GET(LAPACK_LIBDIR) in
+		-L*):;;
+		*)AS_VAR_SET(LAPACK_LIBDIR,"-L$LAPACK_LIBDIR");;
+	esac
+	AS_VAR_SET(FCFLAGS,"$LAPACK_LIBDIR $FCFLAGS")
+])
+
+# Try ssyev with lapack
+AC_CACHE_CHECK([for ssyev of the lapack library],ac_cv_lapackok,
+[AC_TRY_LINK_FUNC([ssyev],
+                 [AS_VAR_SET(ac_cv_lapackok,yes)],
+                 [AS_VAR_SET(ac_cv_lapackok,no)])
+])
+
+# Error
+AS_IF([test AS_VAR_GET(ac_cv_lapackok) = yes],,
+		[AC_SR_ERROR([Impossible to find lapack library. Try with --with-lapack and --witch-lapack-libdir])])
+
+
+
+#################################
+# Ending
+#################################
+
+AS_VAR_SET(LIBS,$save_libs)
+AS_VAR_SET(FCFLAGS,$save_fcflags)
+AC_SUBST(BLAS)
+AC_SUBST(BLAS_LIBDIR)
+AC_SUBST(LAPACK)
+AC_SUBST(LAPACK_LIBDIR)
+
+])dnl AC_SR_LAPACK
+################################################################################
+################################################################################
+# F90 compiler
+################################################################################
+AC_DEFUN([AC_SR_FORTRAN],
+[
+## OPTIMIZATION LEVELS
+##
+AC_ARG_ENABLE(
+    optimization,
+    [  --enable-optimization=level - Control optimization level.
+                             The following levels are supported.
+       debug     - debugging compiler options will be selected.
+       normal    - soft optimization (default).
+       aggressive - aggressive optimization (YOU HAVE TO VERIFY YOUR RESULTS!).],
+    ,
+    enable_optimization=normal
+             )
+#
+## PROFILING (if it is available)
+##
+AC_ARG_ENABLE(
+    profiling,
+    [  --enable-profiling - Turn on profiling compiler options.],
+    enable_prof=yes,
+    enable_prof=no
+             )
+# Main program
+AC_LANG(Fortran)
+AC_PROG_FC(ifort fort xlf90 pgf90 epcf90 pathf90 ifc efc f90 xlf95 lf95 g95 f95 sxf90)
+if test ! -n "$FC" ; then
+	AC_SR_ERROR([No Fortran 90 compiler available on this machine.
+               Please use FC to specify it or
+               update your environnement variable PATH or
+               install a Fortran 90 compiler.])
+fi
+
+# LD FLAGS
+  case "$FC" in
+##    GENERIC FORTRAN COMPILER (SGI-IRIX, HP-TRUE64, NEC-SX )
+      f90)
+        case "$host" in
+        *-sgi-irix*)
+          case "$enable_optimization" in
+	    debug)
+              AC_MSG_NOTICE([**** DEBUGGING OPTIONS are SELECTED *****])
+              FCFLAGS="-g -O0 -C -fullwarn -DEBUG:trap_uninitialized=ON:subscript_check=ON"
+              LDFLAGS="-g"
+            ;;
+            aggressive)
+              AC_MSG_NOTICE([**** AGGRESSIVE COMPILER OPTIONS are SELECTED *****])
+    	      FCFLAGS="-g3 -O3 -ipa -listing"
+              LDFLAGS="-g3"
+            ;;
+            normal|*)
+              AC_MSG_NOTICE([**** NORMAL MODE *****])
+	      FCFLAGS="-g3 -O2 -listing"
+              LDFLAGS="-g3"
+	    ;;
+          esac
+	  if test "$enable_prof" = "yes" ; then
+            AC_SR_WARNING([!!! NO PROFILING COMPILER OPTIONS ON IRIX SYSTEM !!!])
+            AC_SR_WARNING([!!!        PLEASE READ SPEEDSHOP MANUAL          !!!])
+          fi
+        ;;
+        alpha*-dec-osf*)
+          case "$enable_optimization" in
+	    debug)
+              AC_MSG_NOTICE([**** DEBUGGING OPTIONS are SELECTED *****])
+              FCFLAGS="-V -ladebug -g -O0 -C -check overflow -check underflow -warn nouninitialized -warn argument_checking"
+              LDFLAGS="-ladebug -g"
+            ;;
+            aggressive)
+              AC_MSG_NOTICE([**** AGGRESSIVE COMPILER OPTIONS are SELECTED *****])
+    	      FCFLAGS="-V -g3 -fast -math_library fast"
+              LDFLAGS="-g3 -fast -math_library fast"
+            ;;
+            normal|*)
+              AC_MSG_NOTICE([**** NORMAL MODE *****])
+	      FCFLAGS="-V -g3 -O"
+              LDFLAGS=""
+	    ;;
+          esac
+	  if test "$enable_prof" = "yes" ; then
+            AC_MSG_NOTICE([**** PROFILING is SELECTED (gprof) *****])
+            FCFLAGS="-pg $FCFLAGS"
+            LDFLAGS="-pg $LDFLAGS"
+          fi
+        ;;
+        *nec*superux*)
+          case "$enable_optimization" in
+	    debug)
+              AC_MSG_NOTICE([**** DEBUGGING OPTIONS are SELECTED *****])
+              FCFLAGS='-C debug -eR -eP -R1 -R5 -Wf"-L nostdout" -Wf"-L source mrgmsg" -Wf"-L summary" -Wf"-init stack=nan" -Wf"-init heap=nan" -Wl"-f nan" Wf"-msg d" -Wf"-msg o"'
+              LDFLAGS="-C debug"
+            ;;
+            aggressive)
+              AC_MSG_NOTICE([**** AGGRESSIVE COMPILER OPTIONS are SELECTED *****])
+    	      FCFLAGS='-C hopt -R1 -R5 -Wf"-L nostdout"  -Wf"-L summary" -Wf"-pvctl fullmsg" -Wf"-O infomsg"'
+              LDFLAGS="-C hopt"
+            ;;
+            normal|*)
+              AC_MSG_NOTICE([**** NORMAL MODE *****])
+	      FCFLAGS='-R1 -R5 -Wf"-L nostdout"  -Wf"-L summary" -Wf"-pvctl fullmsg" -Wf"-O infomsg"'
+              LDFLAGS=""
+	    ;;
+          esac
+	  if test "$enable_prof" = "yes" ; then
+            AC_MSG_NOTICE([**** PROFILING is SELECTED (gprof) *****])
+            FCFLAGS="-ftrace $FCFLAGS"
+            LDFLAGS="-ftrace $LDFLAGS"
+          fi
+        ;;
+        *)
+          AC_MSG_WARN([!!! HOST and/or SYSTEM is UNKNOWN : $host !!!])
+          exit
+        ;;
+        esac
+        ;;
+##    INTEL FORTRAN COMPILER on LINUX OPERATING SYSTEM
+      ifort|efc|ifc)
+	case "$enable_optimization" in
+	  debug)
+            AC_MSG_NOTICE([**** DEBUGGING OPTIONS are SELECTED *****])
+            FCFLAGS="-g -O0 -no_cpprt -check all -traceback -auto -warn all -warn unused -debug variable_locations -inline_debug_info"
+	    LDFLAGS="-g -O0 -no_cpprt -check all -traceback -auto -inline_debug_info"
+## if idb bugs use          FCFLAGS="-g -O0 "
+## if idb bugs use 	    LDFLAGS="-g -O0 "
+          ;;
+          aggressive)
+            AC_MSG_NOTICE([**** AGGRESSIVE COMPILER OPTIONS are SELECTED *****])
+    	    FCFLAGS="-fast"
+            LDFLAGS="-fast"
+          ;;
+          normal|*)
+            AC_MSG_NOTICE([**** NORMAL MODE *****])
+	    FCFLAGS="-g -O3 -132 -check bounds"
+	  ;;
+	esac
+	if test "$enable_prof" = "yes" ; then
+          AC_MSG_NOTICE([**** PROFILING is SELECTED (gprof) *****])
+          FCFLAGS="-pg $FCFLAGS"
+          LDFLAGS="-pg $LDFLAGS"
+        fi
+        ;;
+##    IBM FORTRAN COMPILER on AIX OPERATING SYSTEM
+      xlf90|xlf95)
+	case "$enable_optimization" in
+	  debug)
+            FCFLAGS="-qsuffix=f=f90 -qfree=f90 -g -qnooptimize -C -qinitauto=7FBFFFFF -qflttrap=overflow:underflow:zerodivide:invalid:enable -qfloat=nans -qsigtrap -qextchk"
+          ;;
+          aggressive)
+            FCFLAGS="-qsuffix=f=f90 -qfree=f90 -O3 -qstrict"
+          ;;
+          normal|*)
+            FCFLAGS="-qsuffix=f=f90 -qfree=f90 -O5 -qipa=level=2 -qessl -qhot=vector -qunroll"
+            LDFLAGS="-qessl"
+	  ;;
+	esac
+	if test "$enable_prof" = "yes" ; then
+          AC_MSG_NOTICE([**** PROFILING is SELECTED (gprof) *****])
+          FCFLAGS="-pg $FCFLAGS"
+          LDFLAGS="-pg $LDFLAGS"
+        fi
+        ;;
+##    PORTLAND GROUP FORTRAN COMPILER
+      pgf90)
+	FCFLAGS="-g"
+        ;;
+##    GENERIC Fortran 95 compiler (not tested)
+      f95)
+	FCFLAGS="-g"
+        ;;
+##    HP_COMPAQ ALPHASERVER FORTRAN COMPILER (LINUX OPERATING SYSTEM)
+      fort)
+	FCFLAGS="-g"
+        ;;
+##    Lahey-Fujitsu compiler
+      lf95)
+	FCFLAGS="-g"
+        ;;
+##    PATHSCALE FORTRAN COMPILER (AMD-OPTERON) (Not Tested)
+      pathf90)
+	FCFLAGS="-g"
+        ;;
+##    GNU FORTRAN 90/95 COMPILER (Tested on Intel-PC and Mac OS X)
+      g95)
+	case "$enable_optimization" in
+	  debug)
+            AC_MSG_NOTICE([**** DEBUGGING OPTIONS are SELECTED *****])
+            FCFLAGS="-g -O0 -fno-second-underscore -Wall -Wunset-vars -Wunused-vars -fbounds-check "
+	    LDFLAGS="-g -O0-fno-second-underscore"
+          ;;
+          aggressive)
+            AC_MSG_NOTICE([**** AGGRESSIVE COMPILER OPTIONS are SELECTED *****])
+    	    FCFLAGS="-g -O3 -fno-second-underscore"
+            LDFLAGS="-g -O3 -fno-second-underscore"
+          ;;
+          normal|*)
+            AC_MSG_NOTICE([**** NORMAL MODE *****])
+	    FCFLAGS="-g -O -fno-second-underscore"
+            LDFLAGS="-g -O -fno-second-underscore"
+	  ;;
+	esac
+	if test "$enable_prof" = "yes" ; then
+          AC_MSG_NOTICE([**** PROFILING is SELECTED (gprof) *****])
+          FCFLAGS="-pg $FCFLAGS"
+          LDFLAGS="-pg $LDFLAGS"
+        fi
+        ;;
+  esac
+	AC_FC_SRCEXT(f90)
+	AC_FC_FREEFORM()
+])
+################################################################################
+# F90 netcdf
+################################################################################
+AC_DEFUN([AC_SR_NETCDF],
+[
+
+# Save variables
+AS_VAR_SET(save_libs,$LIBS)
+AS_VAR_SET(save_fcflags,$FCFLAGS)
+
+
+# Module location
+AC_ARG_VAR(NETCDF_INC,Location of netCDF module (compile-time))
+
+
+
+AC_ARG_WITH(netcdf-inc, dnl
+	AS_HELP_STRING(--with-netcdf-inc=DIR, dnl
+		[Location of netCDF module (compile-time)]), dnl
+	[
+		AS_IF([test $with_netcdf_inc != yes -a $with_netcdf_inc != no],
+			AS_VAR_SET(NETCDF_INC,$with_netcdf_inc))
+	]
+)
+AS_VAR_SET_IF(NETCDF_INC,[
+	case AS_VAR_GET(NETCDF_INC) in
+		-I*);;
+		*)AS_VAR_SET(NETCDF_INC,"-I$NETCDF_INC");;
+	esac
+	AS_VAR_SET(FCFLAGS,"$NETCDF_INC $FCFLAGS")
+])
+
+# Library
+AC_ARG_VAR(NETCDF_LIB,Location of netCDF library (compile-time))
+AC_ARG_WITH(netcdf-lib, dnl
+	AS_HELP_STRING(--with-netcdf-lib=DIR, dnl
+		[Location of netCDF library (compile-time)]), dnl
+	[
+		AS_IF([test $with_netcdf_lib != yes -a $with_netcdf_lib != no],
+			AS_VAR_SET(NETCDF_LIB,$with_netcdf_lib))
+	]
+)
+AS_VAR_SET_IF(NETCDF_LIB,[
+	case AS_VAR_GET(NETCDF_LIB) in
+		-L*);;
+		*)AS_VAR_SET(NETCDF_LIB,"-L$NETCDF_LIB");;
+	esac
+	AS_VAR_SET(FCFLAGS,"$NETCDF_LIB $FCFLAGS")
+])
+AS_VAR_SET(FCFLAGS,"$FCFLAGS -lnetcdf")
+
+# Check
+AC_MSG_CHECKING([for f90 netcdf support])
+AC_COMPILE_IFELSE([subroutine conftest_routine
+	use netcdf
+	integer :: n
+	n = nf90_close(1)
+end subroutine conftest_routine
+],AS_VAR_SET(HAS_F90NETCDF,yes),AS_VAR_SET(HAS_F90NETCDF,no))
+AC_MSG_RESULT([AS_VAR_GET(HAS_F90NETCDF)])
+
+# # End
+AS_VAR_SET(LIBS,$save_libs)
+AS_VAR_SET(FCFLAGS,$save_fcflags)
+AC_SUBST(NETCDF_LIB)
+AC_SUBST(NETCDF_INC)
+AC_SUBST(HAS_F90NETCDF)
+
+])
+################################################################################
+################################################################################
+# Spanlib, Pyfort with BLAS/LAPACK
+# Raynaud 2006
+################################################################################
+# AC_SR_STRIPFLAGS([FLAGS],[OUTPUT_VARIABLE])
+# Remove -L and -l
+AC_DEFUN([AC_SR_PYFORT_STRIPFLAGS],
+[
+	AS_VAR_SET($2,`echo $1 | sed -r 's/(^|\s)-(L|l)/\1/g'`)
+])
+# Setup library dir and name variables PYFORT_DIRS and PYFORT_LIBS
+AC_DEFUN([AC_SR_PYFORT],
+[
+	# Full path to pyfort
+	AC_PATH_PROG(PYFORT,pyfort,pyfort)
+	AM_CONDITIONAL([HAS_PYFORT],[test AS_VAR_GET(PYFORT) != "no"])
+
+	# Blas and Lapack libraries and directories
+	AC_SR_PYFORT_STRIPFLAGS("AS_VAR_GET(BLAS) AS_VAR_GET(LAPACK)",PYFORT_LIBS)
+	AC_SUBST(PYFORT_LIBS)
+	AC_SR_PYFORT_STRIPFLAGS("AS_VAR_GET(BLAS_LIBDIR) AS_VAR_GET(LAPACK_LIBDIR)",PYFORT_DIRS)
+	AC_SUBST(PYFORT_DIRS)
+
+	# Set where to install the python module
+	AC_ARG_VAR(PYPACKDIR,[Directory where to install the spanlib python module])
+	AC_ARG_WITH(pypackdir, dnl
+		AS_HELP_STRING(--with-pypackdir=DIR, dnl
+				[Directory where to install the spanlib python module]),
+				[case AS_VAR_GET(with_pypackdir) in
+					no|yes);;
+					*)AS_VAR_SET(PYPACKDIR,AS_VAR_GET(with_pypackdir));;
+				esac]
+	)
+	AS_VAR_SET_IF(PYPACKDIR,
+		[AS_VAR_SET(PYFORT_BUILD,[-b])],
+		[
+#			AS_VAR_SET(PYFORT_BUILD,[-i])
+			AS_IF([test AS_VAR_GET(PYFORT) != "no"],
+				[AS_VAR_SET(PYPACKDIR,
+					[`AS_VAR_GET(PYTHON) -c ["import sys; print sys.prefix+\"/lib/python\"+sys.version[:3]+\"/site-packages\""]`])],
+				[AS_VAR_SET(PYPACKDIR,"")]
+			)
+		]
+	)
+	AC_SUBST(PYFORT_BUILD)
+
+])
+################################################################################
+################################################################################
+### BLAS and LAPACK
+### Raynaud 2006
+################################################################################
+AC_DEFUN([AC_SR_SPANLIB_DOC],[
+
+	# docbook (xslt) processor support
+	AS_DOCBOOK()
+
+	# We need perl and xslt processor
+	AM_CONDITIONAL([HAS_DOC_SUPPORT],
+		[test AS_VAR_GET(PERL) != "no" -a AS_VAR_GET(XSLTPROC) != "no"])
+
+])
+################################################################################
+################################################################################
+################################################################################
+
+################################################################################
+### BLAS and LAPACK
+### Raynaud 2006
+################################################################################
+AC_DEFUN([AC_SR_SPANLIB_EXAMPLE],[
+
+	# We need netcdf
+	AC_SR_NETCDF()
+	AM_CONDITIONAL([WITH_EXAMPLE],[test AS_VAR_GET(HAS_F90NETCDF) = "yes"])
+	AS_IF([test AS_VAR_GET(HAS_F90NETCDF) = "yes"],[
+		AS_VAR_SET(ac_cv_text_example,["Finally, to run the f90 example, go to 'example', and type 'make'"])
+	],[
+		AC_SR_WARNING([Without f90 netcdf support, you wont be able to run the example])
+	])
+
+	# A commandline downloader may be useful to get the data
+	AC_CHECK_PROG(WGET,wget,wget)
+	AC_CHECK_PROG(LINKS,links,links)
+	AS_VAR_SET(ac_cv_dl,
+		[`test AS_VAR_GET(WGET) != "no" -o AS_VAR_GET(LINKS) != "no"`])
+	AM_CONDITIONAL([HAS_DOWNLOADER],[AS_VAR_GET(ac_cv_dl)])
+	AS_IF([AS_VAR_GET(ac_cv_dl)],,
+		[AC_SR_WARNING([No commandline downloader found:
+you will have to download yourself the input data file to run the example])])
+
+	# A viewver may be useful to visualise the output netcdf file
+AC_SR_WARNING([YOOOOO1])
+	AC_CHECK_PROG(NCVIEW,ncview,ncview)
+AC_SR_WARNING([YOOOOO2])
+	AS_VAR_SET(ac_cv_vw,
+		[`test AS_VAR_GET(CDAT) != "no" -o AS_VAR_GET(NCVIEW) != "no"`])
+AC_SR_WARNING([YOOOOO3])
+	AM_CONDITIONAL([HAS_NCVIEWVER],[AS_VAR_GET(ac_cv_vw)])
+AC_SR_WARNING([YOOOOO4])
+	AS_IF([AS_VAR_GET(ac_cv_vw)],,
+		[AC_SR_WARNING([No netcdf viewer available:
+you will have to visualise yhe output netcdf file by own])])
+AC_SR_WARNING([YOOOOO5])
+
+])
+################################################################################
+################################################################################
+################################################################################
+
+################################################################################
+### BLAS and LAPACK
+### Raynaud 2006
+################################################################################
+AC_DEFUN([AC_SR_SPANLIB_FORTRAN],[
+
+	# Fortran lib
+	AC_CONFIG_SRCDIR([src/spanlib.f90])
+	AC_SR_FORTRAN()
+
+	# Tools
+	AC_CHECK_TOOL(SED, sed, sed)
+	AS_IF([test AS_VAR_GET(SED) = "no"],
+		[AC_SR_ERROR([You need sed to build the library])])
+	AC_SR_BLASLAPACK()
+	AC_PROG_RANLIB()
+	AC_CHECK_TOOL(AR, ar, ar)
+	AS_IF([test AS_VAR_GET(AR) = "no"],
+		[AC_SR_ERROR([You need ar to build the library])])
+
+])
+################################################################################
+################################################################################
+################################################################################
+################################################################################
+### BLAS and LAPACK
+### Raynaud 2006
+################################################################################
+AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
+
+	AC_CHECK_PROG(PERL,perl,perl)
+	AC_PROG_CC()
+	AX_WITH_PYTHON(2.4)
+	AC_SR_PYFORT()
+
+	AS_VAR_SET(ac_cv_py,
+		[`test AS_VAR_GET(PYFORT) != "no" -a AS_VAR_GET(PERL) != "no"`])
+	AM_CONDITIONAL([WITH_PYTHON],[AS_VAR_GET(ac_cv_py)])
+	AS_IF([AS_VAR_GET(ac_cv_py)],,
+		[AC_SR_WARNING([You wont be able to build the python module.
+You need perl and pyfort (cdat from python).])])
+
+
+])
+################################################################################
+################################################################################
+################################################################################
+################################################################################
+### SpanLib
+### Raynaud 2006
 ################################################################################
 # Colorisation for fun!
 ################################################################################
 AC_DEFUN([AC_SR_SET_YELLOWINK],
 [
-	echo -en "\\033\\1331;31m"
+	echo -en "\\033\\1331;33m"
 ])
+
 AC_DEFUN([AC_SR_SET_REDINK],
 [
 	echo -en "\\033\\1331;31m"
 ])
+
 AC_DEFUN([AC_SR_SET_GREENINK],
 [
 	echo -en "\\033\\1331;32m"
 ])
+
 AC_DEFUN([AC_SR_SET_NORMALINK],
 [
 	echo -en "\\033\\1330;39m"
@@ -34,6 +606,7 @@ AC_DEFUN([AC_SR_HEADER],
 	echo "################################################################################"
 	AC_SR_SET_NORMALINK
 ])
+
 AC_DEFUN([AC_SR_WARNING],
 [
 	AC_SR_SET_YELLOWINK
@@ -42,6 +615,7 @@ AC_DEFUN([AC_SR_WARNING],
 	echo "################################################################################"
 	AC_SR_SET_NORMALINK
 ])
+
 AC_DEFUN([AC_SR_ERROR],
 [
 	AC_SR_SET_REDINK
@@ -51,346 +625,136 @@ AC_DEFUN([AC_SR_ERROR],
 	AC_SR_SET_NORMALINK
 	exit 1
 ])
-	
-
-
-
 ################################################################################
-# Check for python version (taken from AC_PYTHON_DEVEL)
 ################################################################################
-AC_DEFUN([AC_SR_PYTHON],
+################################################################################
+
+dnl AS_DOCBOOK([, ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
+dnl checks if xsltproc can build docbook documentation
+dnl (which is possible if the catalog is set up properly
+dnl I also tried checking for a specific version and type of docbook
+dnl but xsltproc seemed to happily run anyway, so we can t check for that
+dnl and version
+dnl this macro takes inspiration from
+dnl http://www.movement.uklinux.net/docs/docbook-autotools/configure.html
+AC_DEFUN([AS_DOCBOOK],
 [
-	AC_ARG_VAR([PYTHON_VERSION],[The installed Python
-		version to use, for example '2.3'. This string 
-		will be appended to the Python interpreter
-		canonical name.])
+  XSLTPROC_FLAGS=--nonet
+  DOCBOOK_ROOT=
+  TYPE_LC=xml
+  TYPE_UC=XML
+  DOCBOOK_VERSION=4.1.2
 
-	AC_PATH_PROG([PYTHON],[python[$PYTHON_VERSION]])
-	if test -z "$PYTHON"; then
-	   AC_MSG_ERROR([Cannot find python$PYTHON_VERSION in your system path])
-	   PYTHON_VERSION=""
-	fi
-
-	#
-	# Check for a version of Python >= 2.1.0
-	#
-	AC_MSG_CHECKING([for a version of Python >= '2.1.0'])
-	ac_supports_python_ver=`$PYTHON -c "import sys, string; \
-		ver = string.split(sys.version)[[0]]; \
-		print ver >= '2.1.0'"`
-	if test "$ac_supports_python_ver" != "True"; then
-		if test -z "$PYTHON_NOVERSIONCHECK"; then
-			AC_MSG_RESULT([no])
-			AC_MSG_FAILURE([
-This version of the AC@&t@_PYTHON_DEVEL macro
-doesn't work properly with versions of Python before
-2.1.0. You may need to re-run configure, setting the
-variables PYTHON_CPPFLAGS, PYTHON_LDFLAGS, PYTHON_SITE_PKG,
-PYTHON_EXTRA_LIBS and PYTHON_EXTRA_LDFLAGS by hand.
-Moreover, to disable this check, set PYTHON_NOVERSIONCHECK
-to something else than an empty string.
-])
-		else
-			AC_MSG_RESULT([skip at user request])
-		fi
-	else 
-		AC_MSG_RESULT([yes])
-	fi
-	
-	#
-	# if the macro parameter ``version'' is set, honour it
-	#
-	if test -n "$1"; then
-		AC_MSG_CHECKING([for a version of Python $1])
-		ac_supports_python_ver=`$PYTHON -c "import sys, string; \
-			ver = string.split(sys.version)[[0]]; \
-			print ver $1"`
-		if test "$ac_supports_python_ver" = "True"; then
-	   	   AC_MSG_RESULT([yes])
-		else
-			AC_MSG_RESULT([no])
-			AC_MSG_ERROR([this package requires Python $1. 
-If you have it installed, but it isn't the default Python
-interpreter in your system path, please pass the PYTHON_VERSION 
-variable to configure. See ``configure --help'' for reference.
-])
-			PYTHON_VERSION=""
-		fi
-	fi
-	
-])
-
-################################################################################
-# Check for perl version (http://autoconf-archive.cryp.to/ac_prog_perl_version.m4)
-################################################################################
-dnl @synopsis AC_PROG_PERL_VERSION(VERSION, [ACTION-IF-TRUE], [ACTION-IF-FALSE])
-dnl
-dnl Makes sure that perl supports the version indicated. If true the
-dnl shell commands in ACTION-IF-TRUE are executed. If not the shell
-dnl commands in ACTION-IF-FALSE are run. Note if $PERL is not set (for
-dnl example by running AC_CHECK_PROG or AC_PATH_PROG),
-dnl AC_CHECK_PROG(PERL, perl, perl) will be run.
-dnl
-dnl Example:
-dnl
-dnl   AC_PROG_PERL_VERSION(5.6.0)
-dnl
-dnl This will check to make sure that the perl you have supports at
-dnl least version 5.6.0.
-dnl
-dnl @category InstalledPackages
-dnl @author Dean Povey <povey@wedgetail.com>
-dnl @version 2002-09-25
-dnl @license AllPermissive
-
-AC_DEFUN([AC_PROG_PERL_VERSION],[dnl
-# Make sure we have perl
-if test -z "$PERL"; then
-AC_CHECK_PROG(PERL,perl,perl)
-fi
-
-# Check if version of Perl is sufficient
-ac_perl_version="$1"
-
-if test "x$PERL" != "x"; then
-  AC_MSG_CHECKING(for perl version greater than or equal to $ac_perl_version)
-  # NB: It would be nice to log the error if there is one, but we cannot rely
-  # on autoconf internals
-  $PERL -e "use $ac_perl_version;" > /dev/null 2>&1
-  if test $? -ne 0; then
-    AC_MSG_RESULT(no);
-    $3
-    PERL=""
+  if test ! -f /etc/xml/catalog; then
+    for i in /usr/share/sgml/docbook/stylesheet/xsl/nwalsh /usr/share/sgml/docbook/xsl-stylesheets/;
+    do
+      if test -d "$i"; then
+        DOCBOOK_ROOT=$i
+      fi
+    done
   else
-    AC_MSG_RESULT(ok);
-    $2
+    XML_CATALOG=/etc/xml/catalog
+    CAT_ENTRY_START='<!--'
+    CAT_ENTRY_END='-->'
   fi
-else
-  AC_MSG_WARN(could not find perl)
-fi
-])dnl
 
+  dnl We need xsltproc to process the test
+  AC_CHECK_PROG(XSLTPROC,xsltproc,xsltproc,)
+  XSLTPROC_WORKS=no
+  if test -n "$XSLTPROC"; then
+    AC_MSG_CHECKING([whether xsltproc docbook processing works])
 
-################################################################################
-# Check for docbook
-################################################################################
-AC_DEFUN([AX_CHECK_DOCBOOK], [
-# It's just rude to go over the net to build
-	XSLTPROC_FLAGS=--nonet
-	DOCBOOK_ROOT=""
-	if test ! -f /etc/xml/catalog; then
-        for i in /usr/share/sgml/docbook/stylesheet/xsl/nwalsh /usr/share/sgml/docbook/xsl-stylesheets/;
-        do
-                if test -d "$i"; then
-                        DOCBOOK_ROOT=$i
-                fi
-        done
-
-        # Last resort - try net
-        if test -z "$DOCBOOK_ROOT"; then
-                XSLTPROC_FLAGS=
-        fi
-	else
-        XML_CATALOG=/etc/xml/catalog
-        CAT_ENTRY_START='<!--'
-        CAT_ENTRY_END='-->'
-	fi
-
-	AC_CHECK_PROG(XSLTPROC,xsltproc,xsltproc,)
-	XSLTPROC_WORKS=no
-	if test -n "$XSLTPROC"; then
-        AC_MSG_CHECKING([whether xsltproc works])
-
-        if test -n "$XML_CATALOG"; then
-                DB_FILE="http://docbook.sourceforge.net/release/xsl/current/xhtml/docbook.xsl"
-        else
-                DB_FILE="$DOCBOOK_ROOT/docbook.xsl"
-        fi
-
-#        $XSLTPROC $XSLTPROC_FLAGS $DB_FILE >/dev/null 2&>1 << END
-        $XSLTPROC $DB_FILE >/dev/null 2&>1 << END
+    if test -n "$XML_CATALOG"; then
+      DB_FILE="http://docbook.sourceforge.net/release/xsl/current/xhtml/docbook.xsl"
+    else
+      DB_FILE="$DOCBOOK_ROOT/docbook.xsl"
+    fi
+    $XSLTPROC $XSLTPROC_FLAGS $DB_FILE >/dev/null 2>&1 << END
 <?xml version="1.0" encoding='ISO-8859-1'?>
-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook $TYPE_UC V$DOCBOOK_VERSION//EN" "http://www.oasis-open.org/docbook/$TYPE_LC/$DOCBOOK_VERSION/docbookx.dtd">
 <book id="test">
 </book>
 END
-echo  yo $?
-        if test "$?" = 0; then
-                XSLTPROC_WORKS=yes
-        fi
-        AC_MSG_RESULT($XSLTPROC_WORKS)
-	fi
-	AM_CONDITIONAL(have_xsltproc, test "$XSLTPROC_WORKS" = "yes")
+    if test "$?" = 0; then
+      XSLTPROC_WORKS=yes
+    fi
+    AC_MSG_RESULT($XSLTPROC_WORKS)
+  fi
 
-	AC_SUBST(XML_CATALOG)
-	AC_SUBST(XSLTPROC_FLAGS)
-	AC_SUBST(DOCBOOK_ROOT)
-	AC_SUBST(CAT_ENTRY_START)
-	AC_SUBST(CAT_ENTRY_END)
-])
-################################################################################
-# F90 compiler
-################################################################################
-AC_DEFUN([AC_SR_FORTRAN],
-[
-AC_LANG(Fortran)
-AC_PROG_FC(ifort fort xlf90 pgf90 epcf90 pathf90 ifc efc f90 xlf95 lf95 g95 f95)
+  if test "x$XSLTPROC_WORKS" = "xyes"; then
+    dnl execute ACTION-IF-FOUND
+    ifelse([$1], , :, [$1])
+  else
+    dnl execute ACTION-IF-NOT-FOUND
+    ifelse([$2], , :, [$2])
+  fi
 
-])
-dnl @synopsis AC_SR_BLAS([ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
+  AC_SUBST(XML_CATALOG)
+  AC_SUBST(XSLTPROC_FLAGS)
+  AC_SUBST(DOCBOOK_ROOT)
+  AC_SUBST(CAT_ENTRY_START)
+  AC_SUBST(CAT_ENTRY_END)
+])dnl @synopsis AX_WITH_PYTHON([minimum-version], [value-if-not-found], [path])
 dnl
-dnl This macro looks for a library that implements the BLAS
-dnl linear-algebra interface (see http://www.netlib.org/blas/). On
-dnl success, it sets the BLAS_LIBS output variable to hold the
-dnl requisite library linkages.
+dnl Locates an installed Python binary, placing the result in the
+dnl precious variable $PYTHON. Accepts a present $PYTHON, then
+dnl --with-python, and failing that searches for python in the given
+dnl path (which defaults to the system path). If python is found,
+dnl $PYTHON is set to the full path of the binary; if it is not found,
+dnl $PYTHON is set to VALUE-IF-NOT-FOUND, which defaults to 'python'.
 dnl
-dnl To link with BLAS, you should link with:
+dnl Example:
 dnl
-dnl 	$BLAS_LIBS $LIBS $FLIBS
-dnl
-dnl in that order. FLIBS is the output variable of the
-dnl AC_FC_LIBRARY_LDFLAGS macro (called if necessary by ACX_BLAS), and
-dnl is sometimes necessary in order to link with FC libraries. Users
-dnl will also need to use AC_FC_DUMMY_MAIN (see the autoconf manual),
-dnl for the same reason.
-dnl
-dnl Many libraries are searched for, from ATLAS to CXML to ESSL. The
-dnl user may also use --with-blas=<lib> in order to use some specific
-dnl BLAS library <lib>. In order to link successfully, however, be
-dnl aware that you will probably need to use the same Fortran compiler
-dnl (which can be set via the FC env. var.) as was used to compile the
-dnl BLAS library.
-dnl
-dnl ACTION-IF-FOUND is a list of shell commands to run if a BLAS
-dnl library is found, and ACTION-IF-NOT-FOUND is a list of commands to
-dnl run it if it is not found. If ACTION-IF-FOUND is not specified, the
-dnl default action will define HAVE_BLAS.
-dnl
-dnl This macro requires autoconf 2.50 or later.
+dnl   AX_WITH_PYTHON(2.2, missing)
 dnl
 dnl @category InstalledPackages
-dnl @author Steven G. Johnson <stevenj@alum.mit.edu>
-dnl @version 2001-12-13
+dnl @author Dustin Mitchell <dustin@cs.uchicago.edu>
+dnl @version 2005-01-22
 dnl @license GPLWithACException
 
-AC_DEFUN([AC_SR_BLAS], [
-AC_PREREQ(2.50)
-AC_REQUIRE([AC_FC_LIBRARY_LDFLAGS])
-acx_blas_ok=no
+dnl Raynaud 2006
 
-AC_ARG_WITH(blas,
-	[AC_HELP_STRING([--with-blas=<lib>], [use BLAS library <lib>])])
-case $with_blas in
-	yes | "") ;;
-	no) acx_blas_ok=disable ;;
-	-* | */* | *.a | *.so | *.so.* | *.o) BLAS_LIBS="$with_blas" ;;
-	*) BLAS_LIBS="-l$with_blas" ;;
-esac
+AC_DEFUN([AX_WITH_PYTHON],
+[
+  AC_ARG_VAR([PYTHON],[absolute path name of Python executable])
 
-# Get fortran linker names of BLAS functions to check for.
-AC_FC_FUNC(sgemm)
-AC_FC_FUNC(dgemm)
-echo zzzzzzzz $sgemm
+  dnl unless PYTHON was supplied to us (as a precious variable)
+dnl  if test -z "$PYTHON"
+  AS_VAR_SET_IF(PYTHON,,[
+    AC_MSG_CHECKING(for --with-python)
+    AC_ARG_WITH(python,
+                AC_HELP_STRING([--with-python=PYTHON],
+                               [absolute path name of Python executable]),
+                [ if test "$withval" != "yes"
+                  then
+                    PYTHON="$withval"
+                    AC_MSG_RESULT($withval)
+                  else
+                    AC_MSG_RESULT(no)
+                  fi
+                ],
+                [ AC_MSG_RESULT(no)
+                ])
+  ])
 
-acx_blas_save_LIBS="$LIBS"
-LIBS="$LIBS $FLIBS"
+  dnl if it's still not found, check the paths, or use the fallback
+dnl  if test -z "$PYTHON"
+  AS_VAR_SET_IF(PYTHON,,[
+    AC_PATH_PROG([PYTHON], python, m4_ifval([$2],[$2],[python]), $3)
+  ])
 
-# First, check BLAS_LIBS environment variable
-if test $acx_blas_ok = no; then
-if test "x$BLAS_LIBS" != x; then
-	save_LIBS="$LIBS"; LIBS="$BLAS_LIBS $LIBS"
-	AC_MSG_CHECKING([for $sgemm in $BLAS_LIBS])
-	AC_COMPILE_IFELSE(program conftest
-	$sgemm
-	end, [acx_blas_ok=yes], [BLAS_LIBS=""])
-dnl	AC_TRY_LINK_FUNC($sgemm, [acx_blas_ok=yes], [BLAS_LIBS=""])
-	AC_MSG_RESULT($acx_blas_ok)
-	LIBS="$save_LIBS"
-fi
-fi
-
-# BLAS linked to by default?  (happens on some supercomputers)
-if test $acx_blas_ok = no; then
-	save_LIBS="$LIBS"; LIBS="$LIBS"
-	AC_CHECK_FUNC($sgemm, [acx_blas_ok=yes])
-	LIBS="$save_LIBS"
-fi
-
-# BLAS in ATLAS library? (http://math-atlas.sourceforge.net/)
-if test $acx_blas_ok = no; then
-	AC_CHECK_LIB(atlas, ATL_xerbla,
-		[AC_CHECK_LIB(f77blas, $sgemm,
-		[AC_CHECK_LIB(cblas, cblas_dgemm,
-			[acx_blas_ok=yes
-			 BLAS_LIBS="-lcblas -lf77blas -latlas"],
-			[], [-lf77blas -latlas])],
-			[], [-latlas])])
-fi
-
-# BLAS in PhiPACK libraries? (requires generic BLAS lib, too)
-if test $acx_blas_ok = no; then
-	AC_CHECK_LIB(blas, $sgemm,
-		[AC_CHECK_LIB(dgemm, $dgemm,
-		[AC_CHECK_LIB(sgemm, $sgemm,
-			[acx_blas_ok=yes; BLAS_LIBS="-lsgemm -ldgemm -lblas"],
-			[], [-lblas])],
-			[], [-lblas])])
-fi
-
-# BLAS in Alpha CXML library?
-if test $acx_blas_ok = no; then
-	AC_CHECK_LIB(cxml, $sgemm, [acx_blas_ok=yes;BLAS_LIBS="-lcxml"])
-fi
-
-# BLAS in Alpha DXML library? (now called CXML, see above)
-if test $acx_blas_ok = no; then
-	AC_CHECK_LIB(dxml, $sgemm, [acx_blas_ok=yes;BLAS_LIBS="-ldxml"])
-fi
-
-# BLAS in Sun Performance library?
-if test $acx_blas_ok = no; then
-	if test "x$GCC" != xyes; then # only works with Sun CC
-		AC_CHECK_LIB(sunmath, acosp,
-			[AC_CHECK_LIB(sunperf, $sgemm,
-        			[BLAS_LIBS="-xlic_lib=sunperf -lsunmath"
-                                 acx_blas_ok=yes],[],[-lsunmath])])
-	fi
-fi
-
-# BLAS in SCSL library?  (SGI/Cray Scientific Library)
-if test $acx_blas_ok = no; then
-	AC_CHECK_LIB(scs, $sgemm, [acx_blas_ok=yes; BLAS_LIBS="-lscs"])
-fi
-
-# BLAS in SGIMATH library?
-if test $acx_blas_ok = no; then
-	AC_CHECK_LIB(complib.sgimath, $sgemm,
-		     [acx_blas_ok=yes; BLAS_LIBS="-lcomplib.sgimath"])
-fi
-
-# BLAS in IBM ESSL library? (requires generic BLAS lib, too)
-if test $acx_blas_ok = no; then
-	AC_CHECK_LIB(blas, $sgemm,
-		[AC_CHECK_LIB(essl, $sgemm,
-			[acx_blas_ok=yes; BLAS_LIBS="-lessl -lblas"],
-			[], [-lblas $FLIBS])])
-fi
-
-# Generic BLAS library?
-if test $acx_blas_ok = no; then
-	AC_CHECK_LIB(blas, $sgemm, [acx_blas_ok=yes; BLAS_LIBS="-lblas"])
-fi
-
-AC_SUBST(BLAS_LIBS)
-
-LIBS="$acx_blas_save_LIBS"
-
-# Finally, execute ACTION-IF-FOUND/ACTION-IF-NOT-FOUND:
-if test x"$acx_blas_ok" = xyes; then
-        ifelse([$1],,AC_DEFINE(HAVE_BLAS,1,[Define if you have a BLAS library.]),[$1])
-        :
-else
-        acx_blas_ok=no
-        $2
-fi
-])dnl ACX_BLAS
+  dnl check version if required
+  m4_ifvaln([$1], [
+    dnl do this only if we didn't fall back
+    if test "$PYTHON" != "m4_ifval([$2],[$2],[python])"
+    then
+      AC_MSG_CHECKING($PYTHON version >= $1)
+      if test `$PYTHON -c ["import sys; print sys.version[:3] >= \"$1\" and \"OK\" or \"OLD\""]` = "OK"
+      then
+        AC_MSG_RESULT(ok)
+      else
+        AC_MSG_RESULT(no)
+        PYTHON="$2"
+      fi
+    fi])
+])

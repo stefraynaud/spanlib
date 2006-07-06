@@ -3,7 +3,7 @@
 ! This file is part of the SpanLib library.
 ! Copyright (C) 2006  Stephane Raynaud
 ! Contact: stephane dot raynaud at gmail dot com
-! 
+!
 ! This library is free software; you can redistribute it and/or
 ! modify it under the terms of the GNU Lesser General Public
 ! License as published by the Free Software Foundation; either
@@ -13,7 +13,7 @@
 ! but WITHOUT ANY WARRANTY; without even the implied warranty of
 ! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ! Lesser General Public License for more details.
-! 
+!
 ! You should have received a copy of the GNU Lesser General Public
 ! License along with this library; if not, write to the Free Software
 ! Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
@@ -31,7 +31,7 @@ program example
 	! A PCA is used to reduce the degrees of freedoom before MSSA analysis.
 	! Weights for PCA are computed as a fonction of latitude.
 	! Then, we assume that we have already identified an oscillation (after tests).
-	! This oscillation, given by a pair of MSSA modes, is then 
+	! This oscillation, given by a pair of MSSA modes, is then
 	! reconstructed from the MSSA and PCA spaces.
 	! Finally, phase composites are computed from this reconstructed oscillation.
 	! The oscillation is outputed in a netcdf file (pair_1.cdf).
@@ -49,13 +49,13 @@ program example
 	! - Phase composites use 8 phases
 	! - An offset of 0.4 and is used for composites
 	! - The first phase of composites is set at 180 degrees (minimal value)
-	
 
-	use pcamssa
+
+	use spanlib
 	use netcdf
 
 	implicit none
-	
+
 	! Parameters
 	! ----------
 	integer,parameter :: nkeep_pca=5, nwindow=84, first_mode=1, nphases=8
@@ -113,13 +113,13 @@ program example
 	! Format (pack) data to have only one space dimension
 	! ---------------------------------------------------
 	print*,'Packaging...'
-	
+
 	! Compute weights proportional to grid point area
 	pi = cos(-1.)
 	do i=1,nlat
 		weights(:,i) = cos(lat(i)*pi/180.)
 	end do
-	
+
 	! Now pack
 	if(isnan(missing_value))then
 		mask = not(isnan(field(:,:,1)))
@@ -136,30 +136,30 @@ program example
 	! Perform a PCA to reduce the d.o.f
 	! ---------------------------------
 	print*,'PCA...'
-	call pca(packed_field, nkeep=nkeep_pca, eof=eof, pc=pc, weights=packed_weights)
+	call sl_pca(packed_field, nkeep=nkeep_pca, eof=eof, pc=pc, weights=packed_weights)
 	deallocate(packed_field)
 
 	! We send results from PCA to MSSA
 	! --------------------------------
 	print*,'MSSA...'
-	call mssa(transpose(pc), nwindow, nkeep=first_mode+1, steof=steof, stpc=stpc, ev=stev)
+	call sl_mssa(transpose(pc), nwindow, nkeep=first_mode+1, steof=steof, stpc=stpc, ev=stev)
 
 	! We reconstruct modes [first_mode + first_mode+1] of MSSA
 	! --------------------------------------------------------
-	
+
 	print*,'MSSAREC...'
-	call mssarec(steof, stpc, nwindow, stpair, istart=first_mode, iend=first_mode+1)
+	call sl_mssarec(steof, stpc, nwindow, stpair, istart=first_mode, iend=first_mode+1)
 	deallocate(steof, stpc)
 
 	print*,'PCAREC...'
-	call pcarec(eof, transpose(stpair), pair)
-!	call pcarec(eof, pc, pair)
+	call sl_pcarec(eof, transpose(stpair), pair)
+!	call sl_pcarec(eof, pc, pair)
 	deallocate(stpair, eof)
 
 	! We compute phases composites for the reconstructed oscillation
 	! ---------------------------------------------------------------
 	print*,'PHASECOMP...'
-	call phasecomp(pair, nphases, packed_phasecomps, weights=packed_weights, &
+	call sl_phasecomp(pair, nphases, packed_phasecomps, weights=packed_weights, &
 		& offset=offset, firstphase=first_phase)
 
 
@@ -177,7 +177,7 @@ program example
 	do i=1, nphases
 		phasecomps(:,:,i) = unpack(packed_phasecomps(:,i), mask, new_missing_value)
 	end do
-	
+
 	! Write out the phase composites of the first oscillation
 	! -------------------------------------------------------
 	print*,'Writing out...'

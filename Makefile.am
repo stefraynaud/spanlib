@@ -1,7 +1,7 @@
-EXTRA_DIST    = autogen.sh
-tata:
-	@echo tata
+######################################################################
+## SpanLib, Raynaud 2006
+######################################################################
 
-mypython:
-	echo $(PYTHON)
-	
+EXTRA_DIST    = autogen.sh COPYING INSTALL AUTHORS README ChangeLog
+SUBDIRS = src
+

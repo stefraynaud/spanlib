@@ -21,6 +21,7 @@ HTML=$(HTMLDIR)/index.html
 CSS=$(HTMLDIR)/spanlib.css
 XSL=$(XMLDIR)/spanlib.xsl
 XML=$(XMLDIR)/spanlib.xml
+##XSLTARGS=--xinclude --stringparam  html.stylesheet "$(CSS)"
 XSLTARGS=--xinclude
 DIRS=$(XMLDIR) $(HTMLDIR)
 XMLS=$(XML) $(XML_LIBRARY) $(XML_EXAMPLE)
@@ -32,8 +33,8 @@ XMLS=$(XML) $(XML_LIBRARY) $(XML_EXAMPLE)
 .PHONY: html
 
 $(HTML): $(XSL) $(CSS) $(XMLS) $(HTMLDIR)
-	xsltproc $(XSLTARGS) -o $(HTML_LIBRARY) --stringparam  html.stylesheet "$(CSS)" $(XSL) $(XML_LIBRARY)
-	xsltproc $(XSLTARGS) -o $(HTML_EXAMPLE) --stringparam  html.stylesheet "$(CSS)" $(XSL) $(XML_EXAMPLE)
+	xsltproc $(XSLTARGS) --stringparam  html.stylesheet "'$(CSS)'" -o $(HTML_LIBRARY) $(XSL) $(XML_LIBRARY)
+	xsltproc $(XSLTARGS) --stringparam  html.stylesheet "'$(CSS)'" -o $(HTML_EXAMPLE) $(XSL) $(XML_EXAMPLE)
 	xsltproc $(XSLTARGS) -o $(HTML) $(XSL) $(XML)
 
 $(XMLS): $(GENDOC) $(XMLDIR) $(F90_LIBRARY) $(F90_EXAMPLE)

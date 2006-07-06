@@ -33,8 +33,11 @@
 		</address>
 	</articleinfo>
 
+	
+
 	<!--#################################################################-->
-	<sect1 id="doc_intro">
+	<!--#################################################################-->
+	<sect1 id="doc_int">
 		<title>Introduction</title>
 		<para class='red'>
 			This package provides a F90 module containing a minmal collection of subroutines to perform
@@ -76,19 +79,78 @@
 
 		<para>
 			An html version of the source code is available here:
-			<filename><link linkend="f90_spanlib.html">spanlib.f90</link></filename>.
+			<filename><ulink url="f90_library.html">spanlib.f90</ulink></filename>.
 		</para>
 	</sect1>
 
 	<!--#################################################################-->
-	<xi:include href="doc_subroutines.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+	<!--#################################################################-->
+	<sect1 id="doc_ins">
+		<title>Installation</title>
+
+		<sect2 id="doc_ins_req">
+			<title>Requirements</title>
+			<sect3>
+				<title>Fortran library</title>
+				<para>You need a F90 compiler and BLAS/LAPACK  libraries compilated using this F90 compiler.</para>
+				<para>Tu use the example, you need the F90 netcdf library.</para>
+			</sect3>
+			<sect3>
+				<title>Python module</title>
+				<para>You need the fortran library, and the cdat package.</para>
+			</sect3>
+		</sect2>
+
+		<sect2 id="doc_ins_dow">
+			<title>Download</title>
+		</sect2>
+		
+		<sect2 id="doc_ins_ins">
+			<title>Installation</title>
+			<procedure>
+				<step>
+					<para>
+						First, compile it with:
+<screen>
+<prompt>user$</prompt> <userinput>./configure</userinput>
+<prompt>user$</prompt> <userinput>make
+</userinput>
+</screen>
+					</para>
+				</step>
+				<step>
+					<para>
+						Second, install it as root:
+<screen>
+<prompt>user$</prompt> <userinput>su</userinput>
+<prompt>root$</prompt> <userinput>make install
+</userinput>
+</screen>.
+					</para>
+				</step>
+			</procedure>
+		</sect2>
+		
+	</sect1>
 
 	<!--#################################################################-->
-	<sect1 id="doc_examples">
-		<title>Examples</title>
-		
-		<sect2>
-			<title>A pure Fortran 90 example</title>
+	<!--#################################################################-->
+	<sect1 id="doc_f90">
+		<title>The Fortran 90 library</title>
+
+		<!--#################################################################-->
+		<sect2 id="doc_f90_int">
+			<title>Introduction</title>
+			
+		</sect2>
+
+	
+		<!--#################################################################-->
+		<xi:include href="doc_subroutines.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+
+		<!--#################################################################-->
+		<sect2 id="doc_f90_exa">
+			<title>A Fortran 90 example</title>
 			<para>
 				This is an example of how to use this the Fortran 90 component of Spanlib.
 				In this example, an analysis of Sea surface Temperature anomalies using data
@@ -99,19 +161,35 @@
 			<example>
 				<title>F90 example</title>
 				<xi:include href="f90_example.xml"  xmlns:xi="http://www.w3.org/2001/XInclude" />
-			</example>	
-		</sect2>
-
-		<sect2>
-			<title>A example using the Python interface</title>
-			<example>
-				<title>Python example</title>
-				<!--MY_PYTHON_EXAMPLE-->
 			</example>
 		</sect2>
 
 	</sect1>
+	
+	<!--#################################################################-->
+	<!--#################################################################-->
+	<sect1 id="doc_pyt">
+		<title>The python module</title>
 
+		<!--#################################################################-->
+		<sect2 id="doc_pyt_int">
+			<title>Introduction</title>
+		</sect2>
+	
+		<!--#################################################################-->
+		<sect2 id="doc_pyt_exa">
+			<title>A python example</title>
+			<example>
+				<title>Python example</title>
+				<para>This is a wonderful python example</para>
+				<example>
+					<title>Python example</title>
+					<!--xi:include href="python_example.xml"  xmlns:xi="http://www.w3.org/2001/XInclude" /-->
+				</example>
+			</example>
+		</sect2>
+	</sect1>
+	
 	<!--#################################################################-->
 	<sect1 id="doc_ref">
 		<title>References</title>
@@ -121,7 +199,7 @@
 	</sect1>
 
 	<!--#################################################################-->
-	<bibliography id="doc_biblio">
+	<bibliography id="doc_bib">
 
 		<!-- Normal -->
 		<biblioentry>

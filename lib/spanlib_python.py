@@ -1,4 +1,4 @@
-import spanlib
+import spanlib_fort
 import MV
 import Numeric
 
@@ -11,8 +11,8 @@ def phases(data,nphases=8,offset=.5,firstphase=0):
     ns1=sh[-1]
     ns2=sh[-2]
     nt=data.shape[0]
-    phases = spanlib.phasecomp(tdata, ns, nt, nphases, w, offset, firstphase)
-    phases = MV.transpose(spanlib.unpack3d(mask,ns1,ns2,nphases,phases,ns,1.e20))
+    phases = spanlib_fort.phasecomp(tdata, ns, nt, nphases, w, offset, firstphase)
+    phases = MV.transpose(spanlib_fort.unpack3d(mask,ns1,ns2,nphases,phases,ns,1.e20))
     axes = data.getAxisList()
     phases.id='phases'
     ax=phases.getAxis(0)
@@ -63,13 +63,13 @@ def pack(data,weights=None):
 
     ## Dummy 1D for time for tmask
     ## Pack data
-    tdata = spanlib.pack3d(tdata,mask,ns1,ns2,nt,ns)
+    tdata = spanlib_fort.pack3d(tdata,mask,ns1,ns2,nt,ns)
 
     weights=MV.reshape(weights,(1,sh[-2],sh[-1]))
     ## Pack weights
     tweights=Numeric.transpose(weights.filled(0))
     tweights=Numeric.ones(tweights.shape,'f')
-    weights = spanlib.pack3d(tweights,mask,ns1,ns2,1,ns)[:,0]
+    weights = spanlib_fort.pack3d(tweights,mask,ns1,ns2,1,ns)[:,0]
 
     return tdata,weights.astype('f'),mask
 
@@ -127,9 +127,9 @@ class SpAn(object):
             npca=self.npca
 
         ## Calls Fortran pca
-        self.eof,self.pc,self.ev = spanlib.pca(self.pdata,self.ns,self.nt,self.npca,self.weights,1)
+        self.eof,self.pc,self.ev = spanlib_fort.pca(self.pdata,self.ns,self.nt,self.npca,self.weights,1)
 
-        eof = MV.transpose(MV.array(spanlib.unpack3d(self.mask,self.ns1,self.ns2,npca,self.eof,self.ns,1.e20)))
+        eof = MV.transpose(MV.array(spanlib_fort.unpack3d(self.mask,self.ns1,self.ns2,npca,self.eof,self.ns,1.e20)))
         eof.id='EOF'
         eof.standard_name='Empirical Orthogonal Function'
 
@@ -167,9 +167,9 @@ class SpAn(object):
 
         if self.steof is None:
             if pca is True:
-                self.steof, self.stpc, self.stev = spanlib.mssa(Numeric.transpose(self.pc), self.npca, self.nt, self.window, self.nmssa)
+                self.steof, self.stpc, self.stev = spanlib_fort.mssa(Numeric.transpose(self.pc), self.npca, self.nt, self.window, self.nmssa)
             else:
-                self.steof, self.stpc, self.stev = spanlib.mssa(self.pdata, self.ns, self.nt, self.window, self.nmssa)
+                self.steof, self.stpc, self.stev = spanlib_fort.mssa(self.pdata, self.ns, self.nt, self.window, self.nmssa)
 
             eof = MV.transpose(MV.reshape(self.steof,(self.window,self.npca,self.nmssa)))
         eof.id='EOF'
@@ -207,9 +207,9 @@ class SpAn(object):
             if n2 is None:
                 n2=self.nmssa
             if pca:
-                ffrec = spanlib.mssarec(self.steof, self.stpc, self.npca, self.nt, self.nmssa, self.window, n1, n2)
-                ffrec = spanlib.pcarec(self.eof, Numeric.transpose(ffrec), self.ns, self.nt, self.npca, 1,self.npca)
-                ffrec = MV.transpose(spanlib.unpack3d(self.mask,self.ns1,self.ns2,self.nt,ffrec,self.ns,1.e20))
+                ffrec = spanlib_fort.mssarec(self.steof, self.stpc, self.npca, self.nt, self.nmssa, self.window, n1, n2)
+                ffrec = spanlib_fort.pcarec(self.eof, Numeric.transpose(ffrec), self.ns, self.nt, self.npca, 1,self.npca)
+                ffrec = MV.transpose(spanlib_fort.unpack3d(self.mask,self.ns1,self.ns2,self.nt,ffrec,self.ns,1.e20))
                 ffrec.setAxisList(self.axes)
                 ffrec.id=self.varname
                 ffrec.comment='Reconstructed from MSSA and PCA'
