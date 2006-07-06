@@ -136,7 +136,7 @@ program example
 	! Perform a PCA to reduce the d.o.f
 	! ---------------------------------
 	print*,'PCA...'
-	call sl_pca(packed_field, nkeep=nkeep_pca, eof=eof, pc=pc, weights=packed_weights)
+	call sl_pca(packed_field, nkeep=nkeep_pca, xeof=eof, pc=pc, weights=packed_weights)
 	deallocate(packed_field)
 
 	! We send results from PCA to MSSA

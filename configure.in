@@ -36,13 +36,17 @@ AC_SR_SPANLIB_DOC()
 AC_SR_HEADER([Creating Makefiles])
 ######################################################################
 AC_OUTPUT(\
-			Makefile \
-			src/Makefile \
-			example/Makefile \
-			)
+	Makefile \
+	src/Makefile \
+	example/Makefile \
+	scripts/Makefile \
+	doc/Makefile \
+	doc/html/Makefile \
+)
 ######################################################################
 AC_SR_HEADER([Now type 'make' to build the library.
 ### Then, to install it, type 'make install'
 ### (you may need to do it as root if you didnt use --prefix).])
-AS_VAR_SET_IF(ac_cv_text_example,[AC_SR_HEADER(AS_VAR_GET(ac_cv_text_example))])
+AS_VAR_SET_IF(ac_cv_text_example,
+[AC_SR_HEADER(AS_VAR_GET(ac_cv_text_example))])
 ######################################################################

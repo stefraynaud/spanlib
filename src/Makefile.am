@@ -3,7 +3,7 @@
 ######################################################################
 
 lib_LIBRARIES = libspanlib.a
-include_HEADERS=spanlib.mod
+nodist_include_HEADERS=spanlib.mod
 libspanlib_a_SOURCES=spanlib.f90
 SUFFIXES=.f90 .a .o .mod
 AM_FCFLAGS=$(LAPACK_LIBDIR) $(LAPACK) $(BLAS_LIBDIR) $(BLAS)
