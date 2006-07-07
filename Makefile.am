@@ -3,5 +3,5 @@
 ######################################################################
 
 EXTRA_DIST = COPYING INSTALL AUTHORS README ChangeLog
-SUBDIRS = src scripts doc example
+SUBDIRS = src scripts doc
 
