@@ -5,10 +5,6 @@
 lib_LIBRARIES = libspanlib.a
 nodist_include_HEADERS=spanlib.mod
 libspanlib_a_SOURCES=spanlib.f90
-##SUFFIXES = .f90 .a .o .mod
-##AM_LDFLAGS = $(LAPACK_LIBDIR) $(BLAS_LIBDIR)
-##LDADD = $(LAPACK) $(BLAS)
-##CLEANFILES=*.o *.a *.mod *.pyf *.pfp
 CLEANFILES=*.pyf *.pfp
 
 WRAPPER = $(PACKAGE)_pywrap.f90

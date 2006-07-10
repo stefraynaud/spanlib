@@ -61,8 +61,8 @@ AC_CACHE_CHECK([for sgemm of the blas library],ac_cv_blasok,
 ])
 
 # Error
-AS_IF([test AS_VAR_GET(ac_cv_blasok) = yes],,
-		[AC_SR_ERROR([Impossible to find blas library. Try with --with-blas and --with-blas-libdir])])
+#AS_IF([test AS_VAR_GET(ac_cv_blasok) = yes],,
+#		[AC_SR_ERROR([Impossible to find blas library. Try with --with-blas and --with-blas-libdir])])
 
 
 #################################
@@ -111,9 +111,19 @@ AC_CACHE_CHECK([for ssyev of the lapack library],ac_cv_lapackok,
 ])
 
 # Error
-AS_IF([test AS_VAR_GET(ac_cv_lapackok) = yes],,
-		[AC_SR_ERROR([Impossible to find lapack library. Try with --with-lapack and --witch-lapack-libdir])])
+#AS_IF([test AS_VAR_GET(ac_cv_lapackok) = yes],,
+#		[AC_SR_ERROR([Impossible to find lapack library. Try with --with-lapack and --witch-lapack-libdir])])
 
+# Warning
+AS_IF([test AS_VAR_GET(ac_cv_blasok) != yes -o AS_VAR_GET(ac_cv_lapackok) != yes],
+	[
+		AS_VAR_SET(HAS_BLASLAPACK,no)
+		AC_SR_WARNING([It seems you have no Blas/Lapack developpment support.
+Try with switches --with-blas/lapack and/or --with-blas/lapack-libdir.
+without it, you wont be able to run the example and use the python interface.])
+	],
+	AS_VAR_SET(HAS_BLASLAPACK,yes)
+)
 
 
 #################################

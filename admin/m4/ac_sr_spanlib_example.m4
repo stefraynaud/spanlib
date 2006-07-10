@@ -17,6 +17,14 @@ AC_DEFUN([AC_SR_SPANLIB_EXAMPLE],[
 		AC_SR_WARNING([Without f90 netcdf support, you wont be able to run the example])
 	])
 
+	#################################################################
+	# Blas/Lapack (checked before)
+	#################################################################
+	AS_IF(AS_VAR_GET(ac_cv_example),
+		AM_CONDITIONAL([WITH_EXAMPLE],
+			[test "AS_VAR_GET(HAS_BLASLAPACK)" != "no"]),,)
+
+
 
 	#################################################################
 	# A commandline downloader may be useful to get the data

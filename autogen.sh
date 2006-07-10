@@ -15,7 +15,7 @@ aclocal
 ) && (
 
 echo "Automake..."
-automake --add-missing --force-missing
+automake --add-missing
 
 ) && (
 
