@@ -1,6 +1,6 @@
 ################################################################################
 # BLAS and LAPACK
-# Raynaud 2006
+# SpanLib, Raynaud 2006
 ################################################################################
 
 AC_DEFUN([AC_SR_BLASLAPACK],
@@ -22,12 +22,12 @@ LIBS=$FLIBS
 # Library name or LIBS
 AC_ARG_VAR(BLAS,[Library name or LIBS flag(s)])
 AC_ARG_WITH(blas, dnl
- 	AS_HELP_STRING(--with-blas=LIB, dnl
+ 	AC_HELP_STRING(--with-blas=LIB, dnl
  		[Library name or LIBS flag(s)]),
  		[case AS_VAR_GET(with_blas) in
 			no)AC_SR_ERROR([You cant disable blas]);;
 			yes)AS_VAR_SET(BLAS,-lblas);;
-			*)AS_VAR_SET(BLAS,-l$with_blas);;
+			*)AS_VAR_SET(BLAS,$with_blas);;
 		esac]
 )
 AS_VAR_SET_IF([BLAS],,[AS_VAR_SET(BLAS,-lblas)])
@@ -72,12 +72,12 @@ AC_CACHE_CHECK([for sgemm of the blas library],ac_cv_blasok,
 # Library name or LIBS
 AC_ARG_VAR(LAPACK,Library name or LIBS flag(s))
 AC_ARG_WITH(lapack, dnl
- 	AS_HELP_STRING(--with-lapack=LIB, dnl
+ 	AC_HELP_STRING(--with-lapack=LIB, dnl
  		[Library name or LIBS flag(s)]),
 		[case AS_VAR_GET(with_lapack) in
 			no)AC_SR_ERROR([You cant disable lapack]);;
 			yes)AS_VAR_SET(LAPACK,-llapack);;
-			*)AS_VAR_SET(LAPACK,-l$with_lapack);;
+			*)AS_VAR_SET(LAPACK,$with_lapack);;
 		esac]
 )
 AS_VAR_SET_IF([LAPACK],,[AS_VAR_SET(LAPACK,-llapack)])
@@ -120,7 +120,7 @@ AS_IF([test AS_VAR_GET(ac_cv_blasok) != yes -o AS_VAR_GET(ac_cv_lapackok) != yes
 		AS_VAR_SET(HAS_BLASLAPACK,no)
 		AC_SR_WARNING([It seems you have no Blas/Lapack developpment support.
 Try with switches --with-blas/lapack and/or --with-blas/lapack-libdir.
-without it, you wont be able to run the example and use the python interface.])
+Without it, you wont be able to run the example and use the python interface.])
 	],
 	AS_VAR_SET(HAS_BLASLAPACK,yes)
 )

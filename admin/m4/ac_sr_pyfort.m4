@@ -1,6 +1,6 @@
 ################################################################################
-# Spanlib, Pyfort with BLAS/LAPACK
-# Raynaud 2006
+# Pyfort with BLAS/LAPACK
+# SpanLib, Raynaud 2006
 ################################################################################
 # AC_SR_STRIPFLAGS([FLAGS],[OUTPUT_VARIABLE])
 # Remove -L and -l
@@ -19,10 +19,17 @@ AC_DEFUN([AC_SR_PYFORT],
 	AS_VAR_SET_IF(MYPYTHONPATH,
 		[AC_PATH_PROG(PYFORT,pyfort,no,AS_VAR_GET(MYPYTHONPATH))],
 		[AC_PATH_PROG(PYFORT,pyfort,no)])
-	AM_CONDITIONAL([HAS_PYFORT],[test "AS_VAR_GET(PYFORT)" != "no"])
+	AS_VAR_SET([HAS_PYFORT],[`test "AS_VAR_GET(PYFORT)" != "no"`])
+	AM_CONDITIONAL([HAS_PYFORT],AS_VAR_GET(HAS_PYFORT))
 
 	# F90 compiler id
-
+	AS_IF(AS_VAR_GET(HAS_PYFORT),
+		AS_IF([scripts/check_fortran.py AS_VAR_GET(FC)],
+			AS_VAR_SET(ac_cv_goodfcid,yes),[
+			AC_SR_WARNING([You f90 compiler (AS_VAR_GET(FC)) is not in the available list with pyfort.
+You wont be able to build the python package.])
+		AM_CONDITIONAL([HAS_PYFORT],[`false`])
+	]))
 
 	# Blas and Lapack libraries and directories
 	AC_SR_PYFORT_STRIPFLAGS("AS_VAR_GET(BLAS) AS_VAR_GET(LAPACK)",PYFORT_LIBS)
@@ -33,7 +40,7 @@ AC_DEFUN([AC_SR_PYFORT],
 	# Set manual path to install the python module
 	AC_ARG_VAR(PYTHONDIR,[Directory where to install the spanlib python module])
 	AC_ARG_WITH(pythondir, dnl
-		AS_HELP_STRING(--with-pythondir=DIR, dnl
+		AC_HELP_STRING(--with-pythondir=DIR, dnl
 				[Directory where to install the spanlib python module]),
 				[case AS_VAR_GET(with_pythondir) in
 					no|yes);;
@@ -42,7 +49,7 @@ AC_DEFUN([AC_SR_PYFORT],
 	)
 
 	# Build directory
-	AS_IF([test "AS_VAR_GET(PYFORT)" != "no"],
+	AS_IF(AS_VAR_GET(HAS_PYFORT),
 		[
 			AC_MSG_CHECKING([the generic directory name for building python libraries])
 			AS_VAR_SET(PYFORT_BUILD_DIR,
@@ -55,7 +62,7 @@ AC_DEFUN([AC_SR_PYFORT],
 		AS_VAR_SET(PYFORT_BUILD_OPT,[-b]),
 		[
 			AS_VAR_SET(PYFORT_BUILD_OPT,[-b])
-			AS_IF([test AS_VAR_GET(PYFORT) != "no"],[
+			AS_IF(AS_VAR_GET(HAS_PYFORT),[
 					AC_MSG_CHECKING([where is the default place for python packages])
 					AS_VAR_SET(PYTHONDIR,
 						[`AS_VAR_GET(PYTHON) -c ["from distutils import sysconfig; print sysconfig.get_python_lib(1,0)"]`])

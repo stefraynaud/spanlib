@@ -32,11 +32,12 @@ install-exec-hook:
 uninstall-hook:
 	@echo "Uninstalling $(PACKAGE) python module"
 	-rm -rf $(PYTHONDIR)/spanlib_dir $(PYTHONDIR)/spanlib_dir.pth
+
 clean-local:
 	-rm -rf build
 
 $(PYTHON_LIBRARY): $(PACKAGE).pfp $(WRAPPER) $(PACKAGE).pyf $(LIBRARIES) $(HEADERS)
-	$(PYFORT) $(PYFORT_BUILD_OPT) $(PACKAGE).pfp
+	$(PYFORT) -c $(FC) $(PYFORT_BUILD_OPT) $(PACKAGE).pfp
 
 $(PACKAGE).pyf: $(WRAPPER)
 	@echo Creating $(PACKAGE).pyf

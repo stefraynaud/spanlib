@@ -22,6 +22,9 @@ AC_DEFUN([AX_WITH_PYTHON],
 [
   AC_ARG_VAR([PYTHON],[absolute path name of Python executable])
 
+  dnl Raynaud
+  AS_VAR_SET_IF(PYTHON,[AS_VAR_SET(MYPTHON,AS_VAR_GET(PYTHON))])
+
   dnl unless PYTHON was supplied to us (as a precious variable)
 dnl  if test -z "$PYTHON"
   AS_VAR_SET_IF(PYTHON,,[

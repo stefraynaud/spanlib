@@ -26,7 +26,7 @@ AC_ARG_ENABLE(
              )
 # Main program
 AC_LANG(Fortran)
-AC_PROG_FC(ifort fort xlf90 pgf90 epcf90 pathf90 ifc efc f90 xlf95 lf95 g95 f95 sxf90)
+AC_PROG_FC(ifort efc ifc gfortran f90 f95 g95 xlf90 pgf90 epcf90 pathf90 xlf95 lf95 fort sxf90)
 if test ! -n "$FC" ; then
 	AC_SR_ERROR([No Fortran 90 compiler available on this machine.
                Please use FC to specify it or
