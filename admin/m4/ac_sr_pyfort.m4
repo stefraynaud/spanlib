@@ -34,7 +34,7 @@ You wont be able to build the python package.])
 	# Blas and Lapack libraries and directories
 	AC_SR_PYFORT_STRIPFLAGS("AS_VAR_GET(BLAS) AS_VAR_GET(LAPACK)",PYFORT_LIBS)
 	AC_SUBST(PYFORT_LIBS)
-	AC_SR_PYFORT_STRIPFLAGS("AS_VAR_GET(BLAS_LIBDIR) AS_VAR_GET(LAPACK_LIBDIR)",PYFORT_DIRS)
+	AC_SR_PYFORT_STRIPFLAGS("AS_VAR_GET(BLAS_LIB) AS_VAR_GET(LAPACK_LIB)",PYFORT_DIRS)
 	AC_SUBST(PYFORT_DIRS)
 
 	# Set manual path to install the python module

@@ -22,7 +22,7 @@ LIBS=$FLIBS
 # Library name or LIBS
 AC_ARG_VAR(BLAS,[Library name or LIBS flag(s)])
 AC_ARG_WITH(blas, dnl
- 	AC_HELP_STRING(--with-blas=LIB, dnl
+ 	AC_HELP_STRING(--with-blas=LIBNAME, dnl
  		[Library name or LIBS flag(s)]),
  		[case AS_VAR_GET(with_blas) in
 			no)AC_SR_ERROR([You cant disable blas]);;
@@ -38,19 +38,19 @@ esac
 AS_VAR_SET(LIBS,"$BLAS $LIBS")
 
 # Directory where to find the library
-AC_ARG_VAR(BLAS_LIBDIR,[Location of the BLAS library (compile-time)])
-AC_ARG_WITH(blas-libdir, dnl
-	AS_HELP_STRING(--with-blas-libdir=DIR, dnl
+AC_ARG_VAR(BLAS_LIB,[Location of the BLAS library (compile-time)])
+AC_ARG_WITH(blas-lib, dnl
+	AC_HELP_STRING(--with-blas-lib=DIR, dnl
 		[Location of the BLAS library (compile-time)]), dnl
-		AS_IF([test $with_blas_libdir != yes -a $with_blas_libdir != no],
-				AS_VAR_SET(BLAS_LIBDIR,$with_blas_libdir))
+		AS_IF([test "$with_blas_lib" != "yes" -a "$with_blas_lib" != "no"],
+				AS_VAR_SET(BLAS_LIB,$with_blas_lib))
 )
-AS_VAR_SET_IF([BLAS_LIBDIR],[
-	case AS_VAR_GET(BLAS_LIBDIR) in
+AS_VAR_SET_IF([BLAS_LIB],[
+	case AS_VAR_GET(BLAS_LIB) in
 		-L*):;;
-		*)AS_VAR_SET(BLAS_LIBDIR,"-L$BLAS_LIBDIR");;
+		*)AS_VAR_SET(BLAS_LIB,"-L$BLAS_LIB");;
 	esac
-	AS_VAR_SET(FCFLAGS,"$BLAS_LIBDIR $FCFLAGS")
+	AS_VAR_SET(FCFLAGS,"$BLAS_LIB $FCFLAGS")
 ])
 
 # Try sgemm with blas
@@ -62,7 +62,7 @@ AC_CACHE_CHECK([for sgemm of the blas library],ac_cv_blasok,
 
 # Error
 #AS_IF([test AS_VAR_GET(ac_cv_blasok) = yes],,
-#		[AC_SR_ERROR([Impossible to find blas library. Try with --with-blas and --with-blas-libdir])])
+#		[AC_SR_ERROR([Impossible to find blas library. Try with --with-blas and --with-blas-lib])])
 
 
 #################################
@@ -72,7 +72,7 @@ AC_CACHE_CHECK([for sgemm of the blas library],ac_cv_blasok,
 # Library name or LIBS
 AC_ARG_VAR(LAPACK,Library name or LIBS flag(s))
 AC_ARG_WITH(lapack, dnl
- 	AC_HELP_STRING(--with-lapack=LIB, dnl
+ 	AC_HELP_STRING(--with-lapack=LIBNAME, dnl
  		[Library name or LIBS flag(s)]),
 		[case AS_VAR_GET(with_lapack) in
 			no)AC_SR_ERROR([You cant disable lapack]);;
@@ -88,19 +88,19 @@ esac
 AS_VAR_SET(LIBS,"$LAPACK $LIBS")
 
 # Library dir name or FCFLAGS
-AC_ARG_VAR(LAPACK_LIBDIR,Location of the LAPACK library (compile-time))
-AC_ARG_WITH(lapack-libdir, dnl
-	AS_HELP_STRING(--with-lapack-libdir=DIR, dnl
+AC_ARG_VAR(LAPACK_LIB,Location of the LAPACK library (compile-time))
+AC_ARG_WITH(lapack-lib, dnl
+	AC_HELP_STRING(--with-lapack-lib=DIR, dnl
 		[Location of the LAPACK library (compile-time)]), dnl
-		AS_IF([test $with_lapack_libdir != yes -a $with_lapack_libdir != no],
-				AS_VAR_SET(LAPACK_LIBDIR,$with_lapack_libdir))
+		AS_IF([test "$with_lapack_lib" != "yes" -a "$with_lapack_lib" != "no"],
+				AS_VAR_SET(LAPACK_LIB,$with_lapack_lib))
 )
-AS_VAR_SET_IF([LAPACK_LIBDIR],[
-	case AS_VAR_GET(LAPACK_LIBDIR) in
+AS_VAR_SET_IF([LAPACK_LIB],[
+	case AS_VAR_GET(LAPACK_LIB) in
 		-L*):;;
-		*)AS_VAR_SET(LAPACK_LIBDIR,"-L$LAPACK_LIBDIR");;
+		*)AS_VAR_SET(LAPACK_LIB,"-L$LAPACK_LIB");;
 	esac
-	AS_VAR_SET(FCFLAGS,"$LAPACK_LIBDIR $FCFLAGS")
+	AS_VAR_SET(FCFLAGS,"$LAPACK_LIB $FCFLAGS")
 ])
 
 # Try ssyev with lapack
@@ -112,30 +112,31 @@ AC_CACHE_CHECK([for ssyev of the lapack library],ac_cv_lapackok,
 
 # Error
 #AS_IF([test AS_VAR_GET(ac_cv_lapackok) = yes],,
-#		[AC_SR_ERROR([Impossible to find lapack library. Try with --with-lapack and --witch-lapack-libdir])])
-
-# Warning
-AS_IF([test AS_VAR_GET(ac_cv_blasok) != yes -o AS_VAR_GET(ac_cv_lapackok) != yes],
-	[
-		AS_VAR_SET(HAS_BLASLAPACK,no)
-		AC_SR_WARNING([It seems you have no Blas/Lapack developpment support.
-Try with switches --with-blas/lapack and/or --with-blas/lapack-libdir.
-Without it, you wont be able to run the example and use the python interface.])
-	],
-	AS_VAR_SET(HAS_BLASLAPACK,yes)
-)
+#		[AC_SR_ERROR([Impossible to find lapack library. Try with --with-lapack and --witch-lapack-lib])])
 
 
 #################################
 # Ending
 #################################
 
+# Warning
+AS_IF([test "AS_VAR_GET(ac_cv_blasok)" != "yes" -o "AS_VAR_GET(ac_cv_lapackok)" != "yes"],
+	[
+		AS_VAR_SET(HAS_BLASLAPACK,no)
+		AC_SR_WARNING([It seems you have no Blas/Lapack developpment support.
+Try with switches --with-blas/lapack and/or --with-blas/lapack-lib.
+Without it, you wont be able to run the example and use the python interface.])
+	],
+	AS_VAR_SET(HAS_BLASLAPACK,yes)
+)
+
+# Variables
 AS_VAR_SET(LIBS,$save_libs)
 AS_VAR_SET(FCFLAGS,$save_fcflags)
 AC_SUBST(BLAS)
-AC_SUBST(BLAS_LIBDIR)
+AC_SUBST(BLAS_LIB)
 AC_SUBST(LAPACK)
-AC_SUBST(LAPACK_LIBDIR)
+AC_SUBST(LAPACK_LIB)
 
 ])dnl AC_SR_LAPACK
 ################################################################################

@@ -8,7 +8,7 @@ example_SOURCES = example.f90
 endif
 
 AM_FCFLAGS = $(NETCDF_INC) -I$(top_srcdir)/src
-AM_LDFLAGS = $(NETCDF_LIB) -L$(top_srcdir)/src $(LAPACK_LIBDIR) $(BLAS_LIBDIR)
+AM_LDFLAGS = $(NETCDF_LIB) -L$(top_srcdir)/src $(LAPACK_LIB) $(BLAS_LIB)
 LDADD = -lspanlib -lnetcdf -llapack -lblas
 
 URL = http://stefdeperou.free.fr/pub
