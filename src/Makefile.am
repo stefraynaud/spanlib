@@ -23,10 +23,10 @@ all-local: $(LIBRARIES) $(HEADERS) $(PYTHON_LIBRARY)
 
 if WITH_PYTHON
 install-exec-hook:
-	@$(NORMAL_INSTALL)
 	test -z "$(PYTHONDIR)" || $(mkdir_p) $(PYTHONDIR)/spanlib_dir
 	@echo "Installing $(PACKAGE) python module in $(PYTHONDIR)"
-	cp $(PYTHON_LIBRARY_DIR)/* $(PYTHONDIR)/spanlib_dir
+	$(INSTALL_DATA) -d -m 755 $(PYTHONDIR)/spanlib_dir/spanlib
+	$(INSTALL_DATA) $(PYTHON_LIBRARY_DIR)/* $(PYTHONDIR)/spanlib_dir/spanlib
 	echo spanlib_dir > $(PYTHONDIR)/spanlib_dir.pth
 
 uninstall-hook:

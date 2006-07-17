@@ -21,8 +21,8 @@ LIBS=$FLIBS
 
 # Library name or LIBS
 AC_ARG_VAR(BLAS,[Library name or LIBS flag(s)])
-AC_ARG_WITH(blas, dnl
- 	AC_HELP_STRING(--with-blas=LIBNAME, dnl
+AC_ARG_WITH(blas,
+ 	AC_HELP_STRING([--with-blas=LIBNAME],
  		[Library name or LIBS flag(s)]),
  		[case AS_VAR_GET(with_blas) in
 			no)AC_SR_ERROR([You cant disable blas]);;
@@ -39,8 +39,8 @@ AS_VAR_SET(LIBS,"$BLAS $LIBS")
 
 # Directory where to find the library
 AC_ARG_VAR(BLAS_LIB,[Location of the BLAS library (compile-time)])
-AC_ARG_WITH(blas-lib, dnl
-	AC_HELP_STRING(--with-blas-lib=DIR, dnl
+AC_ARG_WITH(blas-lib,
+	AC_HELP_STRING([--with-blas-lib=DIR],
 		[Location of the BLAS library (compile-time)]), dnl
 		AS_IF([test "$with_blas_lib" != "yes" -a "$with_blas_lib" != "no"],
 				AS_VAR_SET(BLAS_LIB,$with_blas_lib))
@@ -71,9 +71,9 @@ AC_CACHE_CHECK([for sgemm of the blas library],ac_cv_blasok,
 
 # Library name or LIBS
 AC_ARG_VAR(LAPACK,Library name or LIBS flag(s))
-AC_ARG_WITH(lapack, dnl
- 	AC_HELP_STRING(--with-lapack=LIBNAME, dnl
- 		[Library name or LIBS flag(s)]),
+AC_ARG_WITH(lapack,
+	AC_HELP_STRING([--with-lapack=LIBNAME],
+		[Library name or LIBS flag(s)]),
 		[case AS_VAR_GET(with_lapack) in
 			no)AC_SR_ERROR([You cant disable lapack]);;
 			yes)AS_VAR_SET(LAPACK,-llapack);;
@@ -89,11 +89,11 @@ AS_VAR_SET(LIBS,"$LAPACK $LIBS")
 
 # Library dir name or FCFLAGS
 AC_ARG_VAR(LAPACK_LIB,Location of the LAPACK library (compile-time))
-AC_ARG_WITH(lapack-lib, dnl
-	AC_HELP_STRING(--with-lapack-lib=DIR, dnl
-		[Location of the LAPACK library (compile-time)]), dnl
+AC_ARG_WITH(lapack-lib,
+	AC_HELP_STRING([--with-lapack-lib=DIR],
+		[Location of the LAPACK library (compile-time)]),
 		AS_IF([test "$with_lapack_lib" != "yes" -a "$with_lapack_lib" != "no"],
-				AS_VAR_SET(LAPACK_LIB,$with_lapack_lib))
+			AS_VAR_SET(LAPACK_LIB,$with_lapack_lib))
 )
 AS_VAR_SET_IF([LAPACK_LIB],[
 	case AS_VAR_GET(LAPACK_LIB) in

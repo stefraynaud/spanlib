@@ -31,7 +31,7 @@ dnl  if test -z "$PYTHON"
     AC_MSG_CHECKING(for --with-python)
     AC_ARG_WITH(python,
                 AC_HELP_STRING([--with-python=PYTHON],
-                               [absolute path name of Python executable]),
+                               [Absolute path name of Python executable]),
                 [ if test "$withval" != "yes"
                   then
                     PYTHON="$withval"

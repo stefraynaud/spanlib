@@ -39,8 +39,8 @@ You wont be able to build the python package.])
 
 	# Set manual path to install the python module
 	AC_ARG_VAR(PYTHONDIR,[Directory where to install the spanlib python module])
-	AC_ARG_WITH(pythondir, dnl
-		AC_HELP_STRING(--with-pythondir=DIR, dnl
+	AC_ARG_WITH(pythondir,
+		AC_HELP_STRING(--with-pythondir=DIR,
 				[Directory where to install the spanlib python module]),
 				[case AS_VAR_GET(with_pythondir) in
 					no|yes);;

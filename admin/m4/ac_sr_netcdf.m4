@@ -10,10 +10,10 @@ AS_VAR_SET(save_fcflags,AS_VAR_GET(FCFLAGS))
 
 
 # Module location
-AC_ARG_VAR([NETCDF_INC],[Locationzz of netCDF module (compile-time)])
-AC_ARG_WITH(netcdf-inc, dnl
-	AS_HELP_STRING(--with-netcdf-inc=DIR, dnl
-		[Locationxx of netCDF module (compile-time)]), dnl
+AC_ARG_VAR([NETCDF_INC],[Location of netCDF module (compile-time)])
+AC_ARG_WITH(netcdf-inc,
+	AC_HELP_STRING(--with-netcdf-inc=DIR,
+		[Location of netCDF module (compile-time)]),
 	[
 		AS_IF([test "$with_netcdf_inc" != "yes" -a "$with_netcdf_inc" != "no"],
 			AS_VAR_SET(NETCDF_INC,$with_netcdf_inc))
@@ -29,9 +29,9 @@ AS_VAR_SET_IF(NETCDF_INC,[
 
 # Library
 AC_ARG_VAR([NETCDF_LIB],[Location of netCDF library (compile-time)])
-AC_ARG_WITH(netcdf-lib, dnl
-	AS_HELP_STRING(--with-netcdf-lib=DIR, dnl
-		[Location of netCDF library (compile-time)]), dnl
+AC_ARG_WITH(netcdf-lib,
+	AC_HELP_STRING(--with-netcdf-lib=DIR,
+		[Location of netCDF library (compile-time)]),
 	[
 		AS_IF([test "$with_netcdf_lib" != "yes" -a "$with_netcdf_lib" != "no"],
 			AS_VAR_SET(NETCDF_LIB,$with_netcdf_lib))
