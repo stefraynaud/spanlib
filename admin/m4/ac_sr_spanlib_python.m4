@@ -19,10 +19,16 @@ AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
 		[AC_SR_WARNING([You wont be able to build the python module.
 You need perl and pyfort (cdat from python).])])
 
-	## Blas/Lapack dependency
+	# Blas/Lapack dependency
 	AS_IF(AS_VAR_GET(ac_cv_py),
 		AM_CONDITIONAL([WITH_PYTHON],
 			[test "AS_VAR_GET(HAS_BLASLAPACK)" != "no"]),,)
+
+	# CDAT
+	AS_VAR_SET_IF(MYPYTHONPATH,
+		[AC_CHECK_PROG(CDAT,cdat,no,AS_VAR_GET(MYPYTHONPATH))],
+		[AC_CHECK_PROG(CDAT,cdat,no)])
+	AS_VAR_SET(HAS_CDAT,[`test "AS_VAR_GET(CDAT)" != "no"`])
 
 ])
 ################################################################################

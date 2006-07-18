@@ -60,7 +60,7 @@ program example
 	! ----------
 	integer,parameter :: nkeep_pca=5, nwindow=84, first_mode=1, nphases=8
 	real, parameter :: offset=0., first_phase=180., new_missing_value=-999.
-	character(len=20), parameter :: input_nc_file="data.cdf", output_nc_file="pair_1.nc", &
+	character(len=20), parameter :: input_nc_file="data.cdf", output_nc_file="output.nc", &
 		var_name='ssta'
 
 	! Other declarations
@@ -83,7 +83,7 @@ program example
 	print*,'Reading inputs...'
 	call err(nf90_open(input_nc_file, nf90_nowrite, ncid))
 	call err(nf90_inq_varid(ncid, var_name, varid))
-	call err(nf90_inquire_variable(ncid, varid, dimids=dimids(1:4)))
+	call err(nf90_inquire_variable(ncid, varid, dimids=dimids(1:3)))
 	call err(nf90_inquire_dimension(ncid, dimids(1), &
 		&	name=lon_name, len=nlon))
 	call err(nf90_inquire_dimension(ncid, dimids(2), &
@@ -162,7 +162,6 @@ program example
 	call sl_phasecomp(pair, nphases, packed_phasecomps, weights=packed_weights, &
 		& offset=offset, firstphase=first_phase)
 
-
 	! Unpacking
 	! ---------
 	print*,'Unpacking...'
@@ -188,6 +187,7 @@ program example
 	call err(nf90_def_dim(ncid, 'lat', nlat, dimids(2)))
 	call err(nf90_def_dim(ncid, 'time', ntime, dimids(3)))
 	call err(nf90_def_dim(ncid, 'phase', nphases, dimids(4)))
+	print*,dimids
 	! Variables
 	call err(nf90_def_var(ncid, 'lon', nf90_float, dimids(1), lonid))
 	call err(nf90_put_att(ncid, lonid, 'long_name', 'Longitude'))

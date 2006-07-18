@@ -51,15 +51,15 @@ you will have to download yourself the input data file to run the example]))
 	# A viewver may be useful to visualise the output netcdf file
 	#################################################################
 
-	AS_IF([test "AS_VAR_GET(PYFORT)" != "no"],
-		AS_VAR_SET(NCVIEWER,AS_VAR_GET(PYFORT)))
+	AS_IF(AS_VAR_GET(HAS_CDAT),
+		AS_VAR_SET(NCVIEWER,AS_VAR_GET(CDAT)))
 	AS_VAR_SET_IF(NCVIEWER,,[
 			AC_CHECK_PROG(NCVIEW,ncview,ncview)
 			AS_IF([test "AS_VAR_GET(NCVIEW)" != "no"],
 				AS_VAR_SET(NCVIEWER,AS_VAR_GET(NCVIEW))) ])
 	AS_VAR_SET_IF(NCVIEWER,,
 		AC_SR_WARNING([No netcdf viewer available:
-you will have to visualise yhe output netcdf file by own]))
+you will have to visualise yhe output netcdf file by your own]))
 	AC_SUBST(NCVIEWER)
 	AM_CONDITIONAL(HAS_NCVIEWER,AS_VAR_TEST_SET(NCVIEWER))
 

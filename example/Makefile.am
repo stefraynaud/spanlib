@@ -7,9 +7,10 @@ noinst_PROGRAMS = example
 example_SOURCES = example.f90
 endif
 
+LOCAL_LIB=$(top_srcdir)/src/libspanlib.a
 AM_FCFLAGS = $(NETCDF_INC) -I$(top_srcdir)/src
 AM_LDFLAGS = $(NETCDF_LIB) -L$(top_srcdir)/src $(LAPACK_LIB) $(BLAS_LIB)
-LDADD = -lnetcdf -lspanlib $(LAPACK) $(BLAS)
+LDADD = -lnetcdf $(LOCAL_LIB) $(LAPACK) $(BLAS)
 
 URL = http://stefdeperou.free.fr/pub
 NCINPUT = data.cdf
@@ -55,7 +56,7 @@ if HAS_NCVIEWER
 	@echo "###########################################################"
 	@echo "# Visualisation of output netcdf file $(NCOUTPUT)"
 	@echo "###########################################################"
-	$(NCVIEW) $(NCOUTPUT)
+	$(NCVIEWER) $(NCOUTPUT)
 else
 	@echo "###########################################################"
 	@echo "# Results are stored in the following netcdf file:"
@@ -63,8 +64,12 @@ else
 	@echo "###########################################################"
 endif
 
-$(NCOUTPUT): $(NCINPUT) $(PROGRAMS)
+$(NCOUTPUT): $(NCINPUT) $(LOCAL_LIB) $(PROGRAMS)
 	@echo "###########################################################"
 	@echo "# Running the example program..."
 	@echo "###########################################################"
 	./example
+
+
+$(LOCAL_LIB):
+	cd ../src && make

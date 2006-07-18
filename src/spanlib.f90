@@ -3,7 +3,7 @@
 ! This file is part of the SpanLib library.
 ! Copyright (C) 2006  Stephane Raynaud
 ! Contact: stephane dot raynaud at gmail dot com
-! 
+!
 ! This library is free software; you can redistribute it and/or
 ! modify it under the terms of the GNU Lesser General Public
 ! License as published by the Free Software Foundation; either
@@ -13,7 +13,7 @@
 ! but WITHOUT ANY WARRANTY; without even the implied warranty of
 ! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ! Lesser General Public License for more details.
-! 
+!
 ! You should have received a copy of the GNU Lesser General Public
 ! License along with this library; if not, write to the Free Software
 ! Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
@@ -73,7 +73,7 @@ contains
 	real,    intent(out),optional, allocatable :: pc(:,:), xeof(:,:), ev(:)
 	real,    intent(in),	optional              :: weights(:)
 	integer, intent(in),	optional              :: useteof
-	
+
 	! Internal
 	! --------
 	integer           :: ii,ij,nn,ns,nt
@@ -81,7 +81,7 @@ contains
 	real, allocatable :: wff(:,:), ww(:), zeof(:,:), zff(:,:)
 	real, allocatable :: eig(:)
 	integer           :: zuseteof = -1, znkeep, znkeepmax=100, i,j
-	
+
 	! Setups
 	! ======
 
@@ -107,18 +107,18 @@ contains
 	! -----------------------------------------
 	if(present(useteof))zuseteof = useteof
 	if(zuseteof.ne.0.and.zuseteof.ne.1)then
-		if(ns>nt)then 
+		if(ns>nt)then
 			zuseteof=1
 		else
 			zuseteof=0
 		endif
 	endif
-	
+
 	! Remove the mean
 	! ---------------
 	allocate(zff(ns,nt))
 	zff = ff - spread(sum(ff,dim=2)/real(nt), ncopies=nt, dim=2)
-	
+
 	! Default weights = 1.
 	! --------------------
 	allocate(ww(ns))
@@ -136,7 +136,7 @@ contains
 		wff = zff
 	end if
 
-   
+
 	! EOF decomposition
 	! =================
 
@@ -244,7 +244,7 @@ contains
 			pc(:,i) = pc(:,i) / dot_product(zeof(:,i)**2, ww(:))
 		end do
 	end if
-	
+
 	end subroutine sl_pca
 
 
@@ -283,7 +283,8 @@ contains
 
 	! Internal
 	! --------
-	integer :: nkept, itmp, zistart=1, ziend
+	integer 				:: nkept, itmp, zistart=1, ziend, nt, ns, i
+	real, allocatable	:: zpc(:,:)
 
 
 	! Setup
@@ -292,7 +293,7 @@ contains
 	if(present(istart))zistart=istart
 	if(present(iend))then
 		ziend=iend
-	else 
+	else
 		ziend=nkept
 	end if
 	if(zistart.lt.1.or.zistart.gt.nkept)then
@@ -309,14 +310,31 @@ contains
 		zistart=itmp
 		print*,'[pcarec] istart > iend => inversion'
 	end if
+	ns = size(xeof,1)
+	nt = size(pc,1)
 
 
 	! Computation
 	! ===========
-	if(not(allocated(ffrec)))allocate(ffrec(size(xeof,1), size(pc,1)))
+	if(not(allocated(ffrec)))allocate(ffrec(ns, nt))
 	ffrec = 0.
-	ffrec = matmul( xeof(:, zistart:ziend), transpose(pc(:, zistart:ziend)) )
-	
+	if(nt<ns) then
+		do i = 1, nt
+			ffrec(:, i) = ffrec(:, i) + &
+				&	matmul(xeof(:, zistart:ziend), pc(i, zistart:ziend))
+		end do
+	else
+		allocate(zpc(ziend-zistart+1, nt))
+		zpc = transpose(pc(:, zistart:ziend))
+		do i = 1, ns
+			ffrec(i, :) = ffrec(i, :) + &
+				&	matmul(xeof(i, zistart:ziend), zpc)
+		end do
+	end if
+
+!	Obsolete formulation using too much memory
+!	ffrec = matmul( xeof(:, zistart:ziend), transpose(pc(:, zistart:ziend)) )
+
 	end subroutine sl_pcarec
 
 
@@ -335,7 +353,7 @@ contains
 	!
 	! Description:
 	!	Perform a decomposition of space-time field in a set of
-	!	space-time Empirical Orthogonal Functions (EOFs) and 
+	!	space-time Empirical Orthogonal Functions (EOFs) and
 	!	time Principal components (PCs), according to a window
 	!	parameter.
 	!
@@ -384,7 +402,7 @@ contains
 	! ---------------
 	allocate(zff(nchan, nt))
 	zff = ff - spread(sum(ff,dim=2)/real(nt), ncopies=nt, dim=2)
-	
+
 	! Set the block-Toeplitz covariance matrix
 	! ========================================
 	allocate(cov(nsteof, nsteof))
@@ -431,11 +449,11 @@ contains
 		ev = eig(nsteof : nsteof-nkeep+1 : -1)
 	end if
 	deallocate(eig)
-	
+
 
 	! Get ST-PCs
 	! ==========
-	if(present(stpc))then 
+	if(present(stpc))then
 		if(not(allocated(stpc))) allocate(stpc(nt-nwindow+1, nkeep))
 		allocate(trff(nt, nchan))
 		trff = transpose(zff)
@@ -509,7 +527,7 @@ contains
 	if(present(istart))zistart=istart
 	if(present(iend))then
 		ziend=iend
-	else 
+	else
 		ziend=nkept
 	end if
 	if(zistart.lt.1.or.zistart.gt.nkept)then
@@ -548,7 +566,7 @@ contains
 		  do iw = 1, nwindow-1
 
 			 ! * beginning * [iw length projections]
-			 ffrec(ic, iw) = ffrec(ic, iw) + & 
+			 ffrec(ic, iw) = ffrec(ic, iw) + &
 				  & dot_product( reof(nwindow-iw+1:nwindow),  stpc(1		:iw,   im) ) / real(iw)
 !
 			 ! * end * [iw length projections]
@@ -558,7 +576,7 @@ contains
 			end do
 
 		end do
- 
+
 	end do
 
 	end subroutine sl_mssarec
@@ -572,7 +590,7 @@ contains
   ! ############################################################
 
 	subroutine sl_phasecomp(ffrec, np, phases, weights, offset, firstphase)
-	
+
 	! Title:
 	!	Phase composites
 	!
@@ -580,14 +598,14 @@ contains
 	!	Performs phase composites of S-T oscillatory field.
 	!	This field is typically a reconstructed pair of MSSA modes.
 	!	Composites are evaluated according to an index defined by the
-	!	first PC of the input field and its derivative. 
+	!	first PC of the input field and its derivative.
 	!	Space weights can be optionally used to compute the PC.
 	!	A minimal normalized amplitude can be also used: when the
 	!	index is under value, data are not used to compute phases.
 	!	It also possible so specify the angle of the first phase
 	!	in the 360 degrees phase diagram circle: zero means the
 	!	the first phase conincides with the maximmum.
-	!	
+	!
 	!
 	! Necessary arguments:
 	!	- ffrec:		Space-time array
@@ -625,7 +643,7 @@ contains
 	logical :: select_amplitude(size(ffrec,2)), select_phase(size(ffrec,2))
 	integer :: itime(size(ffrec,2)), nsel, i, ns
 	integer, allocatable :: isel(:)
-	
+
 
 	! Setup
 	! =====
@@ -691,7 +709,7 @@ contains
 	!	Diagonalisation of a symetric matrix
 	!
 	! Description:
-	!	A simple interface to the ssyev diagonalisation subroutine from LAPACK.	
+	!	A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 	!
 	! Necessary arguments:
 	!	- a:		Input = symetric matrix, output = EOFs
@@ -700,8 +718,8 @@ contains
 	! Dependencies:
 	!	ssyev(LAPACK)
 
-	implicit none 
-	
+	implicit none
+
 	! Declaratiions
 	! =============
 
@@ -712,8 +730,8 @@ contains
 
 	! Internal
 	! --------
-	integer :: n,lwork,inf 
-	real, allocatable :: work(:)  
+	integer :: n,lwork,inf
+	real, allocatable :: work(:)
 
 	! Sizes
 	! -----
