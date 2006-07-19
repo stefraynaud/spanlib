@@ -10,6 +10,10 @@ AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
 	# Basic python
 	AX_WITH_PYTHON(2.4,no)
 
+	# Current python
+	AS_IF([test "AS_VAR_GET(PYTHON)" != "no"],
+		AS_VAR_SET(MYPYTHONPATH,[`AS_DIRNAME(AS_VAR_GET(PYTHON))`]))
+
 	# Pyfort
 	AC_SR_PYFORT()
 	AS_VAR_SET(ac_cv_py,
@@ -24,11 +28,23 @@ You need perl and pyfort (cdat from python).])])
 		AM_CONDITIONAL([WITH_PYTHON],
 			[test "AS_VAR_GET(HAS_BLASLAPACK)" != "no"]),,)
 
-	# CDAT
+	# Cdms, cvs
+	AC_MSG_CHECKING([for cdms and cvs support])
+	AS_VAR_GET(PYTHON) -c ["import cdms;import vcs"] 2> /dev/null
+	AS_IF([test "$?" = "0"],
+		[AC_MSG_RESULT([yes])
+		AS_VAR_SET(HAS_CDMSCVS,`true`)],
+		[AC_MSG_RESULT([no])
+		AS_VAR_SET(HAS_CDMSCVS,`false`)]
+	)
+
+	# Vcdat
 	AS_VAR_SET_IF(MYPYTHONPATH,
-		[AC_CHECK_PROG(CDAT,cdat,no,AS_VAR_GET(MYPYTHONPATH))],
-		[AC_CHECK_PROG(CDAT,cdat,no)])
-	AS_VAR_SET(HAS_CDAT,[`test "AS_VAR_GET(CDAT)" != "no"`])
+		[AC_CHECK_PROG(VCDAT,vcdat,vcdat,no,AS_VAR_GET(MYPYTHONPATH))
+		AC_SR_WARNING([with path AS_VAR_GET(MYPYTHONPATH)])],
+		[AC_CHECK_PROG(VCDAT,vcdat,vcdat,no)])
+	AS_VAR_SET(HAS_VCDAT,[`test "AS_VAR_GET(VCDAT)" != "no"`])
+
 
 ])
 ################################################################################

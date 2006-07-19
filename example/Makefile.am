@@ -8,9 +8,9 @@ example_SOURCES = example.f90
 endif
 
 LOCAL_LIB=$(top_srcdir)/src/libspanlib.a
-AM_FCFLAGS = $(NETCDF_INC) -I$(top_srcdir)/src
-AM_LDFLAGS = $(NETCDF_LIB) -L$(top_srcdir)/src $(LAPACK_LIB) $(BLAS_LIB)
-LDADD = -lnetcdf $(LOCAL_LIB) $(LAPACK) $(BLAS)
+AM_FCFLAGS = -I$(top_srcdir)/src $(NETCDF_INC)
+example_LDFLAGS = -L$(top_srcdir)/src $(NETCDF_LIB) $(LAPACK_LIB) $(BLAS_LIB)
+example_LDADD = -lnetcdf $(LOCAL_LIB) $(LAPACK) $(BLAS)
 
 URL = http://stefdeperou.free.fr/pub
 NCINPUT = data.cdf

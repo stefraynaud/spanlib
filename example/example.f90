@@ -187,7 +187,6 @@ program example
 	call err(nf90_def_dim(ncid, 'lat', nlat, dimids(2)))
 	call err(nf90_def_dim(ncid, 'time', ntime, dimids(3)))
 	call err(nf90_def_dim(ncid, 'phase', nphases, dimids(4)))
-	print*,dimids
 	! Variables
 	call err(nf90_def_var(ncid, 'lon', nf90_float, dimids(1), lonid))
 	call err(nf90_put_att(ncid, lonid, 'long_name', 'Longitude'))

@@ -22,16 +22,13 @@ AC_DEFUN([AX_WITH_PYTHON],
 [
   AC_ARG_VAR([PYTHON],[absolute path name of Python executable])
 
-  dnl Raynaud
-  AS_VAR_SET_IF(PYTHON,[AS_VAR_SET(MYPTHON,AS_VAR_GET(PYTHON))])
-
   dnl unless PYTHON was supplied to us (as a precious variable)
 dnl  if test -z "$PYTHON"
   AS_VAR_SET_IF(PYTHON,,[
     AC_MSG_CHECKING(for --with-python)
     AC_ARG_WITH(python,
                 AC_HELP_STRING([--with-python=PYTHON],
-                               [Absolute path name of Python executable]),
+                               [Absolute path to python executable]),
                 [ if test "$withval" != "yes"
                   then
                     PYTHON="$withval"
