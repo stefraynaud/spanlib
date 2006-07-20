@@ -27,7 +27,7 @@ def stackData(*data):
             weights=w
             mask=[m]
         else:
-            print dout.shape,tdata.shape
+##             print dout.shape,tdata.shape
             dout=Numeric.concatenate((dout,tdata))
             weights=Numeric.concatenate((weights,w))
             mask.append(m)
@@ -36,7 +36,7 @@ def stackData(*data):
 
 def unStackData(din,weights,mask,axes):
     """Unstack data in the form returned from stackData"""
-    print din.shape,mask,'888888888888888888888888888888'
+##     print din.shape,mask,'888888888888888888888888888888'
     nvar=len(axes)
 
     if nvar!=len(mask):
@@ -58,11 +58,11 @@ def unStackData(din,weights,mask,axes):
         w=weights[istart:iend]
         ns1=len(axes[i][-1])
         ns2=len(axes[i][-2])
-        print 'm',m
-        print 'ns1,ns2',ns1,ns2
-        print 'data.shape',data.shape
-        print 'data',data
-        print 'mlen',mlen
+##         print 'm',m
+##         print 'ns1,ns2',ns1,ns2
+##         print 'data.shape',data.shape
+##         print 'data',data
+##         print 'mlen',mlen
         up=spanlib_fort.unpack3d(m,ns1,ns2,data.shape[1],data,mlen,1.e20)
         unpacked = MV.transpose(MV.array(up))
         unpacked.setAxisList(axes[i])
@@ -104,9 +104,9 @@ def pack(data,weights=None):
         mask=MV.sum(mask,axis=0)
 
     ## Now add the ones from the weights
-    print mask.shape,weights.shape
+##     print mask.shape,weights.shape
     mask=mask.filled()+MV.equal(weights,0.).filled(1)
-    print 'After:',mask.shape
+##     print 'After:',mask.shape
 
     ## >=1 means masked, Fortran "mask": 1 means data ==> 1-mask
     mask=1.-MV.greater_equal(mask,1).filled()
