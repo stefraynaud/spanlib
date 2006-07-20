@@ -180,7 +180,7 @@ class SpAn(object):
         if window is None:
             self.window = int(self.nt/3.)
 
-        print 'At the end:',self.pdata.shape,self.ns,self.nt
+##         print 'At the end:',self.pdata.shape,self.ns,self.nt
 
     def pca(self,npca=None):
         """ Principal Components Analysis tool
