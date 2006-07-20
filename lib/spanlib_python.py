@@ -36,6 +36,7 @@ def stackData(*data):
 
 def unStackData(din,weights,mask,axes):
     """Unstack data in the form returned from stackData"""
+    print din.shape,mask,'888888888888888888888888888888'
     nvar=len(axes)
 
     if nvar!=len(mask):
@@ -45,7 +46,7 @@ def unStackData(din,weights,mask,axes):
     for m in mask:
         totsize+=int(MV.sum(MV.ravel(m)))
     if totsize!=din.shape[1]:
-        raise 'Error data and masks are not compatible in length!!!! (%s) and (%s)' % (totsize,din.shape[0])
+        raise 'Error data and masks are not compatible in length!!!! (%s) and (%s)' % (totsize,din.shape[1])
 
     istart=0
     out=[]
@@ -57,6 +58,11 @@ def unStackData(din,weights,mask,axes):
         w=weights[istart:iend]
         ns1=len(axes[i][-1])
         ns2=len(axes[i][-2])
+        print 'm',m
+        print 'ns1,ns2',ns1,ns2
+        print 'data.shape',data.shape
+        print 'data',data
+        print 'mlen',mlen
         up=spanlib_fort.unpack3d(m,ns1,ns2,data.shape[1],data,mlen,1.e20)
         unpacked = MV.transpose(MV.array(up))
         unpacked.setAxisList(axes[i])
@@ -202,20 +208,21 @@ class SpAn(object):
         ## Calls Fortran pca
         self.eof,self.pc,self.ev = spanlib_fort.pca(self.pdata,self.ns,self.nt,self.npca,self.weights,1)
 
+        Axes=self.axes[1:]
+
         if self.mask is not True:
             eof = MV.transpose(MV.array(spanlib_fort.unpack3d(self.mask,self.ns1,self.ns2,npca,self.eof,self.ns,1.e20)))
             eof.id='EOF'
             eof.standard_name='Empirical Orthogonal Function'
         else:
-            eof=self.eof
-
+            eof = MV.transpose(self.eof)
+            pc  = MV.array(self.pc)
+            
         ax=eof.getAxis(0)
         ax.id='pc'
         ax.standard_name='Principal Components Axis'
-        Axes=self.axes[1:]
         Axes.insert(0,ax)
-        if self.mask is not True:
-            eof.setAxisList(Axes)
+        eof.setAxisList(Axes)
 
         pc=MV.transpose(MV.array(self.pc,axes=[self.axes[0],ax]))
         pc.id='PC'
@@ -286,8 +293,11 @@ class SpAn(object):
             if pca:
                 ffrec = spanlib_fort.mssarec(self.steof, self.stpc, self.npca, self.nt, self.nmssa, self.window, n1, n2)
                 ffrec = spanlib_fort.pcarec(self.eof, Numeric.transpose(ffrec), self.ns, self.nt, self.npca, 1,self.npca)
-                ffrec = MV.transpose(spanlib_fort.unpack3d(self.mask,self.ns1,self.ns2,self.nt,ffrec,self.ns,1.e20))
-                ffrec.setAxisList(self.axes)
+                if self.mask is not True:
+                    ffrec = MV.transpose(spanlib_fort.unpack3d(self.mask,self.ns1,self.ns2,self.nt,ffrec,self.ns,1.e20))
+                    ffrec.setAxisList(self.axes)
+                else:
+                    ffrec = MV.transpose(ffrec)
                 ffrec.id=self.varname
                 ffrec.comment='Reconstructed from MSSA and PCA'
 

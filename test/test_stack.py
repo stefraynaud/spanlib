@@ -22,14 +22,28 @@ print res[0].shape
 SP=spanlib.SpAn(MV.array(res[0]),weights=MV.array(res[1]))
 eof,pc,ev = SP.pca()
 
-res2 = spanlib.unStackData(eof,res[1],res[2],res[3])
+
+## for ax in res[3]:
+##     ax[0]=eof.getAxis(0)
+
+## res2 = spanlib.unStackData(eof,res[1],res[2],res[3])
+
+res3 = steof,stpc,stev = SP.mssa(pca=True)
+
+ffrec = SP.reconstruct()
+res4 = spanlib.unStackData(ffrec,res[1],res[2],res[3])
 
 
-
-print res2
+print ffrec
 
 import vcs
 
+
+
 x=vcs.init()
-x.plot(res2[1])
+x.plot(res4[1])
+raw_input('ok?')
+x.clear()
+x.plot(res4[1][:,5,5])
+x.plot(res4[0][:,5,5])
 raw_input('ok?')
