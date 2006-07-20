@@ -6,7 +6,7 @@
 # Remove -L and -l
 AC_DEFUN([AC_SR_PYFORT_STRIPFLAGS],
 [
-	AS_VAR_SET($2,`echo $1 | sed -r 's/(^|\s)-(L|l)/\1/g'`)
+	AS_VAR_SET($2,`echo $1 | sed -r 's/(^| )-(L|l)/\1/g'`)
 ])
 # Setup library dir and name variables PYFORT_DIRS and PYFORT_LIBS
 AC_DEFUN([AC_SR_PYFORT],

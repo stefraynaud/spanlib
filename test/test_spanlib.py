@@ -12,9 +12,10 @@ cdms.axis.latitude_aliases.append('Y')
 cdms.axis.longitude_aliases.append('X')
 cdms.axis.time_aliases.append('T')
 
-f=cdms.open('../example/data2.cdf')
+f=cdms.open('example/data2.cdf')
 
 s=f('ssta')
+print s.shape
 
 SP=spanlib.SpAn(s)
 

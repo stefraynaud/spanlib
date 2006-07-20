@@ -3,26 +3,75 @@ import MV
 import Numeric
 
 
-def phases(data,nphases=8,offset=.5,firstphase=0):
-    """ phases analysis """
-    tdata,w,mask = pack(data)
-    ns = tdata.shape[0]
-    sh=data.shape
-    ns1=sh[-1]
-    ns2=sh[-2]
-    nt=data.shape[0]
-    phases = spanlib_fort.phasecomp(tdata, ns, nt, nphases, w, offset, firstphase)
-    phases = MV.transpose(spanlib_fort.unpack3d(mask,ns1,ns2,nphases,phases,ns,1.e20))
-    axes = data.getAxisList()
-    phases.id='phases'
-    ax=phases.getAxis(0)
-    ax.id='phases'
-    axes[0]=ax
-    phases.setAxisList(axes)
-    return phases
-    
+def stackData(*data):
+    """ Takes several data files, of same time and stacks them up together """
+    len_time=None
+    axes=[]
+    dout=None # data output
+    for d in data:
+        t=d.getTime()
+        if t is None:
+            raise 'Error, all data muist have a time dimension'
+        if len_time is None:
+            len_time=len(t)
+        elif len_time!=len(t):
+            raise 'Error all datasets must have the same time length!!!!'
+
+        if d.getAxis(0)!=t:
+            d=d(order='t...')
+
+        axes.append(d.getAxisList())
+        tdata,w,m=pack(d)
+        if dout is None:
+            dout=tdata
+            weights=w
+            mask=[m]
+        else:
+            print dout.shape,tdata.shape
+            dout=Numeric.concatenate((dout,tdata))
+            weights=Numeric.concatenate((weights,w))
+            mask.append(m)
+
+    return Numeric.transpose(dout),weights,mask,axes
+
+def unStackData(din,weights,mask,axes):
+    """Unstack data in the form returned from stackData"""
+    nvar=len(axes)
+
+    if nvar!=len(mask):
+        raise 'Error mask and var length not compatible'
+
+    totsize=0
+    for m in mask:
+        totsize+=int(MV.sum(MV.ravel(m)))
+    if totsize!=din.shape[1]:
+        raise 'Error data and masks are not compatible in length!!!! (%s) and (%s)' % (totsize,din.shape[0])
+
+    istart=0
+    out=[]
+    for i in range(nvar):
+        m=mask[i]
+        mlen=int(MV.sum(MV.ravel(m)))
+        iend=istart+mlen
+        data=Numeric.transpose(din[:,istart:iend])
+        w=weights[istart:iend]
+        ns1=len(axes[i][-1])
+        ns2=len(axes[i][-2])
+        up=spanlib_fort.unpack3d(m,ns1,ns2,data.shape[1],data,mlen,1.e20)
+        unpacked = MV.transpose(MV.array(up))
+        unpacked.setAxisList(axes[i])
+        istart+=mlen
+        out.append(unpacked)
+    return out
+
+
 def pack(data,weights=None):
     """ Computes weights and mask"""
+    if Numeric.rank(data)==2: # Already packed but then vneeds weights!
+        if weights is None:
+            raise 'Error packed data must be sent with weights!'
+        else:
+            return Numeric.transpose(data),weights,True
     sh=list(data.shape)
     ns1=sh[-1]
     ns2=sh[-2]
@@ -49,7 +98,9 @@ def pack(data,weights=None):
         mask=MV.sum(mask,axis=0)
 
     ## Now add the ones from the weights
-    mask=mask+MV.equal(weights,0.)
+    print mask.shape,weights.shape
+    mask=mask.filled()+MV.equal(weights,0.).filled(1)
+    print 'After:',mask.shape
 
     ## >=1 means masked, Fortran "mask": 1 means data ==> 1-mask
     mask=1.-MV.greater_equal(mask,1).filled()
@@ -74,6 +125,24 @@ def pack(data,weights=None):
     return tdata,weights.astype('f'),mask
 
 
+def phases(data,nphases=8,offset=.5,firstphase=0):
+    """ phases analysis """
+    tdata,w,mask = pack(data)
+    ns = tdata.shape[0]
+    sh=data.shape
+    ns1=sh[-1]
+    ns2=sh[-2]
+    nt=data.shape[0]
+    phases = spanlib_fort.phasecomp(tdata, ns, nt, nphases, w, offset, firstphase)
+    phases = MV.transpose(spanlib_fort.unpack3d(mask,ns1,ns2,nphases,phases,ns,1.e20))
+    axes = data.getAxisList()
+    phases.id='phases'
+    ax=phases.getAxis(0)
+    ax.id='phases'
+    axes[0]=ax
+    phases.setAxisList(axes)
+    return phases
+
 class SpAn(object):
     def __init__(self,data,weights=None,npca=None,window=None,nmssa=None):
         """ Prepare the Spectral Analysis Object"""
@@ -81,6 +150,8 @@ class SpAn(object):
         self.clean()
         ## First pack our data, prepare the weights and mask for PCA
         self.pdata,self.weights,self.mask = pack(data,weights)
+
+        
         ## Store axes for later
         self.axes=data.getAxisList()
         self.varname=data.id
@@ -102,6 +173,8 @@ class SpAn(object):
 
         if window is None:
             self.window = int(self.nt/3.)
+
+        print 'At the end:',self.pdata.shape,self.ns,self.nt
 
     def pca(self,npca=None):
         """ Principal Components Analysis tool
@@ -129,16 +202,20 @@ class SpAn(object):
         ## Calls Fortran pca
         self.eof,self.pc,self.ev = spanlib_fort.pca(self.pdata,self.ns,self.nt,self.npca,self.weights,1)
 
-        eof = MV.transpose(MV.array(spanlib_fort.unpack3d(self.mask,self.ns1,self.ns2,npca,self.eof,self.ns,1.e20)))
-        eof.id='EOF'
-        eof.standard_name='Empirical Orthogonal Function'
+        if self.mask is not True:
+            eof = MV.transpose(MV.array(spanlib_fort.unpack3d(self.mask,self.ns1,self.ns2,npca,self.eof,self.ns,1.e20)))
+            eof.id='EOF'
+            eof.standard_name='Empirical Orthogonal Function'
+        else:
+            eof=self.eof
 
         ax=eof.getAxis(0)
         ax.id='pc'
         ax.standard_name='Principal Components Axis'
         Axes=self.axes[1:]
         Axes.insert(0,ax)
-        eof.setAxisList(Axes)
+        if self.mask is not True:
+            eof.setAxisList(Axes)
 
         pc=MV.transpose(MV.array(self.pc,axes=[self.axes[0],ax]))
         pc.id='PC'
