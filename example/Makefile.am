@@ -13,10 +13,14 @@ example_LDFLAGS = -L$(top_srcdir)/src $(NETCDF_LIB) $(LAPACK_LIB) $(BLAS_LIB)
 example_LDADD = -lnetcdf $(LOCAL_LIB) $(LAPACK) $(BLAS)
 
 URL = http://stefdeperou.free.fr/pub
-NCINPUT = data.cdf
-NCOUTPUT = output.nc
-
+NCINPUT = data2.cdf
+F90NCOUTPUT = output.nc
+if WITH_PYTHON_EXAMPLE
+VARIABLE = ssta
 CLEANFILES = $(NCOUTPUT)
+endif
+
+EXTRA_DIST = example1.py
 
 ######################################################################
 ######################################################################
@@ -26,7 +30,7 @@ all-local: $(NCDATA) view
 else
 all-local:
 	@echo "###########################################################"
-	@echo "# Your configuration has to f90 netcdf support so you can't
+	@echo "# Your configuration has no f90 netcdf support so you can't
 	@echo "# run the example. If you wish to do it, use ./configure
 	@echo "# options --with-netcdf-inc and --with-netcdf-lib or
 	@echo "# or associated variables."
@@ -37,12 +41,12 @@ $(NCINPUT):
 if HAS_DOWNLOADER
 	@echo "###########################################################"
 	@echo "# Download of input netcdf file:"
-	@echo "# $(URL)/$(NCINPUT)"
+	@echo "# $(URL)/$<"
 	@echo "###########################################################"
 if USE_LINKS
-	$(DOWNLOADER) -source 1 $(URL)/$(NCINPUT) > $(NCINPUT)
+	$(DOWNLOADER) -source 1 $(URL)/$< > $<
 else
-	$(DOWNLOADER) $(URL)/$(NCINPUT)
+	$(DOWNLOADER) $(URL)/$<
 endif
 else
 	@echo "###########################################################"
@@ -51,24 +55,37 @@ else
 	@echo "###########################################################"
 endif
 
-view: $(NCOUTPUT)
+view: $(F90NCOUTPUT)
 if HAS_NCVIEWER
 	@echo "###########################################################"
 	@echo "# Visualisation of output netcdf file $(NCOUTPUT)"
 	@echo "###########################################################"
-	$(NCVIEWER) $(NCOUTPUT)
+	$(NCVIEWER) $(F90NCOUTPUT) $(VARIABLE)
 else
 	@echo "###########################################################"
 	@echo "# Results are stored in the following netcdf file:"
-	@echo "# $(NCOUTPUT)"
+	@echo "# $(F90NCOUTPUT)"
 	@echo "###########################################################"
 endif
 
-$(NCOUTPUT): $(NCINPUT) $(LOCAL_LIB) $(PROGRAMS)
+$(F90NCOUTPUT): $(NCINPUT) $(LOCAL_LIB) $(PROGRAMS)
 	@echo "###########################################################"
-	@echo "# Running the example program..."
+	@echo "# Running the F90 example program..."
 	@echo "###########################################################"
 	./example
+
+if WITH_PYTHON_EXAMPLE
+python1: $(NCDATA)
+	@echo "###########################################################"
+	@echo "# Running the python example program..."
+	@echo "###########################################################"
+	$(PYTHON) example1.py
+else
+python1:
+	@echo "###########################################################"
+	@echo "# You can't run python examples with your configuration
+	@echo "###########################################################"
+endif
 
 
 $(LOCAL_LIB):

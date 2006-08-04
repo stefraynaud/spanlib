@@ -1,10 +1,10 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 # File: gendoc.pl
 #
 # This file is part of the SpanLib library.
 # Copyright (C) 2006  Stephane Raynaud
 # Contact: stephane dot raynaud at gmail dot com
-# 
+#
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
@@ -14,7 +14,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
@@ -22,68 +22,80 @@
 use strict;
 use File::Basename;
 
+#################################################
+# Initialisations
+#################################################
+
 # Inputs
-my ($xmldir, $f90_library, $f90_example) = @ARGV;
+#my ($xmldir, $f90_library, $f90_example, $python_module) = @ARGV;
+my ($f90_library, $f90_example, $python_module, $python_example) = @ARGV;
 
 # Basic declarations
-my (@partNames, $f2xPersonalised, $partName, %parts, $line, $subroutineName, $arguments, $inside);
+my (@partNames, $partName, %parts, $line, $subroutineName, $arguments, $inside, $html);
+my ($currentArg, %outputLongNames, $inputArguments, $outputArguments, $isInputArg, $class, $prefix, $indent, $redo, $subroutineTitle, @specs);
 my ($vars, $type, $intent, $optional, $allocatable, $var, $name, @argDesc, $desc, $opt, %argRef, %arg);
-my ($tmp, $tmp2, $i);
+my ($tmp, $tmp2, $i, @aTmp);
+
+# Sections
+my $upSect = 2;
+my $loSect = $upSect + 1;
 
 # Look
-my %cols = (
-	'name' => {
-		'class' => 'b',
-		'width' => '15%'
-	},
-	'type' => {
-		'class' => 's',
-		'width' => '15%'
-	},
-	'long_name' => {
-		'class' => '',
-		'width' => '705'
-	}
-);
-my %f2xCssColors = (
-	'personalised'	=> 'b',
-	'comments'		=> 'e i',
-	'digits' 		=> 'r',
-	'strings'		=> 'o',
-	'attributes'	=> 'gr',
-	'functions'		=> 'cy',
-	'routines'		=> 'vi'
-);
 my %f2xTags = (
 	'functions'		=> 'dot_product|trim|eoshift|modulo|ssyev|not|allocated|allocate|spread|present|sum|matmul|sqrt|transpose|deallocate|pack|unpack|present',
 	'routines'		=> 'print|module|contains|interface|logical|subroutine|if|then|else|endif|enddo|do|end|close|call|program|integer|real|open|write|character|use|implicit',
-	'attributes'	=> 'procedure|parameter|optional|intent|allocatable|none'
+	'attributes'	=> 'procedure|parameter|optional|intent|allocatable|none',
+	'personalised'	=> ''
 );
+my %p2xTags = (
+	'functions'		=> 'int|list|id|open|raw_input',
+	'commands'		=> 'import|for|in|if|else|is|def|return|print|try|except|elsif',
+	'special'		=> 'none|self|True',
+	'personalised'	=> ''
+);
+my $p2xInsideComment = 0;
 
 # xml header
-my $xmlHeader = "<?xml version=\"1.0\"?>\n<!DOCTYPE article PUBLIC \"-//KDE//DTD DocBook XML V4.2-Based Variant V1.1//EN\"\n\"/usr/share/sgml/docbook/xml-dtd-4.2-1.0-17.2/docbookx.dtd\">\n\n";
-	
+sub gen_xml_header {
+	my $xml_type = shift;
+	return "<?xml version=\"1.0\"?>\n<!DOCTYPE $xml_type PUBLIC \"-//KDE//DTD DocBook XML V4.2-Based Variant V1.1//EN\"\n\"/usr/share/sgml/docbook/xml-dtd-4.2-1.0-17.2/docbookx.dtd\">\n\n";
+}
+
 # Files
 my %xmlFiles = (
-	'subroutines'	=> "$xmldir/doc_subroutines.xml",
-	'library'		=> "$xmldir/f90_library.xml",
-	'example'		=> "$xmldir/f90_example.xml"
+	'f90_subroutines'		=> "doc_f90_sub_inc.xml",
+	'python_subroutines'	=> "doc_pyt_sub_inc.xml",
+	'f90_library'			=> "src_f90_lib_inc.xml",
+	'f90_example'			=> "src_f90_exa_inc.xml",
+	'python_module'		=> "src_pyt_mod_inc.xml",
+	'python_example'		=> "src_pyt_exa_inc.xml"
 );
 
 
 
-# Useful subroutines
+# Generic header for subroutine inputs (and outputs)
 sub gen_init_args {
-	my $type = shift ;
-	print XML_SUBROUTINES "\t<simplesect>\n\t\t<title>$type arguments</title>\n\t\t<informaltable pgwide=\"1\" label=\"\">\n\t\t\t<tgroup cols=\"3\">\n";
-	
-	my $i = 1;
-	for $tmp ('name','type','long_name') {
-		print XML_SUBROUTINES "\t\t\t\t<colspec colname=\"col$i\" colnum=\"$i\" width=\"$cols{$tmp}{'width'}\"/>\n";
-		$i++;
-	}
-	print XML_SUBROUTINES "\t\t\t\t<tbody>\n";
+	my $title = shift ;
+	my $oldSec = shift;
+	my $tmphtml = '';
+	$tmphtml .= "\t\t</itemizedlist>\n\t</simplesect>\n"
+		if $oldSec ne "";
+	$tmphtml .= "\t<simplesect>\n\t\t<title>$title</title>\n\t\t<itemizedlist>\n";
+	return $tmphtml;
 }
+# Entry for arguments
+sub gen_entry_args {
+	my ($i) = @_ ;
+	my $tmphtml.= "\t\t\t<listitem>\n";
+	$tmphtml.= "\t\t\t\t<varname role=\"ARGname\">$argDesc[$i]{'name'}    </varname>\n";
+	$tmphtml.= "\t\t\t\t<phrase role=\"ARGspec\">$argDesc[$i]{'spec'}    </phrase> \n";
+	$tmphtml.= "\t\t\t\t<emphasis>$argDesc[$i]{'long_name'}</emphasis>\n";
+	$tmphtml.= "\t\t\t</listitem>\n";
+	return $tmphtml;
+}
+
+# Syntax highlighting
+# * Fortran 90
 sub f90toxml {
 	my $code = shift;
 	my $comment;
@@ -91,39 +103,90 @@ sub f90toxml {
 	$code =~ s/</\&lt;/g;
 	$code =~ s/>/\&gt;/g;
 	$comment = "";
-	$comment = "<phrase role=\"$f2xCssColors{'comments'}\">$2<\/phrase>" if $code =~ s/^([^!]*)(!.*)$/$1/;
-	$code =~ s/(['"][^'"]*['"])/<phrase role="$f2xCssColors{'strings'}">$1<\/phrase>/g;
-	$code =~ s/\b(\d+)\b/<phrase role="$f2xCssColors{'digits'}">$1<\/phrase>/g;
-	$code =~ s/\b($f2xPersonalised)\b/<phrase role="$f2xCssColors{'personalised'}">$1<\/phrase>/g;
-	foreach $type ('attributes', 'functions', 'routines') {
-		$code =~ s/\b($f2xTags{$type})\b/<phrase role="$f2xCssColors{$type}">$1<\/phrase>/g;
+	$comment = "<phrase role=\"HLcomments\">$2</phrase>" if $code =~ s/^([^!]*)(!.*)$/$1/;
+	$code =~ s/(['"][^'"]*['"])/<phrase role="HLstrings">$1<\/phrase>/ig;
+	$code =~ s/\b(\d+)\b/<phrase role="HLdigits">$1<\/phrase>/ig;
+	foreach $type ('personalised','attributes', 'functions', 'routines') {
+		$code =~ s/\b($f2xTags{$type})\b/<phrase role="HL$type">$1<\/phrase>/ig;
 	}
 	$code =~ s/(\n)/$comment$1/;
 	return $code;
 }
-
-# First loop to get subroutine names
-$f2xPersonalised="";
-open(F90_LIBRARY,$f90_library);
-while(<F90_LIBRARY>){
-	if(/^[\s\t]*subroutine\s+([\w]+)\b/i) {
-		$f2xPersonalised .= "|" if $f2xPersonalised ne "";
-		$f2xPersonalised .= "$1";
+# * Python
+sub pytoxml {
+	my @code;
+	$code[0] = shift;
+	my $comment = "";
+	$code[1] = "";
+	$code[0] =~ s/\&/\&amp;/g;
+	$code[0] =~ s/</\&lt;/g;
+	$code[0] =~ s/>/\&gt;/g;
+	# One line long comment
+	if($p2xInsideComment == 0 && $code[0] =~ s/^(.*)(""".*""")(.*)$/$1/) {
+		$comment = $2;
+		$code[1] = $3;
+	# Begining of long comment
+	} elsif($p2xInsideComment == 0 && $code[0] =~ s/^(.*)(\"\"\".*)/$1/) {
+		$comment = $2;
+		$p2xInsideComment = 1;
+	# End of long comment
+	} elsif($p2xInsideComment == 1 && $code[0] =~ s/^(.*\"\"\")(.*)$//) {
+		$comment = $1;
+		$code[1] = $2;
+		$p2xInsideComment = 0;
+	# Inside long comment
+	} elsif($p2xInsideComment == 1) {
+		$comment = $code[0];
+		$code[0] = "";
+		$code[1] = "";
+	# Short comment
+	} elsif($code[0] =~ s/^([^#]*)(#.*)$/$1/) {
+		$comment = $2;
 	}
+	# Format the comment
+	$comment = "<phrase role=\"HLcomments\">$comment</phrase>" if $comment ne "";
+	# Format codes
+	foreach my $i (0, 1) {
+		$code[$i] =~ s/(['"][^'"]*['"])/<phrase role="HLstrings">$1<\/phrase>/ig;
+		$code[$i] =~ s/\b(\d+)\b/<phrase role="HLdigits">$1<\/phrase>/ig;
+		foreach $type ('personalised','special', 'functions', 'commands') {
+			$code[$i] =~ s/\b($p2xTags{$type})\b/<phrase role="HL$type">$1<\/phrase>/ig;
+		}
+	}
+	# Pack
+	my $mycode = "$code[0]$comment$code[1]";
+	$mycode =~ s/\n//;
+	return "$mycode\n";
+}
+
+
+#################################################
+# Fortran library
+#################################################
+
+# First loop to get subroutine names and convert to xml
+open(F90_LIBRARY,$f90_library);
+open(XML_F90_LIBRARY,"> $xmlFiles{'f90_library'}");
+print XML_F90_LIBRARY gen_xml_header('programlisting')."<programlisting>";
+while(<F90_LIBRARY>){
+	# Subroutines
+	if(/^[\s\t]*subroutine\s+([\w]+)\b/i) {
+		$f2xTags{personalised} .= "|" if $f2xTags{personalised} ne "";
+		$f2xTags{personalised} .= "$1";
+	}
+	# F90 to XML
+	print XML_F90_LIBRARY f90toxml($_);
 }
 close(F90_LIBRARY);
+print XML_F90_LIBRARY "</programlisting>\n";
+close(XML_F90_LIBRARY);
 
 # Generate the subroutine help file by parsing the f90 sources
-open(XML_LIBRARY,"> $xmlFiles{'library'}");
-open(XML_SUBROUTINES,"> $xmlFiles{'subroutines'}");
+open(XML_F90_SUBROUTINES,"> $xmlFiles{'f90_subroutines'}");
 open(F90_LIBRARY,$f90_library);
-print XML_LIBRARY "$xmlHeader<programlisting>";
-print XML_SUBROUTINES "\t<sect1 id=\"doc_f90subs\">\n\t\t<title>F90 subroutines</title>\n";
-while(<F90_LIBRARY>){
+$html = "\t<sect$upSect id=\"doc_f90_sub\">\n\t\t<title>F90 subroutines</title>\n";
+while(<F90_LIBRARY>) {
 
-	# F90 to XML
-	print XML_LIBRARY f90toxml($_);
-	
 	# A subroutine starts here
 	if(/^[\s\t]*subroutine\s+([\w]+)\s*\(([^\)]+)\)/i){
 		undef %parts;
@@ -140,21 +203,21 @@ while(<F90_LIBRARY>){
 		for $tmp (split(",",$arguments)) {
 			$argRef{$tmp} = $i;
 			$argDesc[$i]{'name'} = "$tmp";
-			$argDesc[$i]{'type'} = "";
+			$argDesc[$i]{'intent'} = "";
 			$argDesc[$i]{'long_name'} = "";
 			$argDesc[$i]{'optional'} = 0;
 			$i++;
 		}
-	
+
 		# Parse header
 		$inside=0;
-		HEADERLOOP: while(<F90_LIBRARY>) {
+		while(<F90_LIBRARY>) {
 			if(/^[ \t]*!/) {
 				$inside = 1;
 				if(/! ([ \w]+):$/) {
 					$partName = "$1";
 					push(@partNames, "$1") if $partName ne "Title";
-					$parts{$partName} = "";	
+					$parts{$partName} = "";
 				} elsif(/!\t(.+)$/ && $partName ne "") {
 					$line = $1;
 					if ($line =~ /^\- ([^ :]+):(.+)/){
@@ -168,120 +231,351 @@ while(<F90_LIBRARY>){
 				}
 			} elsif($inside==1) {
 				$inside = 0;
-				last HEADERLOOP;
+				last;
 			}
 		}
 
 		# Parse declarations of external subroutine arguments
 		$inside = 0;
-		DECLLOOP: while(<F90_LIBRARY>) {
+		while(<F90_LIBRARY>) {
 			if(/^[\s\t]*! External/) {
 				$inside = 1;
 			} elsif($inside==1){
 				if(/(real|integer),[ \t]*intent\((in|out|inout)\)[^:]*::(.+)$/i) {
-					$desc = "[${2}put,$1]:";
+					$desc = "[intent:${2}put, type:$1]:";
 					$vars = "$3";
 					$opt = /optional/;
 					$vars =~ s/ +//g;
 					$vars =~ s/(\([:,]+\))?//g;
 					for $var (split(',',$vars)) {
 						$tmp = $argRef{$var};
-						$argDesc[$tmp]{'type'} = $desc;
+						$argDesc[$tmp]{'spec'} = $desc;
 						$argDesc[$tmp]{'optional'} = $opt;
 						$arguments =~ s/([(, ]+)$var([), ]*)/$1$var=$var$2/ if $opt == 1
-						
+
 					}
 				} elsif(/^[ \t]*$/){
 					$inside=0;
-					last DECLLOOP;
+					last;
 				}
 			}
 		}
 
 		# Now, generate the xml block
 		if ($partName ne "") {
-			print XML_SUBROUTINES "<sect2 id=\"$subroutineName\">\n\t<title>$parts{'Title'}: <literal role=\"$f2xCssColors{'personalised'}\">$subroutineName</literal></title>\n"; #\t\t<para role=\"sh3\">\n\n";
-			$arguments =~ s/(^|[,=\s]+)(\w+)\b(?!=)/$1<phrase role=\"$f2xCssColors{'personalised'}\">$2<\/phrase>/g;
+			# Title
+			$html.= "<sect$loSect id=\"$subroutineName\">\n";
+			$html.= "\t<title>$parts{'Title'}: <literal>$subroutineName</literal></title>\n";
+
+			# Usage
+			$arguments =~ s/(^|[,=\s]+)(\w+)\b(?!=)/$1<phrase role="HLpersonalised">$2<\/phrase>/g;
 			$arguments =~ s/,/, /g;
-			# Usage part
-			print XML_SUBROUTINES "\t<simplesect>\n\t\t<title>Usage</title>\n\t\t<programlisting>call <phrase role=\"$f2xCssColors{'personalised'}\">$subroutineName</phrase>($arguments)</programlisting>\n\t</simplesect>\n";
+			$html.= "\t<simplesect>\n";
+			$html.= "\t\t<title>Usage</title>\n";
+			$html.= "\t\t<programlisting>call <phrase role=\"HLpersonalised\">$subroutineName</phrase>($arguments)</programlisting>\n";
+			$html.= "\t</simplesect>\n";
+
 			# Other parts
 			for $partName (@partNames){
 				# Dependencies part
 				if($partName eq "Dependencies"){
 					if($parts{$partName} !~ /(LAPACK|BLAS)/){
 						$parts{$partName} =~ s/([\w]+)/<link linkend=\"$1\">$1<\/link>/g;
-						$parts{$partName} = "\t\t\t<phrase role=\"$f2xCssColors{'personalised'}\"><literal>$parts{$partName}</literal></phrase>";
+						$parts{$partName} = "\t\t\t<phrase role=\"HLpersonalised\"><literal>$parts{$partName}</literal></phrase>";
 					} else {
 						$parts{$partName} = "<literal>$parts{$partName}</literal>";
 					}
 				}
 				# Title of the part
-				print XML_SUBROUTINES "\t<simplesect>\n\t\t<title>$partName</title>\n\t\t<para>\n$parts{$partName}\n\t\t</para>\n" if $parts{$partName} ne "";
-				# Description part
-				if($partName eq "Description"){
-					print XML_SUBROUTINES "\t</simplesect>\n";
-					$tmp2 = "Necessary";
-					gen_init_args($tmp2);
-					my $n = @argDesc;
-					for ($i=0;$i<$n;$i++) {
-						if($argDesc[$i]{'optional'}==1 && $tmp2 eq "Necessary") {
-							print XML_SUBROUTINES "\t\t\t\t</tbody>\n\t\t\t</tgroup>\n\t\t</informaltable>\n\t</simplesect>\n";
-							$tmp2 = "Optional";
-							gen_init_args($tmp2);
-						}
-						print XML_SUBROUTINES "\t\t\t\t\t<row>\n";
-						for $tmp ('name','type','long_name') {
-							print XML_SUBROUTINES "\t\t\t\t\t\t<entry";
-							print XML_SUBROUTINES " role=\"$cols{$tmp}{'class'}\"" if $cols{$tmp}{'class'} ne "";
-#							print XML_SUBROUTINES " width=\"$cols{$tmp}{'width'}%\">";
-							print XML_SUBROUTINES ">";
-							print XML_SUBROUTINES "<varname>" if ($tmp eq 'name');
-							print XML_SUBROUTINES $argDesc[$i]{$tmp};
-							print XML_SUBROUTINES "</varname>" if ($tmp eq 'name');
-							print XML_SUBROUTINES "</entry>\n";
-						}
-						print XML_SUBROUTINES "\t\t\t\t\t</row>\n";
-					}
-					print XML_SUBROUTINES "\t\t\t\t</tbody>\n\t\t\t</tgroup>\n\t\t</informaltable>\n\t</simplesect>\n";
+				if($parts{$partName} ne "") {
+					$html.= "\t<simplesect>\n";
+					$html.= "\t\t<title>$partName</title>\n";
+					$html.= "\t\t<para>\n$parts{$partName}\n";
+					$html.= "\t\t</para>\n";
 				}
-				print XML_SUBROUTINES "\t</simplesect>\n" if $partName eq "Dependencies";
+				# Close description part
+				if($partName eq "Description") {
+					$html.= "\t</simplesect>\n";
+					# Add input arguments
+					$tmp = "";
+					for my $i (0 .. $#{@argDesc}) {
+						# Necessary or optional?
+						if ($argDesc[$i]{'optional'} == 1) {
+							$tmp2 = "Optional";
+						} else {
+							$tmp2 = "Necessary";
+						}
+						$html .= gen_init_args("$tmp2 arguments",$tmp) if $tmp ne $tmp2;
+						$tmp = $tmp2;
+						# One argument
+						$html .= gen_entry_args($i);
+					}
+					$html.= "\t\t</itemizedlist>\n";
+					$html.= "\t</simplesect>\n";
+				}
+#				$html.= "\t</simplesect>\n";
+				$html.= "\t</simplesect>\n" if $partName eq "Dependencies";
 			}
-			print XML_SUBROUTINES "</sect2>\n";
-#			print XML_SUBROUTINES "\t\t</para>\n\t</simplesect>\n";
+			$html.= "</sect$loSect>\n";
 		}
-		
-	}
-	
-}
-print XML_SUBROUTINES "\t</sect1>\n";
-print XML_LIBRARY "</programlisting>\n";
-close(F90_LIBRARY);
-close(XML_LIBRARY);
-close(XML_SUBROUTINES);
 
-# Example source code
-open(XML_EXAMPLE,"> $xmlFiles{'example'}");
+	}
+
+}
+$html.= "\t</sect$upSect>\n";
+print XML_F90_SUBROUTINES $html;
+close(F90_LIBRARY);
+close(XML_F90_SUBROUTINES);
+
+
+#################################################
+# Python
+#################################################
+
+# First loop to get subroutine names
+open(PYTHON_MODULE,$python_module);
+open(XML_PYTHON_MODULE,"> $xmlFiles{'python_module'}");
+print XML_PYTHON_MODULE gen_xml_header('programlisting')."<programlisting>";
+while(<PYTHON_MODULE>){
+	# Subroutines
+	if(/^[\s\t]*(class|def)\s+(\w+)\b/i && $2 ne "clean" && $2 ne "__init__") {
+		$p2xTags{personalised} .= "|" if $p2xTags{personalised} ne "";
+		$p2xTags{personalised} .= "$2";
+	}
+	# Python to xml
+	print XML_PYTHON_MODULE pytoxml($_);
+}
+close(PYTHON_MODULE);
+print XML_PYTHON_MODULE "</programlisting>\n";
+close(XML_PYTHON_MODULE);
+
+# Generate the subroutine help file by parsing the python sources
+open(XML_PYTHON_SUBROUTINES,"> $xmlFiles{'python_subroutines'}");
+$html = "\t<sect$upSect id=\"doc_pyt_sub\">\n\t\t<title>Python functions</title>\n";
+$class = "";
+$prefix = 'spanlib';
+$redo = 0;
+open(PYTHON_MODULE,$python_module);
+READ_PYTHON_MODULE:
+while(<PYTHON_MODULE>){
+
+	$redo=0;
+
+	# A blass starts here
+	if(/^[\s\t]*class\s+([\w]+)\s*\(([^\)]+)\)/i){
+		$class = "$1";
+
+	# A function or class starts here
+	} elsif(/^([\s\t]*)def\s+([\w]+)\s*\(([^\)]+)\)/i) {
+
+		undef @argDesc;
+		undef %argRef;
+		undef %outputLongNames;
+
+		next if $2 eq "clean";
+		$subroutineName = "$2";
+		$subroutineTitle = "";
+		$inputArguments = "$3";
+		$outputArguments = "";
+		$indent = $1;
+
+		# Initialize argument descriptions whatever they are
+		$inputArguments =~ s/[\t ]*//g;
+		$inputArguments =~ s/\bself\b,?//;
+		$i = 0;
+		for $tmp (split(",",$inputArguments)) {
+			# Optional argument (with default value)?
+			$argDesc[$i]{'spec'} = '[intent:input';
+			if($tmp =~ s/(.*)=(.*)/$1/) {
+				$argDesc[$i]{'spec'} .= ", default:<phrase role=\"HLpersonalised\">$2<\/phrase>]";
+			} else {
+				$argDesc[$i]{'spec'} .= ']';
+			}
+			$argRef{$tmp} = $i;
+			$argDesc[$i]{'name'} = "$tmp";
+			$argDesc[$i]{'long_name'} = "";
+print "$subroutineName: input = $tmp\n";
+			$i++;
+		}
+
+		# Parse header
+		$inside=0;
+		$currentArg="";
+		while(<PYTHON_MODULE>) {
+			if($inside == 0 && /^[\s\t]+\"\"\"(.*)\"\"\"[\s\t]*$/) {
+				# Short header with a title only
+				$subroutineTitle = $1;
+				last;
+			} elsif($inside == 0 && /^[\s\t]+\"\"\"(.*)/) {
+				# Begining of a long header
+				$subroutineTitle = $1;
+				$inside = 1;
+			} elsif($inside==1 && /\"\"\"[\s\t]*$/) {
+				# End of a long header
+				$inside = 0;
+				last;
+			} elsif($inside==1) {
+				# Description of variable (long_name)
+				if(/^[\t\s]+([^:\t\s]+)[\t\s]*::([^:].*)$/) {
+					# Input or output?
+					$isInputArg = 0;
+					for my $key (keys(%argRef)) {
+						if($key eq $1) {
+							$isInputArg = 1;
+							last;
+						}
+					}
+					if($isInputArg == 1)  {
+						# Input arguments
+						$tmp = $argRef{"$1"};
+						$argDesc[$tmp]{'long_name'} = "$2";
+						$currentArg=$tmp;
+						print "now Input currentArg=$currentArg\n";
+					} else {
+						# Outputs
+						$outputLongNames{$1} = "$2";
+						$currentArg="$1";
+						print "now Outputs currentArg=$currentArg\n";
+					}
+				} elsif(/:::[\t\s]*/) {
+					# An end of description
+					$currentArg="";
+					print "set to zero here $_";
+				} elsif("$currentArg" ne "") {
+				print "we add current=$currentArg $_";
+					# Append to the description
+					if($currentArg =~ /^\d+$/) {
+						# Inputs
+						$argDesc[$currentArg]{'long_name'} .= $_;
+					} else {
+						# Outputs
+						$outputLongNames{$currentArg} .= $_;
+					}
+				} else {
+				print "nothing for $_";
+				print "currentarg here: $currentArg\n";
+				}
+			}
+		}
+
+		# Search for the return statement
+		while(<PYTHON_MODULE>) {
+			if((/^$indent\w/ && ! /^#/) || /^[\s\t]*(def|class)/) {
+				# The special case of __init__
+				if($subroutineName eq "__init__") {
+					$argRef{"&lt;${class}_object&gt;"} = $i;
+					$argDesc[$i]{'name'} = "&lt;${class}_object&gt;";
+					$argDesc[$i]{'spec'} = "[intent:output]";
+					$argDesc[$i]{'long_name'} = "Object created with spanlib.SpAn";
+					$i++;
+				}
+				$redo = 1 if /^[\s\t]*(def|class)/;
+				last;
+			} elsif(/[\s\t]+return (.*)/) {
+				# Normal return
+				$outputArguments = "$1";
+				# Remove spaces
+				$outputArguments =~ s/[\t ]*//g;
+				# Loop on names
+				@aTmp = ();
+				print "HERE I=$i and outputs = $outputArguments\n";
+				for $tmp (split(",",$outputArguments)) {
+					# Cleaning
+					#$tmp =~ s/(\w+)\.\w+\(\'.+\'\)/$1/ or
+					$tmp =~ s/\w+\.\w+\((.+)\)/$1/;
+					print "WE ADD OUT $tmp\n";
+					push(@aTmp, $tmp);
+					$argRef{$tmp} = $i;
+					$argDesc[$i]{'name'} = "$tmp";
+					$argDesc[$i]{'spec'} = "[intent:output]";
+					$argDesc[$i]{'long_name'} = "";
+					for my $key (keys(%outputLongNames)) {
+						if($key eq $tmp) {
+							$argDesc[$i]{'long_name'} = $outputLongNames{$tmp};
+							last;
+						}
+					}
+					$i++;
+				}
+				$outputArguments = join(",",@aTmp);
+				last;
+			}
+		}
+
+		# Generate the xml bloc
+
+		# * Title
+		if ($subroutineName eq "__init__") {
+			$subroutineName = $class;
+		} elsif($class ne "") {
+			$prefix = "&lt;${class}_object&gt;";
+		}
+		$outputArguments =~ s/\b(\w+)\b/<phrase role="HLpersonalised">$1<\/phrase>/g;
+		$outputArguments =~ s/,/, /g;
+		$html .= "<sect$loSect id=\"$class$subroutineName\">\n";
+		$html .= "\t<title>$subroutineTitle: <literal id=\"${prefix}.$subroutineName\"  role=\"HLpersonalised\">${prefix}.$subroutineName</literal></title>\n";
+
+		# * Usage
+		$inputArguments =~ s/\b(\w+)([,=\s]+|$)/<phrase role="HLpersonalised">$1<\/phrase>$2/g;
+		$inputArguments =~ s/,/, /g;
+		$html .=  "\t<simplesect>\n";
+		$html .= "\t\t<title>Usage</title>\n";
+		$html .= "\t\t<programlisting>$outputArguments = <phrase role=\"HLpersonalised\">$prefix.$subroutineName</phrase>($inputArguments)</programlisting>\n";
+		$html .= "\t</simplesect>\n";
+
+		# Necessary and optional input arguments
+		# and outputs
+		$tmp = "";
+		foreach my $i (0 .. $#{@argDesc}) {
+			# Define the type
+			if($argDesc[$i]{'spec'} =~ /input/) {
+				if($argDesc[$i]{'spec'} =~ /default/) {
+					$tmp2 = "Optional arguments"
+				} else {
+					$tmp2 = "Necessary arguments" ;
+				}
+			} else {
+				$tmp2 = "Outputs" ;
+			}
+			$html .= gen_init_args($tmp2,$tmp) if $tmp ne $tmp2;
+			$tmp = $tmp2 ;
+			# One argument
+			$html .= gen_entry_args($i);
+		}
+		$html .= "\t\t</itemizedlist>\n";
+		$html .= "\t</simplesect>\n";
+		$html .= "</sect$loSect>\n";
+
+		# We finsihed on a def or class statement
+		# so we need to parse it again.
+		redo if $redo == 1;
+	}
+}
+close(PYTHON_MODULE);
+$html .= "\t</sect$upSect>\n";
+print XML_PYTHON_SUBROUTINES $html;
+close(XML_PYTHON_SUBROUTINES);
+
+#################################################
+# Example source codes
+#################################################
+
+# Fortran
+open(XML_EXAMPLE,"> $xmlFiles{'f90_example'}");
 open(F90_EXAMPLE,$f90_example);
-print XML_EXAMPLE $xmlHeader;
+print XML_EXAMPLE gen_xml_header('programlisting');
 print XML_EXAMPLE "<programlisting>";
 while(<F90_EXAMPLE>){print XML_EXAMPLE f90toxml($_);}
 print XML_EXAMPLE "</programlisting>\n";
 close(XML_EXAMPLE);
 close(F90_EXAMPLE);
 
-##################################
-#my $toc = "\t\t<ul>\n";
-#my $docdir = dirname($doc_main);
-
-#	my ($comment, $indent, $newline, %f2xCssColors, @subNames);
-
-#	$code =~ s/ /\&nbsp;/g;
-#	$code =~ s/\t/\&nbsp;\&nbsp;\&nbsp;/g;
-#	$newline = ($code =~ s/\n//);
-
-#	$code = "$code<br \/>\n" if $newline;
-
-#			$toc = "$toc\t\t\t<li><code role=\"$f2xCssColors{'personalised'}\"><a href=\"#$subroutineName\">$subroutineName</a></code></li>\n";
-
-#$toc = "$toc\t\t</ul>\n";
+# Python
+open(XML_EXAMPLE,"> $xmlFiles{'python_example'}");
+open(PYTHON_EXAMPLE,$python_example);
+print XML_EXAMPLE gen_xml_header('programlisting');
+print XML_EXAMPLE "<programlisting>";
+while(<PYTHON_EXAMPLE>){print XML_EXAMPLE pytoxml($_);}
+print XML_EXAMPLE "</programlisting>\n";
+close(XML_EXAMPLE);
+close(PYTHON_EXAMPLE);

@@ -5,7 +5,7 @@
 <span class="e i">! This file is part of the SpanLib library.</span>
 <span class="e i">! Copyright (C) 2006  Stephane Raynaud</span>
 <span class="e i">! Contact: stephane dot raynaud at gmail dot com</span>
-<span class="e i">! </span>
+<span class="e i">!</span>
 <span class="e i">! This library is free software; you can redistribute it and/or</span>
 <span class="e i">! modify it under the terms of the GNU Lesser General Public</span>
 <span class="e i">! License as published by the Free Software Foundation; either</span>
@@ -15,7 +15,7 @@
 <span class="e i">! but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
 <span class="e i">! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU</span>
 <span class="e i">! Lesser General Public License for more details.</span>
-<span class="e i">! </span>
+<span class="e i">!</span>
 <span class="e i">! You should have received a copy of the GNU Lesser General Public</span>
 <span class="e i">! License along with this library; if not, write to the Free Software</span>
 <span class="e i">! Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA</span>
@@ -43,7 +43,7 @@
 	<span class="vi">real</span>, <span class="gr">allocatable</span> :: wff(:,:), ww(:), zeof(:,:), zff(:,:)
 	<span class="vi">real</span>, <span class="gr">allocatable</span> :: eig(:)
 	<span class="vi">integer</span>           :: zuseteof = -<span class="r">1</span>, znkeep, znkeepmax=<span class="r">100</span>, i,j
-	
+
 	<span class="e i">! Setups</span>
 	<span class="e i">! ======</span>
 
@@ -69,18 +69,18 @@
 	<span class="e i">! -----------------------------------------</span>
 	<span class="vi">if</span>(<span class="cy">present</span>(useteof))zuseteof = useteof
 	<span class="vi">if</span>(zuseteof.ne.<span class="r">0</span>.and.zuseteof.ne.<span class="r">1</span>)<span class="vi">then</span>
-		<span class="vi">if</span>(ns&gt;nt)<span class="vi">then</span> 
+		<span class="vi">if</span>(ns&gt;nt)<span class="vi">then</span>
 			zuseteof=<span class="r">1</span>
 		<span class="vi">else</span>
 			zuseteof=<span class="r">0</span>
 		<span class="vi">endif</span>
 	<span class="vi">endif</span>
-	
+
 	<span class="e i">! Remove the mean</span>
 	<span class="e i">! ---------------</span>
 	<span class="cy">allocate</span>(zff(ns,nt))
 	zff = ff - <span class="cy">spread</span>(<span class="cy">sum</span>(ff,dim=<span class="r">2</span>)/<span class="vi">real</span>(nt), ncopies=nt, dim=<span class="r">2</span>)
-	
+
 	<span class="e i">! Default weights = 1.</span>
 	<span class="e i">! --------------------</span>
 	<span class="cy">allocate</span>(ww(ns))
@@ -98,7 +98,7 @@
 		wff = zff
 	<span class="vi">end</span> <span class="vi">if</span>
 
-   
+
 	<span class="e i">! EOF decomposition</span>
 	<span class="e i">! =================</span>
 
@@ -206,7 +206,7 @@
 			pc(:,i) = pc(:,i) / <span class="cy">dot_product</span>(zeof(:,i)**<span class="r">2</span>, ww(:))
 		<span class="vi">end</span> <span class="vi">do</span>
 	<span class="vi">end</span> <span class="vi">if</span>
-	
+
 	<span class="vi">end</span> <span class="vi">subroutine</span> <span class="b">sl_pca</span>
 
 
@@ -214,7 +214,8 @@
 	<span class="vi">subroutine</span> <span class="b">sl_pcarec</span>(xeof, pc, ffrec, istart, iend)
 	<span class="e i">! Internal</span>
 	<span class="e i">! --------</span>
-	<span class="vi">integer</span> :: nkept, itmp, zistart=<span class="r">1</span>, ziend
+	<span class="vi">integer</span> 				:: nkept, itmp, zistart=<span class="r">1</span>, ziend, nt, ns, i
+	<span class="vi">real</span>, <span class="gr">allocatable</span>	:: zpc(:,:)
 
 
 	<span class="e i">! Setup</span>
@@ -223,7 +224,7 @@
 	<span class="vi">if</span>(<span class="cy">present</span>(istart))zistart=istart
 	<span class="vi">if</span>(<span class="cy">present</span>(iend))<span class="vi">then</span>
 		ziend=iend
-	<span class="vi">else</span> 
+	<span class="vi">else</span>
 		ziend=nkept
 	<span class="vi">end</span> <span class="vi">if</span>
 	<span class="vi">if</span>(zistart.lt.<span class="r">1</span>.or.zistart.gt.nkept)<span class="vi">then</span>
@@ -240,14 +241,31 @@
 		zistart=itmp
 		<span class="vi">print</span>*,<span class="o">'[pcarec] istart &gt; iend =&gt; inversion'</span>
 	<span class="vi">end</span> <span class="vi">if</span>
+	ns = size(xeof,<span class="r">1</span>)
+	nt = size(pc,<span class="r">1</span>)
 
 
 	<span class="e i">! Computation</span>
 	<span class="e i">! ===========</span>
-	<span class="vi">if</span>(<span class="cy">not</span>(<span class="cy">allocated</span>(ffrec)))<span class="cy">allocate</span>(ffrec(size(xeof,<span class="r">1</span>), size(pc,<span class="r">1</span>)))
+	<span class="vi">if</span>(<span class="cy">not</span>(<span class="cy">allocated</span>(ffrec)))<span class="cy">allocate</span>(ffrec(ns, nt))
 	ffrec = <span class="r">0</span>.
-	ffrec = <span class="cy">matmul</span>( xeof(:, zistart:ziend), <span class="cy">transpose</span>(pc(:, zistart:ziend)) )
-	
+	<span class="vi">if</span>(nt&lt;ns) <span class="vi">then</span>
+		<span class="vi">do</span> i = <span class="r">1</span>, nt
+			ffrec(:, i) = ffrec(:, i) + &amp;
+				&amp;	<span class="cy">matmul</span>(xeof(:, zistart:ziend), pc(i, zistart:ziend))
+		<span class="vi">end</span> <span class="vi">do</span>
+	<span class="vi">else</span>
+		<span class="cy">allocate</span>(zpc(ziend-zistart+<span class="r">1</span>, nt))
+		zpc = <span class="cy">transpose</span>(pc(:, zistart:ziend))
+		<span class="vi">do</span> i = <span class="r">1</span>, ns
+			ffrec(i, :) = ffrec(i, :) + &amp;
+				&amp;	<span class="cy">matmul</span>(xeof(i, zistart:ziend), zpc)
+		<span class="vi">end</span> <span class="vi">do</span>
+	<span class="vi">end</span> <span class="vi">if</span>
+
+<span class="e i">!	Obsolete formulation using too much memory</span>
+<span class="e i">!	ffrec = matmul( xeof(:, zistart:ziend), transpose(pc(:, zistart:ziend)) )</span>
+
 	<span class="vi">end</span> <span class="vi">subroutine</span> <span class="b">sl_pcarec</span>
 
 
@@ -281,7 +299,7 @@
 	<span class="e i">! ---------------</span>
 	<span class="cy">allocate</span>(zff(nchan, nt))
 	zff = ff - <span class="cy">spread</span>(<span class="cy">sum</span>(ff,dim=<span class="r">2</span>)/<span class="vi">real</span>(nt), ncopies=nt, dim=<span class="r">2</span>)
-	
+
 	<span class="e i">! Set the block-Toeplitz covariance matrix</span>
 	<span class="e i">! ========================================</span>
 	<span class="cy">allocate</span>(cov(nsteof, nsteof))
@@ -328,11 +346,11 @@
 		ev = eig(nsteof : nsteof-nkeep+<span class="r">1</span> : -<span class="r">1</span>)
 	<span class="vi">end</span> <span class="vi">if</span>
 	<span class="cy">deallocate</span>(eig)
-	
+
 
 	<span class="e i">! Get ST-PCs</span>
 	<span class="e i">! ==========</span>
-	<span class="vi">if</span>(<span class="cy">present</span>(stpc))<span class="vi">then</span> 
+	<span class="vi">if</span>(<span class="cy">present</span>(stpc))<span class="vi">then</span>
 		<span class="vi">if</span>(<span class="cy">not</span>(<span class="cy">allocated</span>(stpc))) <span class="cy">allocate</span>(stpc(nt-nwindow+<span class="r">1</span>, nkeep))
 		<span class="cy">allocate</span>(trff(nt, nchan))
 		trff = <span class="cy">transpose</span>(zff)
@@ -376,7 +394,7 @@
 	<span class="vi">if</span>(<span class="cy">present</span>(istart))zistart=istart
 	<span class="vi">if</span>(<span class="cy">present</span>(iend))<span class="vi">then</span>
 		ziend=iend
-	<span class="vi">else</span> 
+	<span class="vi">else</span>
 		ziend=nkept
 	<span class="vi">end</span> <span class="vi">if</span>
 	<span class="vi">if</span>(zistart.lt.<span class="r">1</span>.or.zistart.gt.nkept)<span class="vi">then</span>
@@ -415,7 +433,7 @@
 		  <span class="vi">do</span> iw = <span class="r">1</span>, nwindow-<span class="r">1</span>
 
 			 <span class="e i">! * beginning * [iw length projections]</span>
-			 ffrec(ic, iw) = ffrec(ic, iw) + &amp; 
+			 ffrec(ic, iw) = ffrec(ic, iw) + &amp;
 				  &amp; <span class="cy">dot_product</span>( reof(nwindow-iw+<span class="r">1</span>:nwindow),  stpc(<span class="r">1</span>		:iw,   im) ) / <span class="vi">real</span>(iw)
 <span class="e i">!</span>
 			 <span class="e i">! * end * [iw length projections]</span>
@@ -425,7 +443,7 @@
 			<span class="vi">end</span> <span class="vi">do</span>
 
 		<span class="vi">end</span> <span class="vi">do</span>
- 
+
 	<span class="vi">end</span> <span class="vi">do</span>
 
 	<span class="vi">end</span> <span class="vi">subroutine</span> <span class="b">sl_mssarec</span>
@@ -449,7 +467,7 @@
 	<span class="vi">logical</span> :: select_amplitude(size(ffrec,<span class="r">2</span>)), select_phase(size(ffrec,<span class="r">2</span>))
 	<span class="vi">integer</span> :: itime(size(ffrec,<span class="r">2</span>)), nsel, i, ns
 	<span class="vi">integer</span>, <span class="gr">allocatable</span> :: isel(:)
-	
+
 
 	<span class="e i">! Setup</span>
 	<span class="e i">! =====</span>
@@ -512,8 +530,8 @@
   <span class="vi">subroutine</span> <span class="b">sl_diasym</span>(a,eig)
 	<span class="e i">! Internal</span>
 	<span class="e i">! --------</span>
-	<span class="vi">integer</span> :: n,lwork,inf 
-	<span class="vi">real</span>, <span class="gr">allocatable</span> :: work(:)  
+	<span class="vi">integer</span> :: n,lwork,inf
+	<span class="vi">real</span>, <span class="gr">allocatable</span> :: work(:)
 
 	<span class="e i">! Sizes</span>
 	<span class="e i">! -----</span>

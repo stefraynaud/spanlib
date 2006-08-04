@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <!DOCTYPE article PUBLIC "-//KDE//DTD DocBook XML V4.2-Based Variant V1.1//EN" "/usr/share/sgml/docbook/xml-dtd-4.2-1.0-17.2/docbookx.dtd">
 
-<article xmlns:xi="http://www.w3.org/2001/XInclude">
-	
+<article id="index">
+
 	<artheader>
 		<title>SpanLib - Spectral Analysis Library</title>
 		<authorgroup>
@@ -13,8 +13,9 @@
 			<keyword>statistics</keyword>
 			<keyword>physics</keyword>
 			<keyword>climate variability</keyword>
+			<keyword>financial variability</keyword>
 			<keyword>FFT</keyword>
-			<keyword>wavelets</keyword>
+			<keyword>eigen problem</keyword>
 			<keyword>spatio-temporal</keyword>
 			<keyword>MSSA</keyword>
 			<keyword>PCA</keyword>
@@ -33,7 +34,11 @@
 		</address>
 	</articleinfo>
 
-	
+	<!--#################################################################-->
+	<!--#################################################################-->
+	<abstract>
+		yo abstract
+	</abstract>
 
 	<!--#################################################################-->
 	<!--#################################################################-->
@@ -55,11 +60,11 @@
 			matrix is built not only using covariances (or correlations) between spatial points,
 			but also lag covariances.
 			Therefore, MSSA is particularly efficient to remove white noise, and extract oscillations and nonlinear
-			trends, even on short sample.
-			It uses a window parameter that corresponds to the maximal lag for lag correlations.
+			trends, even on short samples.
+			It uses a window parameter that corresponds to the maximal lag for correlations.
 			Oscillations with a period lower than this window can be typically extracted by MSSA.
 		</para>
-		
+
 		<para>
 			The package also provides the possibility to <emphasis>reconstruct part of the signal</emphasis>
 			due to selected modes, for both PCA and MSSA.
@@ -68,7 +73,7 @@
 			decomposed in a fixed number of phases
 			(like one can do for the annual cycle over 12 months for example).
 		</para>
-			
+
 		<para>
 			More information about PCA and MSSA may be found in papers and on the web.
 			See for example:
@@ -79,7 +84,7 @@
 
 		<para>
 			An html version of the source code is available here:
-			<filename><ulink url="f90_library.html">spanlib.f90</ulink></filename>.
+			<filename><ulink url="code_lib_f90.html">spanlib.f90</ulink></filename>.
 		</para>
 	</sect1>
 
@@ -93,24 +98,25 @@
 			<sect3>
 				<title>Fortran library</title>
 				<para>You need a F90 compiler and BLAS/LAPACK  libraries compilated using this F90 compiler.</para>
-				<para>Tu use the example, you need the F90 netcdf library.</para>
+				<para>To run the example, you need the F90 netcdf library.</para>
 			</sect3>
 			<sect3>
 				<title>Python module</title>
-				<para>You need the fortran library, and the cdat package.</para>
+				<para>You need the fortran library, and the pyfort module.</para>
 			</sect3>
 		</sect2>
 
 		<sect2 id="doc_ins_dow">
 			<title>Download</title>
 		</sect2>
-		
+
 		<sect2 id="doc_ins_ins">
 			<title>Installation</title>
 			<procedure>
 				<step>
 					<para>
 						First, compile it with:
+<!---->
 <screen>
 <prompt>user$</prompt> <userinput>./configure</userinput>
 <prompt>user$</prompt> <userinput>make
@@ -126,11 +132,12 @@
 <prompt>root$</prompt> <userinput>make install
 </userinput>
 </screen>.
+<!---->
 					</para>
 				</step>
 			</procedure>
 		</sect2>
-		
+
 	</sect1>
 
 	<!--#################################################################-->
@@ -141,12 +148,11 @@
 		<!--#################################################################-->
 		<sect2 id="doc_f90_int">
 			<title>Introduction</title>
-			
+
 		</sect2>
 
-	
 		<!--#################################################################-->
-		<xi:include href="doc_subroutines.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+		<xi:include href="doc_f90_sub_inc.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
 
 		<!--#################################################################-->
 		<sect2 id="doc_f90_exa">
@@ -160,12 +166,12 @@
 			</para>
 			<example>
 				<title>F90 example</title>
-				<xi:include href="f90_example.xml"  xmlns:xi="http://www.w3.org/2001/XInclude" />
+				<xi:include href="src_f90_exa_inc.xml"  xmlns:xi="http://www.w3.org/2001/XInclude" />
 			</example>
 		</sect2>
 
 	</sect1>
-	
+
 	<!--#################################################################-->
 	<!--#################################################################-->
 	<sect1 id="doc_pyt">
@@ -175,7 +181,10 @@
 		<sect2 id="doc_pyt_int">
 			<title>Introduction</title>
 		</sect2>
-	
+
+		<!--#################################################################-->
+		<xi:include href="doc_pyt_sub_inc.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+
 		<!--#################################################################-->
 		<sect2 id="doc_pyt_exa">
 			<title>A python example</title>
@@ -184,12 +193,12 @@
 				<para>This is a wonderful python example</para>
 				<example>
 					<title>Python example</title>
-					<!--xi:include href="python_example.xml"  xmlns:xi="http://www.w3.org/2001/XInclude" /-->
+					<xi:include href="src_pyt_exa_inc.xml"  xmlns:xi="http://www.w3.org/2001/XInclude" />
 				</example>
 			</example>
 		</sect2>
 	</sect1>
-	
+
 	<!--#################################################################-->
 	<sect1 id="doc_ref">
 		<title>References</title>
@@ -224,7 +233,7 @@
 		<title>Compilers, Principles, Techniques, and Tools</title>
 
 		</biblioentry>
-		
+
 		<!-- Mixed -->
 		<bibliomixed>
 			<bibliomset relation='article'>Walsh, Norman.
@@ -237,10 +246,10 @@
 				The World Wide Web Consortium. Winter, 1996
 			</bibliomset>.
 		</bibliomixed>
-		
+
 	</bibliography>
 
-	
-	
+
+
 
 </article>

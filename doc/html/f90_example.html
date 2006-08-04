@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE table PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<table xmlns="http://www.w3.org/1999/xhtml" bgcolor="" width="100%" align="center" border="0"><tr><td><pre class="programlisting"><span class="e i">! File: example.f90</span>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title></title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><table bgcolor="" width="100%" align="center" border="0"><tr><td><pre class="programlisting"><span class="e i">! File: example.f90</span>
 <span class="e i">!</span>
 <span class="e i">! This file is part of the SpanLib library.</span>
 <span class="e i">! Copyright (C) 2006  Stephane Raynaud</span>
 <span class="e i">! Contact: stephane dot raynaud at gmail dot com</span>
-<span class="e i">! </span>
+<span class="e i">!</span>
 <span class="e i">! This library is free software; you can redistribute it and/or</span>
 <span class="e i">! modify it under the terms of the GNU Lesser General Public</span>
 <span class="e i">! License as published by the Free Software Foundation; either</span>
@@ -15,7 +15,7 @@
 <span class="e i">! but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
 <span class="e i">! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU</span>
 <span class="e i">! Lesser General Public License for more details.</span>
-<span class="e i">! </span>
+<span class="e i">!</span>
 <span class="e i">! You should have received a copy of the GNU Lesser General Public</span>
 <span class="e i">! License along with this library; if not, write to the Free Software</span>
 <span class="e i">! Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA</span>
@@ -33,7 +33,7 @@
 	<span class="e i">! A PCA is used to reduce the degrees of freedoom before MSSA analysis.</span>
 	<span class="e i">! Weights for PCA are computed as a fonction of latitude.</span>
 	<span class="e i">! Then, we assume that we have already identified an oscillation (after tests).</span>
-	<span class="e i">! This oscillation, given by a pair of MSSA modes, is then </span>
+	<span class="e i">! This oscillation, given by a pair of MSSA modes, is then</span>
 	<span class="e i">! reconstructed from the MSSA and PCA spaces.</span>
 	<span class="e i">! Finally, phase composites are computed from this reconstructed oscillation.</span>
 	<span class="e i">! The oscillation is outputed in a netcdf file (pair_1.cdf).</span>
@@ -51,18 +51,18 @@
 	<span class="e i">! - Phase composites use 8 phases</span>
 	<span class="e i">! - An offset of 0.4 and is used for composites</span>
 	<span class="e i">! - The first phase of composites is set at 180 degrees (minimal value)</span>
-	
 
-	<span class="vi">use</span> pcamssa
+
+	<span class="vi">use</span> spanlib
 	<span class="vi">use</span> netcdf
 
 	<span class="vi">implicit</span> <span class="gr">none</span>
-	
+
 	<span class="e i">! Parameters</span>
 	<span class="e i">! ----------</span>
 	<span class="vi">integer</span>,<span class="gr">parameter</span> :: nkeep_pca=<span class="r">5</span>, nwindow=<span class="r">84</span>, first_mode=<span class="r">1</span>, nphases=<span class="r">8</span>
 	<span class="vi">real</span>, <span class="gr">parameter</span> :: offset=<span class="r">0</span>., first_phase=<span class="r">180</span>., new_missing_value=-<span class="r">999</span>.
-	<span class="vi">character</span>(len=<span class="r">20</span>), <span class="gr">parameter</span> :: input_nc_file=<span class="o">&quot;data.cdf&quot;</span>, output_nc_file=<span class="o">&quot;pair_1.nc&quot;</span>, &amp;
+	<span class="vi">character</span>(len=<span class="r">20</span>), <span class="gr">parameter</span> :: input_nc_file=<span class="o">&quot;data.cdf&quot;</span>, output_nc_file=<span class="o">&quot;output.nc&quot;</span>, &amp;
 		var_name=<span class="o">'ssta'</span>
 
 	<span class="e i">! Other declarations</span>
@@ -85,7 +85,7 @@
 	<span class="vi">print</span>*,<span class="o">'Reading inputs...'</span>
 	<span class="vi">call</span> err(nf90_open(input_nc_file, nf90_nowrite, ncid))
 	<span class="vi">call</span> err(nf90_inq_varid(ncid, var_name, varid))
-	<span class="vi">call</span> err(nf90_inquire_variable(ncid, varid, dimids=dimids(<span class="r">1</span>:<span class="r">4</span>)))
+	<span class="vi">call</span> err(nf90_inquire_variable(ncid, varid, dimids=dimids(<span class="r">1</span>:<span class="r">3</span>)))
 	<span class="vi">call</span> err(nf90_inquire_dimension(ncid, dimids(<span class="r">1</span>), &amp;
 		&amp;	name=lon_name, len=nlon))
 	<span class="vi">call</span> err(nf90_inquire_dimension(ncid, dimids(<span class="r">2</span>), &amp;
@@ -115,13 +115,13 @@
 	<span class="e i">! Format (pack) data to have only one space dimension</span>
 	<span class="e i">! ---------------------------------------------------</span>
 	<span class="vi">print</span>*,<span class="o">'Packaging...'</span>
-	
+
 	<span class="e i">! Compute weights proportional to grid point area</span>
 	pi = cos(-<span class="r">1</span>.)
 	<span class="vi">do</span> i=<span class="r">1</span>,nlat
 		weights(:,i) = cos(lat(i)*pi/<span class="r">180</span>.)
 	<span class="vi">end</span> <span class="vi">do</span>
-	
+
 	<span class="e i">! Now pack</span>
 	<span class="vi">if</span>(isnan(missing_value))<span class="vi">then</span>
 		mask = <span class="cy">not</span>(isnan(field(:,:,<span class="r">1</span>)))
@@ -138,32 +138,31 @@
 	<span class="e i">! Perform a PCA to reduce the d.o.f</span>
 	<span class="e i">! ---------------------------------</span>
 	<span class="vi">print</span>*,<span class="o">'PCA...'</span>
-	<span class="vi">call</span> pca(packed_field, nkeep=nkeep_pca, eof=eof, pc=pc, weights=packed_weights)
+	<span class="vi">call</span> <span class="b">sl_pca</span>(packed_field, nkeep=nkeep_pca, xeof=eof, pc=pc, weights=packed_weights)
 	<span class="cy">deallocate</span>(packed_field)
 
 	<span class="e i">! We send results from PCA to MSSA</span>
 	<span class="e i">! --------------------------------</span>
 	<span class="vi">print</span>*,<span class="o">'MSSA...'</span>
-	<span class="vi">call</span> mssa(<span class="cy">transpose</span>(pc), nwindow, nkeep=first_mode+<span class="r">1</span>, steof=steof, stpc=stpc, ev=stev)
+	<span class="vi">call</span> <span class="b">sl_mssa</span>(<span class="cy">transpose</span>(pc), nwindow, nkeep=first_mode+<span class="r">1</span>, steof=steof, stpc=stpc, ev=stev)
 
 	<span class="e i">! We reconstruct modes [first_mode + first_mode+1] of MSSA</span>
 	<span class="e i">! --------------------------------------------------------</span>
-	
+
 	<span class="vi">print</span>*,<span class="o">'MSSAREC...'</span>
-	<span class="vi">call</span> mssarec(steof, stpc, nwindow, stpair, istart=first_mode, iend=first_mode+<span class="r">1</span>)
+	<span class="vi">call</span> <span class="b">sl_mssarec</span>(steof, stpc, nwindow, stpair, istart=first_mode, iend=first_mode+<span class="r">1</span>)
 	<span class="cy">deallocate</span>(steof, stpc)
 
 	<span class="vi">print</span>*,<span class="o">'PCAREC...'</span>
-	<span class="vi">call</span> pcarec(eof, <span class="cy">transpose</span>(stpair), pair)
-<span class="e i">!	call pcarec(eof, pc, pair)</span>
+	<span class="vi">call</span> <span class="b">sl_pcarec</span>(eof, <span class="cy">transpose</span>(stpair), pair)
+<span class="e i">!	call sl_pcarec(eof, pc, pair)</span>
 	<span class="cy">deallocate</span>(stpair, eof)
 
 	<span class="e i">! We compute phases composites for the reconstructed oscillation</span>
 	<span class="e i">! ---------------------------------------------------------------</span>
 	<span class="vi">print</span>*,<span class="o">'PHASECOMP...'</span>
-	<span class="vi">call</span> phasecomp(pair, nphases, packed_phasecomps, weights=packed_weights, &amp;
+	<span class="vi">call</span> <span class="b">sl_phasecomp</span>(pair, nphases, packed_phasecomps, weights=packed_weights, &amp;
 		&amp; offset=offset, firstphase=first_phase)
-
 
 	<span class="e i">! Unpacking</span>
 	<span class="e i">! ---------</span>
@@ -179,7 +178,7 @@
 	<span class="vi">do</span> i=<span class="r">1</span>, nphases
 		phasecomps(:,:,i) = <span class="cy">unpack</span>(packed_phasecomps(:,i), mask, new_missing_value)
 	<span class="vi">end</span> <span class="vi">do</span>
-	
+
 	<span class="e i">! Write out the phase composites of the first oscillation</span>
 	<span class="e i">! -------------------------------------------------------</span>
 	<span class="vi">print</span>*,<span class="o">'Writing out...'</span>
@@ -241,4 +240,4 @@
 
 <span class="vi">end</span> <span class="vi">subroutine</span> err
 
-</pre></td></tr></table>
+</pre></td></tr></table><div xmlns="" class="generated">This document was generated  using xml/xsl and perl.</div></body></html>

@@ -4,4 +4,3 @@
 
 EXTRA_DIST = COPYING INSTALL AUTHORS README ChangeLog
 SUBDIRS = src scripts doc
-

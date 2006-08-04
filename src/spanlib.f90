@@ -602,7 +602,7 @@ contains
 	!	Space weights can be optionally used to compute the PC.
 	!	A minimal normalized amplitude can be also used: when the
 	!	index is under value, data are not used to compute phases.
-	!	It also possible so specify the angle of the first phase
+	!	It is also possible so specify the angle of the first phase
 	!	in the 360 degrees phase diagram circle: zero means the
 	!	the first phase conincides with the maximmum.
 	!

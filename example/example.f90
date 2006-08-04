@@ -60,7 +60,7 @@ program example
 	! ----------
 	integer,parameter :: nkeep_pca=5, nwindow=84, first_mode=1, nphases=8
 	real, parameter :: offset=0., first_phase=180., new_missing_value=-999.
-	character(len=20), parameter :: input_nc_file="data.cdf", output_nc_file="output.nc", &
+	character(len=20), parameter :: input_nc_file="data2.cdf", output_nc_file="output.nc", &
 		var_name='ssta'
 
 	! Other declarations
@@ -68,7 +68,8 @@ program example
 	real, allocatable :: field(:,:,:), weights(:,:), lat(:), lon(:), time(:)
 	real, allocatable :: reco(:,:,:), phasecomps(:,:,:)
 	logical, allocatable :: mask(:,:)
-	real, allocatable :: packed_field(:,:), packed_weights(:), packed_phasecomps(:,:)
+	real, allocatable :: packed_field(:,:), packed_weights(:), &
+		& packed_phasecomps(:,:), stphasecomps(:,:)
 	real, allocatable :: eof(:,:), ev(:), pc(:,:), stpair(:,:), pair(:,:)
 	real, allocatable :: steof(:,:),stpc(:,:),stev(:)
 	character(len=20) :: dim_names(3), dim_name, lon_units, lat_units, var_units, &
@@ -110,6 +111,7 @@ program example
 	call err(nf90_get_att(ncid, varid, 'units', time_units))
 	call err(nf90_close(ncid))
 
+
 	! Format (pack) data to have only one space dimension
 	! ---------------------------------------------------
 	print*,'Packaging...'
@@ -133,34 +135,43 @@ program example
 	allocate(packed_weights(count(mask)))
 	packed_weights = pack(weights, mask)
 
+
 	! Perform a PCA to reduce the d.o.f
 	! ---------------------------------
 	print*,'PCA...'
-	call sl_pca(packed_field, nkeep=nkeep_pca, xeof=eof, pc=pc, weights=packed_weights)
+	call sl_pca(packed_field, nkeep=nkeep_pca, xeof=eof, &
+		&	pc=pc, weights=packed_weights)
 	deallocate(packed_field)
 
 	! We send results from PCA to MSSA
 	! --------------------------------
 	print*,'MSSA...'
-	call sl_mssa(transpose(pc), nwindow, nkeep=first_mode+1, steof=steof, stpc=stpc, ev=stev)
+	call sl_mssa(transpose(pc), nwindow, nkeep=first_mode+1, &
+		&	steof=steof, stpc=stpc, ev=stev)
 
 	! We reconstruct modes [first_mode + first_mode+1] of MSSA
 	! --------------------------------------------------------
 
 	print*,'MSSAREC...'
-	call sl_mssarec(steof, stpc, nwindow, stpair, istart=first_mode, iend=first_mode+1)
+	call sl_mssarec(steof, stpc, nwindow, stpair, &
+		&	istart=first_mode, iend=first_mode+1)
 	deallocate(steof, stpc)
-
-	print*,'PCAREC...'
-	call sl_pcarec(eof, transpose(stpair), pair)
-!	call sl_pcarec(eof, pc, pair)
-	deallocate(stpair, eof)
 
 	! We compute phases composites for the reconstructed oscillation
 	! ---------------------------------------------------------------
 	print*,'PHASECOMP...'
-	call sl_phasecomp(pair, nphases, packed_phasecomps, weights=packed_weights, &
-		& offset=offset, firstphase=first_phase)
+	call sl_phasecomp(stpair, nphases, stphasecomps, &
+		&	weights=packed_weights, &
+		&	offset=offset, firstphase=first_phase)
+
+	! We go back to the physical space for
+	! the full oscillation AND its composites
+	! ---------------------------------------
+	print*,'PCAREC...'
+	call sl_pcarec(eof, transpose(stpair), pair)
+	call sl_pcarec(eof, transpose(stphasecomps), packed_phasecomps)
+	deallocate(stpair, eof, stphasecomps)
+
 
 	! Unpacking
 	! ---------
@@ -176,6 +187,7 @@ program example
 	do i=1, nphases
 		phasecomps(:,:,i) = unpack(packed_phasecomps(:,i), mask, new_missing_value)
 	end do
+
 
 	! Write out the phase composites of the first oscillation
 	! -------------------------------------------------------

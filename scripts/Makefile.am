@@ -2,4 +2,4 @@
 ## SpanLib, Raynaud 2006
 ######################################################################
 
-EXTRA_DIST = gendoc.pl genpyf.pl check_fortran.py
+EXTRA_DIST = gendoc.pl genpyf.pl check_fortran.py quickplot.py

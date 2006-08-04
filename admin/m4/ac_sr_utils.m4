@@ -16,12 +16,14 @@ AC_DEFUN([AC_SR_SET_REDINK],
 
 AC_DEFUN([AC_SR_SET_GREENINK],
 [
-	echo -en "\\033\\1331;32m"
+	AS_VAR_SET([GREEN],["\\033\\1331;32m"])
+	echo -en AS_VAR_GET([GREEN])
 ])
 
 AC_DEFUN([AC_SR_SET_NORMALINK],
 [
-	echo -en "\\033\\1330;39m"
+	AS_VAR_SET([NORMAL],["\\033\\1330;39m"])
+	echo -en AS_VAR_GET([NORMAL])
 ])
 
 ################################################################################

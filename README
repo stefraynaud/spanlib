@@ -1,1 +1,33 @@
-TODO
+SpanLib - Spectral Analysis Library
+===================================
+
+Intent:
+-------
+Provides a fortran 90 libraries and a python module
+to performs analyses such as Principal Component
+Analysis and Multichannel Singular Spectrum Analysis.
+This packages is suitable for analysis studies of
+climate or financial variability.
+
+Authors:
+--------
+Stephane Raynaud
+Charles Doutriaux
+
+Licence:
+--------
+Lesser GNU Public Licence
+See COPYING file
+
+Documentation:
+--------------
+- On the web: http://spanlib.sourceforge.net/
+- One packaged is installed, typically in:
+  file://<prefix_dir>/share/spanlib/html
+
+Installation:
+-------------
+Try ./configure && make && make install (as root)
+See INSTALL file
+
+

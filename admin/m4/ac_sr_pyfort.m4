@@ -14,7 +14,7 @@ AC_DEFUN([AC_SR_PYFORT],
 	# Full path to pyfort
 	AC_ARG_VAR(PYFORT,[Absolute path to pyfort executable])
 	AS_VAR_SET_IF([PYFORT],[:],
-		[AC_PATH_PROG(PYFORT,pyfort,no,[AS_VAR_GET(MYPYTHONPATH)])])
+		[AC_PATH_PROG(PYFORT,pyfort,no,AS_VAR_GET(MYPYTHONPATH))])
 	AS_VAR_SET([HAS_PYFORT],[`test "AS_VAR_GET(PYFORT)" != "no"`])
 	AM_CONDITIONAL([HAS_PYFORT],AS_VAR_GET(HAS_PYFORT))
 
@@ -46,12 +46,12 @@ You wont be able to build the python package.])
 
 	# Build directory
 	AS_IF(AS_VAR_GET(HAS_PYFORT),
-		[
-			AC_MSG_CHECKING([the generic directory name for building python libraries])
-			AS_VAR_SET(PYFORT_BUILD_DIR,
-				[`AS_VAR_GET(PYTHON) -c ["import sys;from distutils.util import get_platform ; print \"lib.\"+get_platform()+\"-\"+sys.version[0:3]"]`])
-			AC_MSG_RESULT(AS_VAR_GET(PYFORT_BUILD_DIR))
-		])
+	[
+		AC_MSG_CHECKING([the generic directory name for building python libraries])
+		AS_VAR_SET(PYFORT_BUILD_DIR,
+			[`AS_VAR_GET(PYTHON) -c ["import sys;from distutils.util import get_platform ; print \"lib.\"+get_platform()+\"-\"+sys.version[0:3]"]`])
+		AC_MSG_RESULT(AS_VAR_GET(PYFORT_BUILD_DIR))
+	])
 
 	# Build option and default install path
 	AS_VAR_SET_IF(PYTHONDIR,

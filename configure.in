@@ -13,7 +13,7 @@ AC_CONFIG_AUX_DIR(admin)
 AC_CANONICAL_TARGET([])
 AC_PREREQ(2.59)
 AC_COPYRIGHT
-AM_INIT_AUTOMAKE(spanlib,1.0.0)
+AM_INIT_AUTOMAKE(spanlib,1.0)
 AC_PREFIX_DEFAULT(/usr/local)
 
 ######################################################################
@@ -41,11 +41,7 @@ AC_OUTPUT(\
 	example/Makefile \
 	scripts/Makefile \
 	doc/Makefile \
-	doc/html/Makefile \
 )
 ######################################################################
-AC_SR_HEADER([Now type 'make' to build the library.
-### Then, to install it, type 'make install'
-### (you may need to do it as root if you didnt use --prefix).])
-AS_VAR_SET_IF(ac_cv_text_example,AC_SR_HEADER(AS_VAR_GET(ac_cv_text_example)))
+AC_SR_SPANLIB_FOOTER()
 ######################################################################

@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0,'../src/build/lib.linux-i686-2.4')
+#sys.path.insert(0,'../src/build/lib.linux-i686-2.4')
 import cdms
 import spanlib
 import vcs
@@ -12,7 +12,7 @@ cdms.axis.latitude_aliases.append('Y')
 cdms.axis.longitude_aliases.append('X')
 cdms.axis.time_aliases.append('T')
 
-f=cdms.open('example/data2.cdf')
+f=cdms.open('../example/data2.cdf')
 
 s=f('ssta')
 print s.shape

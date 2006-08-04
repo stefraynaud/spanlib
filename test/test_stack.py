@@ -1,13 +1,15 @@
+import sys
 import cdms
 import spanlib
 import MV
+#sys.path.insert(0,'../src/build/lib.linux-i686-2.4')
 
 
 cdms.axis.latitude_aliases.append('Y')
 cdms.axis.longitude_aliases.append('X')
 cdms.axis.time_aliases.append('T')
 
-f=cdms.open('example/data2.cdf')
+f=cdms.open('../example/data2.cdf')
 
 s2=f('ssta',latitude=(-10,10),longitude=(110,180))
 s1=f('ssta',latitude=(-15,15),longitude=(210,250))

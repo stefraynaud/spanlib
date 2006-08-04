@@ -1,10 +1,46 @@
+#################################################################################
+# File: spanlib_python.py
+#
+# This file is part of the SpanLib library.
+# Copyright (C) 2006  Charles Doutiraux, Stephane Raynaud
+# Contact: stephane dot raynaud at gmail dot com
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+#################################################################################
+
 import spanlib_fort
 import MV
 import Numeric
 
 
 def stackData(*data):
-    """ Takes several data files, of same time and stacks them up together """
+    """ Takes several data files, of same time and stacks them up together
+
+    Usage:::
+    dout, weights, mask, axes = stackData(data1[, data2...])
+
+      *data   :: One or more data objects to stack.
+                 They must all have the same time length.
+    :::
+    Output:::
+      dout    :: Stacked data
+      weights :: Associated stacked weights
+      masks   :: Associated stacked masks
+      axes    :: Associated stacked axes
+    :::
+	 """
     len_time=None
     axes=[]
     dout=None # data output
@@ -25,33 +61,45 @@ def stackData(*data):
         if dout is None:
             dout=tdata
             weights=w
-            mask=[m]
+            masks=[m]
         else:
 ##             print dout.shape,tdata.shape
             dout=Numeric.concatenate((dout,tdata))
             weights=Numeric.concatenate((weights,w))
-            mask.append(m)
+            masks.append(m)
 
-    return Numeric.transpose(dout),weights,mask,axes
+    return Numeric.transpose(dout),weights,masks,axes
 
-def unStackData(din,weights,mask,axes):
-    """Unstack data in the form returned from stackData"""
-##     print din.shape,mask,'888888888888888888888888888888'
+def unStackData(din,weights,masks,axes):
+    """ Unstack data in the form returned from stackData
+
+    Usage:::
+    dout = unStackData(din,weights,mask,axes)
+
+      din     :: Stacked data (see stackData function)
+      weights :: Associated stacked weights
+      masks   :: Associated stacked masks
+      axes    :: Associated stacked axes
+    :::
+    Output:::
+      dout    :: List of unstacked data
+    :::
+    """
     nvar=len(axes)
 
-    if nvar!=len(mask):
-        raise 'Error mask and var length not compatible'
+    if nvar!=len(masks):
+        raise 'Error masks and input data length not compatible'
 
     totsize=0
-    for m in mask:
+    for m in masks:
         totsize+=int(MV.sum(MV.ravel(m)))
     if totsize!=din.shape[1]:
         raise 'Error data and masks are not compatible in length!!!! (%s) and (%s)' % (totsize,din.shape[1])
 
     istart=0
-    out=[]
+    dout=[]
     for i in range(nvar):
-        m=mask[i]
+        m=masks[i]
         mlen=int(MV.sum(MV.ravel(m)))
         iend=istart+mlen
         data=Numeric.transpose(din[:,istart:iend])
@@ -67,17 +115,34 @@ def unStackData(din,weights,mask,axes):
         unpacked = MV.transpose(MV.array(up))
         unpacked.setAxisList(axes[i])
         istart+=mlen
-        out.append(unpacked)
-    return out
+        dout.append(unpacked)
+    return dout
 
 
 def pack(data,weights=None):
-    """ Computes weights and mask"""
-    if Numeric.rank(data)==2: # Already packed but then vneeds weights!
+    """ Computes weights and mask
+
+    Usage:::
+    packed_data, packed_weights, mask = pack(data,weights)
+
+      data    :: Flatten in space an [x,y,t] array by removing
+                 its masked point
+      weights :: Weights to be flatten also
+    :::
+    Output:::
+      packed_data    :: Space-time packed array
+      packed_weights :: Packed weights that were guessed or used
+      mask           :: Mask that were guessed or used
+    :::
+    """
+    if Numeric.rank(data)==2: # Already packed but then needs weights!
         if weights is None:
             raise 'Error packed data must be sent with weights!'
         else:
-            return Numeric.transpose(data),weights,True
+            packed_data = Numeric.transpose(data)
+            packed_weights = weights
+            mask = True
+            return packed_data,packed_weights,mask
     sh=list(data.shape)
     ns1=sh[-1]
     ns2=sh[-2]
@@ -104,9 +169,7 @@ def pack(data,weights=None):
         mask=MV.sum(mask,axis=0)
 
     ## Now add the ones from the weights
-##     print mask.shape,weights.shape
     mask=mask.filled()+MV.equal(weights,0.).filled(1)
-##     print 'After:',mask.shape
 
     ## >=1 means masked, Fortran "mask": 1 means data ==> 1-mask
     mask=1.-MV.greater_equal(mask,1).filled()
@@ -116,36 +179,47 @@ def pack(data,weights=None):
     ns=int(MV.sum(Numeric.ravel(mask)))
 
     ## Ok now calls fortran, but need to transpose first
-    tdata=Numeric.transpose(data.filled(1.e20))
+    packed_data=Numeric.transpose(data.filled(1.e20))
 
     ## Dummy 1D for time for tmask
     ## Pack data
-    tdata = spanlib_fort.pack3d(tdata,mask,ns1,ns2,nt,ns)
+    packed_data = spanlib_fort.pack3d(packed_data,mask,ns1,ns2,nt,ns)
 
     weights=MV.reshape(weights,(1,sh[-2],sh[-1]))
     ## Pack weights
     tweights=Numeric.transpose(weights.filled(0))
     tweights=Numeric.ones(tweights.shape,'f')
-    weights = spanlib_fort.pack3d(tweights,mask,ns1,ns2,1,ns)[:,0]
+    packed_weights = spanlib_fort.pack3d(tweights,mask,ns1,ns2,1,ns)[:,0].astype('f')
 
-    return tdata,weights.astype('f'),mask
+    return packed_data,packed_weights,mask
 
 
 def phases(data,nphases=8,offset=.5,firstphase=0):
-    """ phases analysis """
-    tdata,w,mask = pack(data)
-    ns = tdata.shape[0]
-    sh=data.shape
-    ns1=sh[-1]
-    ns2=sh[-2]
+    """ Phase composites for oscillatory fields
+
+    Usage:::
+    phases = phases(data,nphases,offset,firstphase)
+    
+      data       :: Space-time data oscillatory in time
+      nphases    :: Number of phases (divisions of the cycle)
+      offset     :: Normalised offset to keep higher values only
+      firstphase :: Position of the first phase in the 360 degree cycle
+    Output:::
+      phases :: Space-phase array
+    :::
+    """
+    # FIXME: maybe must be integrated to MSSA because
+    #        interesting only for MSSA outputs,
+    #        and usable only before PCA recontruction
+    ns=data.shape[1]
     nt=data.shape[0]
-    phases = spanlib_fort.phasecomp(tdata, ns, nt, nphases, w, offset, firstphase)
-    phases = MV.transpose(spanlib_fort.unpack3d(mask,ns1,ns2,nphases,phases,ns,1.e20))
+    w = MV.ones((ns),typecode='f')
+    phases = spanlib_fort.phasecomp(packed_data, ns, nt, nphases, w, offset, firstphase)
     axes = data.getAxisList()
-    phases.id='phases'
-    ax=phases.getAxis(0)
-    ax.id='phases'
-    axes[0]=ax
+    phases.id = 'phases'
+    ax = phases.getAxis(0)
+    ax.id = 'phases'
+    axes[0] = ax
     phases.setAxisList(axes)
     return phases
 
@@ -157,7 +231,7 @@ class SpAn(object):
         ## First pack our data, prepare the weights and mask for PCA
         self.pdata,self.weights,self.mask = pack(data,weights)
 
-        
+
         ## Store axes for later
         self.axes=data.getAxisList()
         self.varname=data.id
@@ -183,22 +257,26 @@ class SpAn(object):
 ##         print 'At the end:',self.pdata.shape,self.ns,self.nt
 
     def pca(self,npca=None):
-        """ Principal Components Analysis tool
+        """ Principal Components Analysis (PCA)
 
         Usage:::
         eof, pc, ev = pca(data,npca=None,weights=None)
 
           data    :: Data on which to run the PC Analysis
-                     Last dimensions must represent the spatial dimensions. Analysis will be run on the first dimension.
+                     Last dimensions must represent the spatial dimensions.
+                     Analysis will be run on the first dimension.
           weights :: If you which to apply weights on some points.
-                    Set weights to "0" where you wish to mask.
-                    The input data mask will be applied, using the union of all none spacial dimension mask.
-                    If the data are on a regular grid, area weights will be generated, if the cdutil (CDAT) module is available
+                     Set weights to "0" where you wish to mask.
+                     The input data mask will be applied,
+                     using the union of all none spacial dimension mask.
+                     If the data are on a regular grid, area weights
+                     will be generated, if the cdutil (CDAT) module is available
           npca    :: Number of principal components to return, default will be 10
         :::
         Output:::
-          eof:: EOF array
-          pc:: Principal Components Array
+          eof :: EOF array
+          pc  :: Principal Components array
+          ev  :: Eigein Values array
         :::
         """
 
@@ -217,7 +295,7 @@ class SpAn(object):
         else:
             eof = MV.transpose(self.eof)
             pc  = MV.array(self.pc)
-            
+
         ax=eof.getAxis(0)
         ax.id='pc'
         ax.standard_name='Principal Components Axis'
@@ -233,21 +311,33 @@ class SpAn(object):
 
 
         return eof,pc,ev
-    
 
-    def mssa(self,nmssa=None,pca=False):
-        """ Principal Components Analysis tool
 
+    def mssa(self,nmssa=None,pca=False,window=None):
+        """ MultiChannel Singular Spectrum Analysis (MSSA)
+
+        Usage:::
+        eof, pc, ev = mssa(nmssa,pca)
+
+          nmssa  :: Number of MSSA modes retained
+          window :: MSSA window parameter
+          pca    :: If True, performs a preliminary PCA
         Output:::
-          eof:: EOF array
-          pc:: Principal Components Array
-          ev:: Eigen Values
+          eof :: EOF array
+          pc  :: Principal Components array
+          ev  :: Eigen Values  array
         :::
         """
 
         if pca is True: # runs the pre PCA
             if self.pc is None:
                 self.pca()
+
+        if nmssa is not None:
+            self.nmssa = nmssa
+
+        if nwindow is not None:
+            self.window = window
 
         if self.steof is None:
             if pca is True:
@@ -262,11 +352,11 @@ class SpAn(object):
         ax0=eof.getAxis(0)
         ax0.id='mssa'
         ax0.standard_name='MSSA Axis'
-        
+
         ax1=eof.getAxis(1)
         ax1.id='pc'
         ax1.standard_name='Principal Components Axis'
-        
+
         ax2=eof.getAxis(2)
         ax2.id='window'
         ax2.standard_name='Window Axis'
@@ -281,12 +371,25 @@ class SpAn(object):
         ev=MV.array(self.stev,id='EV',axes=[ax0])
         ev.standard_name='Eigen Values'
         return eof,pc,ev
-    
+
 
     def reconstruct(self,start=1,end=None,mssa=True,pca=True):
-        """ Reconstruct results from mssa or pca"""
+        """ Reconstruct results from mssa or pca
+
+        Usage:::
+        ffrec = reconstruct(start,end,mssa,pca)
+
+          start :: First mode
+          end   :: Last mode
+          mssa  :: Reconstruct MSSA if True
+          pca   :: Reconstruct PCA if True
+        Output:::
+          ffec :: Reconstructed field
+        :::
+        """
         n1=start
         n2=end
+        # FIXME: needs MSSA alone
         if mssa:
             if n2 is None:
                 n2=self.nmssa
