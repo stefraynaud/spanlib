@@ -261,13 +261,13 @@ contains
 	!	by its PC. The sum of all reconstructed component is the original field.
 	!
 	! Necessary arguments:
-	!	- xeof:	Space-mode array of EOFs
+	!	- xeof:		Space-mode array of EOFs
 	!	- pc:		Time-mode array of PCs
 	!	- ffrec:	Space-time array of the reconstructed field
 	!
 	! Optional arguments:
 	!	- istart:	Index of the first component to use
-	!	- iend:	Index of the last component to use
+	!	- iend:		Index of the last component to use
 
 	implicit none
 
@@ -358,14 +358,14 @@ contains
 	!	parameter.
 	!
 	! Necessary arguments:
-	!	- ff:			Space-time array
+	!	- ff:		Space-time array
 	!	- nwindow:	Window size
+	!	- nkeep:	Maximum number of modes to keep in outputs
 	!
 	! Optional arguments:
-	!	- nkeep:		Maximum number of modes to keep in outputs
-	!	- steof:		SpaceXwindow-mode array of EOFs
-	!	- stpc:			Time-mode array of PCs
-	!	- ev:			Mode array of eigen values (variances)
+	!	- steof:	SpaceXwindow-mode array of EOFs
+	!	- stpc:		Time-mode array of PCs
+	!	- ev:		Mode array of eigen values (variances)
 	!
 	! Dependencies:
 	!	sl_diasym
@@ -480,10 +480,10 @@ contains
 	!	Same as for the reconstruction of PCA components, but for MSSA.
 	!
 	! Necessary arguments:
-	!	- steof:		SpaceXwindow-mode array of EOFs
+	!	- steof:	SpaceXwindow-mode array of EOFs
 	!	- stpc:		Time-mode array of PCs
 	!	- nwindow:	Window size
-	!	- ffrec:		Space-time array of the reconstructed field
+	!	- ffrec:	Space-time array of the reconstructed field
 	!
 	! Optional arguments:
 	!	- istart:		Index of the first component to use

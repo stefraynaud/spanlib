@@ -202,7 +202,7 @@ def phases(data,nphases=8,offset=.5,firstphase=0):
     
       data       :: Space-time data oscillatory in time
       nphases    :: Number of phases (divisions of the cycle)
-      offset     :: Normalised offset to keep higher values only
+      offset     :: Normalised offset to keep higher values only [default:
       firstphase :: Position of the first phase in the 360 degree cycle
     Output:::
       phases :: Space-phase array
@@ -225,7 +225,29 @@ def phases(data,nphases=8,offset=.5,firstphase=0):
 
 class SpAn(object):
     def __init__(self,data,weights=None,npca=None,window=None,nmssa=None):
-        """ Prepare the Spectral Analysis Object"""
+        """ Prepare the Spectral Analysis Object
+
+        Usage:::
+        analysis_object = SpAn(data,weights=None,npca=None,window=None,nmssa=None)
+
+          data    :: Data on which to run the PC Analysis
+                     Last dimensions must represent the spatial dimensions.
+                     Analysis will be run on the first dimension.
+          weights :: If you which to apply weights on some points.
+                     Set weights to "0" where you wish to mask.
+                     The input data mask will be applied,
+                     using the union of all none spacial dimension mask.
+                     If the data are on a regular grid, area weights
+                     will be generated, if the cdutil (CDAT) module is available.
+                     [default: 1. everywhere]
+          npca    :: Number of principal components to return [default: 10]        
+          nmssa   :: Number of MSSA modes retained [default: 4]
+          window  :: MSSA window parameter [default: time_length/3.]
+        :::
+        Output:::
+          analysis_object :: Object created for further analysis
+        :::
+        """
         ## Sets all values to None
         self.clean()
         ## First pack our data, prepare the weights and mask for PCA
@@ -262,15 +284,6 @@ class SpAn(object):
         Usage:::
         eof, pc, ev = pca(data,npca=None,weights=None)
 
-          data    :: Data on which to run the PC Analysis
-                     Last dimensions must represent the spatial dimensions.
-                     Analysis will be run on the first dimension.
-          weights :: If you which to apply weights on some points.
-                     Set weights to "0" where you wish to mask.
-                     The input data mask will be applied,
-                     using the union of all none spacial dimension mask.
-                     If the data are on a regular grid, area weights
-                     will be generated, if the cdutil (CDAT) module is available
           npca    :: Number of principal components to return, default will be 10
         :::
         Output:::

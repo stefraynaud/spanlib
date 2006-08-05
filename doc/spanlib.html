@@ -13,6 +13,14 @@ body {
 	background-color:white;
 }
 
+/* Shadow */
+h1 {
+	text-shadow: #bbb 0.1em 0.1em 3px;
+}
+h2, h3, h4, h5, div.navfooter, div.navheader {
+	text-shadow: #ccc 0.1em 0.1em 2px;
+}
+
 /* Links */
 a:link {
 	color:inherit;
@@ -21,6 +29,7 @@ a:link {
 a:hover {
 	color:inherit;
 	text-decoration:none;
+	background-color:#eee;
 }
 a:visited {
 	color:inherit;
@@ -51,10 +60,10 @@ h4 tt.literal,h4 a tt.literal, tt.varname  {color:blue;}
 .HLroutines,.HLcommands	{color:#a0a;}
 
 /* Arguments */
-.ARGspec			{border-width:0;font-weight:bold;font-size:8px;}
-/*.ARGspec			{border-width:0;font-variant:small-caps;font-size:5px;}*/
-.ARGname			{border-width:0;color:blue;}
-.ARGlond_name	{border-width:0}
+.ARGspec		{font-weight:bold;font-size:10px;}
+/*.ARGspec		{border-width:0;font-variant:small-caps;font-size:5px;}*/
+.ARGname		{color:blue;}
+.ARGlond_name	{padding-left:30px;}
 
 /* My footer */
 div.generated {
@@ -73,7 +82,7 @@ div.authorgroup div.affiliation div.address {font-size:10px}
       <div class="titlepage">
         <div>
           <div>
-            <h1 class="title"><a id="id2889067"></a>SpanLib - Spectral Analysis Library</h1>
+            <h1 class="title"><a id="id3404390"></a>SpanLib - Spectral Analysis Library</h1>
           </div>
           <div>
             <div class="authorgroup">
@@ -107,7 +116,7 @@ div.authorgroup div.affiliation div.address {font-size:10px}
 		</p>
           </div>
           <div>
-            <fo:block xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:date="http://exslt.org/dates-and-times">This documentation was generated on 4 August 2006</fo:block>
+            <fo:block xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:date="http://exslt.org/dates-and-times">This documentation was generated on 5 August 2006</fo:block>
           </div>
         </div>
         <div></div>
@@ -199,7 +208,7 @@ div.authorgroup div.affiliation div.address {font-size:10px}
             <li><span class="bold"><b>PCA: </b></span><a href="#prei88">Preisendorfer (1988)</a>,
 					<a href="#wilk95">Wilks (1995)</a>.
 				</li>
-            <li><span class="bold"><b>SSA: </b></span><a href="#brki86">(Broomhead and King (1986)</a>,
+            <li><span class="bold"><b>SSA: </b></span><a href="#brki86">Broomhead and King (1986)</a>,
 					<a href="#vagh89">Vautard and Ghil (1989)</a>.
 				</li>
             <li><span class="bold"><b>MSSA: </b></span><a href="#plva94">Plaut and Vautard (1994)</a>,
@@ -240,7 +249,7 @@ div.authorgroup div.affiliation div.address {font-size:10px}
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="id2824736"></a>2.1.1. Fortran library</h4>
+                  <h4 class="title"><a id="id3340055"></a>2.1.1. Fortran library</h4>
                 </div>
               </div>
               <div></div>
@@ -252,7 +261,7 @@ div.authorgroup div.affiliation div.address {font-size:10px}
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="id2824762"></a>2.1.2. Python module</h4>
+                  <h4 class="title"><a id="id3340081"></a>2.1.2. Python module</h4>
                 </div>
               </div>
               <div></div>
@@ -294,8 +303,7 @@ div.authorgroup div.affiliation div.address {font-size:10px}
                     <td>
                       <pre class="programlisting">
 <tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>./configure</tt></b>
-<tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make
-</tt></b>
+<tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make</tt></b>
 </pre>
                     </td>
                   </tr>
@@ -312,8 +320,7 @@ div.authorgroup div.affiliation div.address {font-size:10px}
                     <td>
                       <pre class="programlisting">
 <tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>su</tt></b>
-<tt class="prompt">&lt;root&gt;</tt> <b class="userinput"><tt>make install
-</tt></b>
+<tt class="prompt">&lt;root&gt;</tt> <b class="userinput"><tt>make install</tt></b>
 </pre>
                     </td>
                   </tr>
@@ -377,7 +384,7 @@ div.authorgroup div.affiliation div.address {font-size:10px}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2820156"></a>Usage</h5>
+                    <h5 class="title"><a id="id3335502"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -394,7 +401,7 @@ div.authorgroup div.affiliation div.address {font-size:10px}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2820220"></a>Description</h5>
+                    <h5 class="title"><a id="id3335565"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -412,20 +419,15 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2820239"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3335585"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">ff    </tt>
-                    <span class="ARGspec">[intent:input, type:real]:    </span>
-                    <span class="emphasis">
-                      <em>			Space-time array</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">ff    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>			Space-time array</em></span></li>
                 </ul>
               </div>
             </div>
@@ -433,55 +435,25 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2820274"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3335872"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">nkeep    </tt>
-                    <span class="ARGspec">[intent:input, type:integer]:    </span>
-                    <span class="emphasis">
-                      <em>		Maximum number of modes to keep in outputs</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">xeof    </tt>
-                    <span class="ARGspec">[intent:output, type:real]:    </span>
-                    <span class="emphasis">
-                      <em>		Space-mode array of EOFs</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">pc    </tt>
-                    <span class="ARGspec">[intent:output, type:real]:    </span>
-                    <span class="emphasis">
-                      <em>			Time-mode array of PCs</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">ev    </tt>
-                    <span class="ARGspec">[intent:output, type:real]:    </span>
-                    <span class="emphasis">
-                      <em>			Mode array of eigen values (variances)</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">weights    </tt>
-                    <span class="ARGspec">[intent:input, type:real]:    </span>
-                    <span class="emphasis">
-                      <em>	Space array of weights</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">useteof    </tt>
-                    <span class="ARGspec">[intent:input, type:integer]:    </span>
-                    <span class="emphasis">
-                      <em>	To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">nkeep    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Maximum number of modes to keep in outputs</em></span></li>
+                  <li><tt class="varname">xeof    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Space-mode array of EOFs</em></span></li>
+                  <li><tt class="varname">pc    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>			Time-mode array of PCs</em></span></li>
+                  <li><tt class="varname">ev    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>			Mode array of eigen values (variances)</em></span></li>
+                  <li><tt class="varname">weights    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Space array of weights</em></span></li>
+                  <li><tt class="varname">useteof    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>	To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]</em></span></li>
                 </ul>
               </div>
             </div>
@@ -489,7 +461,7 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2820666"></a>Dependencies</h5>
+                    <h5 class="title"><a id="id3336027"></a>Dependencies</h5>
                   </div>
                 </div>
                 <div></div>
@@ -512,7 +484,7 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2820706"></a>Usage</h5>
+                    <h5 class="title"><a id="id3336066"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -529,7 +501,7 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2820760"></a>Description</h5>
+                    <h5 class="title"><a id="id3336778"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -545,34 +517,19 @@ by its PC. The sum of all reconstructed component is the original field.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2821448"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3336795"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">xeof    </tt>
-                    <span class="ARGspec">[intent:input, type:real]:    </span>
-                    <span class="emphasis">
-                      <em>	Space-mode array of EOFs</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">pc    </tt>
-                    <span class="ARGspec">[intent:input, type:real]:    </span>
-                    <span class="emphasis">
-                      <em>		Time-mode array of PCs</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">ffrec    </tt>
-                    <span class="ARGspec">[intent:output, type:real]:    </span>
-                    <span class="emphasis">
-                      <em>	Space-time array of the reconstructed field</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">xeof    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Space-mode array of EOFs</em></span></li>
+                  <li><tt class="varname">pc    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Time-mode array of PCs</em></span></li>
+                  <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Space-time array of the reconstructed field</em></span></li>
                 </ul>
               </div>
             </div>
@@ -580,27 +537,17 @@ by its PC. The sum of all reconstructed component is the original field.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2821528"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3336880"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">istart    </tt>
-                    <span class="ARGspec">[intent:input, type:integer]:    </span>
-                    <span class="emphasis">
-                      <em>	Index of the first component to use</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">iend    </tt>
-                    <span class="ARGspec">[intent:input, type:integer]:    </span>
-                    <span class="emphasis">
-                      <em>	Index of the last component to use</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">istart    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Index of the first component to use</em></span></li>
+                  <li><tt class="varname">iend    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Index of the last component to use</em></span></li>
                 </ul>
               </div>
             </div>
@@ -618,7 +565,7 @@ by its PC. The sum of all reconstructed component is the original field.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2821601"></a>Usage</h5>
+                    <h5 class="title"><a id="id3336956"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -635,7 +582,7 @@ by its PC. The sum of all reconstructed component is the original field.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2821662"></a>Description</h5>
+                    <h5 class="title"><a id="id3337017"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -651,34 +598,19 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2821678"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3337033"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">ff    </tt>
-                    <span class="ARGspec">[intent:input, type:real]:    </span>
-                    <span class="emphasis">
-                      <em>			Space-time array</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">nwindow    </tt>
-                    <span class="ARGspec">[intent:input, type:integer]:    </span>
-                    <span class="emphasis">
-                      <em>	Window size</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">nkeep    </tt>
-                    <span class="ARGspec">[intent:input, type:integer]:    </span>
-                    <span class="emphasis">
-                      <em>		Maximum number of modes to keep in outputs</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">ff    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Space-time array</em></span></li>
+                  <li><tt class="varname">nwindow    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Window size</em></span></li>
+                  <li><tt class="varname">nkeep    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Maximum number of modes to keep in outputs</em></span></li>
                 </ul>
               </div>
             </div>
@@ -686,34 +618,19 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2821759"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3395763"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">steof    </tt>
-                    <span class="ARGspec">[intent:output, type:real]:    </span>
-                    <span class="emphasis">
-                      <em>		SpaceXwindow-mode array of EOFs</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">stpc    </tt>
-                    <span class="ARGspec">[intent:output, type:real]:    </span>
-                    <span class="emphasis">
-                      <em>			Time-mode array of PCs</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">ev    </tt>
-                    <span class="ARGspec">[intent:output, type:real]:    </span>
-                    <span class="emphasis">
-                      <em>			Mode array of eigen values (variances)</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">steof    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>	SpaceXwindow-mode array of EOFs</em></span></li>
+                  <li><tt class="varname">stpc    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Time-mode array of PCs</em></span></li>
+                  <li><tt class="varname">ev    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Mode array of eigen values (variances)</em></span></li>
                 </ul>
               </div>
             </div>
@@ -721,7 +638,7 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2880511"></a>Dependencies</h5>
+                    <h5 class="title"><a id="id3395849"></a>Dependencies</h5>
                   </div>
                 </div>
                 <div></div>
@@ -744,7 +661,7 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2880550"></a>Usage</h5>
+                    <h5 class="title"><a id="id3395888"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -761,7 +678,7 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2880611"></a>Description</h5>
+                    <h5 class="title"><a id="id3395949"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -774,41 +691,21 @@ Same as for the reconstruction of PCA components, but for MSSA.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2880625"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3395963"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">steof    </tt>
-                    <span class="ARGspec">[intent:input, type:real]:    </span>
-                    <span class="emphasis">
-                      <em>		SpaceXwindow-mode array of EOFs</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">stpc    </tt>
-                    <span class="ARGspec">[intent:input, type:real]:    </span>
-                    <span class="emphasis">
-                      <em>		Time-mode array of PCs</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">nwindow    </tt>
-                    <span class="ARGspec">[intent:input, type:integer]:    </span>
-                    <span class="emphasis">
-                      <em>	Window size</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">ffrec    </tt>
-                    <span class="ARGspec">[intent:output, type:real]:    </span>
-                    <span class="emphasis">
-                      <em>		Space-time array of the reconstructed field</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">steof    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>	SpaceXwindow-mode array of EOFs</em></span></li>
+                  <li><tt class="varname">stpc    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Time-mode array of PCs</em></span></li>
+                  <li><tt class="varname">nwindow    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Window size</em></span></li>
+                  <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Space-time array of the reconstructed field</em></span></li>
                 </ul>
               </div>
             </div>
@@ -816,27 +713,17 @@ Same as for the reconstruction of PCA components, but for MSSA.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2880728"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3396072"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">istart    </tt>
-                    <span class="ARGspec">[intent:input, type:integer]:    </span>
-                    <span class="emphasis">
-                      <em>		Index of the first component to use</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">iend    </tt>
-                    <span class="ARGspec">[intent:input, type:integer]:    </span>
-                    <span class="emphasis">
-                      <em>		Index of the last component to use</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">istart    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Index of the first component to use</em></span></li>
+                  <li><tt class="varname">iend    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Index of the last component to use</em></span></li>
                 </ul>
               </div>
             </div>
@@ -854,7 +741,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2880801"></a>Usage</h5>
+                    <h5 class="title"><a id="id3396147"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -871,7 +758,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2880863"></a>Description</h5>
+                    <h5 class="title"><a id="id3396209"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -893,34 +780,19 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2880885"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3396231"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">ffrec    </tt>
-                    <span class="ARGspec">[intent:input, type:real]:    </span>
-                    <span class="emphasis">
-                      <em>		Space-time array</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">np    </tt>
-                    <span class="ARGspec">[intent:input, type:integer]:    </span>
-                    <span class="emphasis">
-                      <em>	Number of requested phases over the 360 degrees cycle (default = 8)</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">phases    </tt>
-                    <span class="ARGspec">[intent:output, type:real]:    </span>
-                    <span class="emphasis">
-                      <em></em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Space-time array</em></span></li>
+                  <li><tt class="varname">np    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Number of requested phases over the 360 degrees cycle (default = 8)</em></span></li>
+                  <li><tt class="varname">phases    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
                 </ul>
               </div>
             </div>
@@ -928,34 +800,19 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2880964"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3396315"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">weights    </tt>
-                    <span class="ARGspec">[intent:input, type:real]:    </span>
-                    <span class="emphasis">
-                      <em>	Space array of weights</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">offset    </tt>
-                    <span class="ARGspec">[intent:input, type:real]:    </span>
-                    <span class="emphasis">
-                      <em>		Minimal normalized amplitude of the index (default = 0.)</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">firstphase    </tt>
-                    <span class="ARGspec">[intent:input, type:real]:    </span>
-                    <span class="emphasis">
-                      <em>	Value in degrees of the first phase (default = 0)</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">weights    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Space array of weights</em></span></li>
+                  <li><tt class="varname">offset    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Minimal normalized amplitude of the index (default = 0.)</em></span></li>
+                  <li><tt class="varname">firstphase    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Value in degrees of the first phase (default = 0)</em></span></li>
                 </ul>
               </div>
             </div>
@@ -963,7 +820,7 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2819300"></a>Dependencies</h5>
+                    <h5 class="title"><a id="id3334693"></a>Dependencies</h5>
                   </div>
                 </div>
                 <div></div>
@@ -986,7 +843,7 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2819340"></a>Usage</h5>
+                    <h5 class="title"><a id="id3334732"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1003,7 +860,7 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2819373"></a>Description</h5>
+                    <h5 class="title"><a id="id3334765"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1016,27 +873,17 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2819387"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3334779"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">a    </tt>
-                    <span class="ARGspec">[intent:inoutput, type:real]:    </span>
-                    <span class="emphasis">
-                      <em>		Input = symetric matrix, output = EOFs</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">eig    </tt>
-                    <span class="ARGspec">[intent:output, type:real]:    </span>
-                    <span class="emphasis">
-                      <em>	Eigen values</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">a    </tt><tt class="option"><span class="ARGspec">[intent:inoutput, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Input = symetric matrix, output = EOFs</em></span></li>
+                  <li><tt class="varname">eig    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Eigen values</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1044,7 +891,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2819445"></a>Dependencies</h5>
+                    <h5 class="title"><a id="id3334840"></a>Dependencies</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1072,7 +919,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 				and stored in a netcdf file.
 			</p>
           <div class="example">
-            <a id="id2874117"></a>
+            <a id="id3389436"></a>
             <p class="title">
               <b>Example 1. F90 example</b>
             </p>
@@ -1371,21 +1218,6 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
         <div class="sect2" lang="en" xml:lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="doc_pyt_int"></a>4.1. Introduction</h3></div></div><div></div></div>
 			The intent of the python is to
 		</div>
-        <div class="variablelist">
-          <dl>
-            <dt>
-              <span class="term">
-					<tt class="varname">ff</tt>
-					<span class="ARGintent">[intent:input, type:real, default:10.]</span>
-				</span>
-            </dt>
-            <dd>
-              <span class="emphasis">
-                <em>Space-time array</em>
-              </span>
-            </dd>
-          </dl>
-        </div>
         <div class="sect2" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
@@ -1399,7 +1231,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="stackData"></a>4.2.1.  Takes several data files, of same time and stacks them up together: <tt class="literal"><a id="spanlib.stackData"></a>spanlib.stackData</tt></h4>
+                  <h4 class="title"><a id="spanlib.stackData"></a>4.2.1.  Takes several data files, of same time and stacks them up together: <tt class="literal">spanlib.stackData</tt></h4>
                 </div>
               </div>
               <div></div>
@@ -1408,7 +1240,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2879868"></a>Usage</h5>
+                    <h5 class="title"><a id="id3395189"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1425,21 +1257,16 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2879920"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3395239"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">*data    </tt>
-                    <span class="ARGspec">[intent:input]    </span>
-                    <span class="emphasis">
-                      <em> One or more data objects to stack.                 They must all have the same time length.
-</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">*data    </tt><tt class="option"><span class="ARGspec">[intent:input]    </span></tt> 
+				 :: <span class="emphasis"><em> One or more data objects to stack.                 They must all have the same time length.
+</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1447,41 +1274,21 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2879957"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3395277"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">dout    </tt>
-                    <span class="ARGspec">[intent:output]    </span>
-                    <span class="emphasis">
-                      <em> Stacked data</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">weights    </tt>
-                    <span class="ARGspec">[intent:output]    </span>
-                    <span class="emphasis">
-                      <em> Associated stacked weights</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">masks    </tt>
-                    <span class="ARGspec">[intent:output]    </span>
-                    <span class="emphasis">
-                      <em> Associated stacked masks</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">axes    </tt>
-                    <span class="ARGspec">[intent:output]    </span>
-                    <span class="emphasis">
-                      <em> Associated stacked axes</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">dout    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em> Stacked data</em></span></li>
+                  <li><tt class="varname">weights    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em> Associated stacked weights</em></span></li>
+                  <li><tt class="varname">masks    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em> Associated stacked masks</em></span></li>
+                  <li><tt class="varname">axes    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em> Associated stacked axes</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1490,7 +1297,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="unStackData"></a>4.2.2.  Unstack data in the form returned from stackData: <tt class="literal"><a id="spanlib.unStackData"></a>spanlib.unStackData</tt></h4>
+                  <h4 class="title"><a id="spanlib.unStackData"></a>4.2.2.  Unstack data in the form returned from stackData: <tt class="literal">spanlib.unStackData</tt></h4>
                 </div>
               </div>
               <div></div>
@@ -1499,7 +1306,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2880078"></a>Usage</h5>
+                    <h5 class="title"><a id="id3395401"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1516,41 +1323,21 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2880131"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3395454"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">din    </tt>
-                    <span class="ARGspec">[intent:input]    </span>
-                    <span class="emphasis">
-                      <em> Stacked data (see stackData function)</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">weights    </tt>
-                    <span class="ARGspec">[intent:input]    </span>
-                    <span class="emphasis">
-                      <em> Associated stacked weights</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">masks    </tt>
-                    <span class="ARGspec">[intent:input]    </span>
-                    <span class="emphasis">
-                      <em> Associated stacked masks</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">axes    </tt>
-                    <span class="ARGspec">[intent:input]    </span>
-                    <span class="emphasis">
-                      <em> Associated stacked axes</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">din    </tt><tt class="option"><span class="ARGspec">[intent:input]    </span></tt> 
+				 :: <span class="emphasis"><em> Stacked data (see stackData function)</em></span></li>
+                  <li><tt class="varname">weights    </tt><tt class="option"><span class="ARGspec">[intent:input]    </span></tt> 
+				 :: <span class="emphasis"><em> Associated stacked weights</em></span></li>
+                  <li><tt class="varname">masks    </tt><tt class="option"><span class="ARGspec">[intent:input]    </span></tt> 
+				 :: <span class="emphasis"><em> Associated stacked masks</em></span></li>
+                  <li><tt class="varname">axes    </tt><tt class="option"><span class="ARGspec">[intent:input]    </span></tt> 
+				 :: <span class="emphasis"><em> Associated stacked axes</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1558,20 +1345,15 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2880233"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3417633"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">dout    </tt>
-                    <span class="ARGspec">[intent:output]    </span>
-                    <span class="emphasis">
-                      <em> List of unstacked data</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">dout    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em> List of unstacked data</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1580,7 +1362,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="pack"></a>4.2.3.  Computes weights and mask: <tt class="literal"><a id="spanlib.pack"></a>spanlib.pack</tt></h4>
+                  <h4 class="title"><a id="spanlib.pack"></a>4.2.3.  Computes weights and mask: <tt class="literal">spanlib.pack</tt></h4>
                 </div>
               </div>
               <div></div>
@@ -1589,7 +1371,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2880288"></a>Usage</h5>
+                    <h5 class="title"><a id="id3417686"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1606,21 +1388,16 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2880348"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3417746"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">data    </tt>
-                    <span class="ARGspec">[intent:input]    </span>
-                    <span class="emphasis">
-                      <em> Flatten in space an [x,y,t] array by removing                 its masked point
-</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">data    </tt><tt class="option"><span class="ARGspec">[intent:input]    </span></tt> 
+				 :: <span class="emphasis"><em> Flatten in space an [x,y,t] array by removing                 its masked point
+</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1628,20 +1405,15 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2880384"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3417784"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">weights    </tt>
-                    <span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span>
-                    <span class="emphasis">
-                      <em> Weights to be flatten also</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">weights    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+				 :: <span class="emphasis"><em> Weights to be flatten also</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1649,34 +1421,19 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2902310"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3417827"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">packed_data    </tt>
-                    <span class="ARGspec">[intent:output]    </span>
-                    <span class="emphasis">
-                      <em> Space-time packed array</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">packed_weights    </tt>
-                    <span class="ARGspec">[intent:output]    </span>
-                    <span class="emphasis">
-                      <em> Packed weights that were guessed or used</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">mask    </tt>
-                    <span class="ARGspec">[intent:output]    </span>
-                    <span class="emphasis">
-                      <em> Mask that were guessed or used</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">packed_data    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em> Space-time packed array</em></span></li>
+                  <li><tt class="varname">packed_weights    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em> Packed weights that were guessed or used</em></span></li>
+                  <li><tt class="varname">mask    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em> Mask that were guessed or used</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1685,7 +1442,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="phases"></a>4.2.4.  Phase composites for oscillatory fields: <tt class="literal"><a id="spanlib.phases"></a>spanlib.phases</tt></h4>
+                  <h4 class="title"><a id="spanlib.phases"></a>4.2.4.  Phase composites for oscillatory fields: <tt class="literal">spanlib.phases</tt></h4>
                 </div>
               </div>
               <div></div>
@@ -1694,7 +1451,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2902411"></a>Usage</h5>
+                    <h5 class="title"><a id="id3417929"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1711,20 +1468,15 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2902484"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3418003"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">data    </tt>
-                    <span class="ARGspec">[intent:input]    </span>
-                    <span class="emphasis">
-                      <em> Space-time data oscillatory in time</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">data    </tt><tt class="option"><span class="ARGspec">[intent:input]    </span></tt> 
+				 :: <span class="emphasis"><em> Space-time data oscillatory in time</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1732,34 +1484,19 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2902520"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3418040"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">nphases    </tt>
-                    <span class="ARGspec">[intent:input, default:<span class="HLpersonalised">8</span>]    </span>
-                    <span class="emphasis">
-                      <em> Number of phases (divisions of the cycle)</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">offset    </tt>
-                    <span class="ARGspec">[intent:input, default:<span class="HLpersonalised">.5</span>]    </span>
-                    <span class="emphasis">
-                      <em> Normalised offset to keep higher values only</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">firstphase    </tt>
-                    <span class="ARGspec">[intent:input, default:<span class="HLpersonalised">0</span>]    </span>
-                    <span class="emphasis">
-                      <em> Position of the first phase in the 360 degree cycle</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">nphases    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">8</span>]    </span></tt> 
+				 :: <span class="emphasis"><em> Number of phases (divisions of the cycle)</em></span></li>
+                  <li><tt class="varname">offset    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">.5</span>]    </span></tt> 
+				 :: <span class="emphasis"><em> Normalised offset to keep higher values only [default:</em></span></li>
+                  <li><tt class="varname">firstphase    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">0</span>]    </span></tt> 
+				 :: <span class="emphasis"><em> Position of the first phase in the 360 degree cycle</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1767,20 +1504,15 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2902621"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3418145"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">phases    </tt>
-                    <span class="ARGspec">[intent:output]    </span>
-                    <span class="emphasis">
-                      <em> Space-phase array</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">phases    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em> Space-phase array</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1789,7 +1521,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="SpAnSpAn"></a>4.2.5.  Prepare the Spectral Analysis Object: <tt class="literal"><a id="spanlib.SpAn"></a>spanlib.SpAn</tt></h4>
+                  <h4 class="title"><a id="spanlib.SpAn"></a>4.2.5.  Prepare the Spectral Analysis Object: <tt class="literal">spanlib.SpAn</tt></h4>
                 </div>
               </div>
               <div></div>
@@ -1798,7 +1530,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2902676"></a>Usage</h5>
+                    <h5 class="title"><a id="id3416173"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1806,7 +1538,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <table bgcolor="" width="100%" align="center" border="0">
                 <tr>
                   <td>
-                    <pre class="programlisting"> = <span class="HLpersonalised">spanlib.SpAn</span>(<span class="HLpersonalised">data</span>, <span class="HLpersonalised">weights</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">npca</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">window</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">nmssa</span>=<span class="HLpersonalised">None</span>)</pre>
+                    <pre class="programlisting"><span class="HLpersonalised">&lt;SpAn_object&gt;</span> = <span class="HLpersonalised">spanlib.SpAn</span>(<span class="HLpersonalised">data</span>, <span class="HLpersonalised">weights</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">npca</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">window</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">nmssa</span>=<span class="HLpersonalised">None</span>)</pre>
                   </td>
                 </tr>
               </table>
@@ -1815,20 +1547,17 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2902758"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3416260"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">data    </tt>
-                    <span class="ARGspec">[intent:input]    </span>
-                    <span class="emphasis">
-                      <em></em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">data    </tt><tt class="option"><span class="ARGspec">[intent:input]    </span></tt> 
+				 :: <span class="emphasis"><em> Data on which to run the PC Analysis                     Last dimensions must represent the spatial dimensions.
+                     Analysis will be run on the first dimension.
+</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1836,41 +1565,27 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2902791"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3416300"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">weights    </tt>
-                    <span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span>
-                    <span class="emphasis">
-                      <em></em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">npca    </tt>
-                    <span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span>
-                    <span class="emphasis">
-                      <em></em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">window    </tt>
-                    <span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span>
-                    <span class="emphasis">
-                      <em></em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">nmssa    </tt>
-                    <span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span>
-                    <span class="emphasis">
-                      <em></em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">weights    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">1. everywhere</span>]    </span></tt> 
+				 :: <span class="emphasis"><em> If you which to apply weights on some points.                     Set weights to &quot;0&quot; where you wish to mask.
+                     The input data mask will be applied,
+                     using the union of all none spacial dimension mask.
+                     If the data are on a regular grid, area weights
+                     will be generated, if the cdutil (CDAT) module is available.
+                     
+</em></span></li>
+                  <li><tt class="varname">npca    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">10</span>]    </span></tt> 
+				 :: <span class="emphasis"><em> Number of principal components to return         </em></span></li>
+                  <li><tt class="varname">window    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">time_length/3</span>.]    </span></tt> 
+				 :: <span class="emphasis"><em> MSSA window parameter </em></span></li>
+                  <li><tt class="varname">nmssa    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">4</span>]    </span></tt> 
+				 :: <span class="emphasis"><em> Number of MSSA modes retained </em></span></li>
                 </ul>
               </div>
             </div>
@@ -1878,20 +1593,15 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2900870"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3416444"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">&lt;SpAn_object&gt;    </tt>
-                    <span class="ARGspec">[intent:output]    </span>
-                    <span class="emphasis">
-                      <em>Object created with spanlib.SpAn</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">&lt;SpAn_object&gt;    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em>Object created for further analysis</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1900,7 +1610,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="SpAnpca"></a>4.2.6.  Principal Components Analysis (PCA): <tt class="literal"><a id="&lt;SpAn_object&gt;.pca"></a>&lt;SpAn_object&gt;.pca</tt></h4>
+                  <h4 class="title"><a id="&lt;SpAn_object&gt;.pca"></a>4.2.6.  Principal Components Analysis (PCA): <tt class="literal">&lt;SpAn_object&gt;.pca</tt></h4>
                 </div>
               </div>
               <div></div>
@@ -1909,7 +1619,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2900925"></a>Usage</h5>
+                    <h5 class="title"><a id="id3416498"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1926,20 +1636,15 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2900978"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3416551"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">npca    </tt>
-                    <span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span>
-                    <span class="emphasis">
-                      <em> Number of principal components to return, default will be 10</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">npca    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+				 :: <span class="emphasis"><em> Number of principal components to return, default will be 10</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1947,34 +1652,19 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2901021"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3416595"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">eof    </tt>
-                    <span class="ARGspec">[intent:output]    </span>
-                    <span class="emphasis">
-                      <em> EOF array</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">pc    </tt>
-                    <span class="ARGspec">[intent:output]    </span>
-                    <span class="emphasis">
-                      <em> Principal Components array</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">ev    </tt>
-                    <span class="ARGspec">[intent:output]    </span>
-                    <span class="emphasis">
-                      <em> Eigein Values array</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">eof    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em> EOF array</em></span></li>
+                  <li><tt class="varname">pc    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em> Principal Components array</em></span></li>
+                  <li><tt class="varname">ev    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em> Eigein Values array</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1983,7 +1673,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="SpAnmssa"></a>4.2.7.  MultiChannel Singular Spectrum Analysis (MSSA): <tt class="literal"><a id="&lt;SpAn_object&gt;.mssa"></a>&lt;SpAn_object&gt;.mssa</tt></h4>
+                  <h4 class="title"><a id="&lt;SpAn_object&gt;.mssa"></a>4.2.7.  MultiChannel Singular Spectrum Analysis (MSSA): <tt class="literal">&lt;SpAn_object&gt;.mssa</tt></h4>
                 </div>
               </div>
               <div></div>
@@ -1992,7 +1682,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2901120"></a>Usage</h5>
+                    <h5 class="title"><a id="id3416696"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2009,34 +1699,19 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2901201"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3416777"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">nmssa    </tt>
-                    <span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span>
-                    <span class="emphasis">
-                      <em> Number of MSSA modes retained</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">pca    </tt>
-                    <span class="ARGspec">[intent:input, default:<span class="HLpersonalised">False</span>]    </span>
-                    <span class="emphasis">
-                      <em> If True, performs a preliminary PCA</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">window    </tt>
-                    <span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span>
-                    <span class="emphasis">
-                      <em> MSSA window parameter</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">nmssa    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+				 :: <span class="emphasis"><em> Number of MSSA modes retained</em></span></li>
+                  <li><tt class="varname">pca    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">False</span>]    </span></tt> 
+				 :: <span class="emphasis"><em> If True, performs a preliminary PCA</em></span></li>
+                  <li><tt class="varname">window    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+				 :: <span class="emphasis"><em> MSSA window parameter</em></span></li>
                 </ul>
               </div>
             </div>
@@ -2044,34 +1719,19 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2901302"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3416882"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">eof    </tt>
-                    <span class="ARGspec">[intent:output]    </span>
-                    <span class="emphasis">
-                      <em> EOF array</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">pc    </tt>
-                    <span class="ARGspec">[intent:output]    </span>
-                    <span class="emphasis">
-                      <em> Principal Components array</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">ev    </tt>
-                    <span class="ARGspec">[intent:output]    </span>
-                    <span class="emphasis">
-                      <em> Eigen Values  array</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">eof    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em> EOF array</em></span></li>
+                  <li><tt class="varname">pc    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em> Principal Components array</em></span></li>
+                  <li><tt class="varname">ev    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em> Eigen Values  array</em></span></li>
                 </ul>
               </div>
             </div>
@@ -2080,7 +1740,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="SpAnreconstruct"></a>4.2.8.  Reconstruct results from mssa or pca: <tt class="literal"><a id="&lt;SpAn_object&gt;.reconstruct"></a>&lt;SpAn_object&gt;.reconstruct</tt></h4>
+                  <h4 class="title"><a id="&lt;SpAn_object&gt;.reconstruct"></a>4.2.8.  Reconstruct results from mssa or pca: <tt class="literal">&lt;SpAn_object&gt;.reconstruct</tt></h4>
                 </div>
               </div>
               <div></div>
@@ -2089,7 +1749,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2901402"></a>Usage</h5>
+                    <h5 class="title"><a id="id3416983"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2106,41 +1766,21 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2889984"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3405361"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">start    </tt>
-                    <span class="ARGspec">[intent:input, default:<span class="HLpersonalised">1</span>]    </span>
-                    <span class="emphasis">
-                      <em> First mode</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">end    </tt>
-                    <span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span>
-                    <span class="emphasis">
-                      <em> Last mode</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">mssa    </tt>
-                    <span class="ARGspec">[intent:input, default:<span class="HLpersonalised">True</span>]    </span>
-                    <span class="emphasis">
-                      <em> Reconstruct MSSA if True</em>
-                    </span>
-                  </li>
-                  <li>
-                    <tt class="varname">pca    </tt>
-                    <span class="ARGspec">[intent:input, default:<span class="HLpersonalised">True</span>]    </span>
-                    <span class="emphasis">
-                      <em> Reconstruct PCA if True</em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">start    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">1</span>]    </span></tt> 
+				 :: <span class="emphasis"><em> First mode</em></span></li>
+                  <li><tt class="varname">end    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+				 :: <span class="emphasis"><em> Last mode</em></span></li>
+                  <li><tt class="varname">mssa    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">True</span>]    </span></tt> 
+				 :: <span class="emphasis"><em> Reconstruct MSSA if True</em></span></li>
+                  <li><tt class="varname">pca    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">True</span>]    </span></tt> 
+				 :: <span class="emphasis"><em> Reconstruct PCA if True</em></span></li>
                 </ul>
               </div>
             </div>
@@ -2148,20 +1788,15 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2890114"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3405497"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li>
-                    <tt class="varname">ffrec    </tt>
-                    <span class="ARGspec">[intent:output]    </span>
-                    <span class="emphasis">
-                      <em></em>
-                    </span>
-                  </li>
+                  <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
                 </ul>
               </div>
             </div>
@@ -2202,7 +1837,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
           <p>
 			</p>
           <div class="example">
-            <a id="id2874323"></a>
+            <a id="id3389606"></a>
             <p class="title">
               <b>Example 2. Python example</b>
             </p>
@@ -2305,6 +1940,13 @@ x.plot(res4[<span class="HLdigits">0</span>][:,<span class="HLdigits">5</span>,<
         </div>
         <div class="itemizedlist">
           <ul type="disc">
+            <li>
+				Home page of the project:
+				<a href="http://spanlib.sourceforge.net" target="_top">http://spanlib.sourceforge.net</a></li>
+            <li>
+				Sourceforge page of the project where you can find news, forums,
+				where to report bugs, where to request features, files to download, etc:
+				<a href="http://sourceforge.net/projects/spanlib/" target="_top">http://sourceforge.net/projects/spanlib/</a></li>
             <li>
 				An example of use of MSSA is available
 				at <a href="http://stefdeperou.free.fr/meteo.php" target="_top">http://stefdeperou.free.fr/meteo.php</a> (french).
