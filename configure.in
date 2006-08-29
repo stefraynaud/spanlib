@@ -38,6 +38,7 @@ AC_SR_HEADER([Creating Makefiles])
 AC_OUTPUT(\
 	Makefile \
 	src/Makefile \
+	lib/Makefile \
 	example/Makefile \
 	scripts/Makefile \
 	doc/Makefile \

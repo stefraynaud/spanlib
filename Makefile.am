@@ -3,4 +3,14 @@
 ######################################################################
 
 EXTRA_DIST = COPYING INSTALL AUTHORS README ChangeLog
-SUBDIRS = src scripts doc
+SUBDIRS = src lib scripts doc
+
+doc: documentation
+
+documentation:
+	cd $(top_srcdir)/doc && make
+
+example:
+	cd $(top_srcdir)/example && make
+
+
