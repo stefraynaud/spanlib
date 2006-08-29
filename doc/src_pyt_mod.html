@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Source of python module</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" id="src_pyt_mod" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3391910"></a>SpanLib - Source of python module</h1></div></div><div></div><hr /></div><table bgcolor="" width="100%" align="center" border="0"><tr><td><pre class="programlisting"><span class="HLcomments">#################################################################################</span>
+<span class="HLcomments"># File: spanlib_python.py</span>
+<span class="HLcomments">#</span>
+<span class="HLcomments"># This file is part of the SpanLib library.</span>
+<span class="HLcomments"># Copyright (C) 2006  Charles Doutiraux, Stephane Raynaud</span>
+<span class="HLcomments"># Contact: stephane dot raynaud at gmail dot com</span>
+<span class="HLcomments">#</span>
+<span class="HLcomments"># This library is free software; you can redistribute it and/or</span>
+<span class="HLcomments"># modify it under the terms of the GNU Lesser General Public</span>
+<span class="HLcomments"># License as published by the Free Software Foundation; either</span>
+<span class="HLcomments"># version 2.1 of the License, or (at your option) any later version.</span>
+<span class="HLcomments">#</span>
+<span class="HLcomments"># This library is distributed in the hope that it will be useful,</span>
+<span class="HLcomments"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="HLcomments"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU</span>
+<span class="HLcomments"># Lesser General Public License for more details.</span>
+<span class="HLcomments">#</span>
+<span class="HLcomments"># You should have received a copy of the GNU Lesser General Public</span>
+<span class="HLcomments"># License along with this library; if not, write to the Free Software</span>
+<span class="HLcomments"># Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA</span>
+<span class="HLcomments">#################################################################################</span>
+
+<span class="HLpersonalised"></span><span class="HLcommands">import</span><span class="HLpersonalised"></span> <span class="HLpersonalised"></span>spanlib_fort<span class="HLpersonalised"></span>
+<span class="HLpersonalised"></span><span class="HLcommands">import</span><span class="HLpersonalised"></span> <span class="HLpersonalised"></span>MV<span class="HLpersonalised"></span>
+<span class="HLpersonalised"></span><span class="HLcommands">import</span><span class="HLpersonalised"></span> <span class="HLpersonalised"></span>Numeric<span class="HLpersonalised"></span>
+
+
+<span class="HLcommands">def</span> <span class="HLpersonalised">stackData</span>(*data):
+    <span class="HLcomments">&quot;&quot;&quot; Takes several data files, of same time and stacks them up together</span>
+<span class="HLcomments"></span>
+<span class="HLcomments">    Usage:::</span>
+<span class="HLcomments">    dout, weights, mask, axes = stackData(data1[, data2...])</span>
+<span class="HLcomments"></span>
+<span class="HLcomments">      *data   :: One or more data objects to stack.</span>
+<span class="HLcomments">                 They must all have the same time length.</span>
+<span class="HLcomments">    :::</span>
+<span class="HLcomments">    Output:::</span>
+<span class="HLcomments">      dout    :: Stacked data</span>
+<span class="HLcomments">      weights :: Associated stacked weights</span>
+<span class="HLcomments">      masks   :: Associated stacked masks</span>
+<span class="HLcomments">      axes    :: Associated stacked axes</span>
+<span class="HLcomments">    :::</span>
+<span class="HLcomments">	 &quot;&quot;&quot;</span>
+    len_time=<span class="HLspecial">None</span>
+    axes=[]
+    dout=<span class="HLspecial">None</span> <span class="HLcomments"># data output</span>
+    <span class="HLcommands">for</span> d <span class="HLcommands">in</span> data:
+        t=d.getTime()
+        <span class="HLcommands">if</span> t <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
+            raise <span class="HLstrings">'Error, all data muist have a time dimension'</span>
+        <span class="HLcommands">if</span> len_time <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
+            len_time=len(t)
+        elif len_time!=len(t):
+            raise <span class="HLstrings">'Error all datasets must have the same time length!!!!'</span>
+
+        <span class="HLcommands">if</span> d.getAxis(<span class="HLdigits">0</span>)!=t:
+            d=d(order=<span class="HLstrings">'t...'</span>)
+
+        axes.append(d.getAxisList())
+        tdata,w,m=pack(d)
+        <span class="HLcommands">if</span> dout <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
+            dout=tdata
+            weights=w
+            masks=[m]
+        <span class="HLcommands">else</span>:
+<span class="HLcomments">##             print dout.shape,tdata.shape</span>
+            dout=Numeric.concatenate((dout,tdata))
+            weights=Numeric.concatenate((weights,w))
+            masks.append(m)
+
+    <span class="HLcommands">return</span> Numeric.transpose(dout),weights,masks,axes
+
+<span class="HLcommands">def</span> <span class="HLpersonalised">unStackData</span>(din,weights,masks,axes):
+    <span class="HLcomments">&quot;&quot;&quot; Unstack data in the form returned from stackData</span>
+<span class="HLcomments"></span>
+<span class="HLcomments">    Usage:::</span>
+<span class="HLcomments">    dout = unStackData(din,weights,mask,axes)</span>
+<span class="HLcomments"></span>
+<span class="HLcomments">      din     :: Stacked data (see stackData function)</span>
+<span class="HLcomments">      weights :: Associated stacked weights</span>
+<span class="HLcomments">      masks   :: Associated stacked masks</span>
+<span class="HLcomments">      axes    :: Associated stacked axes</span>
+<span class="HLcomments">    :::</span>
+<span class="HLcomments">    Output:::</span>
+<span class="HLcomments">      dout    :: List of unstacked data</span>
+<span class="HLcomments">    :::</span>
+<span class="HLcomments">    &quot;&quot;&quot;</span>
+    nvar=len(axes)
+
+    <span class="HLcommands">if</span> nvar!=len(masks):
+        raise <span class="HLstrings">'Error masks and input data length not compatible'</span>
+
+    totsize=<span class="HLdigits">0</span>
+    <span class="HLcommands">for</span> m <span class="HLcommands">in</span> masks:
+        totsize+=<span class="HLfunctions">int</span>(MV.sum(MV.ravel(m)))
+    <span class="HLcommands">if</span> totsize!=din.shape[<span class="HLdigits">1</span>]:
+        raise <span class="HLstrings">'Error data and masks are not compatible <span class="HLcommands">in</span> length!!!! (%s) and (%s)'</span> % (totsize,din.shape[<span class="HLdigits">1</span>])
+
+    istart=<span class="HLdigits">0</span>
+    dout=[]
+    <span class="HLcommands">for</span> i <span class="HLcommands">in</span> range(nvar):
+        m=masks[i]
+        mlen=<span class="HLfunctions">int</span>(MV.sum(MV.ravel(m)))
+        iend=istart+mlen
+        data=Numeric.transpose(din[:,istart:iend])
+        w=weights[istart:iend]
+        ns1=len(axes[i][-<span class="HLdigits">1</span>])
+        ns2=len(axes[i][-<span class="HLdigits">2</span>])
+<span class="HLcomments">##         print 'm',m</span>
+<span class="HLcomments">##         print 'ns1,ns2',ns1,ns2</span>
+<span class="HLcomments">##         print 'data.shape',data.shape</span>
+<span class="HLcomments">##         print 'data',data</span>
+<span class="HLcomments">##         print 'mlen',mlen</span>
+        up=spanlib_fort.unpack3d(m,ns1,ns2,data.shape[<span class="HLdigits">1</span>],data,mlen,<span class="HLdigits">1</span>.e20)
+        unpacked = MV.transpose(MV.array(up))
+        unpacked.setAxisList(axes[i])
+        istart+=mlen
+        dout.append(unpacked)
+    <span class="HLcommands">return</span> dout
+
+
+<span class="HLcommands">def</span> <span class="HLpersonalised">pack</span>(data,weights=<span class="HLspecial">None</span>):
+    <span class="HLcomments">&quot;&quot;&quot; Computes weights and mask</span>
+<span class="HLcomments"></span>
+<span class="HLcomments">    Usage:::</span>
+<span class="HLcomments">    packed_data, packed_weights, mask = pack(data,weights)</span>
+<span class="HLcomments"></span>
+<span class="HLcomments">      data    :: Flatten in space an [x,y,t] array by removing</span>
+<span class="HLcomments">                 its masked point</span>
+<span class="HLcomments">      weights :: Weights to be flatten also</span>
+<span class="HLcomments">    :::</span>
+<span class="HLcomments">    Output:::</span>
+<span class="HLcomments">      packed_data    :: Space-time packed array</span>
+<span class="HLcomments">      packed_weights :: Packed weights that were guessed or used</span>
+<span class="HLcomments">      mask           :: Mask that were guessed or used</span>
+<span class="HLcomments">    :::</span>
+<span class="HLcomments">    &quot;&quot;&quot;</span>
+    <span class="HLcommands">if</span> Numeric.rank(data)==<span class="HLdigits">2</span>: <span class="HLcomments"># Already packed but then needs weights!</span>
+        <span class="HLcommands">if</span> weights <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
+            raise <span class="HLstrings">'Error packed data must be sent with weights!'</span>
+        <span class="HLcommands">else</span>:
+            packed_data = Numeric.transpose(data)
+            packed_weights = weights
+            mask = <span class="HLspecial">True</span>
+            <span class="HLcommands">return</span> packed_data,packed_weights,mask
+    sh=<span class="HLfunctions">list</span>(data.shape)
+    ns1=sh[-<span class="HLdigits">1</span>]
+    ns2=sh[-<span class="HLdigits">2</span>]
+    nt=sh[<span class="HLdigits">0</span>]
+    <span class="HLcomments">## Weights ?</span>
+    <span class="HLcommands">if</span> weights <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
+        <span class="HLcommands">try</span>:
+            <span class="HLcommands">import</span> cdutil
+            tmp=data
+            while tmp.rank()&gt;<span class="HLdigits">2</span>:
+                tmp=tmp[<span class="HLdigits">0</span>]
+            weights=cdutil.area_weights(tmp).raw_data()
+            del(tmp)
+        <span class="HLcommands">except</span>:
+            weights=MV.ones((sh[-<span class="HLdigits">2</span>],sh[-<span class="HLdigits">1</span>]),typecode=<span class="HLstrings">'f'</span>)
+
+    <span class="HLcomments">## Now masking part</span>
+    <span class="HLcomments">## First from data</span>
+    mask = data.mask()
+    <span class="HLcommands">if</span> mask <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
+        mask=MV.zeros(sh,typecode=<span class="HLstrings">'f'</span>)
+
+    <span class="HLcommands">if</span> data.rank()&gt;<span class="HLdigits">2</span>:
+        mask=MV.sum(mask,axis=<span class="HLdigits">0</span>)
+
+    <span class="HLcomments">## Now add the ones from the weights</span>
+    mask=mask.filled()+MV.equal(weights,<span class="HLdigits">0</span>.).filled(<span class="HLdigits">1</span>)
+
+    <span class="HLcomments">## &gt;=1 means masked, Fortran &quot;mask&quot;: 1 means data ==&gt; 1-mask</span>
+    mask=<span class="HLdigits">1</span>.-MV.greater_equal(mask,<span class="HLdigits">1</span>).filled()
+    mask=Numeric.transpose(mask)
+
+    <span class="HLcomments">## Number of points in spatial dimension</span>
+    ns=<span class="HLfunctions">int</span>(MV.sum(Numeric.ravel(mask)))
+
+    <span class="HLcomments">## Ok now calls fortran, but need to transpose first</span>
+    packed_data=Numeric.transpose(data.filled(<span class="HLdigits">1</span>.e20))
+
+    <span class="HLcomments">## Dummy 1D for time for tmask</span>
+    <span class="HLcomments">## Pack data</span>
+    packed_data = spanlib_fort.pack3d(packed_data,mask,ns1,ns2,nt,ns)
+
+    weights=MV.reshape(weights,(<span class="HLdigits">1</span>,sh[-<span class="HLdigits">2</span>],sh[-<span class="HLdigits">1</span>]))
+    <span class="HLcomments">## Pack weights</span>
+    tweights=Numeric.transpose(weights.filled(<span class="HLdigits">0</span>))
+    tweights=Numeric.ones(tweights.shape,<span class="HLstrings">'f'</span>)
+    packed_weights = spanlib_fort.pack3d(tweights,mask,ns1,ns2,<span class="HLdigits">1</span>,ns)[:,<span class="HLdigits">0</span>].astype(<span class="HLstrings">'f'</span>)
+
+    <span class="HLcommands">return</span> packed_data,packed_weights,mask
+
+
+<span class="HLcommands">def</span> <span class="HLpersonalised">phases</span>(data,nphases=<span class="HLdigits">8</span>,offset=.<span class="HLdigits">5</span>,firstphase=<span class="HLdigits">0</span>):
+    <span class="HLcomments">&quot;&quot;&quot; Phase composites for oscillatory fields</span>
+<span class="HLcomments"></span>
+<span class="HLcomments">    Usage:::</span>
+<span class="HLcomments">    phases = phases(data,nphases,offset,firstphase)</span>
+<span class="HLcomments">    </span>
+<span class="HLcomments">      data       :: Space-time data oscillatory in time</span>
+<span class="HLcomments">      nphases    :: Number of phases (divisions of the cycle)</span>
+<span class="HLcomments">      offset     :: Normalised offset to keep higher values only [default:</span>
+<span class="HLcomments">      firstphase :: Position of the first phase in the 360 degree cycle</span>
+<span class="HLcomments">    Output:::</span>
+<span class="HLcomments">      phases :: Space-phase array</span>
+<span class="HLcomments">    :::</span>
+<span class="HLcomments">    &quot;&quot;&quot;</span>
+    <span class="HLcomments"># FIXME: maybe must be integrated to MSSA because</span>
+    <span class="HLcomments">#        interesting only for MSSA outputs,</span>
+    <span class="HLcomments">#        and usable only before PCA recontruction</span>
+    ns=data.shape[<span class="HLdigits">1</span>]
+    nt=data.shape[<span class="HLdigits">0</span>]
+    w = MV.ones((ns),typecode=<span class="HLstrings">'f'</span>)
+    <span class="HLpersonalised">phases</span> = spanlib_fort.phasecomp(packed_data, ns, nt, nphases, w, offset, firstphase)
+    axes = data.getAxisList()
+    <span class="HLpersonalised">phases</span>.<span class="HLfunctions">id</span> = <span class="HLstrings">'<span class="HLpersonalised">phases</span>'</span>
+    ax = <span class="HLpersonalised">phases</span>.getAxis(<span class="HLdigits">0</span>)
+    ax.<span class="HLfunctions">id</span> = <span class="HLstrings">'<span class="HLpersonalised">phases</span>'</span>
+    axes[<span class="HLdigits">0</span>] = ax
+    <span class="HLpersonalised">phases</span>.setAxisList(axes)
+    <span class="HLcommands">return</span> <span class="HLpersonalised">phases</span>
+
+class <span class="HLpersonalised">SpAn</span>(object):
+    <span class="HLcommands">def</span> __init__(<span class="HLspecial">self</span>,data,weights=<span class="HLspecial">None</span>,npca=<span class="HLspecial">None</span>,window=<span class="HLspecial">None</span>,nmssa=<span class="HLspecial">None</span>):
+        <span class="HLcomments">&quot;&quot;&quot; Prepare the Spectral Analysis Object</span>
+<span class="HLcomments"></span>
+<span class="HLcomments">        Usage:::</span>
+<span class="HLcomments">        analysis_object = SpAn(data,weights=None,npca=None,window=None,nmssa=None)</span>
+<span class="HLcomments"></span>
+<span class="HLcomments">          data    :: Data on which to run the PC Analysis</span>
+<span class="HLcomments">                     Last dimensions must represent the spatial dimensions.</span>
+<span class="HLcomments">                     Analysis will be run on the first dimension.</span>
+<span class="HLcomments">          weights :: If you which to apply weights on some points.</span>
+<span class="HLcomments">                     Set weights to &quot;0&quot; where you wish to mask.</span>
+<span class="HLcomments">                     The input data mask will be applied,</span>
+<span class="HLcomments">                     using the union of all none spacial dimension mask.</span>
+<span class="HLcomments">                     If the data are on a regular grid, area weights</span>
+<span class="HLcomments">                     will be generated, if the cdutil (CDAT) module is available.</span>
+<span class="HLcomments">                     [default: 1. everywhere]</span>
+<span class="HLcomments">          npca    :: Number of principal components to return [default: 10]        </span>
+<span class="HLcomments">          nmssa   :: Number of MSSA modes retained [default: 4]</span>
+<span class="HLcomments">          window  :: MSSA window parameter [default: time_length/3.]</span>
+<span class="HLcomments">        :::</span>
+<span class="HLcomments">        Output:::</span>
+<span class="HLcomments">          analysis_object :: Object created for further analysis</span>
+<span class="HLcomments">        :::</span>
+<span class="HLcomments">        &quot;&quot;&quot;</span>
+        <span class="HLcomments">## Sets all values to None</span>
+        <span class="HLspecial">self</span>.clean()
+        <span class="HLcomments">## First pack our data, prepare the weights and mask for PCA</span>
+        <span class="HLspecial">self</span>.pdata,<span class="HLspecial">self</span>.weights,<span class="HLspecial">self</span>.mask = <span class="HLpersonalised">pack</span>(data,weights)
+
+
+        <span class="HLcomments">## Store axes for later</span>
+        <span class="HLspecial">self</span>.axes=data.getAxisList()
+        <span class="HLspecial">self</span>.varname=data.<span class="HLfunctions">id</span>
+
+        <span class="HLcomments">## Figures out dimenssions</span>
+        sh=<span class="HLfunctions">list</span>(data.shape)
+
+        <span class="HLspecial">self</span>.ns1=sh[-<span class="HLdigits">1</span>]
+        <span class="HLspecial">self</span>.ns2=sh[-<span class="HLdigits">2</span>]
+        <span class="HLspecial">self</span>.nt=sh[<span class="HLdigits">0</span>]
+
+        <span class="HLcommands">if</span> npca <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
+            <span class="HLspecial">self</span>.npca=<span class="HLdigits">10</span>
+
+        <span class="HLspecial">self</span>.ns = <span class="HLspecial">self</span>.pdata.shape[<span class="HLdigits">0</span>]
+
+        <span class="HLcommands">if</span> nmssa <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
+            <span class="HLspecial">self</span>.nmssa = <span class="HLdigits">4</span>
+
+        <span class="HLcommands">if</span> window <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
+            <span class="HLspecial">self</span>.window = <span class="HLfunctions">int</span>(<span class="HLspecial">self</span>.nt/<span class="HLdigits">3</span>.)
+
+<span class="HLcomments">##         print 'At the end:',self.pdata.shape,self.ns,self.nt</span>
+
+    <span class="HLcommands">def</span> <span class="HLpersonalised">pca</span>(<span class="HLspecial">self</span>,npca=<span class="HLspecial">None</span>):
+        <span class="HLcomments">&quot;&quot;&quot; Principal Components Analysis (PCA)</span>
+<span class="HLcomments"></span>
+<span class="HLcomments">        Usage:::</span>
+<span class="HLcomments">        eof, pc, ev = pca(data,npca=None,weights=None)</span>
+<span class="HLcomments"></span>
+<span class="HLcomments">          npca    :: Number of principal components to return, default will be 10</span>
+<span class="HLcomments">        :::</span>
+<span class="HLcomments">        Output:::</span>
+<span class="HLcomments">          eof :: EOF array</span>
+<span class="HLcomments">          pc  :: Principal Components array</span>
+<span class="HLcomments">          ev  :: Eigein Values array</span>
+<span class="HLcomments">        :::</span>
+<span class="HLcomments">        &quot;&quot;&quot;</span>
+
+        <span class="HLcommands">if</span> npca <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
+            npca=<span class="HLspecial">self</span>.npca
+
+        <span class="HLcomments">## Calls Fortran pca</span>
+        <span class="HLspecial">self</span>.eof,<span class="HLspecial">self</span>.pc,<span class="HLspecial">self</span>.ev = spanlib_fort.<span class="HLpersonalised">pca</span>(<span class="HLspecial">self</span>.pdata,<span class="HLspecial">self</span>.ns,<span class="HLspecial">self</span>.nt,<span class="HLspecial">self</span>.npca,<span class="HLspecial">self</span>.weights,<span class="HLdigits">1</span>)
+
+        Axes=<span class="HLspecial">self</span>.axes[<span class="HLdigits">1</span>:]
+
+        <span class="HLcommands">if</span> <span class="HLspecial">self</span>.mask <span class="HLcommands">is</span> not <span class="HLspecial">True</span>:
+            eof = MV.transpose(MV.array(spanlib_fort.unpack3d(<span class="HLspecial">self</span>.mask,<span class="HLspecial">self</span>.ns1,<span class="HLspecial">self</span>.ns2,npca,<span class="HLspecial">self</span>.eof,<span class="HLspecial">self</span>.ns,<span class="HLdigits">1</span>.e20)))
+            eof.<span class="HLfunctions">id</span>=<span class="HLstrings">'EOF'</span>
+            eof.standard_name=<span class="HLstrings">'Empirical Orthogonal Function'</span>
+        <span class="HLcommands">else</span>:
+            eof = MV.transpose(<span class="HLspecial">self</span>.eof)
+            pc  = MV.array(<span class="HLspecial">self</span>.pc)
+
+        ax=eof.getAxis(<span class="HLdigits">0</span>)
+        ax.<span class="HLfunctions">id</span>=<span class="HLstrings">'pc'</span>
+        ax.standard_name=<span class="HLstrings">'Principal Components Axis'</span>
+        Axes.insert(<span class="HLdigits">0</span>,ax)
+        eof.setAxisList(Axes)
+
+        pc=MV.transpose(MV.array(<span class="HLspecial">self</span>.pc,axes=[<span class="HLspecial">self</span>.axes[<span class="HLdigits">0</span>],ax]))
+        pc.<span class="HLfunctions">id</span>=<span class="HLstrings">'PC'</span>
+        pc.standard_name=<span class="HLstrings">'Principal Components'</span>
+
+        ev=MV.array(<span class="HLspecial">self</span>.ev,<span class="HLfunctions">id</span>=<span class="HLstrings">'EV'</span>,axes=[ax])
+        ev.standard_name=<span class="HLstrings">'Eigen Values'</span>
+
+
+        <span class="HLcommands">return</span> eof,pc,ev
+
+
+    <span class="HLcommands">def</span> <span class="HLpersonalised">mssa</span>(<span class="HLspecial">self</span>,nmssa=<span class="HLspecial">None</span>,<span class="HLpersonalised">pca</span>=False,window=<span class="HLspecial">None</span>):
+        <span class="HLcomments">&quot;&quot;&quot; MultiChannel Singular Spectrum Analysis (MSSA)</span>
+<span class="HLcomments"></span>
+<span class="HLcomments">        Usage:::</span>
+<span class="HLcomments">        eof, pc, ev = mssa(nmssa,pca)</span>
+<span class="HLcomments"></span>
+<span class="HLcomments">          nmssa  :: Number of MSSA modes retained</span>
+<span class="HLcomments">          window :: MSSA window parameter</span>
+<span class="HLcomments">          pca    :: If True, performs a preliminary PCA</span>
+<span class="HLcomments">        Output:::</span>
+<span class="HLcomments">          eof :: EOF array</span>
+<span class="HLcomments">          pc  :: Principal Components array</span>
+<span class="HLcomments">          ev  :: Eigen Values  array</span>
+<span class="HLcomments">        :::</span>
+<span class="HLcomments">        &quot;&quot;&quot;</span>
+
+        <span class="HLcommands">if</span> <span class="HLpersonalised">pca</span> <span class="HLcommands">is</span> <span class="HLspecial">True</span>: <span class="HLcomments"># runs the pre PCA</span>
+            <span class="HLcommands">if</span> <span class="HLspecial">self</span>.pc <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
+                <span class="HLspecial">self</span>.<span class="HLpersonalised">pca</span>()
+
+        <span class="HLcommands">if</span> nmssa <span class="HLcommands">is</span> not <span class="HLspecial">None</span>:
+            <span class="HLspecial">self</span>.nmssa = nmssa
+
+        <span class="HLcommands">if</span> nwindow <span class="HLcommands">is</span> not <span class="HLspecial">None</span>:
+            <span class="HLspecial">self</span>.window = window
+
+        <span class="HLcommands">if</span> <span class="HLspecial">self</span>.steof <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
+            <span class="HLcommands">if</span> <span class="HLpersonalised">pca</span> <span class="HLcommands">is</span> <span class="HLspecial">True</span>:
+                <span class="HLspecial">self</span>.steof, <span class="HLspecial">self</span>.stpc, <span class="HLspecial">self</span>.stev = spanlib_fort.<span class="HLpersonalised">mssa</span>(Numeric.transpose(<span class="HLspecial">self</span>.pc), <span class="HLspecial">self</span>.npca, <span class="HLspecial">self</span>.nt, <span class="HLspecial">self</span>.window, <span class="HLspecial">self</span>.nmssa)
+            <span class="HLcommands">else</span>:
+                <span class="HLspecial">self</span>.steof, <span class="HLspecial">self</span>.stpc, <span class="HLspecial">self</span>.stev = spanlib_fort.<span class="HLpersonalised">mssa</span>(<span class="HLspecial">self</span>.pdata, <span class="HLspecial">self</span>.ns, <span class="HLspecial">self</span>.nt, <span class="HLspecial">self</span>.window, <span class="HLspecial">self</span>.nmssa)
+
+            eof = MV.transpose(MV.reshape(<span class="HLspecial">self</span>.steof,(<span class="HLspecial">self</span>.window,<span class="HLspecial">self</span>.npca,<span class="HLspecial">self</span>.nmssa)))
+        eof.<span class="HLfunctions">id</span>=<span class="HLstrings">'EOF'</span>
+        eof.standard_name=<span class="HLstrings">'Empirical Orthogonal Function'</span>
+
+        ax0=eof.getAxis(<span class="HLdigits">0</span>)
+        ax0.<span class="HLfunctions">id</span>=<span class="HLstrings">'<span class="HLpersonalised">mssa</span>'</span>
+        ax0.standard_name=<span class="HLstrings">'<span class="HLpersonalised">MSSA</span> Axis'</span>
+
+        ax1=eof.getAxis(<span class="HLdigits">1</span>)
+        ax1.<span class="HLfunctions">id</span>=<span class="HLstrings">'pc'</span>
+        ax1.standard_name=<span class="HLstrings">'Principal Components Axis'</span>
+
+        ax2=eof.getAxis(<span class="HLdigits">2</span>)
+        ax2.<span class="HLfunctions">id</span>=<span class="HLstrings">'window'</span>
+        ax2.standard_name=<span class="HLstrings">'Window Axis'</span>
+
+        pc=MV.transpose(MV.array(<span class="HLspecial">self</span>.stpc))
+        pc.<span class="HLfunctions">id</span>=<span class="HLstrings">'PC'</span>
+        pc.standard_name=<span class="HLstrings">'Principal Components'</span>
+        pc.setAxis(<span class="HLdigits">0</span>,ax0)
+        ax3 = pc.getAxis(<span class="HLdigits">1</span>)
+        ax3.<span class="HLfunctions">id</span>=<span class="HLstrings">'time'</span>
+
+        ev=MV.array(<span class="HLspecial">self</span>.stev,<span class="HLfunctions">id</span>=<span class="HLstrings">'EV'</span>,axes=[ax0])
+        ev.standard_name=<span class="HLstrings">'Eigen Values'</span>
+        <span class="HLcommands">return</span> eof,pc,ev
+
+
+    <span class="HLcommands">def</span> <span class="HLpersonalised">reconstruct</span>(<span class="HLspecial">self</span>,start=<span class="HLdigits">1</span>,end=<span class="HLspecial">None</span>,<span class="HLpersonalised">mssa</span>=<span class="HLspecial">True</span>,<span class="HLpersonalised">pca</span>=<span class="HLspecial">True</span>):
+        <span class="HLcomments">&quot;&quot;&quot; Reconstruct results from mssa or pca</span>
+<span class="HLcomments"></span>
+<span class="HLcomments">        Usage:::</span>
+<span class="HLcomments">        ffrec = reconstruct(start,end,mssa,pca)</span>
+<span class="HLcomments"></span>
+<span class="HLcomments">          start :: First mode</span>
+<span class="HLcomments">          end   :: Last mode</span>
+<span class="HLcomments">          mssa  :: Reconstruct MSSA if True</span>
+<span class="HLcomments">          pca   :: Reconstruct PCA if True</span>
+<span class="HLcomments">        Output:::</span>
+<span class="HLcomments">          ffec :: Reconstructed field</span>
+<span class="HLcomments">        :::</span>
+<span class="HLcomments">        &quot;&quot;&quot;</span>
+        n1=start
+        n2=end
+        <span class="HLcomments"># FIXME: needs MSSA alone</span>
+        <span class="HLcommands">if</span> <span class="HLpersonalised">mssa</span>:
+            <span class="HLcommands">if</span> n2 <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
+                n2=<span class="HLspecial">self</span>.nmssa
+            <span class="HLcommands">if</span> <span class="HLpersonalised">pca</span>:
+                ffrec = spanlib_fort.mssarec(<span class="HLspecial">self</span>.steof, <span class="HLspecial">self</span>.stpc, <span class="HLspecial">self</span>.npca, <span class="HLspecial">self</span>.nt, <span class="HLspecial">self</span>.nmssa, <span class="HLspecial">self</span>.window, n1, n2)
+                ffrec = spanlib_fort.pcarec(<span class="HLspecial">self</span>.eof, Numeric.transpose(ffrec), <span class="HLspecial">self</span>.ns, <span class="HLspecial">self</span>.nt, <span class="HLspecial">self</span>.npca, <span class="HLdigits">1</span>,<span class="HLspecial">self</span>.npca)
+                <span class="HLcommands">if</span> <span class="HLspecial">self</span>.mask <span class="HLcommands">is</span> not <span class="HLspecial">True</span>:
+                    ffrec = MV.transpose(spanlib_fort.unpack3d(<span class="HLspecial">self</span>.mask,<span class="HLspecial">self</span>.ns1,<span class="HLspecial">self</span>.ns2,<span class="HLspecial">self</span>.nt,ffrec,<span class="HLspecial">self</span>.ns,<span class="HLdigits">1</span>.e20))
+                    ffrec.setAxisList(<span class="HLspecial">self</span>.axes)
+                <span class="HLcommands">else</span>:
+                    ffrec = MV.transpose(ffrec)
+                ffrec.<span class="HLfunctions">id</span>=<span class="HLspecial">self</span>.varname
+                ffrec.comment=<span class="HLstrings">'Reconstructed from <span class="HLpersonalised">MSSA</span> and <span class="HLpersonalised">PCA</span>'</span>
+
+        <span class="HLcommands">return</span> ffrec
+
+    <span class="HLcommands">def</span> clean(<span class="HLspecial">self</span>):
+        <span class="HLspecial">self</span>.pc=<span class="HLspecial">None</span>
+        <span class="HLspecial">self</span>.stpc=<span class="HLspecial">None</span>
+        <span class="HLspecial">self</span>.steof=<span class="HLspecial">None</span>
+        <span class="HLspecial">self</span>.eof=<span class="HLspecial">None</span>
+        <span class="HLspecial">self</span>.stev=<span class="HLspecial">None</span>
+        <span class="HLspecial">self</span>.ev=<span class="HLspecial">None</span>
+
+
+
+
+
+
+
+</pre></td></tr></table></div><div xmlns="" class="generated">This document was generated  using xml/xsl and perl.</div></body></html>
