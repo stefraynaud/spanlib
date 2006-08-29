@@ -63,7 +63,7 @@ h4 tt.literal,h4 a tt.literal, tt.varname  {color:blue;}
 .ARGspec		{font-weight:bold;font-size:10px;}
 /*.ARGspec		{border-width:0;font-variant:small-caps;font-size:5px;}*/
 .ARGname		{color:blue;}
-.ARGlond_name	{padding-left:30px;}
+/*.ARGlond_name	{padding-left:30px;}*/
 
 /* My footer */
 div.generated {
@@ -73,7 +73,8 @@ div.generated {
 
 /* Misc */
 div.authorgroup div.affiliation div.address {font-size:10px}
-
+div.note h3.title {font-size:smaller;}
+.term {font-weight:bold;}
 
 		</style>
   </head>
@@ -82,7 +83,7 @@ div.authorgroup div.affiliation div.address {font-size:10px}
       <div class="titlepage">
         <div>
           <div>
-            <h1 class="title"><a id="id3404390"></a>SpanLib - Spectral Analysis Library</h1>
+            <h1 class="title"><a id="id3028601"></a>SpanLib - Spectral Analysis Library</h1>
           </div>
           <div>
             <div class="authorgroup">
@@ -116,7 +117,7 @@ div.authorgroup div.affiliation div.address {font-size:10px}
 		</p>
           </div>
           <div>
-            <fo:block xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:date="http://exslt.org/dates-and-times">This documentation was generated on 5 August 2006</fo:block>
+            <fo:block xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:date="http://exslt.org/dates-and-times">This documentation was generated on 29 August 2006</fo:block>
           </div>
         </div>
         <div></div>
@@ -127,7 +128,16 @@ div.authorgroup div.affiliation div.address {font-size:10px}
           <b>Table of Contents</b>
         </p>
         <dl>
-          <dt>1. <a href="#doc_int">Introduction</a></dt>
+          <dt>1. <a href="#doc_pre">Presentation</a></dt>
+          <dd>
+            <dl>
+              <dt>1.1. <a href="#doc_pre_int">Introduction</a></dt>
+              <dt>1.2. <a href="#doc_pre_fun">Fundamentals</a></dt>
+              <dt>1.3. <a href="#doc_pre_tec">Some technical details...</a></dt>
+              <dt>1.4. <a href="#doc_pre_mor">For more information</a></dt>
+              <dt>1.5. <a href="#doc_int_vie">View sources</a></dt>
+            </dl>
+          </dd>
           <dt>2. <a href="#doc_ins">Installation</a></dt>
           <dd>
             <dl>
@@ -162,70 +172,367 @@ div.authorgroup div.affiliation div.address {font-size:10px}
         <div class="titlepage">
           <div>
             <div>
-              <h2 class="title" style="clear: both"><a id="doc_int"></a>1. Introduction</h2>
+              <h2 class="title" style="clear: both"><a id="doc_pre"></a>1. Presentation</h2>
             </div>
           </div>
           <div></div>
         </div>
-        <p>
-			This package provides a <a href="#doc_f90" title="3.&#xA0;The Fortran 90 library">F90 library</a> (as a module)
-			containing a minmal collection of subroutines to perform
-			<span class="bold"><b>Principal Componant Analysis</b></span> (PCA),
-			<span class="bold"><b>Multi-channel Singular Spectrum Analysis</b></span> (MSSA), reconstruction
-			of components and phase composites.
-			The package also provide a <a href="#doc_pyt" title="4.&#xA0;The python module">python module</a>
-			that calls the F90 library and gives the user a set of useful functions
-			to perform analyses.
-		</p>
-        <p>
-			<span class="bold"><b>PCA</b></span> is also know as Empirical Orthogonal Functions (EOFs) decomposition:
-			it decomposes a space-time signal in pairs of spatial EOFs and temporal PCs
-			that are the eigen solutions of the covariance (or correlation) matrix of the initial signal.
-		</p>
-        <p>
-			<span class="bold"><b>MSSA</b></span> works in the same way except that EOF are spatio-temporal, and that the diagonalized
-			matrix is built not only using covariances (or correlations) between spatial points,
-			but also lag covariances.
-			Therefore, MSSA is particularly efficient to remove white noise, and extract oscillations and nonlinear
-			trends, even on short samples.
-			It uses a window parameter that corresponds to the maximal lag for correlations.
-			Oscillations with a period lower than this window can be typically extracted by MSSA.
-		</p>
-        <p>
-			The package also provides the possibility to <span class="bold"><b>reconstruct part of the signal</b></span>
-			due to selected modes, for both PCA and MSSA.
-			Finally, <span class="bold"><b>oscillations</b></span> extracted by MSSA and reconstructed can be reorganized
-			in <span class="bold"><b>phases composites</b></span>: the oscillations are presented over their averaged cycle,
-			decomposed in a fixed number of phases
-			(like one can do for the annual cycle over 12 months for example).
-		</p>
-        <p>
-			More information about PCA and MSSA may be found in papers and on the web.
-			See for example:
+        <div class="sect2" lang="en" xml:lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h3 class="title"><a id="doc_pre_int"></a>1.1. Introduction</h3>
+              </div>
+            </div>
+            <div></div>
+          </div>
+          <p>
+				Observed or simulated multi-channel timeseries generally include
+				a sum of different signals that can be hardly distinguished one another,
+				even if their respective origin is fundamentally different.
+				Analysis methods that are able to extract the most coherent modes
+				of variability generally helps to identify signals of interests.
 			</p>
-        <div class="itemizedlist">
-          <ul type="disc">
-            <li><span class="bold"><b>PCA: </b></span><a href="#prei88">Preisendorfer (1988)</a>,
-					<a href="#wilk95">Wilks (1995)</a>.
-				</li>
-            <li><span class="bold"><b>SSA: </b></span><a href="#brki86">Broomhead and King (1986)</a>,
-					<a href="#vagh89">Vautard and Ghil (1989)</a>.
-				</li>
-            <li><span class="bold"><b>MSSA: </b></span><a href="#plva94">Plaut and Vautard (1994)</a>,
-					<a href="#raynal05">Raynaud et al (2005)</a>,
-					<a href="#raynal06">Raynaud et al (2006)</a>.
-				</li>
-          </ul>
+          <p>
+				SpanLib currently focuses on the use of linear analysis methods
+				that rely on eign solutions of covariance or correlations matrices
+			</p>
+          <p>
+				This package provides a <a href="#doc_f90" title="3.&#xA0;The Fortran 90 library">F90 library</a> (as a module)
+				containing a minimal collection of subroutines to perform
+				<span class="bold"><b>Principal Componant Analysis</b></span> (PCA),
+				<span class="bold"><b>Multi-channel Singular Spectrum Analysis</b></span> (MSSA), reconstruction
+				of components and phase composites.
+				The package also provide a <a href="#doc_pyt" title="4.&#xA0;The python module">python module</a>
+				that calls the F90 library and gives the user a set of useful functions
+				to perform analyses.
+			</p>
+          <p>
+				In its future version, SpanLib will also include others methods, such
+				Singular Value Decomposition or Principal Oscillation Pattern analysis.
+			</p>
         </div>
-        <p>
-			You can also browse <a href="#doc_lin" title="5.&#xA0;Links">Section 5, “Links”</a>.
-		</p>
-        <p>
-			An html version of the source code is available here:
-			<tt class="filename"><a href="src_f90_lib.html" target="_top">spanlib.f90</a></tt> for the fortran library
-			and
-			<tt class="filename"><a href="src_pyt_mod.html" target="_top">spanlib_python.py</a></tt> for the python module.
-		</p>
+        <div class="sect2" lang="en" xml:lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h3 class="title"><a id="doc_pre_fun"></a>1.2. Fundamentals</h3>
+              </div>
+            </div>
+            <div></div>
+          </div>
+          <p>
+				<span class="bold"><b><a href="#pca">PCA</a></b></span> is also know as Empirical Orthogonal Functions (EOFs) decomposition:
+				it decomposes a space-time signal in pairs of
+				spatial EOFs and temporal
+				Principal Components (PCs)
+				that are the eigen solutions of the covariance (or correlation) matrix of the initial signal.
+				The first EOFs represent the dominant, pure spatial patterns of variability,
+				and their associated PCs are the coefficients that regulate these patterns.
+				</p>
+          <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3>
+					In this document, &quot;space&quot; refers to the more general notion
+					of &quot;channel&quot;,  in opposition to &quot;time&quot;.
+					In climate studies, the channel dimension generally coincides with space.
+				</div>
+          <p>
+			</p>
+          <p>
+				<span class="bold"><b><a href="#ssa">SSA</a></b></span> (Singular Spectrum Analysis)
+				is mathematically very similar to PCA:
+				there is now only one channel as an input dataset, and eigenmodes are computed on
+				the lag-covariance matrix (instead of on the cross -between channels- covriance matrix).
+				The EOFs have only a temporal dimension.
+				Therefore, SSA is intended to provides information on purely temporal signal, like
+				a classical Fourier decomposition.
+				However, SSA has many advantages on the latter method:
+				</p>
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li>
+						It removes <span class="emphasis"><em>incoherent noise</em></span> (white noise):
+						the noisy part of the signal takes the form of low order
+						modes, identified as a &quot;background&quot; that can be easily neglected.
+					</li>
+              <li>
+						It naturally extracts <span class="emphasis"><em>regular oscillations</em></span> (with a narrow spectral peak).
+						These oscillations are identified as pair of modes whose PCs and EOFs
+						are in phase quadrature, that can be <span class="emphasis"><em>intermittent</em></span>.
+					</li>
+              <li>
+						Coherent nonlinear trends are identified as the lower frequency modes.
+					</li>
+              <li>
+						Compared to others, this method is efficient on short signal.
+					</li>
+            </ul>
+          </div>
+          <p>
+				The maximal lag (the only parameter of SSA) is known as the
+				<a href="#window" title="The window parameter">window</a>.
+			</p>
+          <p>
+				<span class="bold"><b><a href="#mssa">MSSA</a></b></span>
+				is a combination of PCA and SSA: it is an SSA on several channels.
+				The diagonalized is built on covariances between channels (cross) and time segments (lag).
+				Therefore, it has the advantage of PCA for extracting the dominant &quot;spatial&quot; patterns
+				of the variability, and has also the spectral filtering capabilities of SSA.
+				All identified modes have spatio-temporal properties.
+				For example, oscillations are not constrained on a fixed spatial pattern, but can also
+				have a <span class="emphasis"><em>propagative signature</em></span> over their cycle.
+				<span class="emphasis"><em>This advanced spatial and spectral filtering is helpful to identify
+				the most coherent (and more espacially oscillatory) spatio-temporal modes in a short
+				noisy signal.</em></span>
+			</p>
+          <p>
+				All these analysis methods act as a linear filter.
+				For each of them, it is possible to reconstruct part of the filtered signal.
+				A reconstructed mode is the &quot;multiplication&quot; of its EOF by its PC, and
+				it has the same dimension of the initial dataset.
+				Such operation is necessary to go back from the EOF space to the physical space.
+			</p>
+          <p><a id="pg:dof"></a>
+				Finally, PCA may be used also to simply reduce the number of degree-of-freedom (d-o-f) of a dataset.
+				For example, you can keep the first PC that explain a 80% of the variance.
+				These PCs are then used as an input dataset for other analysis.
+				This methodology is useful for MSSA since the eigen problem solving
+				may be very time consuming: we are now able, for example, to potentially reduce the
+				number of channels from several hundred or thounsand, to less than 20.
+			</p>
+        </div>
+        <div class="sect2" lang="en" xml:lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h3 class="title"><a id="doc_pre_tec"></a>1.3. Some technical details...</h3>
+              </div>
+            </div>
+            <div></div>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <div>
+                  <h4 class="title"><a id="doc_pre_tec_pca"></a>1.3.1. ...about PCA</h4>
+                </div>
+              </div>
+              <div></div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id2964299"></a>CPU: space versus time</h5>
+                  </div>
+                </div>
+                <div></div>
+              </div>
+              <p>
+						PCA decomposition is performed on spatio-temporal datasets.
+						If the number of channels becomes important, PCA can use a lot of CPU since
+						the size of the diagonalised matrix if to the square of this number.
+						It is possible to partly avoid this problem when the time dimension is lower
+						than the spatial dimension, using a correlation matrix
+						in time instead of in space.
+						F90 subroutine <tt class="varname"><a href="#sl_pca" title="3.2.1.&#xA0;Principal Component Analysis: sl_pca">sl_pca</a></tt> of SpanLib
+						provides the ability
+						to choose which of theses approaches to use for PCA.
+					</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id2964332"></a>Weights</h5>
+                  </div>
+                </div>
+                <div></div>
+              </div>
+              <p>
+						In some case, not all channels have the same weight.
+						For instance, for gridded dataset, weight must be proportional
+						to the grid cell area.
+						Whereas common PCA analysis does not take these weights into account
+						it is possible to give optional weights to
+						<tt class="varname"><a href="#sl_pca" title="3.2.1.&#xA0;Principal Component Analysis: sl_pca">sl_pca</a></tt>.
+						Using the <a href="#doc_pyt" title="4.&#xA0;The python module">python module</a>,
+						it is easy to &quot;attach&quot; weights to a variable for use by
+						<tt class="varname"><a href="#&lt;SpAn_object&gt;.pca" title="4.2.6.&#xA0; Principal Components Analysis (PCA): &lt;SpAn_object&gt;.pca">pca</a></tt>.
+					</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id2964380"></a>Mask</h5>
+                  </div>
+                </div>
+                <div></div>
+              </div>
+              <p>
+						Similarly, it is not useful to analyse masked points
+						(for example, gridded points situated on land when use analyse oceanic data).
+						The F90 subroutine <tt class="varname"><a href="#sl_pca" title="3.2.1.&#xA0;Principal Component Analysis: sl_pca">sl_pca</a></tt>
+						makes the supposition that none of the masked (all channels are analysed).
+						However, as well as for the weights, it is possible to associate
+						an spatial mask to a dataset in order to remove masked points when
+						using the python module.
+						Then, <tt class="varname"><a href="#spanlib.pack" title="4.2.3.&#xA0; Computes weights and mask: spanlib.pack">spanlib.pack</a></tt>
+						can be used to &quot;pack&quot; (compress) data before they are analysed.
+					</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id2964421"></a>Analysing several variables at the same time</h5>
+                  </div>
+                </div>
+                <div></div>
+              </div>
+              <p>
+						One can be interested in analysing several variables ate the same time.
+						These variables may come from different regions, datasets and may be
+						even of completely different nature.
+						The essential problem of units may be solved using simple
+						normalisations.
+						Python function <tt class="varname"><a href="#spanlib.stackData" title="4.2.1.&#xA0; Takes several data files, of same time and stacks them up together: spanlib.stackData">spanlib.stackData</a></tt>
+						can be used to &quot;pack&quot; (compress) data before they are analysed.
+						Then, using <tt class="varname"><a href="#spanlib.unStackData" title="4.2.2.&#xA0; Unstack data in the form returned from stackData: spanlib.unStackData">spanlib.unStackData</a></tt>
+						you can unpack results from you analysis.
+						<a href="#raynal06">Raynaud et al (2006)</a> presents an example of use where variables
+						such as sea surface temperature, wind stress modulus and air-sea CO2
+						fluxes are analysed at the same time:
+						the simultaneous variability of the variables is filtered and
+						the dominant oscillations are extracted for each of these variables.
+					</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id2964477"></a>Reconstructions</h5>
+                  </div>
+                </div>
+                <div></div>
+              </div>
+              <p>
+						Reconstructions (F90:<tt class="varname"><a href="#sl_pcarec" title="3.2.2.&#xA0;Reconstruction of a set of PCA components: sl_pcarec">sl_pcarec</a></tt>,
+						Python:<tt class="varname"><a href="#&lt;SpAn_object&gt;.reconstruct" title="4.2.8.&#xA0; Reconstruct results from mssa or pca: &lt;SpAn_object&gt;.reconstruct">&lt;SpAn_object&gt;.reconstruct</a></tt>)
+						may not be necessary the multiplication of an EOF by its associated PC.
+						When PCA is used for a reduction of d-o-f (see <a href="#pg:dof">Section 1.2, “Fundamentals”</a>),
+						orginal PCs are first filtered and then converted back to the original space
+						using saved EOFs.
+					</p>
+            </div>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <div>
+                  <h4 class="title"><a id="doc_pre_tec_msa"></a>1.3.2. ...about MSSA</h4>
+                </div>
+              </div>
+              <div></div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="window"></a>The window parameter</h5>
+                  </div>
+                </div>
+                <div></div>
+              </div>
+              <p>
+						This is the only and essential parameter of SSA and MSSA
+						(F90:<tt class="varname"><a href="#sl_pcarec" title="3.2.2.&#xA0;Reconstruction of a set of PCA components: sl_pcarec">sl_mssa</a></tt>,
+						Python:<tt class="varname"><a href="#&lt;SpAn_object&gt;.mssa" title="4.2.7.&#xA0; MultiChannel Singular Spectrum Analysis (MSSA): &lt;SpAn_object&gt;.mssa">&lt;SpAn_object&gt;.mssa</a></tt>).
+						It defines the maximal value of the lags use when building
+						the covariance matrix.
+						It acts as a spectral parameter: the spectral resolution
+						is higher for periods lower than this period.
+						A standard value is one third of the time dimension.
+					</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id3013639"></a>Phase composites</h5>
+                  </div>
+                </div>
+                <div></div>
+              </div>
+              <p>
+						One of the most important interests of MSSA is to be able to
+						extract intermittent space-time oscillations from the signal.
+						At the first order, an oscillation is its &quot;typical&quot; cycle.
+						<tt class="varname"><a href="#sl_phasecomp" title="3.2.5.&#xA0;Phase composites: sl_phasecomp">sl_phasecomp</a></tt> (F90)
+						and
+						<tt class="varname"><a href="#spanlib.phases" title="4.2.4.&#xA0; Phase composites for oscillatory fields: spanlib.phases">spanlib.phases</a></tt> (Python)
+						perfom phases composites: it computes an averaged cycle and cut it an
+						homegeneous parts (as one can do for the annual cycle in 12 months).
+					</p>
+            </div>
+          </div>
+        </div>
+        <div class="sect2" lang="en" xml:lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h3 class="title"><a id="doc_pre_mor"></a>1.4. For more information</h3>
+              </div>
+            </div>
+            <div></div>
+          </div>
+          <p>
+				For more information about PCA and MSSA may be found in papers and on the web.
+				See for example:
+				</p>
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li><span class="bold"><a id="pca"></a><b>PCA: </b></span><a href="#prei88">Preisendorfer (1988)</a>,
+						<a href="#wilk95">Wilks (1995)</a>.
+					</li>
+              <li><span class="bold"><a id="ssa"></a><b>SSA: </b></span><a href="#brki86">Broomhead and King (1986)</a>,
+						<a href="#vagh89">Vautard and Ghil (1989)</a>.
+					</li>
+              <li><span class="bold"><a id="mssa"></a><b>MSSA: </b></span><a href="#plva94">Plaut and Vautard (1994)</a>,
+						<a href="#raynal05">Raynaud et al (2005)</a>,
+						<a href="#raynal06">Raynaud et al (2006)</a>.
+					</li>
+            </ul>
+          </div>
+          <p>
+				You can also browse <a href="#doc_lin" title="5.&#xA0;Links">Section 5, “Links”</a>.
+			</p>
+        </div>
+        <div class="sect2" lang="en" xml:lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h3 class="title"><a id="doc_int_vie"></a>1.5. View sources</h3>
+              </div>
+            </div>
+            <div></div>
+          </div>
+          <p>
+				An html version of the source codes is available here:
+				</p>
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li><tt class="filename"><a href="src_f90_lib.html" target="_top">spanlib.f90</a></tt>
+						for the <a href="#doc_f90" title="3.&#xA0;The Fortran 90 library">fortran library</a>,
+					</li>
+              <li><tt class="filename"><a href="src_pyt_mod.html" target="_top">spanlib_python.py</a></tt>
+						for the <a href="#doc_pyt" title="4.&#xA0;The python module">python module</a>.
+					</li>
+            </ul>
+          </div>
+          <p>
+			</p>
+        </div>
       </div>
       <div class="sect1" lang="en" xml:lang="en">
         <div class="titlepage">
@@ -249,7 +556,7 @@ div.authorgroup div.affiliation div.address {font-size:10px}
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="id3340055"></a>2.1.1. Fortran library</h4>
+                  <h4 class="title"><a id="id3013914"></a>2.1.1. Fortran library</h4>
                 </div>
               </div>
               <div></div>
@@ -261,7 +568,7 @@ div.authorgroup div.affiliation div.address {font-size:10px}
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="id3340081"></a>2.1.2. Python module</h4>
+                  <h4 class="title"><a id="id3013942"></a>2.1.2. Python module</h4>
                 </div>
               </div>
               <div></div>
@@ -357,11 +664,28 @@ div.authorgroup div.affiliation div.address {font-size:10px}
           </div>
           <div></div>
         </div>
-        <div class="sect2" lang="en" xml:lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="doc_f90_int"></a>3.1. Introduction</h3></div></div><div></div></div>
-
-			The fortran 90 library provides a.
-
-		</div>
+        <div class="sect2" lang="en" xml:lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h3 class="title"><a id="doc_f90_int"></a>3.1. Introduction</h3>
+              </div>
+            </div>
+            <div></div>
+          </div>
+          <p>
+				The fortran 90 library provides a list of subroutines to perform PCA, MSSA, recontructions and phase composites.
+			</p>
+          <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3>
+				The channel (spatial) dimension is always 1D.
+				Therefore, as in the python module, multi-dimensional arrays must be
+				packed before being analysed.
+				You can use <tt class="literal">pack</tt> and <tt class="literal">unpack</tt> F90 subroutines
+				for this task, and optionally give a mask to remove masked points.
+				If you analyse several variables at the same time, concatenate
+				normalised packed arrays before the analsysis.
+			</div>
+        </div>
         <div class="sect2" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
@@ -384,7 +708,7 @@ div.authorgroup div.affiliation div.address {font-size:10px}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3335502"></a>Usage</h5>
+                    <h5 class="title"><a id="id2959166"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -401,7 +725,7 @@ div.authorgroup div.affiliation div.address {font-size:10px}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3335565"></a>Description</h5>
+                    <h5 class="title"><a id="id2959230"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -419,7 +743,7 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3335585"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2960083"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -435,7 +759,7 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3335872"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2960120"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -461,7 +785,7 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3336027"></a>Dependencies</h5>
+                    <h5 class="title"><a id="id2960275"></a>Dependencies</h5>
                   </div>
                 </div>
                 <div></div>
@@ -484,7 +808,7 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3336066"></a>Usage</h5>
+                    <h5 class="title"><a id="id2960314"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -501,7 +825,7 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3336778"></a>Description</h5>
+                    <h5 class="title"><a id="id2960368"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -517,7 +841,7 @@ by its PC. The sum of all reconstructed component is the original field.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3336795"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2960386"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -537,7 +861,7 @@ by its PC. The sum of all reconstructed component is the original field.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3336880"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2960471"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -565,7 +889,7 @@ by its PC. The sum of all reconstructed component is the original field.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3336956"></a>Usage</h5>
+                    <h5 class="title"><a id="id2960547"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -582,7 +906,7 @@ by its PC. The sum of all reconstructed component is the original field.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3337017"></a>Description</h5>
+                    <h5 class="title"><a id="id2960608"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -598,7 +922,7 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3337033"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2960624"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -618,7 +942,7 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3395763"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3019676"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -638,7 +962,7 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3395849"></a>Dependencies</h5>
+                    <h5 class="title"><a id="id3019761"></a>Dependencies</h5>
                   </div>
                 </div>
                 <div></div>
@@ -661,7 +985,7 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3395888"></a>Usage</h5>
+                    <h5 class="title"><a id="id3019801"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -678,7 +1002,7 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3395949"></a>Description</h5>
+                    <h5 class="title"><a id="id3019862"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -691,7 +1015,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3395963"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3019875"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -713,7 +1037,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3396072"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3019984"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -741,7 +1065,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3396147"></a>Usage</h5>
+                    <h5 class="title"><a id="id3020060"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -758,7 +1082,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3396209"></a>Description</h5>
+                    <h5 class="title"><a id="id3020121"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -780,7 +1104,7 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3396231"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3020143"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -800,7 +1124,7 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3396315"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3028815"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -820,7 +1144,7 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3334693"></a>Dependencies</h5>
+                    <h5 class="title"><a id="id3028901"></a>Dependencies</h5>
                   </div>
                 </div>
                 <div></div>
@@ -843,7 +1167,7 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3334732"></a>Usage</h5>
+                    <h5 class="title"><a id="id3028940"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -860,7 +1184,7 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3334765"></a>Description</h5>
+                    <h5 class="title"><a id="id3028974"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -873,7 +1197,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3334779"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3028987"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -891,7 +1215,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3334840"></a>Dependencies</h5>
+                    <h5 class="title"><a id="id3029048"></a>Dependencies</h5>
                   </div>
                 </div>
                 <div></div>
@@ -919,7 +1243,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 				and stored in a netcdf file.
 			</p>
           <div class="example">
-            <a id="id3389436"></a>
+            <a id="id2960790"></a>
             <p class="title">
               <b>Example 1. F90 example</b>
             </p>
@@ -1215,9 +1539,34 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
           </div>
           <div></div>
         </div>
-        <div class="sect2" lang="en" xml:lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="doc_pyt_int"></a>4.1. Introduction</h3></div></div><div></div></div>
-			The intent of the python is to
-		</div>
+        <div class="sect2" lang="en" xml:lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h3 class="title"><a id="doc_pyt_int"></a>4.1. Introduction</h3>
+              </div>
+            </div>
+            <div></div>
+          </div>
+          <p>
+				The intent of the python module is to offer
+				a scripting interface to the F90 subroutines.
+				It takes advantage of the power of python and
+				of the computational efficiency of fortran.
+			</p>
+          <p>
+				Thanks to the use of CDAT, the module easily handle
+				gridded dataset, using masks and weights for example.
+				It also allows the analysis of several datasets at the
+				same time by stacking them.
+				The module performs some tasks in a transparant way:
+				packing and unpacking of data, PCA reduction before MSSA anaysis, etc.
+			</p>
+          <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3>
+				The current version of this module only manage 3D dataset:
+				first two dimensions for &quot;space&quot;, the last dimension for time.
+			</div>
+        </div>
         <div class="sect2" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
@@ -1240,7 +1589,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3395189"></a>Usage</h5>
+                    <h5 class="title"><a id="id3029709"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1257,7 +1606,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3395239"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3029759"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1274,7 +1623,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3395277"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3029797"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1306,7 +1655,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3395401"></a>Usage</h5>
+                    <h5 class="title"><a id="id3041067"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1323,7 +1672,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3395454"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3041120"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1345,7 +1694,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3417633"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3041228"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1371,7 +1720,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3417686"></a>Usage</h5>
+                    <h5 class="title"><a id="id3041282"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1388,7 +1737,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3417746"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3041342"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1405,7 +1754,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3417784"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3041379"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1421,7 +1770,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3417827"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3041423"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1451,7 +1800,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3417929"></a>Usage</h5>
+                    <h5 class="title"><a id="id3041524"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1468,7 +1817,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3418003"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3041598"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1484,7 +1833,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3418040"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3041635"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1504,7 +1853,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3418145"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3041740"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1530,7 +1879,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3416173"></a>Usage</h5>
+                    <h5 class="title"><a id="id3041794"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1547,7 +1896,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3416260"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3041882"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1565,7 +1914,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3416300"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3041921"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1593,7 +1942,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3416444"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3030684"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1619,7 +1968,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3416498"></a>Usage</h5>
+                    <h5 class="title"><a id="id3030738"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1636,7 +1985,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3416551"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3030791"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1652,7 +2001,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3416595"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3030835"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1682,7 +2031,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3416696"></a>Usage</h5>
+                    <h5 class="title"><a id="id3030936"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1699,7 +2048,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3416777"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3031017"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1719,7 +2068,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3416882"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3031122"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1749,7 +2098,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3416983"></a>Usage</h5>
+                    <h5 class="title"><a id="id3031223"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1766,7 +2115,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3405361"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3031304"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1788,7 +2137,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3405497"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3031439"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1813,7 +2162,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
           </div>
           <p>
 				This example shows how to use some of the available
-				component of the python module.
+				components of the python module.
 				It uses the same dataset as for <a href="#doc_f90_exa" title="3.3.&#xA0;A Fortran 90 example">Section 3.3, “A Fortran 90 example”</a>.
 				However, is this example, two different areas are analysed at
 				the same time.
@@ -1830,14 +2179,14 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
           <table bgcolor="" width="100%" align="center" border="0">
             <tr>
               <td>
-                <pre class="screen"><tt class="prompt">user$</tt> <b class="userinput"><tt>cd example &amp;&amp; make python1</tt></b></pre>
+                <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>cd example &amp;&amp; make python1</tt></b></pre>
               </td>
             </tr>
           </table>
           <p>
 			</p>
           <div class="example">
-            <a id="id3389606"></a>
+            <a id="id2960987"></a>
             <p class="title">
               <b>Example 2. Python example</b>
             </p>

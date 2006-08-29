@@ -1,0 +1,590 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>3.2. F90 subroutines</title>
+    <link rel="stylesheet" href="spanlib.css" type="text/css"/>
+    <meta name="generator" content="DocBook XSL Stylesheets V1.61.2"/>
+    <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, PCA, EOF, POP"/>
+    <meta xmlns="" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:date="http://exslt.org/dates-and-times" name="date" content="2006-08-29+02:00 14:59:50+02:00"/>
+    <link rel="home" href="index.html" title="SpanLib - Spectral Analysis Library"/>
+    <link rel="up" href="doc_f90.html" title="3. The Fortran 90 library"/>
+    <link rel="previous" href="doc_f90.html" title="3. The Fortran 90 library"/>
+    <link rel="next" href="doc_f90_exa.html" title="3.3. A Fortran 90 example"/>
+  </head>
+  <body>
+    <div class="navheader">
+      <table width="100%" summary="Navigation header">
+        <tr>
+          <th colspan="3" align="center">3.2. F90 subroutines</th>
+        </tr>
+        <tr>
+          <td width="20%" align="left"><a accesskey="p" href="doc_f90.html">Prev</a> </td>
+          <th width="60%" align="center">3. The Fortran 90 library</th>
+          <td width="20%" align="right"> <a accesskey="n" href="doc_f90_exa.html">Next</a></td>
+        </tr>
+      </table>
+      <hr/>
+    </div>
+    <div class="sect2" lang="en">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="doc_f90_sub"/>3.2. F90 subroutines</h3>
+          </div>
+        </div>
+        <div/>
+      </div>
+      <div class="sect3" lang="en">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="sl_pca"/>3.2.1. Principal Component Analysis: <tt class="literal">sl_pca</tt></h4>
+            </div>
+          </div>
+          <div/>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2834075"/>Usage</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <table bgcolor="" width="100%" align="center" border="0">
+            <tr>
+              <td>
+                <pre class="programlisting">call <span class="HLpersonalised">sl_pca</span>(<span class="HLpersonalised">ff</span>, nkeep=<span class="HLpersonalised">nkeep</span>, xeof=<span class="HLpersonalised">xeof</span>, pc=<span class="HLpersonalised">pc</span>, ev=<span class="HLpersonalised">ev</span>, weights=<span class="HLpersonalised">weights</span>, useteof=<span class="HLpersonalised">useteof</span>)</pre>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2834139"/>Description</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <p>
+Perform a decomposition of space-time field in a set of
+Empirical Orthogonal Functions (EOFs) and Principal components (PCs).
+The input data set can be optionally weighted in space.
+By default, the analysis computes  &quot;temporal&quot; (T) or classical
+spatial (S) EOFs depending on if the space dimension is greater
+than the time dimension. This default behavior can be overridden.
+		</p>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2835308"/>Necessary arguments</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li><tt class="varname">ff    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>			Space-time array</em></span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2835345"/>Optional arguments</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li><tt class="varname">nkeep    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Maximum number of modes to keep in outputs</em></span></li>
+              <li><tt class="varname">xeof    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Space-mode array of EOFs</em></span></li>
+              <li><tt class="varname">pc    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>			Time-mode array of PCs</em></span></li>
+              <li><tt class="varname">ev    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>			Mode array of eigen values (variances)</em></span></li>
+              <li><tt class="varname">weights    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Space array of weights</em></span></li>
+              <li><tt class="varname">useteof    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>	To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]</em></span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2835500"/>Dependencies</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <p>
+			<span class="HLpersonalised"><tt class="literal"><a href="doc_f90_sub.html#sl_diasym" title="3.2.6. Diagonalisation of a symetric matrix: sl_diasym">sl_diasym</a></tt></span>
+		</p>
+        </div>
+      </div>
+      <div class="sect3" lang="en">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="sl_pcarec"/>3.2.2. Reconstruction of a set of PCA components: <tt class="literal">sl_pcarec</tt></h4>
+            </div>
+          </div>
+          <div/>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2834995"/>Usage</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <table bgcolor="" width="100%" align="center" border="0">
+            <tr>
+              <td>
+                <pre class="programlisting">call <span class="HLpersonalised">sl_pcarec</span>(<span class="HLpersonalised">xeof</span>, <span class="HLpersonalised">pc</span>, <span class="HLpersonalised">ffrec</span>, istart=<span class="HLpersonalised">istart</span>, iend=<span class="HLpersonalised">iend</span>)</pre>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2835049"/>Description</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <p>
+Perform a reconstruction using a set of components previously
+computed with a PCA. All the reconstructed components are summed.
+A reconstructed component is simply the &quot;product&quot; of an EOF
+by its PC. The sum of all reconstructed component is the original field.
+		</p>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2835066"/>Necessary arguments</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li><tt class="varname">xeof    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Space-mode array of EOFs</em></span></li>
+              <li><tt class="varname">pc    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Time-mode array of PCs</em></span></li>
+              <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Space-time array of the reconstructed field</em></span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2835151"/>Optional arguments</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li><tt class="varname">istart    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Index of the first component to use</em></span></li>
+              <li><tt class="varname">iend    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Index of the last component to use</em></span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="sect3" lang="en">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="sl_mssa"/>3.2.3. Multi-channel Singular Spectrum Analysis: <tt class="literal">sl_mssa</tt></h4>
+            </div>
+          </div>
+          <div/>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2835227"/>Usage</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <table bgcolor="" width="100%" align="center" border="0">
+            <tr>
+              <td>
+                <pre class="programlisting">call <span class="HLpersonalised">sl_mssa</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nwindow</span>, <span class="HLpersonalised">nkeep</span>, steof=<span class="HLpersonalised">steof</span>, stpc=<span class="HLpersonalised">stpc</span>, ev=<span class="HLpersonalised">ev</span>)</pre>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2835288"/>Description</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <p>
+Perform a decomposition of space-time field in a set of
+space-time Empirical Orthogonal Functions (EOFs) and
+time Principal components (PCs), according to a window
+parameter.
+		</p>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2835303"/>Necessary arguments</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li><tt class="varname">ff    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Space-time array</em></span></li>
+              <li><tt class="varname">nwindow    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Window size</em></span></li>
+              <li><tt class="varname">nkeep    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Maximum number of modes to keep in outputs</em></span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2894584"/>Optional arguments</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li><tt class="varname">steof    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>	SpaceXwindow-mode array of EOFs</em></span></li>
+              <li><tt class="varname">stpc    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Time-mode array of PCs</em></span></li>
+              <li><tt class="varname">ev    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Mode array of eigen values (variances)</em></span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2894669"/>Dependencies</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <p>
+			<span class="HLpersonalised"><tt class="literal"><a href="doc_f90_sub.html#sl_diasym" title="3.2.6. Diagonalisation of a symetric matrix: sl_diasym">sl_diasym</a></tt></span>
+		</p>
+        </div>
+      </div>
+      <div class="sect3" lang="en">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="sl_mssarec"/>3.2.4. Reconstruction of a set of MSSA components: <tt class="literal">sl_mssarec</tt></h4>
+            </div>
+          </div>
+          <div/>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2894708"/>Usage</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <table bgcolor="" width="100%" align="center" border="0">
+            <tr>
+              <td>
+                <pre class="programlisting">call <span class="HLpersonalised">sl_mssarec</span>(<span class="HLpersonalised">steof</span>, <span class="HLpersonalised">stpc</span>, <span class="HLpersonalised">nwindow</span>, <span class="HLpersonalised">ffrec</span>, istart=<span class="HLpersonalised">istart</span>, iend=<span class="HLpersonalised">iend</span>)</pre>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2894770"/>Description</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <p>
+Same as for the reconstruction of PCA components, but for MSSA.
+		</p>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2894783"/>Necessary arguments</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li><tt class="varname">steof    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>	SpaceXwindow-mode array of EOFs</em></span></li>
+              <li><tt class="varname">stpc    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Time-mode array of PCs</em></span></li>
+              <li><tt class="varname">nwindow    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Window size</em></span></li>
+              <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Space-time array of the reconstructed field</em></span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2894892"/>Optional arguments</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li><tt class="varname">istart    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Index of the first component to use</em></span></li>
+              <li><tt class="varname">iend    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Index of the last component to use</em></span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="sect3" lang="en">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="sl_phasecomp"/>3.2.5. Phase composites: <tt class="literal">sl_phasecomp</tt></h4>
+            </div>
+          </div>
+          <div/>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2894968"/>Usage</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <table bgcolor="" width="100%" align="center" border="0">
+            <tr>
+              <td>
+                <pre class="programlisting">call <span class="HLpersonalised">sl_phasecomp</span>(<span class="HLpersonalised">ffrec</span>, <span class="HLpersonalised">np</span>, <span class="HLpersonalised">phases</span>, weights=<span class="HLpersonalised">weights</span>, offset=<span class="HLpersonalised">offset</span>, firstphase=<span class="HLpersonalised">firstphase</span>)</pre>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2895029"/>Description</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <p>
+Performs phase composites of S-T oscillatory field.
+This field is typically a reconstructed pair of MSSA modes.
+Composites are evaluated according to an index defined by the
+first PC of the input field and its derivative.
+Space weights can be optionally used to compute the PC.
+A minimal normalized amplitude can be also used: when the
+index is under value, data are not used to compute phases.
+It is also possible so specify the angle of the first phase
+in the 360 degrees phase diagram circle: zero means the
+the first phase conincides with the maximmum.
+		</p>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2895051"/>Necessary arguments</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Space-time array</em></span></li>
+              <li><tt class="varname">np    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Number of requested phases over the 360 degrees cycle (default = 8)</em></span></li>
+              <li><tt class="varname">phases    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em/></span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2903723"/>Optional arguments</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li><tt class="varname">weights    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Space array of weights</em></span></li>
+              <li><tt class="varname">offset    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Minimal normalized amplitude of the index (default = 0.)</em></span></li>
+              <li><tt class="varname">firstphase    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Value in degrees of the first phase (default = 0)</em></span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2903809"/>Dependencies</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <p>
+			<span class="HLpersonalised"><tt class="literal"><a href="doc_f90_sub.html#sl_pca" title="3.2.1. Principal Component Analysis: sl_pca">sl_pca</a></tt></span>
+		</p>
+        </div>
+      </div>
+      <div class="sect3" lang="en">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="sl_diasym"/>3.2.6. Diagonalisation of a symetric matrix: <tt class="literal">sl_diasym</tt></h4>
+            </div>
+          </div>
+          <div/>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2903849"/>Usage</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <table bgcolor="" width="100%" align="center" border="0">
+            <tr>
+              <td>
+                <pre class="programlisting">call <span class="HLpersonalised">sl_diasym</span>(<span class="HLpersonalised">a</span>, <span class="HLpersonalised">eig</span>)</pre>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2903882"/>Description</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <p>
+A simple interface to the ssyev diagonalisation subroutine from LAPACK.
+		</p>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2903896"/>Necessary arguments</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li><tt class="varname">a    </tt><tt class="option"><span class="ARGspec">[intent:inoutput, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Input = symetric matrix, output = EOFs</em></span></li>
+              <li><tt class="varname">eig    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Eigen values</em></span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2903957"/>Dependencies</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <p>
+<tt class="literal">ssyev(LAPACK)</tt>
+		</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr/>
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td width="40%" align="left"><a accesskey="p" href="doc_f90.html">Prev</a> </td>
+          <td width="20%" align="center">
+            <a accesskey="u" href="doc_f90.html">Up</a>
+          </td>
+          <td width="40%" align="right"> <a accesskey="n" href="doc_f90_exa.html">Next</a></td>
+        </tr>
+        <tr>
+          <td width="40%" align="left" valign="top">3. The Fortran 90 library </td>
+          <td width="20%" align="center"><a accesskey="h" href="index.html">Home</a> | <a accesskey="t" href="index.html-toc.html">ToC</a></td>
+          <td width="40%" align="right" valign="top"> 3.3. A Fortran 90 example</td>
+        </tr>
+      </table>
+    </div>
+    <HR xmlns="" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:date="http://exslt.org/dates-and-times"/>
+    <div xmlns="" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:date="http://exslt.org/dates-and-times" class="generated"><a href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=168272&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo"/></a>
+			This document was generated using xsltproc and perl.
+		</div>
+  </body>
+</html>

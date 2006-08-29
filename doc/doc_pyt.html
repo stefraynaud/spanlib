@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <title>5. Links</title>
+    <title>4. The python module</title>
     <link rel="stylesheet" href="spanlib.css" type="text/css"/>
     <meta name="generator" content="DocBook XSL Stylesheets V1.61.2"/>
     <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, PCA, EOF, POP"/>
     <meta xmlns="" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:date="http://exslt.org/dates-and-times" name="date" content="2006-08-29+02:00 14:59:51+02:00"/>
     <link rel="home" href="index.html" title="SpanLib - Spectral Analysis Library"/>
     <link rel="up" href="index.html" title="SpanLib - Spectral Analysis Library"/>
-    <link rel="previous" href="doc_pyt_exa.html" title="4.3. A python example"/>
-    <link rel="next" href="doc_bib.html" title="Bibliography"/>
+    <link rel="previous" href="doc_f90_exa.html" title="3.3. A Fortran 90 example"/>
+    <link rel="next" href="doc_pyt_sub.html" title="4.2. Python functions"/>
   </head>
   <body>
     <div class="navheader">
       <table width="100%" summary="Navigation header">
         <tr>
-          <th colspan="3" align="center">5. Links</th>
+          <th colspan="3" align="center">4. The python module</th>
         </tr>
         <tr>
-          <td width="20%" align="left"><a accesskey="p" href="doc_pyt_exa.html">Prev</a> </td>
+          <td width="20%" align="left"><a accesskey="p" href="doc_f90_exa.html">Prev</a> </td>
           <th width="60%" align="center"> </th>
-          <td width="20%" align="right"> <a accesskey="n" href="doc_bib.html">Next</a></td>
+          <td width="20%" align="right"> <a accesskey="n" href="doc_pyt_sub.html">Next</a></td>
         </tr>
       </table>
       <hr/>
@@ -29,50 +29,54 @@
       <div class="titlepage">
         <div>
           <div>
-            <h2 class="title" style="clear: both"><a id="doc_lin"/>5. Links</h2>
+            <h2 class="title" style="clear: both"><a id="doc_pyt"/>4. The python module</h2>
           </div>
         </div>
         <div/>
       </div>
-      <div class="itemizedlist">
-        <ul type="disc">
-          <li>
-				Home page of the project:
-				<a href="http://spanlib.sourceforge.net" target="_top">http://spanlib.sourceforge.net</a></li>
-          <li>
-				Sourceforge page of the project where you can find news, forums,
-				where to report bugs, where to request features, files to download, etc:
-				<a href="http://sourceforge.net/projects/spanlib/" target="_top">http://sourceforge.net/projects/spanlib/</a></li>
-          <li>
-				An example of use of MSSA is available
-				at <a href="http://stefdeperou.free.fr/meteo.php" target="_top">http://stefdeperou.free.fr/meteo.php</a> (french).
-				This example shows an analysis of air temperatures at Orly airport,
-				with different values of parameters.
-				It also provides an example of prediction using the analysis results.
-			</li>
-          <li><a id="ssa-mtm"/>
-				The <a href="http://www.atmos.ucla.edu/tcd/ssa/" target="_top">SSA-MTM Toolkit </a>
-				is graphical interface to PCA, MSSA and other methods.
-				It is useful to make comparisons of methods.
-				This website provides a lot of exlplanations of how these analysis methods works.
-			</li>
-        </ul>
+      <div class="sect2" lang="en">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="doc_pyt_int"/>4.1. Introduction</h3>
+            </div>
+          </div>
+          <div/>
+        </div>
+        <p>
+				The intent of the python module is to offer
+				a scripting interface to the F90 subroutines.
+				It takes advantage of the power of python and
+				of the computational efficiency of fortran.
+			</p>
+        <p>
+				Thanks to the use of CDAT, the module easily handle
+				gridded dataset, using masks and weights for example.
+				It also allows the analysis of several datasets at the
+				same time by stacking them.
+				The module performs some tasks in a transparant way:
+				packing and unpacking of data, PCA reduction before MSSA anaysis, etc.
+			</p>
+        <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3>
+				The current version of this module only manage 3D dataset:
+				first two dimensions for &quot;space&quot;, the last dimension for time.
+			</div>
       </div>
     </div>
     <div class="navfooter">
       <hr/>
       <table width="100%" summary="Navigation footer">
         <tr>
-          <td width="40%" align="left"><a accesskey="p" href="doc_pyt_exa.html">Prev</a> </td>
+          <td width="40%" align="left"><a accesskey="p" href="doc_f90_exa.html">Prev</a> </td>
           <td width="20%" align="center">
             <a accesskey="u" href="index.html">Up</a>
           </td>
-          <td width="40%" align="right"> <a accesskey="n" href="doc_bib.html">Next</a></td>
+          <td width="40%" align="right"> <a accesskey="n" href="doc_pyt_sub.html">Next</a></td>
         </tr>
         <tr>
-          <td width="40%" align="left" valign="top">4.3. A python example </td>
+          <td width="40%" align="left" valign="top">3.3. A Fortran 90 example </td>
           <td width="20%" align="center"><a accesskey="h" href="index.html">Home</a> | <a accesskey="t" href="index.html-toc.html">ToC</a></td>
-          <td width="40%" align="right" valign="top"> Bibliography</td>
+          <td width="40%" align="right" valign="top"> 4.2. Python functions</td>
         </tr>
       </table>
     </div>
