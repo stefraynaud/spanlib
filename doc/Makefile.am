@@ -3,7 +3,7 @@
 ######################################################################
 
 ## Source files
-SOURCES = $(top_srcdir)/src/spanlib.f90 $(top_srcdir)/example/example.f90 $(top_srcdir)/lib/spanlib_python.py $(top_srcdir)/example/example.py
+SOURCES = $(top_srcdir)/src/spanlib.f90 $(top_srcdir)/example/example.f90 $(top_srcdir)/lib/spanlib_python.py $(top_srcdir)/example/example1.py
 
 ## XML translation of source files
 XML_SRC = src_f90_lib.xml src_f90_exa.xml src_pyt_mod.xml src_pyt_exa.xml
@@ -50,8 +50,10 @@ index.html: spanlib.xml spanlib.xsl $(XML_SRC_INC) $(XML_DOC_SUB)
 src_%.html: src_%.xml src_%_inc.xml src.xsl
 	$(XSLTPROC) --xinclude -o $@ src.xsl $<
 
-
-%_inc.xml: $(PARSE)
+$(XML_SRC_INC) $(XML_DOC_SUB): $(PARSE)
 	$^
+
+##*_inc.xml: $(PARSE)
+##	$^
 else
 endif
