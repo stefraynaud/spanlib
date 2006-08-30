@@ -53,7 +53,5 @@ src_%.html: src_%.xml src_%_inc.xml src.xsl
 $(XML_SRC_INC) $(XML_DOC_SUB): $(PARSE)
 	$^
 
-##*_inc.xml: $(PARSE)
-##	$^
 else
 endif

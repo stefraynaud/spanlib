@@ -6,6 +6,7 @@ lib_LIBRARIES = libspanlib.a
 nodist_include_HEADERS=spanlib.mod
 libspanlib_a_SOURCES=spanlib.f90
 CLEANFILES=*.pyf *.pfp
+EXTRA_DIST=spanlib_pywrap.f90
 
 WRAPPER = $(PACKAGE)_pywrap.f90
 PYTHON_PACKAGE = $(PACKAGE)_fort
@@ -19,19 +20,16 @@ endif
 
 all-local: $(LIBRARIES) $(HEADERS) $(PYTHON_LIBRARY)
 
-##fortran_library: $(LIBRARIES) $(HEADERS)
-
 if WITH_PYTHON
 install-exec-hook:
-	test -z "$(PYTHONDIR)" || $(mkdir_p) $(PYTHONDIR)/spanlib_dir
+	test -z "$(PYTHONDIR)" || $(mkdir_p) $(PYTHONDIR)
 	@echo "Installing $(PACKAGE) python module in $(PYTHONDIR)"
-	$(INSTALL_DATA) -d -m 755 $(PYTHONDIR)/spanlib_dir/spanlib
-	$(INSTALL_DATA) $(PYTHON_LIBRARY_DIR)/* $(PYTHONDIR)/spanlib_dir/spanlib
-	echo spanlib_dir > $(PYTHONDIR)/spanlib_dir.pth
+	$(INSTALL) -d -m 755 $(PYTHONDIR)/spanlib
+	$(INSTALL_DATA) $(PYTHON_LIBRARY_DIR)/* $(PYTHONDIR)/spanlib
 
 uninstall-hook:
 	@echo "Uninstalling $(PACKAGE) python module"
-	-rm -rf $(PYTHONDIR)/spanlib_dir $(PYTHONDIR)/spanlib_dir.pth
+	-rm -rf $(PYTHONDIR)/spanlib
 
 clean-local:
 	-rm -rf build

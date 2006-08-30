@@ -6,6 +6,8 @@ EXTRA_DIST = COPYING INSTALL AUTHORS README ChangeLog
 SUBDIRS = src lib scripts doc
 DIST_SUBDIRS = $(SUBDIRS) example
 
+.PHONY: example doc
+
 doc: documentation
 
 documentation:
@@ -13,5 +15,4 @@ documentation:
 
 example:
 	cd $(top_srcdir)/example && make
-
 
