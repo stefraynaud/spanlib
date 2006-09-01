@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Source of python module</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" id="src_pyt_mod" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3407191"></a>SpanLib - Source of python module</h1></div></div><div></div><hr /></div><table bgcolor="" width="100%" align="center" border="0"><tr><td><pre class="programlisting"><span class="HLcomments">#################################################################################</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Source of python module</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" id="src_pyt_mod" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3225313"></a>SpanLib - Source of python module</h1></div></div><div></div><hr /></div><table bgcolor="" width="100%" align="center" border="0"><tr><td><pre class="programlisting"><span class="HLcomments">#################################################################################</span>
 <span class="HLcomments"># File: spanlib_python.py</span>
 <span class="HLcomments">#</span>
 <span class="HLcomments"># This file is part of the SpanLib library.</span>
@@ -201,7 +201,7 @@
 <span class="HLcomments"></span>
 <span class="HLcomments">    Usage:::</span>
 <span class="HLcomments">    phases = phases(data,nphases,offset,firstphase)</span>
-<span class="HLcomments">    </span>
+<span class="HLcomments"></span>
 <span class="HLcomments">      data       :: Space-time data oscillatory in time</span>
 <span class="HLcomments">      nphases    :: Number of phases (divisions of the cycle)</span>
 <span class="HLcomments">      offset     :: Normalised offset to keep higher values only [default:</span>
@@ -242,7 +242,7 @@ class <span class="HLpersonalised">SpAn</span>(object):
 <span class="HLcomments">                     If the data are on a regular grid, area weights</span>
 <span class="HLcomments">                     will be generated, if the cdutil (CDAT) module is available.</span>
 <span class="HLcomments">                     [default: 1. everywhere]</span>
-<span class="HLcomments">          npca    :: Number of principal components to return [default: 10]        </span>
+<span class="HLcomments">          npca    :: Number of principal components to return [default: 10]</span>
 <span class="HLcomments">          nmssa   :: Number of MSSA modes retained [default: 4]</span>
 <span class="HLcomments">          window  :: MSSA window parameter [default: time_length/3.]</span>
 <span class="HLcomments">        :::</span>
@@ -351,7 +351,7 @@ class <span class="HLpersonalised">SpAn</span>(object):
         <span class="HLcommands">if</span> nmssa <span class="HLcommands">is</span> not <span class="HLspecial">None</span>:
             <span class="HLspecial">self</span>.nmssa = nmssa
 
-        <span class="HLcommands">if</span> nwindow <span class="HLcommands">is</span> not <span class="HLspecial">None</span>:
+        <span class="HLcommands">if</span> window <span class="HLcommands">is</span> not <span class="HLspecial">None</span>:
             <span class="HLspecial">self</span>.window = window
 
         <span class="HLcommands">if</span> <span class="HLspecial">self</span>.steof <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
@@ -360,7 +360,7 @@ class <span class="HLpersonalised">SpAn</span>(object):
             <span class="HLcommands">else</span>:
                 <span class="HLspecial">self</span>.steof, <span class="HLspecial">self</span>.stpc, <span class="HLspecial">self</span>.stev = spanlib_fort.<span class="HLpersonalised">mssa</span>(<span class="HLspecial">self</span>.pdata, <span class="HLspecial">self</span>.ns, <span class="HLspecial">self</span>.nt, <span class="HLspecial">self</span>.window, <span class="HLspecial">self</span>.nmssa)
 
-            eof = MV.transpose(MV.reshape(<span class="HLspecial">self</span>.steof,(<span class="HLspecial">self</span>.window,<span class="HLspecial">self</span>.npca,<span class="HLspecial">self</span>.nmssa)))
+        eof = MV.transpose(MV.reshape(<span class="HLspecial">self</span>.steof,(<span class="HLspecial">self</span>.window,<span class="HLspecial">self</span>.npca,<span class="HLspecial">self</span>.nmssa)))
         eof.<span class="HLfunctions">id</span>=<span class="HLstrings">'EOF'</span>
         eof.standard_name=<span class="HLstrings">'Empirical Orthogonal Function'</span>
 

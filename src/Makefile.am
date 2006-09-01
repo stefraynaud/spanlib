@@ -32,9 +32,9 @@ uninstall-hook:
 	-rm -rf $(PYTHONDIR)/spanlib
 
 clean-local:
-	-rm -rf build
+	-rm -rf build $(PACKAGE).pyf $(PACKAGE).pfp
 
-$(PYTHON_LIBRARY): $(PACKAGE).pfp $(WRAPPER) $(PACKAGE).pyf $(LIBRARIES) $(HEADERS)
+$(PYTHON_LIBRARY): $(PACKAGE).pfp $(WRAPPER) $(PACKAGE).pyf $(LIBRARIES) $(HEADERS) $(top_srcdir)/lib/__init__.py $(top_srcdir)/lib/spanlib_python.py
 	$(PYFORT) -c $(FC) $(PYFORT_BUILD_OPT) $(PACKAGE).pfp
 
 $(PACKAGE).pyf: $(WRAPPER)

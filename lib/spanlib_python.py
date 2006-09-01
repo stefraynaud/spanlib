@@ -214,7 +214,7 @@ def phases(data,nphases=8,offset=.5,firstphase=0):
     ns=data.shape[1]
     nt=data.shape[0]
     w = MV.ones((ns),typecode='f')
-    phases = spanlib_fort.phasecomp(packed_data, ns, nt, nphases, w, offset, firstphase)
+    phases = spanlib_fort.phasecomp(data, ns, nt, nphases, w, offset, firstphase)
     axes = data.getAxisList()
     phases.id = 'phases'
     ax = phases.getAxis(0)
