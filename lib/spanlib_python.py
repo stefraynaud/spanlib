@@ -199,7 +199,7 @@ def phases(data,nphases=8,offset=.5,firstphase=0):
 
     Usage:::
     phases = phases(data,nphases,offset,firstphase)
-    
+
       data       :: Space-time data oscillatory in time
       nphases    :: Number of phases (divisions of the cycle)
       offset     :: Normalised offset to keep higher values only [default:
@@ -240,7 +240,7 @@ class SpAn(object):
                      If the data are on a regular grid, area weights
                      will be generated, if the cdutil (CDAT) module is available.
                      [default: 1. everywhere]
-          npca    :: Number of principal components to return [default: 10]        
+          npca    :: Number of principal components to return [default: 10]
           nmssa   :: Number of MSSA modes retained [default: 4]
           window  :: MSSA window parameter [default: time_length/3.]
         :::
@@ -349,7 +349,7 @@ class SpAn(object):
         if nmssa is not None:
             self.nmssa = nmssa
 
-        if nwindow is not None:
+        if window is not None:
             self.window = window
 
         if self.steof is None:
@@ -358,7 +358,7 @@ class SpAn(object):
             else:
                 self.steof, self.stpc, self.stev = spanlib_fort.mssa(self.pdata, self.ns, self.nt, self.window, self.nmssa)
 
-            eof = MV.transpose(MV.reshape(self.steof,(self.window,self.npca,self.nmssa)))
+        eof = MV.transpose(MV.reshape(self.steof,(self.window,self.npca,self.nmssa)))
         eof.id='EOF'
         eof.standard_name='Empirical Orthogonal Function'
 
