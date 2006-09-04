@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!DOCTYPE article PUBLIC "-//KDE//DTD DocBook XML V4.2-Based Variant V1.1//EN" "/usr/share/sgml/docbook/xml-dtd-4.2-1.0-17.2/docbookx.dtd">
+
+<article id="src_pyt_mod">
+
+	<artheader>
+		<title>SpanLib - Source of python module</title>
+	</artheader>
+	
+	<xi:include href="src_pyt_mod_inc.xml"  xmlns:xi="http://www.w3.org/2001/XInclude" />
+	
+</article>
