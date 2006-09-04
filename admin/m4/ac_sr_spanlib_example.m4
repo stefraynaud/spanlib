@@ -9,9 +9,7 @@ AC_DEFUN([AC_SR_SPANLIB_EXAMPLE],[
 	#################################################################
 
 	AC_SR_NETCDF()
-	AS_VAR_SET(ac_cv_example,[`test "AS_VAR_GET(HAS_F90NETCDF)" = "yes"`])
-	AM_CONDITIONAL(WITH_EXAMPLE,AS_VAR_GET(ac_cv_example))
-	AS_IF(AS_VAR_GET(ac_cv_example),[
+	AS_IF([test "AS_VAR_GET(HAS_F90NETCDF)" = "yes"],[
 		AS_VAR_SET(F90_EXAMPLE_TEXT,["To run the f90 example, type from here '"AS_VAR_GET([NORMAL])"cd example && make"AS_VAR_GET(GREEN)"'."])
 	],[
 		AC_SR_WARNING([Without f90 netcdf support, you wont be able to run the f90 example])
@@ -20,9 +18,8 @@ AC_DEFUN([AC_SR_SPANLIB_EXAMPLE],[
 	#################################################################
 	# Blas/Lapack (checked before)
 	#################################################################
-	AS_IF(AS_VAR_GET(ac_cv_example),
-		AM_CONDITIONAL([WITH_EXAMPLE],
-			[test "AS_VAR_GET(HAS_BLASLAPACK)" != "no"]),,)
+	AM_CONDITIONAL([WITH_EXAMPLE],
+		[test "AS_VAR_GET(HAS_BLASLAPACK)" != "no" -a "AS_VAR_GET(HAS_F90NETCDF)" = "yes"])
 
 	#################################################################
 	# Python example
