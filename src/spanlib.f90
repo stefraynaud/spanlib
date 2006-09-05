@@ -191,7 +191,7 @@ contains
 		! Covariance
 		allocate(cov(ns,ns))
 		allocate(eig(ns))
-	   do i=1,nt
+	   do i=1,ns
 			do j=1,i
 				cov(i,j) = dot_product(wff(i,:), wff(j,:))
 				cov(j,i) = cov(i,j)

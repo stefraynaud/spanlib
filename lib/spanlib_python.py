@@ -200,7 +200,7 @@ def computePhases(data,nphases=8,offset=.5,firstphase=0):
     Usage:::
     phases = computePhases(data,nphases,offset,firstphase)
 
-      data       :: Space-time data oscillatory in time
+      data       :: Space-time data oscillatory in time data.shape is rank 2 and dim 0 is space
       nphases    :: Number of phases (divisions of the cycle)
       offset     :: Normalised offset to keep higher values only [default:
       firstphase :: Position of the first phase in the 360 degree cycle
@@ -211,16 +211,17 @@ def computePhases(data,nphases=8,offset=.5,firstphase=0):
     # FIXME: maybe must be integrated to MSSA because
     #        interesting only for MSSA outputs,
     #        and usable only before PCA recontruction
+##     print data.shape,'input array for phase'
     ns=data.shape[0]
     nt=data.shape[1]
     w = MV.ones((ns),typecode='f')
     phases = MV.array(spanlib_fort.phasecomp(data, ns, nt, nphases, w, offset, firstphase))
-    print phases.shape
     axes = MV.array(data).getAxisList()
     phases.id = 'phases'
     ax = phases.getAxis(1)
     ax[:]=ax[:]*360./nphases+firstphase
     ax.id = 'phases'
+##     print axes,ax,phases.shape
     axes[1] = ax
     phases.setAxisList(axes)
     return phases
@@ -303,7 +304,8 @@ class SpAn(object):
 
         Axes=self.axes[1:]
 
-        if self.mask is not True:
+##         print 'SEF.mask is:',self.mask
+        if self.mask is not None:
             eof = MV.transpose(MV.array(spanlib_fort.unpack3d(self.mask,self.ns1,self.ns2,npca,self.eof,self.ns,1.e20)))
             eof.id='EOF'
             eof.standard_name='Empirical Orthogonal Function'
@@ -328,7 +330,7 @@ class SpAn(object):
         return eof,pc,ev
 
 
-    def mssa(self,nmssa=None,pca=False,window=None):
+    def mssa(self,nmssa=None,pca=None,window=None):
         """ MultiChannel Singular Spectrum Analysis (MSSA)
 
         Usage:::
@@ -344,9 +346,21 @@ class SpAn(object):
         :::
         """
 
+        ## Check for default values for mssa and pca if not passed by user
+        if pca is None:
+            if self.pc is None:
+                pca = False
+            else:
+                pca = True
+
+
+##         print 'In mssa : pca is:',pca
         if pca is True: # runs the pre PCA
+            nspace = self.npca
             if self.pc is None:
                 self.pca()
+        else:
+            nspace = self.pdata.shape[0]
 
         if nmssa is not None:
             self.nmssa = nmssa
@@ -356,11 +370,13 @@ class SpAn(object):
 
         if self.steof is None:
             if pca is True:
+##                 print 'Mssa done from self.pc'
                 self.steof, self.stpc, self.stev = spanlib_fort.mssa(Numeric.transpose(self.pc), self.npca, self.nt, self.window, self.nmssa)
             else:
+##                 print 'Mssa done from pdasta'
                 self.steof, self.stpc, self.stev = spanlib_fort.mssa(self.pdata, self.ns, self.nt, self.window, self.nmssa)
 
-        eof = MV.transpose(MV.reshape(self.steof,(self.window,self.npca,self.nmssa)))
+        eof = MV.transpose(MV.reshape(self.steof,(self.window,nspace,self.nmssa)))
         eof.id='EOF'
         eof.standard_name='Empirical Orthogonal Function'
 
@@ -388,7 +404,7 @@ class SpAn(object):
         return eof,pc,ev
 
 
-    def reconstruct(self,start=1,end=None,mssa=True,pca=True,phases=False,nphases=8,offset=.5,firstphase=0):
+    def reconstruct(self,start=1,end=None,mssa=None,pca=None,phases=False,nphases=8,offset=.5,firstphase=0):
         """ Reconstruct results from mssa or pca
 
         Usage:::
@@ -407,38 +423,77 @@ class SpAn(object):
         n1=start
         n2=end
         # FIXME: needs MSSA alone
+        axes=self.axes
+        ntimes=self.nt
+        comments = 'Reconstructed from'
+
+
+        ## Check for default values for mssa and pca if not passed by user
+        if mssa is None:
+            if self.steof is None:
+                mssa = False
+            else:
+                mssa = True
+
+        if pca is None:
+            if self.pc is None:
+                pca = False
+            else:
+                pca = True
+
+
+##         print 'mssa,pca,phases:',mssa,pca,phases
+        if phases and not pca and not mssa:
+            raise 'Error you did not do any PCA or MSSA!\n To do a phases analysis only use the function %s in this module.\n%s' % ('computePhases',computePhases.__doc__)
+        ## Now do the actual reconstruct job
+                
         if mssa:
+            if pca:
+                nspace=self.npca
+            else:
+                nspace=self.pdata.shape[0]
+                
             if n2 is None:
                 n2=self.nmssa
-            ffrec = spanlib_fort.mssarec(self.steof, self.stpc, self.npca, self.nt, self.nmssa, self.window, n1, n2)
-            print 'mssa-1: ffrec:',ffrec.shape
-            if phases:
-                ## Code for phases here ???
+            ffrec = spanlib_fort.mssarec(self.steof, self.stpc, nspace, self.nt, self.nmssa, self.window, n1, n2)
+##             print 'Ok did mssa',ffrec.shape
+            comments+=' MSSA '
+        if phases:
+            if mssa :
+##                 print 'phase+mssa reconst'
                 ffrec = computePhases(ffrec,nphases,offset,firstphase)
-                print 'Done phases and mssa',ffrec.shape
-            if pca:
-                axes=self.axes
-                if phases: # We did phases
-                    ntimes=nphases
-                    comments='Reconstructed from MSSA and PCA and phases'
-                    ## Replace time axis with phases axis
-                    for i in range(len(axes)):
-                        if axes[i].isTime():
-                            axes[i]=ffrec.getAxis(1)
-                    print 'Done pca reconstruct with phases'
-                else: # we didn't do phases
-                    ntimes=self.nt
-                    comments='Reconstructed from MSSA and PCA'
-                ffrec = spanlib_fort.pcarec(self.eof, Numeric.transpose(ffrec), self.ns, ntimes, self.npca, 1,self.npca)
-                if self.mask is not True:
-                    ffrec = MV.transpose(spanlib_fort.unpack3d(self.mask,self.ns1,self.ns2,ntimes,ffrec,self.ns,1.e20))
-                    ffrec.setAxisList(axes)
-                else:
-                    ffrec = MV.transpose(ffrec)
-                    ffrec.id=self.varname
-                    ffrec.comment=comments
-                
+            else:
+                ffrec = computePhases(Numeric.transpose(self.pc),nphases,offset,firstphase)
 
+            ## Replace time axis with phases axis
+            ntimes=nphases
+            for i in range(len(axes)):
+                if axes[i].isTime():
+                    axes[i]=ffrec.getAxis(1)
+            ## Attributes
+                    comments+=' Phases'
+                    
+                    
+        if pca:
+            comments+=' PCA'
+            axes=self.axes
+            if mssa or phases:
+                pcreconstruct = Numeric.transpose(ffrec) ; del(ffrec)
+            else:
+                pcreconstruct = self.pc
+            
+##             print pcreconstruct.shape,self.ns,ntimes
+            ffrec = spanlib_fort.pcarec(self.eof, pcreconstruct, self.ns, ntimes, self.npca, 1,self.npca)
+            
+##         print 'SEF.mask is:',self.mask
+        if self.mask is not None:
+            ffrec = MV.transpose(spanlib_fort.unpack3d(self.mask,self.ns1,self.ns2,ntimes,ffrec,self.ns,1.e20))
+            ffrec.setAxisList(axes)
+        else:
+            ffrec = MV.transpose(ffrec)
+            ffrec.id=self.varname
+            ffrec.comment=comments
+            
         return ffrec
 
     def clean(self):
