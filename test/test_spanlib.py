@@ -27,13 +27,13 @@ steof,stpc,stev = SP.mssa(pca=True)
 
 print 'Reconstructing'
 
-ffrec = SP.reconstruct()
+phases = SP.reconstruct(phases=True,nphases=16,firstphase=180,offset=0.8)
 
-phases = spanlib.phases(ffrec)
+## phases = spanlib.phases(ffrec)
 
-print phases
+print phases.info()
 #aaa
 x=vcs.init()
-x.plot(phases)
+x.plot(phases[:,30,80])
 raw_input('ok')
 x.clear()

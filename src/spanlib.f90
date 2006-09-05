@@ -674,11 +674,11 @@ contains
 	! ----------------
 	deltarad = 2 * pi / real(np)
 	if(present(firstphase))then
-		zfirstphase = modulo(firstphase * 2 * pi / 360., 360.)
+		zfirstphase = modulo(firstphase * 2 * pi / 360., 2 * pi)
 	else
 	   zfirstphase = 0.
 	end if
-	angles = (/ (real(iphase) + zfirstphase, iphase=0,np-1) /) * deltarad
+	angles = (/ (real(iphase), iphase=0,np-1) /) * deltarad + zfirstphase
 
 	! Compute the phase maps
 	! ----------------------

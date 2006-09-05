@@ -194,11 +194,11 @@ def pack(data,weights=None):
     return packed_data,packed_weights,mask
 
 
-def phases(data,nphases=8,offset=.5,firstphase=0):
+def computePhases(data,nphases=8,offset=.5,firstphase=0):
     """ Phase composites for oscillatory fields
 
     Usage:::
-    phases = phases(data,nphases,offset,firstphase)
+    phases = computePhases(data,nphases,offset,firstphase)
 
       data       :: Space-time data oscillatory in time
       nphases    :: Number of phases (divisions of the cycle)
@@ -211,15 +211,17 @@ def phases(data,nphases=8,offset=.5,firstphase=0):
     # FIXME: maybe must be integrated to MSSA because
     #        interesting only for MSSA outputs,
     #        and usable only before PCA recontruction
-    ns=data.shape[1]
-    nt=data.shape[0]
+    ns=data.shape[0]
+    nt=data.shape[1]
     w = MV.ones((ns),typecode='f')
-    phases = spanlib_fort.phasecomp(data, ns, nt, nphases, w, offset, firstphase)
-    axes = data.getAxisList()
+    phases = MV.array(spanlib_fort.phasecomp(data, ns, nt, nphases, w, offset, firstphase))
+    print phases.shape
+    axes = MV.array(data).getAxisList()
     phases.id = 'phases'
-    ax = phases.getAxis(0)
+    ax = phases.getAxis(1)
+    ax[:]=ax[:]*360./nphases+firstphase
     ax.id = 'phases'
-    axes[0] = ax
+    axes[1] = ax
     phases.setAxisList(axes)
     return phases
 
@@ -386,7 +388,7 @@ class SpAn(object):
         return eof,pc,ev
 
 
-    def reconstruct(self,start=1,end=None,mssa=True,pca=True):
+    def reconstruct(self,start=1,end=None,mssa=True,pca=True,phases=False,nphases=8,offset=.5,firstphase=0):
         """ Reconstruct results from mssa or pca
 
         Usage:::
@@ -396,6 +398,8 @@ class SpAn(object):
           end   :: Last mode
           mssa  :: Reconstruct MSSA if True
           pca   :: Reconstruct PCA if True
+          phases :: Operate phase reconstruction True/False (default is False)
+          
         Output:::
           ffec :: Reconstructed field
         :::
@@ -406,16 +410,34 @@ class SpAn(object):
         if mssa:
             if n2 is None:
                 n2=self.nmssa
+            ffrec = spanlib_fort.mssarec(self.steof, self.stpc, self.npca, self.nt, self.nmssa, self.window, n1, n2)
+            print 'mssa-1: ffrec:',ffrec.shape
+            if phases:
+                ## Code for phases here ???
+                ffrec = computePhases(ffrec,nphases,offset,firstphase)
+                print 'Done phases and mssa',ffrec.shape
             if pca:
-                ffrec = spanlib_fort.mssarec(self.steof, self.stpc, self.npca, self.nt, self.nmssa, self.window, n1, n2)
-                ffrec = spanlib_fort.pcarec(self.eof, Numeric.transpose(ffrec), self.ns, self.nt, self.npca, 1,self.npca)
+                axes=self.axes
+                if phases: # We did phases
+                    ntimes=nphases
+                    comments='Reconstructed from MSSA and PCA and phases'
+                    ## Replace time axis with phases axis
+                    for i in range(len(axes)):
+                        if axes[i].isTime():
+                            axes[i]=ffrec.getAxis(1)
+                    print 'Done pca reconstruct with phases'
+                else: # we didn't do phases
+                    ntimes=self.nt
+                    comments='Reconstructed from MSSA and PCA'
+                ffrec = spanlib_fort.pcarec(self.eof, Numeric.transpose(ffrec), self.ns, ntimes, self.npca, 1,self.npca)
                 if self.mask is not True:
-                    ffrec = MV.transpose(spanlib_fort.unpack3d(self.mask,self.ns1,self.ns2,self.nt,ffrec,self.ns,1.e20))
-                    ffrec.setAxisList(self.axes)
+                    ffrec = MV.transpose(spanlib_fort.unpack3d(self.mask,self.ns1,self.ns2,ntimes,ffrec,self.ns,1.e20))
+                    ffrec.setAxisList(axes)
                 else:
                     ffrec = MV.transpose(ffrec)
-                ffrec.id=self.varname
-                ffrec.comment='Reconstructed from MSSA and PCA'
+                    ffrec.id=self.varname
+                    ffrec.comment=comments
+                
 
         return ffrec
 

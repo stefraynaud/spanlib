@@ -16,7 +16,7 @@ URL = http://stefdeperou.free.fr/pub
 NCINPUT = data2.cdf
 F90NCOUTPUT = output.nc
 if WITH_PYTHON_EXAMPLE
-VARIABLE = ssta
+VARIABLE = pair1
 CLEANFILES = $(NCOUTPUT)
 endif
 
@@ -41,12 +41,12 @@ $(NCINPUT):
 if HAS_DOWNLOADER
 	@echo "###########################################################"
 	@echo "# Download of input netcdf file:"
-	@echo "# $(URL)/$<"
+	@echo "# $(URL)/$(NCINPUT)"
 	@echo "###########################################################"
 if USE_LINKS
-	$(DOWNLOADER) -source 1 $(URL)/$< > $<
+	$(DOWNLOADER) -source 1 $(URL)/$(NCINPUT) > $<
 else
-	$(DOWNLOADER) $(URL)/$<
+	$(DOWNLOADER) $(URL)/$(NCINPUT)
 endif
 else
 	@echo "###########################################################"
