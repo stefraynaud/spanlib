@@ -14,26 +14,25 @@ cdms.axis.time_aliases.append('T')
 
 f=cdms.open('../example/data2.cdf')
 
-s=f('ssta')
+s=f('ssta',time=slice(0,120))
 print s.shape
 
 SP=spanlib.SpAn(s)
 
 eof,pc,ev = SP.pca()
 
-print 'Done PCA, doing mssa'
-
-steof,stpc,stev = SP.mssa(pca=True)
-
+print 'Done PCA, doing phases w/o mssa'
 print 'Reconstructing'
 
-phases = SP.reconstruct(phases=True,nphases=16,firstphase=180,offset=0.8)
+phases = SP.reconstruct(phases=True,nphases=16,firstphase=180,offset=0.7)
 
 ## phases = spanlib.phases(ffrec)
 
-print phases.info()
-#aaa
 x=vcs.init()
+for i in range(0,phases.shape[0],2):
+    x.plot(phases[i])
+    raw_input('map phase %i/%i ok?' % ( i+1 , phases.shape[0]))
+    x.clear()
 x.plot(phases[:,30,80])
-raw_input('ok')
+raw_input('phases at center of bassin ok?')
 x.clear()
