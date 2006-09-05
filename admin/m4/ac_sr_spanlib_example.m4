@@ -24,7 +24,7 @@ AC_DEFUN([AC_SR_SPANLIB_EXAMPLE],[
 	#################################################################
 	# Python example
 	#################################################################
-	AS_IF(AS_VAR_GET(WITH_PYTHON_EXAMPLE),[
+	AS_VAR_SET_IF(AS_VAR_GET(WITH_PYTHON_EXAMPLE),[
 		AS_VAR_SET(PYTHON_EXAMPLE_TEXT,["To run the python example, type from here '"AS_VAR_GET([NORMAL])"cd example && make python1"AS_VAR_GET(GREEN)"'."])
 	])
 
