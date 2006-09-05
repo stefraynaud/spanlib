@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 library source</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" id="src_f90_lib" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id2943240"></a>SpanLib - Fortran 90 library source</h1></div></div><div></div><hr /></div><table bgcolor="" width="100%" align="center" border="0"><tr><td><pre class="programlisting"><span class="HLcomments">! File: spanlib.f90</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 library source</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" id="src_f90_lib" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3073918"></a>SpanLib - Fortran 90 library source</h1></div></div><div></div><hr /></div><table bgcolor="" width="100%" align="center" border="0"><tr><td><pre class="programlisting"><span class="HLcomments">! File: spanlib.f90</span>
 <span class="HLcomments">!</span>
 <span class="HLcomments">! This file is part of the SpanLib library.</span>
 <span class="HLcomments">! Copyright (C) 2006  Stephane Raynaud</span>
@@ -169,7 +169,7 @@
 			zeof = <span class="HLfunctions">matmul</span>(zff, cov(:,nt:nt-nkeep+<span class="HLdigits">1</span>:-<span class="HLdigits">1</span>))
 			<span class="HLfunctions">deallocate</span>(cov)
 			<span class="HLroutines">do</span> i = <span class="HLdigits">1</span>, nkeep
-		   	zeof(:,i) = zeof(:,i) / <span class="HLfunctions">sqrt</span>(<span class="HLfunctions">dot_product</span>(ww(:), zeof(:,i)**<span class="HLdigits">2</span>))
+				zeof(:,i) = zeof(:,i) / <span class="HLfunctions">sqrt</span>(<span class="HLfunctions">dot_product</span>(ww(:), zeof(:,i)**<span class="HLdigits">2</span>))
 			<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 			<span class="HLroutines">if</span>(<span class="HLfunctions">not</span>(<span class="HLfunctions">present</span>(pc)))<span class="HLroutines">then</span>
 				<span class="HLfunctions">deallocate</span>(ww)
@@ -193,7 +193,7 @@
 		<span class="HLcomments">! Covariance</span>
 		<span class="HLfunctions">allocate</span>(cov(ns,ns))
 		<span class="HLfunctions">allocate</span>(eig(ns))
-	   <span class="HLroutines">do</span> i=<span class="HLdigits">1</span>,nt
+		<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>,ns
 			<span class="HLroutines">do</span> j=<span class="HLdigits">1</span>,i
 				cov(i,j) = <span class="HLfunctions">dot_product</span>(wff(i,:), wff(j,:))
 				cov(j,i) = cov(i,j)
@@ -360,14 +360,14 @@
 	<span class="HLcomments">!	parameter.</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Necessary arguments:</span>
-	<span class="HLcomments">!	- ff:		Space-time array</span>
-	<span class="HLcomments">!	- nwindow:	Window size</span>
-	<span class="HLcomments">!	- nkeep:	Maximum number of modes to keep in outputs</span>
+	<span class="HLcomments">!	- ff:      Space-time array</span>
+	<span class="HLcomments">!	- nwindow: Window size</span>
+	<span class="HLcomments">!	- nkeep:   Maximum number of modes to keep in outputs</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Optional arguments:</span>
-	<span class="HLcomments">!	- steof:	SpaceXwindow-mode array of EOFs</span>
-	<span class="HLcomments">!	- stpc:		Time-mode array of PCs</span>
-	<span class="HLcomments">!	- ev:		Mode array of eigen values (variances)</span>
+	<span class="HLcomments">!	- steof: SpaceXwindow-mode array of EOFs</span>
+	<span class="HLcomments">!	- stpc:  Time-mode array of PCs</span>
+	<span class="HLcomments">!	- ev:    Mode array of eigen values (variances)</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Dependencies:</span>
 	<span class="HLcomments">!	sl_diasym</span>
@@ -482,14 +482,14 @@
 	<span class="HLcomments">!	Same as for the reconstruction of PCA components, but for MSSA.</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Necessary arguments:</span>
-	<span class="HLcomments">!	- steof:	SpaceXwindow-mode array of EOFs</span>
-	<span class="HLcomments">!	- stpc:		Time-mode array of PCs</span>
-	<span class="HLcomments">!	- nwindow:	Window size</span>
-	<span class="HLcomments">!	- ffrec:	Space-time array of the reconstructed field</span>
+	<span class="HLcomments">!	- steof:   SpaceXwindow-mode array of EOFs</span>
+	<span class="HLcomments">!	- stpc:    Time-mode array of PCs</span>
+	<span class="HLcomments">!	- nwindow: Window size</span>
+	<span class="HLcomments">!	- ffrec:   Space-time array of the reconstructed field</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Optional arguments:</span>
-	<span class="HLcomments">!	- istart:		Index of the first component to use</span>
-	<span class="HLcomments">!	- iend:		Index of the last component to use</span>
+	<span class="HLcomments">!	- istart: Index of the first component to use</span>
+	<span class="HLcomments">!	- iend:   Index of the last component to use</span>
 
 	<span class="HLroutines">implicit</span> <span class="HLattributes">none</span>
 
@@ -610,13 +610,13 @@
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Necessary arguments:</span>
-	<span class="HLcomments">!	- ffrec:		Space-time array</span>
-	<span class="HLcomments">!	- np:	Number of requested phases over the 360 degrees cycle (default = 8)</span>
+	<span class="HLcomments">!	- ffrec: Space-time array</span>
+	<span class="HLcomments">!	- np:    Number of requested phases over the 360 degrees cycle (default = 8)</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Optional arguments:</span>
-	<span class="HLcomments">!	- weights:	Space array of weights</span>
-	<span class="HLcomments">!	- offset:		Minimal normalized amplitude of the index (default = 0.)</span>
-	<span class="HLcomments">!	- firstphase:	Value in degrees of the first phase (default = 0)</span>
+	<span class="HLcomments">!	- weights:    Space array of weights</span>
+	<span class="HLcomments">!	- offset:     Minimal normalized amplitude of the index (default = 0.)</span>
+	<span class="HLcomments">!	- firstphase: Value in degrees of the first phase (default = 0)</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Dependencies:</span>
 	<span class="HLcomments">!	sl_pca</span>
@@ -676,11 +676,11 @@
 	<span class="HLcomments">! ----------------</span>
 	deltarad = <span class="HLdigits">2</span> * pi / <span class="HLroutines">real</span>(np)
 	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(firstphase))<span class="HLroutines">then</span>
-		zfirstphase = <span class="HLfunctions">modulo</span>(firstphase * <span class="HLdigits">2</span> * pi / <span class="HLdigits">360</span>., <span class="HLdigits">360</span>.)
+		zfirstphase = <span class="HLfunctions">modulo</span>(firstphase * <span class="HLdigits">2</span> * pi / <span class="HLdigits">360</span>., <span class="HLdigits">2</span> * pi)
 	<span class="HLroutines">else</span>
 	   zfirstphase = <span class="HLdigits">0</span>.
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
-	angles = (/ (<span class="HLroutines">real</span>(iphase) + zfirstphase, iphase=<span class="HLdigits">0</span>,np-<span class="HLdigits">1</span>) /) * deltarad
+	angles = (/ (<span class="HLroutines">real</span>(iphase), iphase=<span class="HLdigits">0</span>,np-<span class="HLdigits">1</span>) /) * deltarad + zfirstphase
 
 	<span class="HLcomments">! Compute the phase maps</span>
 	<span class="HLcomments">! ----------------------</span>

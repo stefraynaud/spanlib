@@ -20,10 +20,12 @@ VARIABLE = pair1
 CLEANFILES = $(NCOUTPUT)
 endif
 
-EXTRA_DIST = example1.py
+EXTRA_DIST = example1.py example2.py
 
 ######################################################################
 ######################################################################
+
+## F90 example
 
 if WITH_EXAMPLE
 all-local: $(NCDATA) view
@@ -41,12 +43,12 @@ $(NCINPUT):
 if HAS_DOWNLOADER
 	@echo "###########################################################"
 	@echo "# Download of input netcdf file:"
-	@echo "# $(URL)/$(NCINPUT)"
+	@echo "# $(URL)/$@"
 	@echo "###########################################################"
 if USE_LINKS
-	$(DOWNLOADER) -source 1 $(URL)/$(NCINPUT) > $<
+	$(DOWNLOADER) -source 1 $(URL)/$@ > $<
 else
-	$(DOWNLOADER) $(URL)/$(NCINPUT)
+	$(DOWNLOADER) $(URL)/$@
 endif
 else
 	@echo "###########################################################"
@@ -58,7 +60,11 @@ endif
 view: $(F90NCOUTPUT)
 if HAS_NCVIEWER
 	@echo "###########################################################"
-	@echo "# Visualisation of output netcdf file $(NCOUTPUT)"
+	@echo "# Visualisation of output netcdf file $(F90NCOUTPUT)"
+	@echo "# This contains the following variables of interest:"
+	@echo "# - orig:  original field (before its analysis)"
+	@echo "# - reco1: reconstruction of the first pair of mssa modes"
+	@echo "# - pair1: phases composites of the first pair"
 	@echo "###########################################################"
 	$(NCVIEWER) $(F90NCOUTPUT) $(VARIABLE)
 else
@@ -74,19 +80,23 @@ $(F90NCOUTPUT): $(NCINPUT) $(LOCAL_LIB) $(PROGRAMS)
 	@echo "###########################################################"
 	./example
 
-if WITH_PYTHON_EXAMPLE
-python1: $(NCDATA)
-	@echo "###########################################################"
-	@echo "# Running the python example program..."
-	@echo "###########################################################"
-	$(PYTHON) example1.py
-else
-python1:
-	@echo "###########################################################"
-	@echo "# You can't run python examples with your configuration
-	@echo "###########################################################"
-endif
-
 
 $(LOCAL_LIB):
 	cd ../src && make
+
+
+## Python example
+
+if WITH_PYTHON_EXAMPLE
+python1 python2: $(NCDATA)
+	@echo "###########################################################"
+	@echo "# Running the python example `echo $@ |cut -c7` program..."
+	@echo "###########################################################"
+	$(PYTHON) example`echo $@ |cut -c7`.py
+else
+python1 python2:
+	@echo "###########################################################"
+	@echo "# You can't run python examples with your configuration"
+	@echo "###########################################################"
+endif
+

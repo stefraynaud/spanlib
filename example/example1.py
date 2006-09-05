@@ -18,18 +18,29 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
+###################################################################
+# In this example, we perform a pre-PCA to reduce the number of
+# d-o-f, then we perform an MSSA to extract the first oscillation
+# (first par of modes). Finally, we compute phase composites
+# to represent the oscillation over its cycle.
+###################################################################
+print "#################################################"
+print "# PCA+MSSA+Phase_composites of 1st oscillation. #"
+print "# Then reconstructions, and plots:              #"
+print "# - 1 phase over 2                              #"
+print "# - 1 time series                               #"
+print "#################################################"
 
-###################################################################
-# In this example, we analyse two different areas at the same time.
-# You can do the same with two completely different datasets,
-# except that they must have the same temporal grid.
-###################################################################
 
 # Needed modules
+import sys
 import cdms
 import spanlib
-import MV
 import vcs
+import MV
+import Numeric
+import cdutil
+import genutil
 
 # We tell cdms that we have longitude, latitude and time
 cdms.axis.latitude_aliases.append('Y')
@@ -38,41 +49,40 @@ cdms.axis.time_aliases.append('T')
 
 # Simply open the netcdf file
 print "Open file"
-f=cdms.open('data2.cdf')
+f=cdms.open('../example/data2.cdf')
 
-# Get our two datasets
+# Retrieve data
 print "Read two different regions"
-s2=f('ssta',latitude=(-10,10),longitude=(110,180))
-s1=f('ssta',latitude=(-15,15),longitude=(210,250))
+s=f('ssta',time=slice(0,120))
 
-# Stack the two dataset to have only one dataset
-print "Stacking data"
-res = spanlib.stackData(s1,s2)
-
-# Create the analysis object
+S# Create the analysis object
 print "Creating SpAn object"
-SP=spanlib.SpAn(MV.array(res[0]),weights=MV.array(res[1]))
+P=spanlib.SpAn(s)
 
-# Perform a preliminary PCA
+# Perform a preliminary PCA+MSSA
+# (equivalent to simple use SP.mssa(pca=True) later)
 print "PCA..."
 eof,pc,ev = SP.pca()
 
-# Now perform a MSSA
-print "MSSA..."
-res3 = steof,stpc,stev = SP.mssa(pca=True)
+# MSSA on PCA results
+print 'MSSA...'
+steof,stpc,stev = SP.mssa()
 
-# Finally recontructed the filtered field
-ffrec = SP.reconstruct()
-res4 = spanlib.unStackData(ffrec,res[1],res[2],res[3])
+# Phase composites of first two MSSA modes
+print 'Phase composites...'
+out = SP.reconstruct(phases=True,nphases=16,end=2)
 
-
-
-# Plot a timeseries taken from our two
-# recontructed datasets
+# Plot 1 phase over two, then a time series
+print "Now, plot!"
 x=vcs.init()
-x.plot(res4[1])
-raw_input('ok?')
+for i in range(0,out.shape[0],out.shape[0]/10):
+    x.plot(out[i])
+    raw_input('map out %i/%i ok?' % ( i+1 , out.shape[0]))
+    x.clear()
+for i in range(0,out.shape[0],out.shape[0]/10):
+    x.plot(s[i]-out[i])
+    raw_input('residual noise map out %i/%i ok?' % ( i+1 , out.shape[0]))
+    x.clear()
+x.plot(out[:,30,80])
+raw_input('Time series at center of bassin ok?')
 x.clear()
-x.plot(res4[1][:,5,5])
-x.plot(res4[0][:,5,5])
-raw_input('ok?')

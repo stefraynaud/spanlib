@@ -34,7 +34,7 @@ if test ! -n "$FC" ; then
                install a Fortran 90 compiler.])
 fi
 
-# LD FLAGS
+# FC AND LD FLAGS
   case "$FC" in
 ##    GENERIC FORTRAN COMPILER (SGI-IRIX, HP-TRUE64, NEC-SX )
       f90)
@@ -119,22 +119,24 @@ fi
 ##    INTEL FORTRAN COMPILER on LINUX OPERATING SYSTEM
       ifort|efc|ifc)
 	case "$enable_optimization" in
-	  debug)
-            AC_MSG_NOTICE([**** DEBUGGING OPTIONS are SELECTED *****])
-            FCFLAGS="-g -O0 -no_cpprt -check all -traceback -auto -warn all -warn unused -debug variable_locations -inline_debug_info"
-	    LDFLAGS="-g -O0 -no_cpprt -check all -traceback -auto -inline_debug_info"
-## if idb bugs use          FCFLAGS="-g -O0 "
-## if idb bugs use 	    LDFLAGS="-g -O0 "
-          ;;
-          aggressive)
-            AC_MSG_NOTICE([**** AGGRESSIVE COMPILER OPTIONS are SELECTED *****])
-    	    FCFLAGS="-fast"
-            LDFLAGS="-fast"
-          ;;
-          normal|*)
-            AC_MSG_NOTICE([**** NORMAL MODE *****])
-	    FCFLAGS="-g -O3 -132 -check bounds"
-	  ;;
+		debug)
+			AC_MSG_NOTICE([**** DEBUGGING OPTIONS are SELECTED *****])
+			FCFLAGS="-g -O0 -132 -no_cpprt -check all -traceback -auto -warn all -warn unused -debug variable_locations -inline_debug_info"
+			LDFLAGS="-g -O0 -132 -no_cpprt -check all -traceback -auto -inline_debug_info"
+			;;
+		aggressive)
+			AC_MSG_NOTICE([**** AGGRESSIVE COMPILER OPTIONS are SELECTED *****])
+			FCFLAGS="-fast -132"
+			LDFLAGS="-fast -132"
+			;;
+		normal|*)
+			AC_MSG_NOTICE([**** NORMAL MODE *****])
+			# Taken from google, special for ifort/blas/lapack:
+			FCFLAGS="-O3 -mp -tpp6 -132 -ip -ftz-"
+			AC_CHECK_FILE([/opt/intel_fc_80/lib],
+				[LDFLAGS="-O3 -Wl,-R/opt/intel_fc_80/lib"],
+				[LDFLAGS="-O3"])
+			;;
 	esac
 	if test "$enable_prof" = "yes" ; then
           AC_MSG_NOTICE([**** PROFILING is SELECTED (gprof) *****])

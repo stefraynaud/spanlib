@@ -167,7 +167,7 @@ contains
 			zeof = matmul(zff, cov(:,nt:nt-nkeep+1:-1))
 			deallocate(cov)
 			do i = 1, nkeep
-		   	zeof(:,i) = zeof(:,i) / sqrt(dot_product(ww(:), zeof(:,i)**2))
+				zeof(:,i) = zeof(:,i) / sqrt(dot_product(ww(:), zeof(:,i)**2))
 			end do
 			if(not(present(pc)))then
 				deallocate(ww)
@@ -191,7 +191,7 @@ contains
 		! Covariance
 		allocate(cov(ns,ns))
 		allocate(eig(ns))
-	   do i=1,ns
+		do i=1,ns
 			do j=1,i
 				cov(i,j) = dot_product(wff(i,:), wff(j,:))
 				cov(j,i) = cov(i,j)
@@ -358,14 +358,14 @@ contains
 	!	parameter.
 	!
 	! Necessary arguments:
-	!	- ff:		Space-time array
-	!	- nwindow:	Window size
-	!	- nkeep:	Maximum number of modes to keep in outputs
+	!	- ff:      Space-time array
+	!	- nwindow: Window size
+	!	- nkeep:   Maximum number of modes to keep in outputs
 	!
 	! Optional arguments:
-	!	- steof:	SpaceXwindow-mode array of EOFs
-	!	- stpc:		Time-mode array of PCs
-	!	- ev:		Mode array of eigen values (variances)
+	!	- steof: SpaceXwindow-mode array of EOFs
+	!	- stpc:  Time-mode array of PCs
+	!	- ev:    Mode array of eigen values (variances)
 	!
 	! Dependencies:
 	!	sl_diasym
@@ -480,14 +480,14 @@ contains
 	!	Same as for the reconstruction of PCA components, but for MSSA.
 	!
 	! Necessary arguments:
-	!	- steof:	SpaceXwindow-mode array of EOFs
-	!	- stpc:		Time-mode array of PCs
-	!	- nwindow:	Window size
-	!	- ffrec:	Space-time array of the reconstructed field
+	!	- steof:   SpaceXwindow-mode array of EOFs
+	!	- stpc:    Time-mode array of PCs
+	!	- nwindow: Window size
+	!	- ffrec:   Space-time array of the reconstructed field
 	!
 	! Optional arguments:
-	!	- istart:		Index of the first component to use
-	!	- iend:		Index of the last component to use
+	!	- istart: Index of the first component to use
+	!	- iend:   Index of the last component to use
 
 	implicit none
 
@@ -608,13 +608,13 @@ contains
 	!
 	!
 	! Necessary arguments:
-	!	- ffrec:		Space-time array
-	!	- np:	Number of requested phases over the 360 degrees cycle (default = 8)
+	!	- ffrec: Space-time array
+	!	- np:    Number of requested phases over the 360 degrees cycle (default = 8)
 	!
 	! Optional arguments:
-	!	- weights:	Space array of weights
-	!	- offset:		Minimal normalized amplitude of the index (default = 0.)
-	!	- firstphase:	Value in degrees of the first phase (default = 0)
+	!	- weights:    Space array of weights
+	!	- offset:     Minimal normalized amplitude of the index (default = 0.)
+	!	- firstphase: Value in degrees of the first phase (default = 0)
 	!
 	! Dependencies:
 	!	sl_pca
