@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="spanlib.css" type="text/css"/>
     <meta name="generator" content="DocBook XSL Stylesheets V1.61.2"/>
     <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, PCA, EOF, POP"/>
-    <meta xmlns="" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:date="http://exslt.org/dates-and-times" name="date" content="2006-09-06+02:00 18:22:49+02:00"/>
+    <meta xmlns="" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:date="http://exslt.org/dates-and-times" name="date" content="2006-09-06+02:00 19:17:02+02:00"/>
     <link rel="home" href="index.html" title="SpanLib - Spectral Analysis Library"/>
     <link rel="up" href="doc_f90.html" title="3. The Fortran 90 library"/>
     <link rel="previous" href="doc_f90_sub.html" title="3.2. F90 subroutines"/>
@@ -42,7 +42,7 @@
 				and stored in a netcdf file.
 			</p>
       <div class="example">
-        <a id="id2844129"/>
+        <a id="id3011356"/>
         <p class="title">
           <b>Example 1. F90 example</b>
         </p>
@@ -146,7 +146,7 @@
 		&amp;	lon_name, lat_name, time_name, time_units
 	<span class="HLroutines">integer</span> :: ncid, dimid, dimids(<span class="HLdigits">4</span>), varid, dims(<span class="HLdigits">3</span>), thisdim, &amp;
 		&amp; lonid, latid, phaseid, timeid, phcoid, recoid, origid
-	<span class="HLroutines">integer</span>(kind=<span class="HLdigits">4</span>) :: i, nspace, nlon, nlat, ntime
+	<span class="HLroutines">integer</span>(kind=<span class="HLdigits">4</span>) :: i, nspace, nlon, nlat, ntime, nspace
 	<span class="HLroutines">real</span> :: pi, missing_value
 
 	<span class="HLcomments">! Get the initial sst field from the netcdf file</span>
@@ -202,13 +202,16 @@
 	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, ntime
 		packed_field(:,i) = <span class="HLfunctions">pack</span>(field(:,:,i), mask)
 	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
-	<span class="HLfunctions">allocate</span>(packed_weights(count(mask)))
+	nspace = count(mask)
+	<span class="HLfunctions">allocate</span>(packed_weights(nspace))
 	packed_weights = <span class="HLfunctions">pack</span>(weights, mask)
 
 
 	<span class="HLcomments">! Perform a PCA to reduce the d.o.f</span>
 	<span class="HLcomments">! ---------------------------------</span>
 	<span class="HLroutines">print</span>*,<span class="HLstrings">'PCA...'</span>
+	<span class="HLfunctions">allocate</span>(eof(nspace, nkeep_pca))
+	<span class="HLfunctions">allocate</span>(pc(ntime,   nkeep_pca))
 	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca</span>(packed_field, nkeep=nkeep_pca, xeof=eof, &amp;
 		&amp;	pc=pc, weights=packed_weights)
 	<span class="HLfunctions">deallocate</span>(packed_field)
@@ -216,6 +219,9 @@
 	<span class="HLcomments">! We send results from PCA to MSSA</span>
 	<span class="HLcomments">! --------------------------------</span>
 	<span class="HLroutines">print</span>*,<span class="HLstrings">'MSSA...'</span>
+	<span class="HLfunctions">allocate</span>(steof(nspace*nwindow, first_mode+<span class="HLdigits">1</span>))
+	<span class="HLfunctions">allocate</span>(stpc(ntime-nwindow+<span class="HLdigits">1</span>, first_mode+<span class="HLdigits">1</span>))
+	<span class="HLfunctions">allocate</span>(stev(                 first_mode+<span class="HLdigits">1</span>))
 	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_mssa</span>(<span class="HLfunctions">transpose</span>(pc), nwindow, nkeep=first_mode+<span class="HLdigits">1</span>, &amp;
 		&amp;	steof=steof, stpc=stpc, ev=stev)
 
@@ -223,6 +229,7 @@
 	<span class="HLcomments">! --------------------------------------------------------</span>
 
 	<span class="HLroutines">print</span>*,<span class="HLstrings">'MSSAREC...'</span>
+	<span class="HLfunctions">allocate</span>(stpair(nkeep_pca, ntime))
 	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_mssarec</span>(steof, stpc, nwindow, stpair, &amp;
 		&amp;	istart=first_mode, iend=first_mode+<span class="HLdigits">1</span>)
 	<span class="HLfunctions">deallocate</span>(steof, stpc)
@@ -230,6 +237,7 @@
 	<span class="HLcomments">! We compute phases composites for the reconstructed oscillation</span>
 	<span class="HLcomments">! ---------------------------------------------------------------</span>
 	<span class="HLroutines">print</span>*,<span class="HLstrings">'PHASECOMP...'</span>
+	<span class="HLfunctions">allocate</span>(stphasecomps(nkeep_pca, nphases))
 	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_phasecomp</span>(stpair, nphases, stphasecomps, &amp;
 		&amp;	weights=packed_weights, &amp;
 		&amp;	offset=offset, firstphase=first_phase)
@@ -238,7 +246,9 @@
 	<span class="HLcomments">! the full oscillation AND its composites</span>
 	<span class="HLcomments">! ---------------------------------------</span>
 	<span class="HLroutines">print</span>*,<span class="HLstrings">'PCAREC...'</span>
+	<span class="HLfunctions">allocate</span>(pair(nspace, ntime))
 	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pcarec</span>(eof, <span class="HLfunctions">transpose</span>(stpair), pair)
+	<span class="HLfunctions">allocate</span>(packed_phasecomps(nspace, nphases))
 	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pcarec</span>(eof, <span class="HLfunctions">transpose</span>(stphasecomps), packed_phasecomps)
 	<span class="HLfunctions">deallocate</span>(stpair, eof, stphasecomps)
 

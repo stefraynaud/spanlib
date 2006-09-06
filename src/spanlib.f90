@@ -112,16 +112,17 @@ contains
 		endif
 	endif
 	if(zuseteof)then
-			if(nkeep>znkeepmax)then
+		if(nkeep>znkeepmax)then
 			print*,'[pca] You want to keep a number of PCs '//&
 				&'greater than the number of EOF:',nt
 			return
 		end if
 	else
 		if(nkeep>znkeepmax)then
-		print*,'[pca] You want to keep a number of PCs '//&
-			&'greater than the number of EOF:',ns
-		return
+			print*,'[pca] You want to keep a number of PCs '//&
+				&'greater than the number of EOF:',ns
+			return
+		end if
 	end if
 
 
@@ -180,7 +181,7 @@ contains
 			do i = 1, nkeep
 				zeof(:,i) = zeof(:,i) / sqrt(dot_product(ww(:), zeof(:,i)**2))
 			end do
-			if(l2)then
+			if(.not.present(pc))then
 				deallocate(ww)
 			end if
 		else
@@ -235,7 +236,7 @@ contains
 	! --------------
 	if(present(xeof))then
 		xeof = zeof
-		if(l2) deallocate(zeof)
+		if(.not.present(pc)) deallocate(zeof)
 	end if
 
 	! Finally get PCs
