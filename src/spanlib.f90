@@ -68,11 +68,11 @@ contains
 
 	! External
 	! --------
-	real,    intent(in)                        :: ff(:,:)
-	integer, intent(in)	             :: nkeep
+	real,    intent(in)           :: ff(:,:)
+	integer, intent(in)	         :: nkeep
 	real,    intent(out),optional :: pc(size(ff,2),nkeep), xeof(size(ff,1),nkeep), ev(nkeep)
-	real,    intent(in),	optional              :: weights(:)
-	integer, intent(in),	optional              :: useteof
+	real,    intent(in),	optional :: weights(:)
+	integer, intent(in),	optional :: useteof
 
 	! Internal
 	! --------
@@ -80,9 +80,7 @@ contains
 	real, allocatable :: cov(:,:)
 	real, allocatable :: wff(:,:), ww(:), zeof(:,:), zff(:,:)
 	real, allocatable :: eig(:)
-	integer           :: zuseteof = -1, znkeep, znkeepmax=100, i,j
-        integer c1,c2,c3
-        logical l1,l2,l3
+	integer           :: zuseteof = -1, znkeepmax=100, i,j
 
 	! Setups
 	! ======
@@ -91,25 +89,14 @@ contains
 	! -----
 	ns=size(ff,1)
 	nt=size(ff,2)
-!!$	if(present(nkeep))then
-		znkeep = nkeep
-!!$	else
-!!$		znkeep = minval(ubound(ff))
-!!$	end if
-	if(znkeep>50)then
-		print*,'[pca] You want to keep a nomber of PCs greater than 50!'
+	if(nkeep>znkeepmax)then
+		print*,'[pca] You want to keep a number of PCs greater than ',znkeepmax
 		return
 	end if
-!!$ bad implementation of not(present()) in gfortran need to convert to integer for not then back to logical
 
-        c1 = present(xeof)
-        l1 = not(c1)
-        c2 = present(pc)
-        l2 = not(c2)
-        c3 = present(ev)
-        l3 = not(c3)
-
-	if(l1.and.l2.and.l3)then
+	! What does the user want?
+	! ------------------------
+	if(.not.present(xeof).and..not.present(pc).and..not.present(ev))then
 		print*,'[pca] Nothing to do. Quit.'
 		return
 	end if
@@ -124,6 +111,19 @@ contains
 			zuseteof=0
 		endif
 	endif
+	if(zuseteof)then
+			if(nkeep>znkeepmax)then
+			print*,'[pca] You want to keep a number of PCs '//&
+				&'greater than the number of EOF:',nt
+			return
+		end if
+	else
+		if(nkeep>znkeepmax)then
+		print*,'[pca] You want to keep a number of PCs '//&
+			&'greater than the number of EOF:',ns
+		return
+	end if
+
 
 	! Remove the mean
 	! ---------------
@@ -190,7 +190,6 @@ contains
 		! Eigenvalues
 		! -----------
 		if(present(ev))then
-!!$			if(not(allocated(ev))) allocate(ev(nkeep))
 			ev = eig(nt:nt-nkeep+1:-1)
 		end if
 
@@ -227,7 +226,6 @@ contains
 		! Eigenvalues
 		! -----------
 		if(present(ev))then
-!!$			if(not(allocated(ev))) allocate(ev(nkeep))
 			ev = eig(ns:ns-nkeep+1:-1)
 		end if
 
@@ -236,7 +234,6 @@ contains
 	! Free eof array
 	! --------------
 	if(present(xeof))then
-!!$		if(not(allocated(xeof))) allocate(xeof(ns,nkeep))
 		xeof = zeof
 		if(l2) deallocate(zeof)
 	end if
@@ -244,7 +241,6 @@ contains
 	! Finally get PCs
 	! ===============
 	if(present(pc))then
-!!$		if(not(allocated(pc))) allocate(pc(nt,nkeep))
 		if(present(weights))then
 			do i=1, nt
 				zff(:,i) = zff(:,i) * ww(:)
@@ -288,13 +284,13 @@ contains
 
 	! External
 	! --------
-	real,	intent(in)				:: xeof(:,:), pc(:,:)
-	real,	intent(out) :: ffrec(size(xeof,1),size(pc,1))
+	real,	intent(in)              :: xeof(:,:), pc(:,:)
+	real,	intent(out)             :: ffrec(size(xeof,1),size(pc,1))
 	integer,intent(in),	optional	:: istart, iend
 
 	! Internal
 	! --------
-	integer 				:: nkept, itmp, zistart=1, ziend, nt, ns, i
+	integer           :: nkept, itmp, zistart=1, ziend, nt, ns, i
 	real, allocatable	:: zpc(:,:)
 
 
@@ -313,7 +309,8 @@ contains
 	end if
 	if(ziend.lt.1.or.ziend.gt.nkept)then
 		ziend=nkept
-		print*,'[pcarec] iend greater than the number of avalaible modes => reduced to',iend
+		print*,'[pcarec] iend greater than the number '//&
+			&'of avalaible modes => reduced to ',ziend
 	end if
 	if(zistart>ziend)then
 		itmp=ziend
@@ -327,7 +324,6 @@ contains
 
 	! Computation
 	! ===========
-!!$	if(not(allocated(ffrec)))allocate(ffrec(ns, nt))
 	ffrec = 0.
 	if(nt<ns) then
 		do i = 1, nt
@@ -388,15 +384,15 @@ contains
 
 	! External
 	! --------
-	real,   intent(in)									:: ff(:,:)
-	integer,intent(in)									:: nwindow, nkeep
-	real,	  intent(out), optional	:: steof(size(ff,1)*nwindow, nkeep), stpc(size(ff,2)-nwindow+1, nkeep), ev(nkeep)
+	real,   intent(in)            :: ff(:,:)
+	integer,intent(in)            :: nwindow, nkeep
+	real,   intent(out), optional :: steof(size(ff,1)*nwindow, nkeep), stpc(size(ff,2)-nwindow+1, nkeep), ev(nkeep)
 
 	! Internal
 	! --------
 	real, allocatable :: cov(:,:), eig(:), trff(:,:), zff(:,:), zsteof(:,:)
 	real :: wsteof
-	integer :: nchan, nsteof, nt
+	integer :: nchan, nsteof, nt, znkeepmax = 100
 	integer :: iw, iw1, iw2, i1, i2, im, ic1, ic2
 
 
@@ -408,6 +404,14 @@ contains
 	nchan = size(ff,1)
 	nsteof = nchan * nwindow
 	nt = size(ff,2)
+	if(nkeep>znkeepmax)then
+		print*,'[pca] You want to keep a number of PCs greater than ',znkeepmax
+		return
+	else if(nkeep>nsteof) then
+		print*,'[pca] You want to keep a number of PCs greater '// &
+			& 'than the number of ST-EOFs:',nsteof
+		return
+	end if
 
 	! Remove the mean
 	! ---------------
@@ -447,7 +451,6 @@ contains
 		zsteof = cov(:, nsteof : nsteof-nkeep+1 : -1)
 		deallocate(cov)
 		if(present(steof))then
-!!$			if(not(allocated(steof))) allocate(steof(nsteof, nkeep))
 			steof = zsteof
 			deallocate(zsteof)
 		end if
@@ -456,7 +459,6 @@ contains
 	! Eigen values
 	! ------------
 	if(present(ev))then
-!!$		if(not(allocated(ev))) allocate(ev(nkeep))
 		ev = eig(nsteof : nsteof-nkeep+1 : -1)
 	end if
 	deallocate(eig)
@@ -465,7 +467,6 @@ contains
 	! Get ST-PCs
 	! ==========
 	if(present(stpc))then
-!!$		if(not(allocated(stpc))) allocate(stpc(nt-nwindow+1, nkeep))
 		allocate(trff(nt, nchan))
 		trff = transpose(zff)
 		do im = 1, nkeep
@@ -508,10 +509,10 @@ contains
 
 	! External
 	! --------
-	real,	intent(in)					:: steof(:,:), stpc(:,:)
-	real,	intent(out)	:: ffrec(size(steof, 1)/nwindow,size(stpc, 1)+nwindow-1)
-	integer,intent(in)					:: nwindow
-	integer,intent(in), optional		:: istart, iend
+	real,   intent(in)           :: steof(:,:), stpc(:,:)
+	real,   intent(out)          :: ffrec(size(steof, 1)/nwindow,size(stpc, 1)+nwindow-1)
+	integer,intent(in)           :: nwindow
+	integer,intent(in), optional :: istart, iend
 
 	! Internal
 	! --------
@@ -530,7 +531,6 @@ contains
 	nkept = size(steof, 2)
 	allocate(reof(nwindow))
 	allocate(epc(nwindow, ntpc-nwindow+1))
-!!$	if(not(allocated(ffrec))) allocate(ffrec(nchan, nt))
 	ffrec = 0.
 
 	! Range
@@ -578,11 +578,11 @@ contains
 
 			 ! * beginning * [iw length projections]
 			 ffrec(ic, iw) = ffrec(ic, iw) + &
-				  & dot_product( reof(nwindow-iw+1:nwindow),  stpc(1		:iw,   im) ) / real(iw)
+				  & dot_product( reof(nwindow-iw+1:nwindow),  stpc(1:iw,   im) ) / real(iw)
 !
 			 ! * end * [iw length projections]
 			 ffrec(ic, nt-iw+1) = ffrec(ic, nt-iw+1) + &
-				  & dot_product( reof(1		   :iw),	   stpc(ntpc-iw+1:ntpc, im) ) / real(iw)
+				  & dot_product( reof(1:iw), stpc(ntpc-iw+1:ntpc, im) ) / real(iw)
 
 			end do
 
@@ -638,11 +638,11 @@ contains
 
 	! External
 	! --------
-	integer, intent(in)	:: np
-	real,	intent(in)   :: ffrec(:,:)
-	real,	intent(in), optional :: weights(:)
-	real,	intent(in), optional :: offset, firstphase
-	real,	intent(out)   :: phases(size(ffrec, 1),np)
+	integer, intent(in)           :: np
+	real,    intent(in)           :: ffrec(:,:)
+	real,    intent(in), optional :: weights(:)
+	real,    intent(in), optional :: offset, firstphase
+	real,    intent(out)          :: phases(size(ffrec, 1),np)
 
 	! Internal
 	! --------
