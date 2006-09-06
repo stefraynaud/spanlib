@@ -693,7 +693,6 @@ contains
 
 	! Compute the phase maps
 	! ----------------------
-!!$	if(not(allocated(phases))) allocate(phases(ns, np))
 	phases = 0.
 	select_amplitude = amp >= zoffset
 	do iphase = 1, np

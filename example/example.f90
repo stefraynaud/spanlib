@@ -76,7 +76,7 @@ program example
 		&	lon_name, lat_name, time_name, time_units
 	integer :: ncid, dimid, dimids(4), varid, dims(3), thisdim, &
 		& lonid, latid, phaseid, timeid, phcoid, recoid, origid
-	integer(kind=4) :: i, nspace, nlon, nlat, ntime
+	integer(kind=4) :: i, nspace, nlon, nlat, ntime, nspace
 	real :: pi, missing_value
 
 	! Get the initial sst field from the netcdf file
@@ -132,13 +132,16 @@ program example
 	do i=1, ntime
 		packed_field(:,i) = pack(field(:,:,i), mask)
 	end do
-	allocate(packed_weights(count(mask)))
+	nspace = count(mask)
+	allocate(packed_weights(nspace))
 	packed_weights = pack(weights, mask)
 
 
 	! Perform a PCA to reduce the d.o.f
 	! ---------------------------------
 	print*,'PCA...'
+	allocate(eof(nspace, nkeep_pca))
+	allocate(pc(ntime,   nkeep_pca))
 	call sl_pca(packed_field, nkeep=nkeep_pca, xeof=eof, &
 		&	pc=pc, weights=packed_weights)
 	deallocate(packed_field)
@@ -146,6 +149,9 @@ program example
 	! We send results from PCA to MSSA
 	! --------------------------------
 	print*,'MSSA...'
+	allocate(steof(nspace*nwindow, first_mode+1))
+	allocate(stpc(ntime-nwindow+1, first_mode+1))
+	allocate(stev(                 first_mode+1))
 	call sl_mssa(transpose(pc), nwindow, nkeep=first_mode+1, &
 		&	steof=steof, stpc=stpc, ev=stev)
 
@@ -153,6 +159,7 @@ program example
 	! --------------------------------------------------------
 
 	print*,'MSSAREC...'
+	allocate(stpair(nkeep_pca, ntime))
 	call sl_mssarec(steof, stpc, nwindow, stpair, &
 		&	istart=first_mode, iend=first_mode+1)
 	deallocate(steof, stpc)
@@ -160,6 +167,7 @@ program example
 	! We compute phases composites for the reconstructed oscillation
 	! ---------------------------------------------------------------
 	print*,'PHASECOMP...'
+	allocate(stphasecomps(nkeep_pca, nphases))
 	call sl_phasecomp(stpair, nphases, stphasecomps, &
 		&	weights=packed_weights, &
 		&	offset=offset, firstphase=first_phase)
@@ -168,7 +176,9 @@ program example
 	! the full oscillation AND its composites
 	! ---------------------------------------
 	print*,'PCAREC...'
+	allocate(pair(nspace, ntime))
 	call sl_pcarec(eof, transpose(stpair), pair)
+	allocate(packed_phasecomps(nspace, nphases))
 	call sl_pcarec(eof, transpose(stphasecomps), packed_phasecomps)
 	deallocate(stpair, eof, stphasecomps)
 
