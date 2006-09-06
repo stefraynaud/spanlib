@@ -28,6 +28,12 @@ import Numeric
 def stackData(*data):
     """ Takes several data files, of same time and stacks them up together
 
+    Description:::
+      This fonction concatenates several dataset that have the
+      same time axis. It is useful for analysing for example
+      several variables at the same time.
+		It takes into account weights, masks and axes.
+
     Usage:::
     dout, weights, mask, axes = stackData(data1[, data2...])
 
@@ -73,6 +79,10 @@ def stackData(*data):
 def unStackData(din,weights,masks,axes):
     """ Unstack data in the form returned from stackData
 
+    Description:::
+      This function is the reverse operation of stakData.
+      It splits stacked datasets into a list.
+
     Usage:::
     dout = unStackData(din,weights,mask,axes)
 
@@ -106,11 +116,6 @@ def unStackData(din,weights,masks,axes):
         w=weights[istart:iend]
         ns1=len(axes[i][-1])
         ns2=len(axes[i][-2])
-##         print 'm',m
-##         print 'ns1,ns2',ns1,ns2
-##         print 'data.shape',data.shape
-##         print 'data',data
-##         print 'mlen',mlen
         up=spanlib_fort.unpack3d(m,ns1,ns2,data.shape[1],data,mlen,1.e20)
         unpacked = MV.transpose(MV.array(up))
         unpacked.setAxisList(axes[i])
@@ -120,7 +125,14 @@ def unStackData(din,weights,masks,axes):
 
 
 def pack(data,weights=None):
-    """ Computes weights and mask
+    """ Pack a dataset and its weights according to its mask
+
+    Description:::
+      This function packs a dataset in 2D space by removing
+      all masked points and returning a space-time array.
+      It performs this operation also on the weights.
+      It is used for removing unnecessary points and
+      simplifying the input format for analysis functions.
 
     Usage:::
     packed_data, packed_weights, mask = pack(data,weights)
@@ -230,6 +242,11 @@ class SpAn(object):
     def __init__(self,data,weights=None,npca=None,window=None,nmssa=None):
         """ Prepare the Spectral Analysis Object
 
+        Description:::
+          This function creates an object for future analyses.
+          It optionally initializes some parameters.
+
+
         Usage:::
         analysis_object = SpAn(data,weights=None,npca=None,window=None,nmssa=None)
 
@@ -284,6 +301,11 @@ class SpAn(object):
     def pca(self,npca=None):
         """ Principal Components Analysis (PCA)
 
+        Descriptions:::
+          This function performs a PCA on the analysis objects
+          and returns EOF, PC and eigen values.
+          EOF are automatically unpacked.
+
         Usage:::
         eof, pc, ev = pca(data,npca=None,weights=None)
 
@@ -333,6 +355,14 @@ class SpAn(object):
     def mssa(self,nmssa=None,pca=None,window=None):
         """ MultiChannel Singular Spectrum Analysis (MSSA)
 
+        Descriptions:::
+          This function performs a MSSA on the analysis objects
+          and returns EOF, PC and eigen values.
+          Unless pca parameter is set to false, a pre
+          PCA is performed to reduced the number of d-o-f
+          if already done and if the number of channels is
+          greater than 30.
+
         Usage:::
         eof, pc, ev = mssa(nmssa,pca)
 
@@ -348,10 +378,10 @@ class SpAn(object):
 
         ## Check for default values for mssa and pca if not passed by user
         if pca is None:
-            if self.pc is None:
-                pca = False
-            else:
+            if self.pc is None and self.pdata.shape[0] > 30:
                 pca = True
+            else:
+                pca = False
 
 
 ##         print 'In mssa : pca is:',pca
@@ -407,6 +437,16 @@ class SpAn(object):
     def reconstruct(self,start=1,end=None,mssa=None,pca=None,phases=False,nphases=8,offset=.5,firstphase=0):
         """ Reconstruct results from mssa or pca
 
+        Description:::
+          This function performs recontructions to retreive the
+          the contribution of a selection of modes to the original field.
+          By default, it recontructs from available PCA and MSSA
+          results. Recontruction of MSSA modes also calls recontruction
+          from of pre-PCA to get back to the original space.
+          This function can optionally performs phase composites
+          (useful for pairs of MSSA modes = oscillations) on MSSA
+          recontructions.
+
         Usage:::
         ffrec = reconstruct(start,end,mssa,pca)
 
@@ -415,7 +455,7 @@ class SpAn(object):
           mssa  :: Reconstruct MSSA if True
           pca   :: Reconstruct PCA if True
           phases :: Operate phase reconstruction True/False (default is False)
-          
+
         Output:::
           ffec :: Reconstructed field
         :::
@@ -446,18 +486,19 @@ class SpAn(object):
         if phases and not pca and not mssa:
             raise 'Error you did not do any PCA or MSSA!\n To do a phases analysis only use the function %s in this module.\n%s' % ('computePhases',computePhases.__doc__)
         ## Now do the actual reconstruct job
-                
+
         if mssa:
             if pca:
                 nspace=self.npca
             else:
                 nspace=self.pdata.shape[0]
-                
+
             if n2 is None:
                 n2=self.nmssa
             ffrec = spanlib_fort.mssarec(self.steof, self.stpc, nspace, self.nt, self.nmssa, self.window, n1, n2)
 ##             print 'Ok did mssa',ffrec.shape
             comments+=' MSSA '
+
         if phases:
             if mssa :
 ##                 print 'phase+mssa reconst'
@@ -472,8 +513,8 @@ class SpAn(object):
                     axes[i]=ffrec.getAxis(1)
             ## Attributes
                     comments+=' Phases'
-                    
-                    
+
+
         if pca:
             comments+=' PCA'
             axes=self.axes
@@ -481,10 +522,10 @@ class SpAn(object):
                 pcreconstruct = Numeric.transpose(ffrec) ; del(ffrec)
             else:
                 pcreconstruct = self.pc
-            
+
 ##             print pcreconstruct.shape,self.ns,ntimes
             ffrec = spanlib_fort.pcarec(self.eof, pcreconstruct, self.ns, ntimes, self.npca, 1,self.npca)
-            
+
 ##         print 'SEF.mask is:',self.mask
         if self.mask is not None:
             ffrec = MV.transpose(spanlib_fort.unpack3d(self.mask,self.ns1,self.ns2,ntimes,ffrec,self.ns,1.e20))
@@ -493,7 +534,7 @@ class SpAn(object):
             ffrec = MV.transpose(ffrec)
             ffrec.id=self.varname
             ffrec.comment=comments
-            
+
         return ffrec
 
     def clean(self):
