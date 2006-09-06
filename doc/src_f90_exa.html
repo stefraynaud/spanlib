@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 example</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" id="src_f90_exa" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3288643"></a>SpanLib - Fortran 90 example</h1></div></div><div></div><hr /></div><table bgcolor="" width="100%" align="center" border="0"><tr><td><pre class="programlisting"><span class="HLcomments">! File: example.f90</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 example</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" id="src_f90_exa" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3338740"></a>SpanLib - Fortran 90 example</h1></div></div><div></div><hr /></div><table bgcolor="" width="100%" align="center" border="0"><tr><td><pre class="programlisting"><span class="HLcomments">! File: example.f90</span>
 <span class="HLcomments">!</span>
 <span class="HLcomments">! This file is part of the SpanLib library.</span>
 <span class="HLcomments">! Copyright (C) 2006  Stephane Raynaud</span>
@@ -125,11 +125,11 @@
 	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 
 	<span class="HLcomments">! Now pack</span>
-	<span class="HLroutines">if</span>(isnan(missing_value))<span class="HLroutines">then</span>
-		mask = <span class="HLfunctions">not</span>(isnan(field(:,:,<span class="HLdigits">1</span>)))
-	<span class="HLroutines">else</span>
+<span class="HLcomments">!!$	if(isnan(missing_value))then</span>
+<span class="HLcomments">!!$		mask = not(isnan(field(:,:,1)))</span>
+<span class="HLcomments">!!$	else</span>
 		mask = (field(:,:,<span class="HLdigits">1</span>) /= missing_value)
-	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+<span class="HLcomments">!!$	end if</span>
 	<span class="HLfunctions">allocate</span>(packed_field(count(mask), ntime))
 	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, ntime
 		packed_field(:,i) = <span class="HLfunctions">pack</span>(field(:,:,i), mask)
@@ -181,7 +181,7 @@
 	<span class="HLfunctions">allocate</span>(reco(nlon,nlat,ntime))
 	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, ntime
 		reco(:,:,i) = <span class="HLfunctions">unpack</span>(pair(:,i), mask, new_missing_value)
-		where(mask == .false.)
+		where(mask .eqv. .false.)
 			field(:,:,i) = new_missing_value
 		<span class="HLroutines">end</span> where
 	<span class="HLroutines">end</span> <span class="HLroutines">do</span>

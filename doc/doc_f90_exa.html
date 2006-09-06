@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="spanlib.css" type="text/css"/>
     <meta name="generator" content="DocBook XSL Stylesheets V1.61.2"/>
     <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, PCA, EOF, POP"/>
-    <meta xmlns="" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:date="http://exslt.org/dates-and-times" name="date" content="2006-09-05+02:00 19:15:59+02:00"/>
+    <meta xmlns="" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:date="http://exslt.org/dates-and-times" name="date" content="2006-09-06+02:00 18:22:49+02:00"/>
     <link rel="home" href="index.html" title="SpanLib - Spectral Analysis Library"/>
     <link rel="up" href="doc_f90.html" title="3. The Fortran 90 library"/>
     <link rel="previous" href="doc_f90_sub.html" title="3.2. F90 subroutines"/>
@@ -42,7 +42,7 @@
 				and stored in a netcdf file.
 			</p>
       <div class="example">
-        <a id="id3258217"/>
+        <a id="id2844129"/>
         <p class="title">
           <b>Example 1. F90 example</b>
         </p>
@@ -193,11 +193,11 @@
 	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 
 	<span class="HLcomments">! Now pack</span>
-	<span class="HLroutines">if</span>(isnan(missing_value))<span class="HLroutines">then</span>
-		mask = <span class="HLfunctions">not</span>(isnan(field(:,:,<span class="HLdigits">1</span>)))
-	<span class="HLroutines">else</span>
+<span class="HLcomments">!!$	if(isnan(missing_value))then</span>
+<span class="HLcomments">!!$		mask = not(isnan(field(:,:,1)))</span>
+<span class="HLcomments">!!$	else</span>
 		mask = (field(:,:,<span class="HLdigits">1</span>) /= missing_value)
-	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+<span class="HLcomments">!!$	end if</span>
 	<span class="HLfunctions">allocate</span>(packed_field(count(mask), ntime))
 	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, ntime
 		packed_field(:,i) = <span class="HLfunctions">pack</span>(field(:,:,i), mask)
@@ -249,7 +249,7 @@
 	<span class="HLfunctions">allocate</span>(reco(nlon,nlat,ntime))
 	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, ntime
 		reco(:,:,i) = <span class="HLfunctions">unpack</span>(pair(:,i), mask, new_missing_value)
-		where(mask == .false.)
+		where(mask .eqv. .false.)
 			field(:,:,i) = new_missing_value
 		<span class="HLroutines">end</span> where
 	<span class="HLroutines">end</span> <span class="HLroutines">do</span>

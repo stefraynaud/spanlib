@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="spanlib.css" type="text/css"/>
     <meta name="generator" content="DocBook XSL Stylesheets V1.61.2"/>
     <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, PCA, EOF, POP"/>
-    <meta xmlns="" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:date="http://exslt.org/dates-and-times" name="date" content="2006-09-05+02:00 19:15:59+02:00"/>
+    <meta xmlns="" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:date="http://exslt.org/dates-and-times" name="date" content="2006-09-06+02:00 18:22:49+02:00"/>
     <link rel="home" href="index.html" title="SpanLib - Spectral Analysis Library"/>
     <link rel="up" href="doc_pyt.html" title="4. The python module"/>
     <link rel="previous" href="doc_pyt.html" title="4. The python module"/>
@@ -47,7 +47,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3327136"/>Usage</h5>
+                <h5 class="title"><a id="id2913051"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -64,7 +64,23 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3327187"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id2913100"/>Description</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <p>      This fonction concatenates several dataset that have the
+      same time axis. It is useful for analysing for example
+      several variables at the same time.
+		It takes into account weights, masks and axes.
+
+</p>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2913116"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -81,7 +97,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3327225"/>Outputs</h5>
+                <h5 class="title"><a id="id2913154"/>Outputs</h5>
               </div>
             </div>
             <div/>
@@ -113,7 +129,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3338496"/>Usage</h5>
+                <h5 class="title"><a id="id2925807"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -130,7 +146,21 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3338548"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id2925860"/>Description</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <p>      This function is the reverse operation of stakData.
+      It splits stacked datasets into a list.
+
+</p>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2925874"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -152,7 +182,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3338656"/>Outputs</h5>
+                <h5 class="title"><a id="id2925982"/>Outputs</h5>
               </div>
             </div>
             <div/>
@@ -169,7 +199,7 @@
         <div class="titlepage">
           <div>
             <div>
-              <h4 class="title"><a id="spanlib.pack"/>4.2.3.  Computes weights and mask: <tt class="literal">spanlib.pack</tt></h4>
+              <h4 class="title"><a id="spanlib.pack"/>4.2.3.  Pack a dataset and its weights according to its mask: <tt class="literal">spanlib.pack</tt></h4>
             </div>
           </div>
           <div/>
@@ -178,7 +208,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3338709"/>Usage</h5>
+                <h5 class="title"><a id="id2926034"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -195,7 +225,24 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3338769"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id2926094"/>Description</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <p>      This function packs a dataset in 2D space by removing
+      all masked points and returning a space-time array.
+      It performs this operation also on the weights.
+      It is used for removing unnecessary points and
+      simplifying the input format for analysis functions.
+
+</p>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2926112"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -212,7 +259,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3338806"/>Optional arguments</h5>
+                <h5 class="title"><a id="id2926150"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -228,7 +275,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3338850"/>Outputs</h5>
+                <h5 class="title"><a id="id2926193"/>Outputs</h5>
               </div>
             </div>
             <div/>
@@ -258,7 +305,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3338952"/>Usage</h5>
+                <h5 class="title"><a id="id2926295"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -275,7 +322,25 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3339026"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id2926369"/>Description</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <p>      This computes temporal phase composites of a spatio-temporal
+      dataset. The dataset is expected to be oscillatory in time.
+      It corresponds to a reoganisation of the time axis to
+      to represents the dataset over its cycle in a arbitrary
+      number of phases. It is useful, for example, to have a
+      synthetic view of an reconstructed MSSA oscillation.
+
+</p>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2926388"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -291,7 +356,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3339063"/>Optional arguments</h5>
+                <h5 class="title"><a id="id2924427"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -311,7 +376,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3339169"/>Outputs</h5>
+                <h5 class="title"><a id="id2924534"/>Outputs</h5>
               </div>
             </div>
             <div/>
@@ -337,7 +402,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3339222"/>Usage</h5>
+                <h5 class="title"><a id="id2924587"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -354,7 +419,22 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3339310"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id2924675"/>Description</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <p>          This function creates an object for future analyses.
+          It optionally initializes some parameters.
+
+
+</p>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2924689"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -372,7 +452,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3339350"/>Optional arguments</h5>
+                <h5 class="title"><a id="id2924729"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -400,7 +480,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3339494"/>Outputs</h5>
+                <h5 class="title"><a id="id2924873"/>Outputs</h5>
               </div>
             </div>
             <div/>
@@ -426,7 +506,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3339548"/>Usage</h5>
+                <h5 class="title"><a id="id2924927"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -443,7 +523,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3339601"/>Optional arguments</h5>
+                <h5 class="title"><a id="id2924980"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -459,7 +539,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3339645"/>Outputs</h5>
+                <h5 class="title"><a id="id2925024"/>Outputs</h5>
               </div>
             </div>
             <div/>
@@ -489,7 +569,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3328057"/>Usage</h5>
+                <h5 class="title"><a id="id2925125"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -506,7 +586,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3328138"/>Optional arguments</h5>
+                <h5 class="title"><a id="id2925206"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -526,7 +606,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3328243"/>Outputs</h5>
+                <h5 class="title"><a id="id2925311"/>Outputs</h5>
               </div>
             </div>
             <div/>
@@ -556,7 +636,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3328344"/>Usage</h5>
+                <h5 class="title"><a id="id2913993"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -573,7 +653,27 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3328480"/>Optional arguments</h5>
+                <h5 class="title"><a id="id2914129"/>Description</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <p>          This function performs recontructions to retreive the
+          the contribution of a selection of modes to the original field.
+          By default, it recontructs from available PCA and MSSA
+          results. Recontruction of MSSA modes also calls recontruction
+          from of pre-PCA to get back to the original space.
+          This function can optionally performs phase composites
+          (useful for pairs of MSSA modes = oscillations) on MSSA
+          recontructions.
+
+</p>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id2914151"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -589,7 +689,7 @@
               <li><tt class="varname">pca    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
 				 :: <span class="emphasis"><em> Reconstruct PCA if True</em></span></li>
               <li><tt class="varname">phases    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">False</span>]    </span></tt> 
-				 :: <span class="emphasis"><em> Operate phase reconstruction True/False (default is False)          
+				 :: <span class="emphasis"><em> Operate phase reconstruction True/False (default is False)
 </em></span></li>
               <li><tt class="varname">nphases    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">8</span>]    </span></tt> 
 				 :: <span class="emphasis"><em/></span></li>
@@ -604,7 +704,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3328734"/>Outputs</h5>
+                <h5 class="title"><a id="id2914405"/>Outputs</h5>
               </div>
             </div>
             <div/>

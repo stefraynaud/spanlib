@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 library source</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" id="src_f90_lib" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3302743"></a>SpanLib - Fortran 90 library source</h1></div></div><div></div><hr /></div><table bgcolor="" width="100%" align="center" border="0"><tr><td><pre class="programlisting"><span class="HLcomments">! File: spanlib.f90</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 library source</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" id="src_f90_lib" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3373871"></a>SpanLib - Fortran 90 library source</h1></div></div><div></div><hr /></div><table bgcolor="" width="100%" align="center" border="0"><tr><td><pre class="programlisting"><span class="HLcomments">! File: spanlib.f90</span>
 <span class="HLcomments">!</span>
 <span class="HLcomments">! This file is part of the SpanLib library.</span>
 <span class="HLcomments">! Copyright (C) 2006  Stephane Raynaud</span>
@@ -50,9 +50,9 @@
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Necessary arguments:</span>
 	<span class="HLcomments">!	- ff:			Space-time array</span>
+	<span class="HLcomments">!	- nkeep:		Maximum number of modes to keep in outputs</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Optional arguments:</span>
-	<span class="HLcomments">!	- nkeep:		Maximum number of modes to keep in outputs</span>
 	<span class="HLcomments">!	- xeof:		Space-mode array of EOFs</span>
 	<span class="HLcomments">!	- pc:			Time-mode array of PCs</span>
 	<span class="HLcomments">!	- ev:			Mode array of eigen values (variances)</span>
@@ -71,8 +71,8 @@
 	<span class="HLcomments">! External</span>
 	<span class="HLcomments">! --------</span>
 	<span class="HLroutines">real</span>,    <span class="HLattributes">intent</span>(in)                        :: ff(:,:)
-	<span class="HLroutines">integer</span>, <span class="HLattributes">intent</span>(in),	<span class="HLattributes">optional</span>              :: nkeep
-	<span class="HLroutines">real</span>,    <span class="HLattributes">intent</span>(out),<span class="HLattributes">optional</span>, <span class="HLattributes">allocatable</span> :: pc(:,:), xeof(:,:), ev(:)
+	<span class="HLroutines">integer</span>, <span class="HLattributes">intent</span>(in)	             :: nkeep
+	<span class="HLroutines">real</span>,    <span class="HLattributes">intent</span>(out),<span class="HLattributes">optional</span> :: pc(size(ff,<span class="HLdigits">2</span>),nkeep), xeof(size(ff,<span class="HLdigits">1</span>),nkeep), ev(nkeep)
 	<span class="HLroutines">real</span>,    <span class="HLattributes">intent</span>(in),	<span class="HLattributes">optional</span>              :: weights(:)
 	<span class="HLroutines">integer</span>, <span class="HLattributes">intent</span>(in),	<span class="HLattributes">optional</span>              :: useteof
 
@@ -83,6 +83,8 @@
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: wff(:,:), ww(:), zeof(:,:), zff(:,:)
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: eig(:)
 	<span class="HLroutines">integer</span>           :: zuseteof = -<span class="HLdigits">1</span>, znkeep, znkeepmax=<span class="HLdigits">100</span>, i,j
+        <span class="HLroutines">integer</span> c1,c2,c3
+        <span class="HLroutines">logical</span> l1,l2,l3
 
 	<span class="HLcomments">! Setups</span>
 	<span class="HLcomments">! ======</span>
@@ -91,16 +93,25 @@
 	<span class="HLcomments">! -----</span>
 	ns=size(ff,<span class="HLdigits">1</span>)
 	nt=size(ff,<span class="HLdigits">2</span>)
-	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(nkeep))<span class="HLroutines">then</span>
+<span class="HLcomments">!!$	if(present(nkeep))then</span>
 		znkeep = nkeep
-	<span class="HLroutines">else</span>
-		znkeep = minval(ubound(ff))
-	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+<span class="HLcomments">!!$	else</span>
+<span class="HLcomments">!!$		znkeep = minval(ubound(ff))</span>
+<span class="HLcomments">!!$	end if</span>
 	<span class="HLroutines">if</span>(znkeep&gt;<span class="HLdigits">50</span>)<span class="HLroutines">then</span>
 		<span class="HLroutines">print</span>*,'[pca] You want to keep a nomber of PCs greater than <span class="HLdigits">50</span><span class="HLcomments">!'</span>
 		return
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
-	<span class="HLroutines">if</span>(<span class="HLfunctions">not</span>(<span class="HLfunctions">present</span>(xeof)).and.<span class="HLfunctions">not</span>(<span class="HLfunctions">present</span>(pc)).and.<span class="HLfunctions">not</span>(<span class="HLfunctions">present</span>(ev)))<span class="HLroutines">then</span>
+<span class="HLcomments">!!$ bad implementation of not(present()) in gfortran need to convert to integer for not then back to logical</span>
+
+        c1 = <span class="HLfunctions">present</span>(xeof)
+        l1 = <span class="HLfunctions">not</span>(c1)
+        c2 = <span class="HLfunctions">present</span>(pc)
+        l2 = <span class="HLfunctions">not</span>(c2)
+        c3 = <span class="HLfunctions">present</span>(ev)
+        l3 = <span class="HLfunctions">not</span>(c3)
+
+	<span class="HLroutines">if</span>(l1.and.l2.and.l3)<span class="HLroutines">then</span>
 		<span class="HLroutines">print</span>*,<span class="HLstrings">'[pca] Nothing to <span class="HLroutines">do</span>. Quit.'</span>
 		return
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
@@ -171,7 +182,7 @@
 			<span class="HLroutines">do</span> i = <span class="HLdigits">1</span>, nkeep
 				zeof(:,i) = zeof(:,i) / <span class="HLfunctions">sqrt</span>(<span class="HLfunctions">dot_product</span>(ww(:), zeof(:,i)**<span class="HLdigits">2</span>))
 			<span class="HLroutines">end</span> <span class="HLroutines">do</span>
-			<span class="HLroutines">if</span>(<span class="HLfunctions">not</span>(<span class="HLfunctions">present</span>(pc)))<span class="HLroutines">then</span>
+			<span class="HLroutines">if</span>(l2)<span class="HLroutines">then</span>
 				<span class="HLfunctions">deallocate</span>(ww)
 			<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 		<span class="HLroutines">else</span>
@@ -181,7 +192,7 @@
 		<span class="HLcomments">! Eigenvalues</span>
 		<span class="HLcomments">! -----------</span>
 		<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(ev))<span class="HLroutines">then</span>
-			<span class="HLroutines">if</span>(<span class="HLfunctions">not</span>(<span class="HLfunctions">allocated</span>(ev))) <span class="HLfunctions">allocate</span>(ev(nkeep))
+<span class="HLcomments">!!$			if(not(allocated(ev))) allocate(ev(nkeep))</span>
 			ev = eig(nt:nt-nkeep+<span class="HLdigits">1</span>:-<span class="HLdigits">1</span>)
 		<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 
@@ -218,7 +229,7 @@
 		<span class="HLcomments">! Eigenvalues</span>
 		<span class="HLcomments">! -----------</span>
 		<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(ev))<span class="HLroutines">then</span>
-			<span class="HLroutines">if</span>(<span class="HLfunctions">not</span>(<span class="HLfunctions">allocated</span>(ev))) <span class="HLfunctions">allocate</span>(ev(nkeep))
+<span class="HLcomments">!!$			if(not(allocated(ev))) allocate(ev(nkeep))</span>
 			ev = eig(ns:ns-nkeep+<span class="HLdigits">1</span>:-<span class="HLdigits">1</span>)
 		<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 
@@ -227,15 +238,15 @@
 	<span class="HLcomments">! Free eof array</span>
 	<span class="HLcomments">! --------------</span>
 	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(xeof))<span class="HLroutines">then</span>
-		<span class="HLroutines">if</span>(<span class="HLfunctions">not</span>(<span class="HLfunctions">allocated</span>(xeof))) <span class="HLfunctions">allocate</span>(xeof(ns,nkeep))
+<span class="HLcomments">!!$		if(not(allocated(xeof))) allocate(xeof(ns,nkeep))</span>
 		xeof = zeof
-		<span class="HLroutines">if</span>(<span class="HLfunctions">not</span>(<span class="HLfunctions">present</span>(pc))) <span class="HLfunctions">deallocate</span>(zeof)
+		<span class="HLroutines">if</span>(l2) <span class="HLfunctions">deallocate</span>(zeof)
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 
 	<span class="HLcomments">! Finally get PCs</span>
 	<span class="HLcomments">! ===============</span>
 	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(pc))<span class="HLroutines">then</span>
-		<span class="HLroutines">if</span>(<span class="HLfunctions">not</span>(<span class="HLfunctions">allocated</span>(pc))) <span class="HLfunctions">allocate</span>(pc(nt,nkeep))
+<span class="HLcomments">!!$		if(not(allocated(pc))) allocate(pc(nt,nkeep))</span>
 		<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(weights))<span class="HLroutines">then</span>
 			<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, nt
 				zff(:,i) = zff(:,i) * ww(:)
@@ -280,7 +291,7 @@
 	<span class="HLcomments">! External</span>
 	<span class="HLcomments">! --------</span>
 	<span class="HLroutines">real</span>,	<span class="HLattributes">intent</span>(in)				:: xeof(:,:), pc(:,:)
-	<span class="HLroutines">real</span>,	<span class="HLattributes">intent</span>(out),<span class="HLattributes">allocatable</span>	:: ffrec(:,:)
+	<span class="HLroutines">real</span>,	<span class="HLattributes">intent</span>(out) :: ffrec(size(xeof,<span class="HLdigits">1</span>),size(pc,<span class="HLdigits">1</span>))
 	<span class="HLroutines">integer</span>,<span class="HLattributes">intent</span>(in),	<span class="HLattributes">optional</span>	:: istart, iend
 
 	<span class="HLcomments">! Internal</span>
@@ -318,7 +329,7 @@
 
 	<span class="HLcomments">! Computation</span>
 	<span class="HLcomments">! ===========</span>
-	<span class="HLroutines">if</span>(<span class="HLfunctions">not</span>(<span class="HLfunctions">allocated</span>(ffrec)))<span class="HLfunctions">allocate</span>(ffrec(ns, nt))
+<span class="HLcomments">!!$	if(not(allocated(ffrec)))allocate(ffrec(ns, nt))</span>
 	ffrec = <span class="HLdigits">0</span>.
 	<span class="HLroutines">if</span>(nt&lt;ns) <span class="HLroutines">then</span>
 		<span class="HLroutines">do</span> i = <span class="HLdigits">1</span>, nt
@@ -381,7 +392,7 @@
 	<span class="HLcomments">! --------</span>
 	<span class="HLroutines">real</span>,   <span class="HLattributes">intent</span>(in)									:: ff(:,:)
 	<span class="HLroutines">integer</span>,<span class="HLattributes">intent</span>(in)									:: nwindow, nkeep
-	<span class="HLroutines">real</span>,	  <span class="HLattributes">intent</span>(out), <span class="HLattributes">optional</span>, <span class="HLattributes">allocatable</span>	:: steof(:,:), stpc(:,:), ev(:)
+	<span class="HLroutines">real</span>,	  <span class="HLattributes">intent</span>(out), <span class="HLattributes">optional</span>	:: steof(size(ff,<span class="HLdigits">1</span>)*nwindow, nkeep), stpc(size(ff,<span class="HLdigits">2</span>)-nwindow+<span class="HLdigits">1</span>, nkeep), ev(nkeep)
 
 	<span class="HLcomments">! Internal</span>
 	<span class="HLcomments">! --------</span>
@@ -438,7 +449,7 @@
 		zsteof = cov(:, nsteof : nsteof-nkeep+<span class="HLdigits">1</span> : -<span class="HLdigits">1</span>)
 		<span class="HLfunctions">deallocate</span>(cov)
 		<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(steof))<span class="HLroutines">then</span>
-			<span class="HLroutines">if</span>(<span class="HLfunctions">not</span>(<span class="HLfunctions">allocated</span>(steof))) <span class="HLfunctions">allocate</span>(steof(nsteof, nkeep))
+<span class="HLcomments">!!$			if(not(allocated(steof))) allocate(steof(nsteof, nkeep))</span>
 			steof = zsteof
 			<span class="HLfunctions">deallocate</span>(zsteof)
 		<span class="HLroutines">end</span> <span class="HLroutines">if</span>
@@ -447,7 +458,7 @@
 	<span class="HLcomments">! Eigen values</span>
 	<span class="HLcomments">! ------------</span>
 	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(ev))<span class="HLroutines">then</span>
-		<span class="HLroutines">if</span>(<span class="HLfunctions">not</span>(<span class="HLfunctions">allocated</span>(ev))) <span class="HLfunctions">allocate</span>(ev(nkeep))
+<span class="HLcomments">!!$		if(not(allocated(ev))) allocate(ev(nkeep))</span>
 		ev = eig(nsteof : nsteof-nkeep+<span class="HLdigits">1</span> : -<span class="HLdigits">1</span>)
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 	<span class="HLfunctions">deallocate</span>(eig)
@@ -456,7 +467,7 @@
 	<span class="HLcomments">! Get ST-PCs</span>
 	<span class="HLcomments">! ==========</span>
 	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(stpc))<span class="HLroutines">then</span>
-		<span class="HLroutines">if</span>(<span class="HLfunctions">not</span>(<span class="HLfunctions">allocated</span>(stpc))) <span class="HLfunctions">allocate</span>(stpc(nt-nwindow+<span class="HLdigits">1</span>, nkeep))
+<span class="HLcomments">!!$		if(not(allocated(stpc))) allocate(stpc(nt-nwindow+1, nkeep))</span>
 		<span class="HLfunctions">allocate</span>(trff(nt, nchan))
 		trff = <span class="HLfunctions">transpose</span>(zff)
 		<span class="HLroutines">do</span> im = <span class="HLdigits">1</span>, nkeep
@@ -500,7 +511,7 @@
 	<span class="HLcomments">! External</span>
 	<span class="HLcomments">! --------</span>
 	<span class="HLroutines">real</span>,	<span class="HLattributes">intent</span>(in)					:: steof(:,:), stpc(:,:)
-	<span class="HLroutines">real</span>,	<span class="HLattributes">intent</span>(out), <span class="HLattributes">allocatable</span>	:: ffrec(:,:)
+	<span class="HLroutines">real</span>,	<span class="HLattributes">intent</span>(out)	:: ffrec(size(steof, <span class="HLdigits">1</span>)/nwindow,size(stpc, <span class="HLdigits">1</span>)+nwindow-<span class="HLdigits">1</span>)
 	<span class="HLroutines">integer</span>,<span class="HLattributes">intent</span>(in)					:: nwindow
 	<span class="HLroutines">integer</span>,<span class="HLattributes">intent</span>(in), <span class="HLattributes">optional</span>		:: istart, iend
 
@@ -521,7 +532,7 @@
 	nkept = size(steof, <span class="HLdigits">2</span>)
 	<span class="HLfunctions">allocate</span>(reof(nwindow))
 	<span class="HLfunctions">allocate</span>(epc(nwindow, ntpc-nwindow+<span class="HLdigits">1</span>))
-	<span class="HLroutines">if</span>(<span class="HLfunctions">not</span>(<span class="HLfunctions">allocated</span>(ffrec))) <span class="HLfunctions">allocate</span>(ffrec(nchan, nt))
+<span class="HLcomments">!!$	if(not(allocated(ffrec))) allocate(ffrec(nchan, nt))</span>
 	ffrec = <span class="HLdigits">0</span>.
 
 	<span class="HLcomments">! Range</span>
@@ -633,7 +644,7 @@
 	<span class="HLroutines">real</span>,	<span class="HLattributes">intent</span>(in)   :: ffrec(:,:)
 	<span class="HLroutines">real</span>,	<span class="HLattributes">intent</span>(in), <span class="HLattributes">optional</span> :: weights(:)
 	<span class="HLroutines">real</span>,	<span class="HLattributes">intent</span>(in), <span class="HLattributes">optional</span> :: offset, firstphase
-	<span class="HLroutines">real</span>,	<span class="HLattributes">intent</span>(out), <span class="HLattributes">allocatable</span>   :: phases(:, :)
+	<span class="HLroutines">real</span>,	<span class="HLattributes">intent</span>(out)   :: phases(size(ffrec, <span class="HLdigits">1</span>),np)
 
 	<span class="HLcomments">! Internal</span>
 	<span class="HLcomments">! --------</span>
@@ -684,7 +695,7 @@
 
 	<span class="HLcomments">! Compute the phase maps</span>
 	<span class="HLcomments">! ----------------------</span>
-	<span class="HLroutines">if</span>(<span class="HLfunctions">not</span>(<span class="HLfunctions">allocated</span>(phases))) <span class="HLfunctions">allocate</span>(phases(ns, np))
+<span class="HLcomments">!!$	if(not(allocated(phases))) allocate(phases(ns, np))</span>
 	phases = <span class="HLdigits">0</span>.
 	select_amplitude = amp &gt;= zoffset
 	<span class="HLroutines">do</span> iphase = <span class="HLdigits">1</span>, np
@@ -728,19 +739,20 @@
 	<span class="HLcomments">! External</span>
 	<span class="HLcomments">! --------</span>
 	<span class="HLroutines">real</span>, <span class="HLattributes">intent</span>(inout) 			::  a(:,:)
-	<span class="HLroutines">real</span>, <span class="HLattributes">intent</span>(out), <span class="HLattributes">allocatable</span>	:: eig(:)
+	<span class="HLroutines">real</span>, <span class="HLattributes">intent</span>(out)	:: eig(size(a,<span class="HLdigits">1</span>))
 
 	<span class="HLcomments">! Internal</span>
 	<span class="HLcomments">! --------</span>
-	<span class="HLroutines">integer</span> :: n,lwork,inf
+	<span class="HLroutines">integer</span> :: n
+        <span class="HLroutines">integer</span> :: lwork,inf
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: work(:)
 
 	<span class="HLcomments">! Sizes</span>
 	<span class="HLcomments">! -----</span>
 
 	<span class="HLcomments">! Data set</span>
-	n=size(a,<span class="HLdigits">1</span>)
-	<span class="HLfunctions">allocate</span>(eig(n))
+<span class="HLcomments">!!$	n=size(a,1)</span>
+<span class="HLcomments">!!$	allocate(eig(n))</span>
 
 	<span class="HLcomments">! Working array [other values of lwork: (N+2)*N, n*(3+n/2)]</span>
 	lwork=<span class="HLdigits">1</span>+ <span class="HLdigits">6</span>*N + <span class="HLdigits">2</span>*N**<span class="HLdigits">2</span>

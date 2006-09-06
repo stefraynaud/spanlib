@@ -32,7 +32,7 @@ my ($f90_library, $f90_example, $python_module, $python_example) = @ARGV;
 
 # Basic declarations
 my (@partNames, $partName, %parts, $line, $subroutineName, $arguments, $inside, $html);
-my ($currentArg, %outputLongNames, $inputArguments, $outputArguments, $isInputArg, $class, $prefix, $indent, $redo, $subroutineTitle, @specs);
+my ($currentArg, %outputLongNames, $inputArguments, $outputArguments, $isInputArg, $class, $prefix, $indent, $redo, $subroutineTitle, @specs, $insideDescription, $subroutineDescription);
 my ($vars, $type, $intent, $optional, $allocatable, $var, $name, @argDesc, $desc, $opt, %argRef, %arg);
 my ($tmp, $tmp2, $i, @aTmp);
 
@@ -271,7 +271,7 @@ while(<F90_LIBRARY>) {
 					$vars = "$3";
 					$opt = /optional/;
 					$vars =~ s/ +//g;
-					$vars =~ s/(\([:,]+\))?//g;
+					$vars =~ s/(\w+)\b([^,]*)/$1/g;
 					for $var (split(',',$vars)) {
 						$tmp = $argRef{$var};
 						$argDesc[$tmp]{'spec'} = $desc;
@@ -404,6 +404,8 @@ while(<PYTHON_MODULE>){
 		next if $2 eq "clean";
 		$subroutineName = "$2";
 		$subroutineTitle = "";
+		$subroutineDescription = "";
+		$insideDescription = 0;
 		$inputArguments = "$3";
 		$outputArguments = "";
 		$indent = $1;
@@ -441,6 +443,7 @@ while(<PYTHON_MODULE>){
 			} elsif($inside==1 && /\"\"\"[\s\t]*$/) {
 				# End of a long header
 				$inside = 0;
+				$insideDescription = 0;
 				last;
 			} elsif($inside==1) {
 				# Description of variable (long_name)
@@ -463,11 +466,14 @@ while(<PYTHON_MODULE>){
 						$outputLongNames{$1} = "$2";
 						$currentArg="$1";
 					}
+				} elsif(/Description:::/){
+					$insideDescription = 1;
 				} elsif(/:::[\t\s]*/) {
-					# An end of description
+					# An end of argument description
 					$currentArg="";
+					$insideDescription = 0;
 				} elsif("$currentArg" ne "") {
-					# Append to the description
+					# Append to the argument description
 					if($currentArg =~ /^\d+$/) {
 						# Inputs
 						$argDesc[$currentArg]{'long_name'} .= $_;
@@ -475,7 +481,8 @@ while(<PYTHON_MODULE>){
 						# Outputs
 						$outputLongNames{$currentArg} .= $_;
 					}
-				} else {
+				} elsif($insideDescription == 1) {
+					$subroutineDescription .= $_;
 				}
 			}
 		}
@@ -543,6 +550,14 @@ while(<PYTHON_MODULE>){
 		$html .= "\t\t<title>Usage</title>\n";
 		$html .= "\t\t<programlisting>$outputArguments = <phrase role=\"HLpersonalised\">$prefix.$subroutineName</phrase>($inputArguments)</programlisting>\n";
 		$html .= "\t</simplesect>\n";
+
+		# * Description
+		if($subroutineDescription ne "") {
+			$html .=  "\t<simplesect>\n";
+			$html .= "\t\t<title>Description</title>\n";
+			$html .= "\t\t<para>$subroutineDescription</para>\n";
+			$html .= "\t</simplesect>\n";
+		}
 
 		# Necessary and optional input arguments
 		# and outputs

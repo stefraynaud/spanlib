@@ -83,7 +83,7 @@ div.note h3.title {font-size:smaller;}
       <div class="titlepage">
         <div>
           <div>
-            <h1 class="title"><a id="id2869645"></a>SpanLib - Spectral Analysis Library</h1>
+            <h1 class="title"><a id="id2993470"></a>SpanLib - Spectral Analysis Library</h1>
           </div>
           <div>
             <div class="authorgroup">
@@ -117,7 +117,7 @@ div.note h3.title {font-size:smaller;}
 		</p>
           </div>
           <div>
-            <fo:block xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:date="http://exslt.org/dates-and-times">This documentation was generated on 5 September 2006</fo:block>
+            <fo:block xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:date="http://exslt.org/dates-and-times">This documentation was generated on 6 September 2006</fo:block>
           </div>
         </div>
         <div></div>
@@ -135,7 +135,7 @@ div.note h3.title {font-size:smaller;}
               <dt>1.2. <a href="#doc_pre_fun">Fundamentals</a></dt>
               <dt>1.3. <a href="#doc_pre_tec">Some technical details...</a></dt>
               <dt>1.4. <a href="#doc_pre_mor">For more information</a></dt>
-              <dt>1.5. <a href="#doc_int_vie">View sources</a></dt>
+              <dt>1.5. <a href="#doc_int_vie">View colorized sources</a></dt>
             </dl>
           </dd>
           <dt>2. <a href="#doc_ins">Installation</a></dt>
@@ -322,7 +322,7 @@ div.note h3.title {font-size:smaller;}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2805343"></a>CPU: space versus time</h5>
+                    <h5 class="title"><a id="id2929168"></a>CPU: space versus time</h5>
                   </div>
                 </div>
                 <div></div>
@@ -343,7 +343,7 @@ div.note h3.title {font-size:smaller;}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2805375"></a>Weights</h5>
+                    <h5 class="title"><a id="id2929201"></a>Weights</h5>
                   </div>
                 </div>
                 <div></div>
@@ -364,7 +364,7 @@ div.note h3.title {font-size:smaller;}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2805423"></a>Mask</h5>
+                    <h5 class="title"><a id="id2929248"></a>Mask</h5>
                   </div>
                 </div>
                 <div></div>
@@ -377,7 +377,7 @@ div.note h3.title {font-size:smaller;}
 						However, as well as for the weights, it is possible to associate
 						an spatial mask to a dataset in order to remove masked points when
 						using the python module.
-						Then, <tt class="varname"><a href="#spanlib.pack" title="4.2.3.&#xA0; Computes weights and mask: spanlib.pack">spanlib.pack</a></tt>
+						Then, <tt class="varname"><a href="#spanlib.pack" title="4.2.3.&#xA0; Pack a dataset and its weights according to its mask: spanlib.pack">spanlib.pack</a></tt>
 						can be used to &quot;pack&quot; (compress) data before they are analysed.
 					</p>
             </div>
@@ -385,7 +385,7 @@ div.note h3.title {font-size:smaller;}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2805465"></a>Analysing several variables at the same time</h5>
+                    <h5 class="title"><a id="id2929290"></a>Analysing several variables at the same time</h5>
                   </div>
                 </div>
                 <div></div>
@@ -411,7 +411,7 @@ div.note h3.title {font-size:smaller;}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2805521"></a>Reconstructions</h5>
+                    <h5 class="title"><a id="id2929346"></a>Reconstructions</h5>
                   </div>
                 </div>
                 <div></div>
@@ -459,7 +459,7 @@ div.note h3.title {font-size:smaller;}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2854683"></a>Phase composites</h5>
+                    <h5 class="title"><a id="id2978508"></a>Phase composites</h5>
                   </div>
                 </div>
                 <div></div>
@@ -470,7 +470,7 @@ div.note h3.title {font-size:smaller;}
 						At the first order, an oscillation is its &quot;typical&quot; cycle.
 						<tt class="varname"><a href="#sl_phasecomp" title="3.2.5.&#xA0;Phase composites: sl_phasecomp">sl_phasecomp</a></tt> (F90)
 						and
-						<tt class="varname"><a href="#">spanlib.phases</a></tt> (Python)
+						<tt class="varname"><a href="#spanlib.computePhases" title="4.2.4.&#xA0; Phase composites for oscillatory fields: spanlib.computePhases">spanlib.computePhases</a></tt> (Python)
 						perfom phases composites: it computes an averaged cycle and cut it an
 						homegeneous parts (as one can do for the annual cycle in 12 months).
 					</p>
@@ -512,7 +512,7 @@ div.note h3.title {font-size:smaller;}
           <div class="titlepage">
             <div>
               <div>
-                <h3 class="title"><a id="doc_int_vie"></a>1.5. View sources</h3>
+                <h3 class="title"><a id="doc_int_vie"></a>1.5. View colorized sources</h3>
               </div>
             </div>
             <div></div>
@@ -531,6 +531,7 @@ div.note h3.title {font-size:smaller;}
             </ul>
           </div>
           <p>
+				Syntax is highlighted for both fortran and python codes.
 			</p>
         </div>
       </div>
@@ -556,7 +557,7 @@ div.note h3.title {font-size:smaller;}
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="id2854958"></a>2.1.1. Fortran library</h4>
+                  <h4 class="title"><a id="id2978784"></a>2.1.1. Fortran library</h4>
                 </div>
               </div>
               <div></div>
@@ -568,7 +569,7 @@ div.note h3.title {font-size:smaller;}
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="id2854986"></a>2.1.2. Python module</h4>
+                  <h4 class="title"><a id="id2978812"></a>2.1.2. Python module</h4>
                 </div>
               </div>
               <div></div>
@@ -708,7 +709,7 @@ div.note h3.title {font-size:smaller;}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2799993"></a>Usage</h5>
+                    <h5 class="title"><a id="id2924026"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -716,7 +717,7 @@ div.note h3.title {font-size:smaller;}
               <table bgcolor="" width="100%" align="center" border="0">
                 <tr>
                   <td>
-                    <pre class="programlisting">call <span class="HLpersonalised">sl_pca</span>(<span class="HLpersonalised">ff</span>, nkeep=<span class="HLpersonalised">nkeep</span>, xeof=<span class="HLpersonalised">xeof</span>, pc=<span class="HLpersonalised">pc</span>, ev=<span class="HLpersonalised">ev</span>, weights=<span class="HLpersonalised">weights</span>, useteof=<span class="HLpersonalised">useteof</span>)</pre>
+                    <pre class="programlisting">call <span class="HLpersonalised">sl_pca</span>(<span class="HLpersonalised">ff</span>, nkeep=nkeep=<span class="HLpersonalised">nkeep</span>, xeof=<span class="HLpersonalised">xeof</span>, pc=<span class="HLpersonalised">pc</span>, ev=<span class="HLpersonalised">ev</span>, weights=<span class="HLpersonalised">weights</span>, useteof=<span class="HLpersonalised">useteof</span>)</pre>
                   </td>
                 </tr>
               </table>
@@ -725,7 +726,7 @@ div.note h3.title {font-size:smaller;}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2800056"></a>Description</h5>
+                    <h5 class="title"><a id="id2924090"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -743,30 +744,16 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2800076"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2924961"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">ff    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+                  <li><tt class="varname">ff    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
 				 :: <span class="emphasis"><em>			Space-time array</em></span></li>
-                </ul>
-              </div>
-            </div>
-            <div class="simplesect" lang="en" xml:lang="en">
-              <div class="titlepage">
-                <div>
-                  <div>
-                    <h5 class="title"><a id="id2800113"></a>Optional arguments</h5>
-                  </div>
-                </div>
-                <div></div>
-              </div>
-              <div class="itemizedlist">
-                <ul type="disc">
-                  <li><tt class="varname">nkeep    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+                  <li><tt class="varname">nkeep    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
 				 :: <span class="emphasis"><em>		Maximum number of modes to keep in outputs</em></span></li>
                   <li><tt class="varname">xeof    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
 				 :: <span class="emphasis"><em>		Space-mode array of EOFs</em></span></li>
@@ -785,7 +772,7 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2800268"></a>Dependencies</h5>
+                    <h5 class="title"><a id="id2925140"></a>Dependencies</h5>
                   </div>
                 </div>
                 <div></div>
@@ -808,7 +795,7 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2801141"></a>Usage</h5>
+                    <h5 class="title"><a id="id2925179"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -825,7 +812,7 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2801195"></a>Description</h5>
+                    <h5 class="title"><a id="id2925233"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -841,14 +828,14 @@ by its PC. The sum of all reconstructed component is the original field.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2801213"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2925251"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">xeof    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+                  <li><tt class="varname">xeof    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
 				 :: <span class="emphasis"><em>		Space-mode array of EOFs</em></span></li>
                   <li><tt class="varname">pc    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
 				 :: <span class="emphasis"><em>		Time-mode array of PCs</em></span></li>
@@ -861,7 +848,7 @@ by its PC. The sum of all reconstructed component is the original field.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2801298"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2925336"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -889,7 +876,7 @@ by its PC. The sum of all reconstructed component is the original field.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2801374"></a>Usage</h5>
+                    <h5 class="title"><a id="id2925412"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -897,7 +884,7 @@ by its PC. The sum of all reconstructed component is the original field.
               <table bgcolor="" width="100%" align="center" border="0">
                 <tr>
                   <td>
-                    <pre class="programlisting">call <span class="HLpersonalised">sl_mssa</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nwindow</span>, <span class="HLpersonalised">nkeep</span>, steof=<span class="HLpersonalised">steof</span>, stpc=<span class="HLpersonalised">stpc</span>, ev=<span class="HLpersonalised">ev</span>)</pre>
+                    <pre class="programlisting">call <span class="HLpersonalised">sl_mssa</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nwindow</span>, nkeep=nkeep=<span class="HLpersonalised">nkeep</span>, steof=<span class="HLpersonalised">steof</span>, stpc=<span class="HLpersonalised">stpc</span>, ev=<span class="HLpersonalised">ev</span>)</pre>
                   </td>
                 </tr>
               </table>
@@ -906,7 +893,7 @@ by its PC. The sum of all reconstructed component is the original field.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2801435"></a>Description</h5>
+                    <h5 class="title"><a id="id2925473"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -922,19 +909,15 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2801450"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2925489"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">ff    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+                  <li><tt class="varname">ff    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
 				 :: <span class="emphasis"><em>      Space-time array</em></span></li>
-                  <li><tt class="varname">nwindow    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
-				 :: <span class="emphasis"><em> Window size</em></span></li>
-                  <li><tt class="varname">nkeep    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
-				 :: <span class="emphasis"><em>   Maximum number of modes to keep in outputs</em></span></li>
                 </ul>
               </div>
             </div>
@@ -942,13 +925,31 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2801535"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2984489"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
+                  <li><tt class="varname">nwindow    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em> Window size</em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id2984526"></a>Optional arguments</h5>
+                  </div>
+                </div>
+                <div></div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt class="varname">nkeep    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>   Maximum number of modes to keep in outputs</em></span></li>
                   <li><tt class="varname">steof    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
 				 :: <span class="emphasis"><em> SpaceXwindow-mode array of EOFs</em></span></li>
                   <li><tt class="varname">stpc    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
@@ -962,7 +963,7 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2801621"></a>Dependencies</h5>
+                    <h5 class="title"><a id="id2984635"></a>Dependencies</h5>
                   </div>
                 </div>
                 <div></div>
@@ -985,7 +986,7 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2801660"></a>Usage</h5>
+                    <h5 class="title"><a id="id2984675"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1002,7 +1003,7 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2860689"></a>Description</h5>
+                    <h5 class="title"><a id="id2984736"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1015,14 +1016,14 @@ Same as for the reconstruction of PCA components, but for MSSA.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2860702"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2984749"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">steof    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+                  <li><tt class="varname">steof    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
 				 :: <span class="emphasis"><em>   SpaceXwindow-mode array of EOFs</em></span></li>
                   <li><tt class="varname">stpc    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
 				 :: <span class="emphasis"><em>    Time-mode array of PCs</em></span></li>
@@ -1037,7 +1038,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2860812"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2984858"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1065,7 +1066,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2860887"></a>Usage</h5>
+                    <h5 class="title"><a id="id2984934"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1082,7 +1083,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2860948"></a>Description</h5>
+                    <h5 class="title"><a id="id2984995"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1104,16 +1105,16 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2860970"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2985017"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+                  <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
 				 :: <span class="emphasis"><em> Space-time array</em></span></li>
-                  <li><tt class="varname">np    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+                  <li><tt class="varname">np    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
 				 :: <span class="emphasis"><em>    Number of requested phases over the 360 degrees cycle (default = 8)</em></span></li>
                   <li><tt class="varname">phases    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
 				 :: <span class="emphasis"><em></em></span></li>
@@ -1124,7 +1125,7 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2861054"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2993687"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1144,7 +1145,7 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2861140"></a>Dependencies</h5>
+                    <h5 class="title"><a id="id2993773"></a>Dependencies</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1167,7 +1168,7 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2861180"></a>Usage</h5>
+                    <h5 class="title"><a id="id2993812"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1184,7 +1185,7 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2861213"></a>Description</h5>
+                    <h5 class="title"><a id="id2993846"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1197,14 +1198,14 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2861227"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2993860"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">a    </tt><tt class="option"><span class="ARGspec">[intent:inoutput, type:real]:    </span></tt> 
+                  <li><tt class="varname">a    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
 				 :: <span class="emphasis"><em>		Input = symetric matrix, output = EOFs</em></span></li>
                   <li><tt class="varname">eig    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
 				 :: <span class="emphasis"><em>	Eigen values</em></span></li>
@@ -1215,7 +1216,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2870093"></a>Dependencies</h5>
+                    <h5 class="title"><a id="id2993920"></a>Dependencies</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1243,7 +1244,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 				and stored in a netcdf file.
 			</p>
           <div class="example">
-            <a id="id2801833"></a>
+            <a id="id2925660"></a>
             <p class="title">
               <b>Example 1. F90 example</b>
             </p>
@@ -1394,11 +1395,11 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 
 	<span class="HLcomments">! Now pack</span>
-	<span class="HLroutines">if</span>(isnan(missing_value))<span class="HLroutines">then</span>
-		mask = <span class="HLfunctions">not</span>(isnan(field(:,:,<span class="HLdigits">1</span>)))
-	<span class="HLroutines">else</span>
+<span class="HLcomments">!!$	if(isnan(missing_value))then</span>
+<span class="HLcomments">!!$		mask = not(isnan(field(:,:,1)))</span>
+<span class="HLcomments">!!$	else</span>
 		mask = (field(:,:,<span class="HLdigits">1</span>) /= missing_value)
-	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+<span class="HLcomments">!!$	end if</span>
 	<span class="HLfunctions">allocate</span>(packed_field(count(mask), ntime))
 	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, ntime
 		packed_field(:,i) = <span class="HLfunctions">pack</span>(field(:,:,i), mask)
@@ -1450,7 +1451,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 	<span class="HLfunctions">allocate</span>(reco(nlon,nlat,ntime))
 	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, ntime
 		reco(:,:,i) = <span class="HLfunctions">unpack</span>(pair(:,i), mask, new_missing_value)
-		where(mask == .false.)
+		where(mask .eqv. .false.)
 			field(:,:,i) = new_missing_value
 		<span class="HLroutines">end</span> where
 	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
@@ -1589,7 +1590,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2870754"></a>Usage</h5>
+                    <h5 class="title"><a id="id2994580"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1606,7 +1607,23 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2870804"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2994631"></a>Description</h5>
+                  </div>
+                </div>
+                <div></div>
+              </div>
+              <p>      This fonction concatenates several dataset that have the
+      same time axis. It is useful for analysing for example
+      several variables at the same time.
+		It takes into account weights, masks and axes.
+
+</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id2994648"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1623,7 +1640,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2870842"></a>Outputs</h5>
+                    <h5 class="title"><a id="id2994686"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1655,7 +1672,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2882110"></a>Usage</h5>
+                    <h5 class="title"><a id="id3007337"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1672,7 +1689,21 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2882163"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3007390"></a>Description</h5>
+                  </div>
+                </div>
+                <div></div>
+              </div>
+              <p>      This function is the reverse operation of stakData.
+      It splits stacked datasets into a list.
+
+</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id3007404"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1694,7 +1725,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2882271"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3007512"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1711,7 +1742,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="spanlib.pack"></a>4.2.3.  Computes weights and mask: <tt class="literal">spanlib.pack</tt></h4>
+                  <h4 class="title"><a id="spanlib.pack"></a>4.2.3.  Pack a dataset and its weights according to its mask: <tt class="literal">spanlib.pack</tt></h4>
                 </div>
               </div>
               <div></div>
@@ -1720,7 +1751,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2882325"></a>Usage</h5>
+                    <h5 class="title"><a id="id3007565"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1737,7 +1768,24 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2882385"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3007625"></a>Description</h5>
+                  </div>
+                </div>
+                <div></div>
+              </div>
+              <p>      This function packs a dataset in 2D space by removing
+      all masked points and returning a space-time array.
+      It performs this operation also on the weights.
+      It is used for removing unnecessary points and
+      simplifying the input format for analysis functions.
+
+</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id3007643"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1754,7 +1802,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2882422"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3007680"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1770,7 +1818,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2882466"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3007724"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1800,7 +1848,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2882568"></a>Usage</h5>
+                    <h5 class="title"><a id="id3007826"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1817,7 +1865,25 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2882642"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3007900"></a>Description</h5>
+                  </div>
+                </div>
+                <div></div>
+              </div>
+              <p>      This computes temporal phase composites of a spatio-temporal
+      dataset. The dataset is expected to be oscillatory in time.
+      It corresponds to a reoganisation of the time axis to
+      to represents the dataset over its cycle in a arbitrary
+      number of phases. It is useful, for example, to have a
+      synthetic view of an reconstructed MSSA oscillation.
+
+</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id3007919"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1833,7 +1899,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2882679"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3005959"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1853,7 +1919,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2882785"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3006066"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1879,7 +1945,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2882838"></a>Usage</h5>
+                    <h5 class="title"><a id="id3006120"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1896,7 +1962,22 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2882926"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id3006207"></a>Description</h5>
+                  </div>
+                </div>
+                <div></div>
+              </div>
+              <p>          This function creates an object for future analyses.
+          It optionally initializes some parameters.
+
+
+</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id3006222"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1914,7 +1995,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2882965"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3006261"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1942,7 +2023,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2883110"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3006406"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1968,7 +2049,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2883164"></a>Usage</h5>
+                    <h5 class="title"><a id="id3006460"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1985,7 +2066,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2883216"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3006512"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2001,7 +2082,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2883261"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3006557"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2031,7 +2112,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2871675"></a>Usage</h5>
+                    <h5 class="title"><a id="id3006658"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2048,7 +2129,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2871756"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3006738"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2068,7 +2149,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2871860"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3006844"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2098,7 +2179,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2871962"></a>Usage</h5>
+                    <h5 class="title"><a id="id2995526"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2115,7 +2196,27 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2872098"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2995662"></a>Description</h5>
+                  </div>
+                </div>
+                <div></div>
+              </div>
+              <p>          This function performs recontructions to retreive the
+          the contribution of a selection of modes to the original field.
+          By default, it recontructs from available PCA and MSSA
+          results. Recontruction of MSSA modes also calls recontruction
+          from of pre-PCA to get back to the original space.
+          This function can optionally performs phase composites
+          (useful for pairs of MSSA modes = oscillations) on MSSA
+          recontructions.
+
+</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id2995684"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2131,7 +2232,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
                   <li><tt class="varname">pca    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
 				 :: <span class="emphasis"><em> Reconstruct PCA if True</em></span></li>
                   <li><tt class="varname">phases    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">False</span>]    </span></tt> 
-				 :: <span class="emphasis"><em> Operate phase reconstruction True/False (default is False)          
+				 :: <span class="emphasis"><em> Operate phase reconstruction True/False (default is False)
 </em></span></li>
                   <li><tt class="varname">nphases    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">8</span>]    </span></tt> 
 				 :: <span class="emphasis"><em></em></span></li>
@@ -2146,7 +2247,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id2872352"></a>Outputs</h5>
+                    <h5 class="title"><a id="id2995938"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2195,7 +2296,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
           <p>
 			</p>
           <div class="example">
-            <a id="id2802030"></a>
+            <a id="id2925857"></a>
             <p class="title">
               <b>Example 2. Python example</b>
             </p>

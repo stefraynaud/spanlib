@@ -265,7 +265,7 @@
 						At the first order, an oscillation is its "typical" cycle.
 						<varname><link linkend="sl_phasecomp">sl_phasecomp</link></varname> (F90)
 						and
-						<varname><link linkend="spanlib.phases">spanlib.phases</link></varname> (Python)
+						<varname><link linkend="spanlib.computePhases">spanlib.computePhases</link></varname> (Python)
 						perfom phases composites: it computes an averaged cycle and cut it an
 						homegeneous parts (as one can do for the annual cycle in 12 months).
 					</para>
@@ -304,7 +304,7 @@
 
 		<!--#################################################################-->
 		<sect2 id="doc_int_vie">
-			<title>View sources</title>
+			<title>View colorized sources</title>
 			<para>
 				An html version of the source codes is available here:
 				<itemizedlist>
@@ -317,6 +317,7 @@
 						for the <link linkend="doc_pyt">python module</link>.
 					</listitem>
 				</itemizedlist>
+				Syntax is highlighted for both fortran and python codes.
 			</para>
 		</sect2>
 	</sect1>

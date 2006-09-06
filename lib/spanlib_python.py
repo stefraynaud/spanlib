@@ -209,6 +209,14 @@ def pack(data,weights=None):
 def computePhases(data,nphases=8,offset=.5,firstphase=0):
     """ Phase composites for oscillatory fields
 
+    Description:::
+      This computes temporal phase composites of a spatio-temporal
+      dataset. The dataset is expected to be oscillatory in time.
+      It corresponds to a reoganisation of the time axis to
+      to represents the dataset over its cycle in a arbitrary
+      number of phases. It is useful, for example, to have a
+      synthetic view of an reconstructed MSSA oscillation.
+
     Usage:::
     phases = computePhases(data,nphases,offset,firstphase)
 
