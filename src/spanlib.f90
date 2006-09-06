@@ -48,9 +48,9 @@ contains
 	!
 	! Necessary arguments:
 	!	- ff:			Space-time array
+	!	- nkeep:		Maximum number of modes to keep in outputs
 	!
 	! Optional arguments:
-	!	- nkeep:		Maximum number of modes to keep in outputs
 	!	- xeof:		Space-mode array of EOFs
 	!	- pc:			Time-mode array of PCs
 	!	- ev:			Mode array of eigen values (variances)
@@ -69,8 +69,8 @@ contains
 	! External
 	! --------
 	real,    intent(in)                        :: ff(:,:)
-	integer, intent(in),	optional              :: nkeep
-	real,    intent(out),optional, allocatable :: pc(:,:), xeof(:,:), ev(:)
+	integer, intent(in)	             :: nkeep
+	real,    intent(out),optional :: pc(size(ff,2),nkeep), xeof(size(ff,1),nkeep), ev(nkeep)
 	real,    intent(in),	optional              :: weights(:)
 	integer, intent(in),	optional              :: useteof
 
@@ -81,6 +81,8 @@ contains
 	real, allocatable :: wff(:,:), ww(:), zeof(:,:), zff(:,:)
 	real, allocatable :: eig(:)
 	integer           :: zuseteof = -1, znkeep, znkeepmax=100, i,j
+        integer c1,c2,c3
+        logical l1,l2,l3
 
 	! Setups
 	! ======
@@ -89,16 +91,25 @@ contains
 	! -----
 	ns=size(ff,1)
 	nt=size(ff,2)
-	if(present(nkeep))then
+!!$	if(present(nkeep))then
 		znkeep = nkeep
-	else
-		znkeep = minval(ubound(ff))
-	end if
+!!$	else
+!!$		znkeep = minval(ubound(ff))
+!!$	end if
 	if(znkeep>50)then
 		print*,'[pca] You want to keep a nomber of PCs greater than 50!'
 		return
 	end if
-	if(not(present(xeof)).and.not(present(pc)).and.not(present(ev)))then
+!!$ bad implementation of not(present()) in gfortran need to convert to integer for not then back to logical
+
+        c1 = present(xeof)
+        l1 = not(c1)
+        c2 = present(pc)
+        l2 = not(c2)
+        c3 = present(ev)
+        l3 = not(c3)
+
+	if(l1.and.l2.and.l3)then
 		print*,'[pca] Nothing to do. Quit.'
 		return
 	end if
@@ -169,7 +180,7 @@ contains
 			do i = 1, nkeep
 				zeof(:,i) = zeof(:,i) / sqrt(dot_product(ww(:), zeof(:,i)**2))
 			end do
-			if(not(present(pc)))then
+			if(l2)then
 				deallocate(ww)
 			end if
 		else
@@ -179,7 +190,7 @@ contains
 		! Eigenvalues
 		! -----------
 		if(present(ev))then
-			if(not(allocated(ev))) allocate(ev(nkeep))
+!!$			if(not(allocated(ev))) allocate(ev(nkeep))
 			ev = eig(nt:nt-nkeep+1:-1)
 		end if
 
@@ -216,7 +227,7 @@ contains
 		! Eigenvalues
 		! -----------
 		if(present(ev))then
-			if(not(allocated(ev))) allocate(ev(nkeep))
+!!$			if(not(allocated(ev))) allocate(ev(nkeep))
 			ev = eig(ns:ns-nkeep+1:-1)
 		end if
 
@@ -225,15 +236,15 @@ contains
 	! Free eof array
 	! --------------
 	if(present(xeof))then
-		if(not(allocated(xeof))) allocate(xeof(ns,nkeep))
+!!$		if(not(allocated(xeof))) allocate(xeof(ns,nkeep))
 		xeof = zeof
-		if(not(present(pc))) deallocate(zeof)
+		if(l2) deallocate(zeof)
 	end if
 
 	! Finally get PCs
 	! ===============
 	if(present(pc))then
-		if(not(allocated(pc))) allocate(pc(nt,nkeep))
+!!$		if(not(allocated(pc))) allocate(pc(nt,nkeep))
 		if(present(weights))then
 			do i=1, nt
 				zff(:,i) = zff(:,i) * ww(:)
@@ -278,7 +289,7 @@ contains
 	! External
 	! --------
 	real,	intent(in)				:: xeof(:,:), pc(:,:)
-	real,	intent(out),allocatable	:: ffrec(:,:)
+	real,	intent(out) :: ffrec(size(xeof,1),size(pc,1))
 	integer,intent(in),	optional	:: istart, iend
 
 	! Internal
@@ -316,7 +327,7 @@ contains
 
 	! Computation
 	! ===========
-	if(not(allocated(ffrec)))allocate(ffrec(ns, nt))
+!!$	if(not(allocated(ffrec)))allocate(ffrec(ns, nt))
 	ffrec = 0.
 	if(nt<ns) then
 		do i = 1, nt
@@ -379,7 +390,7 @@ contains
 	! --------
 	real,   intent(in)									:: ff(:,:)
 	integer,intent(in)									:: nwindow, nkeep
-	real,	  intent(out), optional, allocatable	:: steof(:,:), stpc(:,:), ev(:)
+	real,	  intent(out), optional	:: steof(size(ff,1)*nwindow, nkeep), stpc(size(ff,2)-nwindow+1, nkeep), ev(nkeep)
 
 	! Internal
 	! --------
@@ -436,7 +447,7 @@ contains
 		zsteof = cov(:, nsteof : nsteof-nkeep+1 : -1)
 		deallocate(cov)
 		if(present(steof))then
-			if(not(allocated(steof))) allocate(steof(nsteof, nkeep))
+!!$			if(not(allocated(steof))) allocate(steof(nsteof, nkeep))
 			steof = zsteof
 			deallocate(zsteof)
 		end if
@@ -445,7 +456,7 @@ contains
 	! Eigen values
 	! ------------
 	if(present(ev))then
-		if(not(allocated(ev))) allocate(ev(nkeep))
+!!$		if(not(allocated(ev))) allocate(ev(nkeep))
 		ev = eig(nsteof : nsteof-nkeep+1 : -1)
 	end if
 	deallocate(eig)
@@ -454,7 +465,7 @@ contains
 	! Get ST-PCs
 	! ==========
 	if(present(stpc))then
-		if(not(allocated(stpc))) allocate(stpc(nt-nwindow+1, nkeep))
+!!$		if(not(allocated(stpc))) allocate(stpc(nt-nwindow+1, nkeep))
 		allocate(trff(nt, nchan))
 		trff = transpose(zff)
 		do im = 1, nkeep
@@ -498,7 +509,7 @@ contains
 	! External
 	! --------
 	real,	intent(in)					:: steof(:,:), stpc(:,:)
-	real,	intent(out), allocatable	:: ffrec(:,:)
+	real,	intent(out)	:: ffrec(size(steof, 1)/nwindow,size(stpc, 1)+nwindow-1)
 	integer,intent(in)					:: nwindow
 	integer,intent(in), optional		:: istart, iend
 
@@ -519,7 +530,7 @@ contains
 	nkept = size(steof, 2)
 	allocate(reof(nwindow))
 	allocate(epc(nwindow, ntpc-nwindow+1))
-	if(not(allocated(ffrec))) allocate(ffrec(nchan, nt))
+!!$	if(not(allocated(ffrec))) allocate(ffrec(nchan, nt))
 	ffrec = 0.
 
 	! Range
@@ -631,7 +642,7 @@ contains
 	real,	intent(in)   :: ffrec(:,:)
 	real,	intent(in), optional :: weights(:)
 	real,	intent(in), optional :: offset, firstphase
-	real,	intent(out), allocatable   :: phases(:, :)
+	real,	intent(out)   :: phases(size(ffrec, 1),np)
 
 	! Internal
 	! --------
@@ -682,7 +693,7 @@ contains
 
 	! Compute the phase maps
 	! ----------------------
-	if(not(allocated(phases))) allocate(phases(ns, np))
+!!$	if(not(allocated(phases))) allocate(phases(ns, np))
 	phases = 0.
 	select_amplitude = amp >= zoffset
 	do iphase = 1, np
@@ -726,19 +737,20 @@ contains
 	! External
 	! --------
 	real, intent(inout) 			::  a(:,:)
-	real, intent(out), allocatable	:: eig(:)
+	real, intent(out)	:: eig(size(a,1))
 
 	! Internal
 	! --------
-	integer :: n,lwork,inf
+	integer :: n
+        integer :: lwork,inf
 	real, allocatable :: work(:)
 
 	! Sizes
 	! -----
 
 	! Data set
-	n=size(a,1)
-	allocate(eig(n))
+!!$	n=size(a,1)
+!!$	allocate(eig(n))
 
 	! Working array [other values of lwork: (N+2)*N, n*(3+n/2)]
 	lwork=1+ 6*N + 2*N**2

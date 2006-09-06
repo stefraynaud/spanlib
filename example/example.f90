@@ -123,11 +123,11 @@ program example
 	end do
 
 	! Now pack
-	if(isnan(missing_value))then
-		mask = not(isnan(field(:,:,1)))
-	else
+!!$	if(isnan(missing_value))then
+!!$		mask = not(isnan(field(:,:,1)))
+!!$	else
 		mask = (field(:,:,1) /= missing_value)
-	end if
+!!$	end if
 	allocate(packed_field(count(mask), ntime))
 	do i=1, ntime
 		packed_field(:,i) = pack(field(:,:,i), mask)
@@ -179,7 +179,7 @@ program example
 	allocate(reco(nlon,nlat,ntime))
 	do i=1, ntime
 		reco(:,:,i) = unpack(pair(:,i), mask, new_missing_value)
-		where(mask == .false.)
+		where(mask .eqv. .false.)
 			field(:,:,i) = new_missing_value
 		end where
 	end do
