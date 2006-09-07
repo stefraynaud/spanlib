@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <!DOCTYPE stylesheet [
-<!ENTITY css SYSTEM "spanlib.css">
 ]>
 
 <!-- Customization layer -->
@@ -12,18 +11,8 @@
 	version="1.0">
 
 	<!-- Imports -->
-	<xsl:import href="http://docbook.sourceforge.net/release/xsl/current/xhtml/docbook.xsl" />
+	<xsl:import href="/usr/share/sgml/docbook/xsl-stylesheets/fo/docbook.xsl" />
 	<xsl:import href="common.xsl"/>
-
-	<!-- Out formating -->
-	<xsl:output indent="yes" />
-
-	<!-- CSS -->
-	<xsl:template name="user.head.content">
-		<style type="text/css">
-			&css;
-		</style>
-	</xsl:template>
 
 
 </xsl:stylesheet>

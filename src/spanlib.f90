@@ -80,15 +80,16 @@ contains
 	real, allocatable :: cov(:,:)
 	real, allocatable :: wff(:,:), ww(:), zeof(:,:), zff(:,:)
 	real, allocatable :: eig(:)
-	integer           :: zuseteof = -1, znkeepmax=100, i,j
+	integer           :: zuseteof, znkeepmax, i,j
 
 	! Setups
 	! ======
 
 	! Sizes
 	! -----
-	ns=size(ff,1)
-	nt=size(ff,2)
+	ns = size(ff,1)
+	nt = size(ff,2)
+	znkeepmax = 100
 	if(nkeep>znkeepmax)then
 		print*,'[pca] You want to keep a number of PCs greater than ',znkeepmax
 		return
@@ -103,14 +104,16 @@ contains
 
 	! By default, T-EOF decompostion if ns > nt
 	! -----------------------------------------
+	zuseteof = -1
 	if(present(useteof))zuseteof = useteof
-	if(zuseteof.ne.0.and.zuseteof.ne.1)then
+	if(zuseteof<=0)then
 		if(ns>nt)then
 			zuseteof=1
 		else
 			zuseteof=0
 		endif
 	endif
+	znkeepmax=100
 	if(zuseteof)then
 		if(nkeep>znkeepmax)then
 			print*,'[pca] You want to keep a number of PCs '//&
@@ -291,13 +294,14 @@ contains
 
 	! Internal
 	! --------
-	integer           :: nkept, itmp, zistart=1, ziend, nt, ns, i
+	integer           :: nkept, itmp, zistart, ziend, nt, ns, i
 	real, allocatable	:: zpc(:,:)
 
 
 	! Setup
 	! =====
 	nkept = size(xeof,2)
+	zistart=1
 	if(present(istart))zistart=istart
 	if(present(iend))then
 		ziend=iend
@@ -393,7 +397,7 @@ contains
 	! --------
 	real, allocatable :: cov(:,:), eig(:), trff(:,:), zff(:,:), zsteof(:,:)
 	real :: wsteof
-	integer :: nchan, nsteof, nt, znkeepmax = 100
+	integer :: nchan, nsteof, nt, znkeepmax
 	integer :: iw, iw1, iw2, i1, i2, im, ic1, ic2
 
 
@@ -405,6 +409,7 @@ contains
 	nchan = size(ff,1)
 	nsteof = nchan * nwindow
 	nt = size(ff,2)
+	znkeepmax = 100
 	if(nkeep>znkeepmax)then
 		print*,'[pca] You want to keep a number of PCs greater than ',znkeepmax
 		return
@@ -517,7 +522,7 @@ contains
 
 	! Internal
 	! --------
-	integer :: ntpc, nchan, nt, ic, im, iw, nkept, itmp, zistart=1, ziend
+	integer :: ntpc, nchan, nt, ic, im, iw, nkept, itmp, zistart, ziend
 	real, allocatable :: reof(:), epc(:,:)
 
 
@@ -542,6 +547,7 @@ contains
 	else
 		ziend=nkept
 	end if
+	zistart = 1
 	if(zistart.lt.1.or.zistart.gt.nkept)then
 		zistart = 1
 		print*,'[mssarec] istart lower than 1 => set to 1'
@@ -743,7 +749,7 @@ contains
 	! Internal
 	! --------
 	integer :: n
-        integer :: lwork,inf
+	integer :: lwork,inf
 	real, allocatable :: work(:)
 
 	! Sizes

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 library source</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" id="src_f90_lib" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3490375"></a>SpanLib - Fortran 90 library source</h1></div></div><div></div><hr /></div><table bgcolor="" width="100%" align="center" border="0"><tr><td><pre class="programlisting"><span class="HLcomments">! File: spanlib.f90</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 library source</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.58.1" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><h1 class="title"><a id="id2855488"></a>SpanLib - Fortran 90 library source</h1></div><hr /></div><table bgcolor="" width="100%" align="center"><tr><td><pre class="programlisting"><span class="HLcomments">! File: spanlib.f90</span>
 <span class="HLcomments">!</span>
 <span class="HLcomments">! This file is part of the SpanLib library.</span>
 <span class="HLcomments">! Copyright (C) 2006  Stephane Raynaud</span>
@@ -82,15 +82,16 @@
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: cov(:,:)
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: wff(:,:), ww(:), zeof(:,:), zff(:,:)
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: eig(:)
-	<span class="HLroutines">integer</span>           :: zuseteof = -<span class="HLdigits">1</span>, znkeepmax=<span class="HLdigits">100</span>, i,j
+	<span class="HLroutines">integer</span>           :: zuseteof, znkeepmax, i,j
 
 	<span class="HLcomments">! Setups</span>
 	<span class="HLcomments">! ======</span>
 
 	<span class="HLcomments">! Sizes</span>
 	<span class="HLcomments">! -----</span>
-	ns=size(ff,<span class="HLdigits">1</span>)
-	nt=size(ff,<span class="HLdigits">2</span>)
+	ns = size(ff,<span class="HLdigits">1</span>)
+	nt = size(ff,<span class="HLdigits">2</span>)
+	znkeepmax = <span class="HLdigits">100</span>
 	<span class="HLroutines">if</span>(nkeep&gt;znkeepmax)<span class="HLroutines">then</span>
 		<span class="HLroutines">print</span>*,<span class="HLstrings">'[pca] You want to keep a number of PCs greater than '</span>,znkeepmax
 		return
@@ -105,14 +106,16 @@
 
 	<span class="HLcomments">! By default, T-EOF decompostion if ns &gt; nt</span>
 	<span class="HLcomments">! -----------------------------------------</span>
+	zuseteof = -<span class="HLdigits">1</span>
 	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(useteof))zuseteof = useteof
-	<span class="HLroutines">if</span>(zuseteof.ne.<span class="HLdigits">0</span>.and.zuseteof.ne.<span class="HLdigits">1</span>)<span class="HLroutines">then</span>
+	<span class="HLroutines">if</span>(zuseteof&lt;=<span class="HLdigits">0</span>)<span class="HLroutines">then</span>
 		<span class="HLroutines">if</span>(ns&gt;nt)<span class="HLroutines">then</span>
 			zuseteof=<span class="HLdigits">1</span>
 		<span class="HLroutines">else</span>
 			zuseteof=<span class="HLdigits">0</span>
 		<span class="HLroutines">endif</span>
 	<span class="HLroutines">endif</span>
+	znkeepmax=<span class="HLdigits">100</span>
 	<span class="HLroutines">if</span>(zuseteof)<span class="HLroutines">then</span>
 		<span class="HLroutines">if</span>(nkeep&gt;znkeepmax)<span class="HLroutines">then</span>
 			<span class="HLroutines">print</span>*,<span class="HLstrings">'[pca] You want to keep a number of PCs '</span>//&amp;
@@ -293,13 +296,14 @@
 
 	<span class="HLcomments">! Internal</span>
 	<span class="HLcomments">! --------</span>
-	<span class="HLroutines">integer</span>           :: nkept, itmp, zistart=<span class="HLdigits">1</span>, ziend, nt, ns, i
+	<span class="HLroutines">integer</span>           :: nkept, itmp, zistart, ziend, nt, ns, i
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span>	:: zpc(:,:)
 
 
 	<span class="HLcomments">! Setup</span>
 	<span class="HLcomments">! =====</span>
 	nkept = size(xeof,<span class="HLdigits">2</span>)
+	zistart=<span class="HLdigits">1</span>
 	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(istart))zistart=istart
 	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(iend))<span class="HLroutines">then</span>
 		ziend=iend
@@ -395,7 +399,7 @@
 	<span class="HLcomments">! --------</span>
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: cov(:,:), eig(:), trff(:,:), zff(:,:), zsteof(:,:)
 	<span class="HLroutines">real</span> :: wsteof
-	<span class="HLroutines">integer</span> :: nchan, nsteof, nt, znkeepmax = <span class="HLdigits">100</span>
+	<span class="HLroutines">integer</span> :: nchan, nsteof, nt, znkeepmax
 	<span class="HLroutines">integer</span> :: iw, iw1, iw2, i1, i2, im, ic1, ic2
 
 
@@ -407,6 +411,7 @@
 	nchan = size(ff,<span class="HLdigits">1</span>)
 	nsteof = nchan * nwindow
 	nt = size(ff,<span class="HLdigits">2</span>)
+	znkeepmax = <span class="HLdigits">100</span>
 	<span class="HLroutines">if</span>(nkeep&gt;znkeepmax)<span class="HLroutines">then</span>
 		<span class="HLroutines">print</span>*,<span class="HLstrings">'[pca] You want to keep a number of PCs greater than '</span>,znkeepmax
 		return
@@ -519,7 +524,7 @@
 
 	<span class="HLcomments">! Internal</span>
 	<span class="HLcomments">! --------</span>
-	<span class="HLroutines">integer</span> :: ntpc, nchan, nt, ic, im, iw, nkept, itmp, zistart=<span class="HLdigits">1</span>, ziend
+	<span class="HLroutines">integer</span> :: ntpc, nchan, nt, ic, im, iw, nkept, itmp, zistart, ziend
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: reof(:), epc(:,:)
 
 
@@ -544,6 +549,7 @@
 	<span class="HLroutines">else</span>
 		ziend=nkept
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+	zistart = <span class="HLdigits">1</span>
 	<span class="HLroutines">if</span>(zistart.lt.<span class="HLdigits">1</span>.or.zistart.gt.nkept)<span class="HLroutines">then</span>
 		zistart = <span class="HLdigits">1</span>
 		<span class="HLroutines">print</span>*,<span class="HLstrings">'[mssarec] istart lower than <span class="HLdigits">1</span> =&gt; set to <span class="HLdigits">1</span>'</span>
@@ -745,7 +751,7 @@
 	<span class="HLcomments">! Internal</span>
 	<span class="HLcomments">! --------</span>
 	<span class="HLroutines">integer</span> :: n
-        <span class="HLroutines">integer</span> :: lwork,inf
+	<span class="HLroutines">integer</span> :: lwork,inf
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: work(:)
 
 	<span class="HLcomments">! Sizes</span>
@@ -765,4 +771,4 @@
 	<span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_diasym</span>
 
 <span class="HLroutines">end</span> <span class="HLroutines">module</span> spanlib
-</pre></td></tr></table></div><div xmlns="" class="generated">This document was generated  using xml/xsl and perl.</div></body></html>
+</pre></td></tr></table></div></body></html>

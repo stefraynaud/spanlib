@@ -21,7 +21,7 @@ XML_DOC_SUB = doc_f90_sub_inc.xml doc_pyt_sub_inc.xml
 PARSE = $(top_srcdir)/scripts/gendoc.pl $(SOURCES)
 
 ## For the distro
-EXTRA_DIST = spanlib.xml spanlib.xsl spanlib_single.xsl src.xsl $(XML_SRC)
+EXTRA_DIST = spanlib.xml spanlib.xsl spanlib_single.xsl src.xsl common.xsl $(XML_SRC)
 
 ## For the installation
 docdir = $(datadir)/@PACKAGE@/html
@@ -41,13 +41,13 @@ endif
 ######################################################################
 
 if HAS_DOC_SUPPORT
-spanlib.html: spanlib.xml spanlib_single.xsl $(XML_SRC_INC) $(XML_DOC_SUB) spanlib.css
+spanlib.html: spanlib.xml spanlib_single.xsl common.xsl $(XML_SRC_INC) $(XML_DOC_SUB) spanlib.css
 	$(XSLTPROC) $(XSLTPROC_FLAGS) -o $@ spanlib_single.xsl $<
 
-index.html: spanlib.xml spanlib.xsl $(XML_SRC_INC) $(XML_DOC_SUB)
+index.html: spanlib.xml spanlib.xsl common.xsl $(XML_SRC_INC) $(XML_DOC_SUB)
 	$(XSLTPROC) $(XSLTPROC_FLAGS) -o $@ spanlib.xsl $<
 
-src_%.html: src_%.xml src_%_inc.xml src.xsl
+src_%.html: src_%.xml src_%_inc.xml src.xsl common.xsl
 	$(XSLTPROC) $(XSLTPROC_FLAGS) -o $@ src.xsl $<
 
 $(XML_SRC_INC) $(XML_DOC_SUB): $(PARSE)
