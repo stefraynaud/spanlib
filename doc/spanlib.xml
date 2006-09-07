@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
-<!DOCTYPE article PUBLIC "-//KDE//DTD DocBook XML V4.2-Based Variant V1.1//EN" "/usr/share/sgml/docbook/xml-dtd-4.2-1.0-17.2/docbookx.dtd">
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN" "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+
+<!--DOCTYPE article PUBLIC "-//KDE//DTD DocBook XML V4.2-Based Variant V1.1//EN" "/usr/share/sgml/docbook/xml-dtd-4.2-1.0-17.2/docbookx.dtd"-->
 
 <article id="index" xmlns:xi="http://www.w3.org/2001/XInclude">
 
@@ -8,7 +10,7 @@
 		<titleabbrev>SpanLib</titleabbrev>
 		<authorgroup>
 			<author>
-				<firstname>Stephane</firstname>
+				<firstname>St&eacute;phane</firstname>
 				<surname>Raynaud</surname>
 			</author>
 			<author><firstname>Charles</firstname> <surname>Doutriaux</surname></author>

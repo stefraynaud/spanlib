@@ -76,7 +76,7 @@ my %xmlFiles = (
 # xml header
 sub gen_xml_header {
 	my $xml_type = shift;
-	return "<?xml version=\"1.0\"?>\n<!DOCTYPE $xml_type PUBLIC \"-//KDE//DTD DocBook XML V4.2-Based Variant V1.1//EN\"\n\"/usr/share/sgml/docbook/xml-dtd-4.2-1.0-17.2/docbookx.dtd\">\n\n";
+	return "<?xml version=\"1.0\"?>\n<!DOCTYPE $xml_type PUBLIC \"-//OASIS//DTD DocBook XML V4.2//EN\"\n\"http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd\">\n\n";
 }
 
 

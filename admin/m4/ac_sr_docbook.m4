@@ -9,30 +9,19 @@ dnl http://www.movement.uklinux.net/docs/docbook-autotools/configure.html
 dnl *** Inspired from ax_check_docbook.m4 *** Raynaud, 2006
 AC_DEFUN([AC_SR_DOCBOOK],
 [
-	XSLTPROC_FLAGS="--nonet --xinclude"
-	DOCBOOK_ROOT=
-	TYPE_LC=xml
-	TYPE_UC=XML
-	DOCBOOK_VERSION="4.2-Based Variant"
-
-#	for i in /usr/share/sgml/docbook/stylesheet/xsl/nwalsh /usr/share/sgml/docbook/xsl-stylesheets/;
-	for i in /usr/share/sgml/docbook/xsl-stylesheets/;
-	do
-		if test -d "$i"; then
-			DOCBOOK_ROOT=$i
-		fi
-	done
+	XSLTPROC_FLAGS="--xinclude"
+	XSL="doc/spanlib.xsl"
+	DOCBOOK_VERSION="4.2"
 
 	dnl We need xsltproc to process the test
 	AC_CHECK_PROG(XSLTPROC,xsltproc,xsltproc,)
 
 	XSLTPROC_WORKS=no
-	if test -n "$XSLTPROC" -a -n "$DOCBOOK_ROOT" ; then
+	if test -n "$XSLTPROC" ; then
 		AC_MSG_CHECKING([whether xsltproc docbook processing works])
-		DB_FILE="$DOCBOOK_ROOT/xhtml/docbook.xsl"
-		$XSLTPROC $XSLTPROC_FLAGS $DB_FILE >/dev/null 2>&1 << END
+		$XSLTPROC $XSLTPROC_FLAGS $XSL >/dev/null 2>&1 << END
 <?xml version="1.0" encoding='ISO-8859-1'?>
-<!DOCTYPE book PUBLIC "-//KDE//DTD DocBook $TYPE_UC V$DOCBOOK_VERSION//EN" "/usr/share/sgml/docbook/xml-dtd-4.2-1.0-17.2/docbookx.dtd">
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN" "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
 <article id="test">
 </article>
 END
@@ -51,5 +40,4 @@ END
 	fi
 
 	AC_SUBST(XSLTPROC_FLAGS)
-	AC_SUBST(DOCBOOK_ROOT)
 ])

@@ -10,7 +10,8 @@
 	version="1.0">
 
 	<!-- Use 'chunk.xsl' in line below to chunk files. -->
-	<xsl:import href="/usr/share/sgml/docbook/xsl-stylesheets/xhtml/docbook.xsl"/>
+	<!--xsl:import href="/usr/share/sgml/docbook/xsl-stylesheets/xhtml/docbook.xsl"/-->
+	<xsl:import href="http://docbook.sourceforge.net/release/xsl/current/xhtml/docbook.xsl" />
 
 	<!-- CSS -->
 	<xsl:param name="html.stylesheet" select="'spanlib.css'"/>
