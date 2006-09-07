@@ -33,19 +33,9 @@ subroutine pca(ff, ns, nt, nkeep, xeof, pc, ev, weights, useteof)
 	real,    intent(in)  :: weights(ns)
 	integer, intent(in)  :: useteof
 
-	! Internal
-	! --------
-	real, allocatable :: mypc(:,:), myeof(:,:), myev(:)
-
 	! Call to original subroutine
 	! ---------------------------
-	call sl_pca(ff, nkeep=nkeep, xeof=myeof, pc=mypc, ev=myev, weights=weights, useteof=useteof)
-
-	! Recover results
-	! ---------------
-	xeof = myeof
-	pc   = mypc
-	ev   = myev
+	call sl_pca(ff, nkeep, xeof=xeof, pc=pc, ev=ev, weights=weights, useteof=useteof)
 
 end subroutine pca
 
@@ -62,17 +52,9 @@ subroutine pcarec(xeof, pc, ns, nt, nkept, ffrec, istart, iend)
 	real,    intent(in)  :: xeof(ns,nkept), pc(nt,nkept)
 	real,    intent(out) :: ffrec(ns,nt)
 
-	! Internal
-	! --------
-	real, allocatable :: myffrec(:,:)
-
 	! Call to original subroutine
 	! ---------------------------
-	call sl_pcarec(xeof, pc, ffrec=myffrec, istart=istart, iend=iend)
-
-	! Recover results
-	! ---------------
-	ffrec = myffrec
+	call sl_pcarec(xeof, pc, ffrec=ffrec, istart=istart, iend=iend)
 
 end subroutine pcarec
 
@@ -90,20 +72,10 @@ subroutine mssa(ff, nchan, nt, nwindow, nkeep, steof, stpc, ev)
 	real,   intent(in)  :: ff(nchan,nt)
 	real,	  intent(out) :: steof(nchan*nwindow,nkeep), stpc(nt-nwindow+1,nkeep), ev(nkeep)
 
-	! Internal
-	! --------
-	real, allocatable :: mysteof(:,:), mystpc(:,:), myev(:)
-
 	! Call to original subroutine
 	! ---------------------------
-	call sl_mssa(ff, nwindow, nkeep, steof=mysteof, stpc=mystpc, ev=myev)
+	call sl_mssa(ff, nwindow, nkeep, steof=steof, stpc=stpc, ev=ev)
 		
-	! Recover results
-	! ---------------
-	steof = mysteof
-	stpc  = mystpc
-	ev    = myev
-
 end subroutine mssa
 
 
@@ -122,17 +94,9 @@ subroutine mssarec(steof, stpc, nchan, nt, nkeep, nwindow, ffrec, istart, iend)
 	real,	  intent(in)  :: steof(nchan*nwindow,nkeep), stpc(nt-nwindow+1,nkeep)
 	real,   intent(out) :: ffrec(nchan,nt)
 
-	! Internal
-	! --------
-	real, allocatable :: myffrec(:,:)
-
 	! Call to original subroutine
 	! ---------------------------
-	call sl_mssarec(steof, stpc, nwindow, ffrec=myffrec, istart=istart, iend=iend)
-
-	! Recover results
-	! ---------------
-	ffrec = myffrec
+	call sl_mssarec(steof, stpc, nwindow, ffrec=ffrec, istart=istart, iend=iend)
 
 end subroutine mssarec
 
@@ -152,17 +116,9 @@ subroutine phasecomp(ffrec, ns, nt, np,  phases, weights, offset, firstphase)
 	real,    intent(in)  :: offset, firstphase
 	real,    intent(out) :: phases(ns, np)
 
-	! Internal
-	! --------
-	real, allocatable :: myphases(:,:)
-
 	! Call to original subroutine
 	! ---------------------------
-	call sl_phasecomp(ffrec, np, myphases, weights=weights, offset=offset, firstphase=firstphase)
-
-	! Recover results
-	! ---------------
-	phases = myphases
+	call sl_phasecomp(ffrec, np, phases, weights=weights, offset=offset, firstphase=firstphase)
 
 end subroutine phasecomp
 
