@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 library source</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" id="src_f90_lib" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3343230"></a>SpanLib - Fortran 90 library source</h1></div></div><div></div><hr /></div><table bgcolor="" width="100%" align="center" border="0"><tr><td><pre class="programlisting"><span class="HLcomments">! File: spanlib.f90</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 library source</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" id="src_f90_lib" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3014211"></a>SpanLib - Fortran 90 library source</h1></div></div><div></div><hr /></div><table bgcolor="" width="100%" align="center" border="0"><tr><td><pre class="programlisting"><span class="HLcomments">! File: spanlib.f90</span>
 <span class="HLcomments">!</span>
 <span class="HLcomments">! This file is part of the SpanLib library.</span>
 <span class="HLcomments">! Copyright (C) 2006  Stephane Raynaud</span>
@@ -673,6 +673,7 @@
 
 	<span class="HLcomments">! Find the first PC and its derivative</span>
 	<span class="HLcomments">! ====================================</span>
+	<span class="HLfunctions">allocate</span>(pc(nt,<span class="HLdigits">1</span>))
 	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca</span>(ffrec, <span class="HLdigits">1</span>, pc=pc, weights=weights)
 	pc = pc * <span class="HLfunctions">sqrt</span>(<span class="HLroutines">real</span>(nt)/<span class="HLfunctions">sum</span>(pc**<span class="HLdigits">2</span>))
 	dpc = <span class="HLdigits">0</span>.<span class="HLdigits">5</span> * (<span class="HLfunctions">eoshift</span>(pc(:,<span class="HLdigits">1</span>), <span class="HLdigits">1</span>, pc(nt,<span class="HLdigits">1</span>)) - <span class="HLfunctions">eoshift</span>(pc(:,<span class="HLdigits">1</span>), -<span class="HLdigits">1</span>, pc(<span class="HLdigits">1</span>,<span class="HLdigits">1</span>)))
@@ -751,8 +752,7 @@
 	<span class="HLcomments">! -----</span>
 
 	<span class="HLcomments">! Data set</span>
-<span class="HLcomments">!!$	n=size(a,1)</span>
-<span class="HLcomments">!!$	allocate(eig(n))</span>
+	n=size(a,<span class="HLdigits">1</span>)
 
 	<span class="HLcomments">! Working array [other values of lwork: (N+2)*N, n*(3+n/2)]</span>
 	lwork=<span class="HLdigits">1</span>+ <span class="HLdigits">6</span>*N + <span class="HLdigits">2</span>*N**<span class="HLdigits">2</span>

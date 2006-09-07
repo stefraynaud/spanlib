@@ -11,7 +11,7 @@ AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
 	AX_WITH_PYTHON(2.4,no)
 
 	# Current python
-	AS_IF([test "AS_VAR_GET(PYTHON)" != "no"],
+	AS_IF([`test "AS_VAR_GET(PYTHON)" != "no"`],
 		AS_VAR_SET(MYPYTHONPATH,[`AS_DIRNAME(AS_VAR_GET(PYTHON))`]))
 
 	# Pyfort support
@@ -28,7 +28,7 @@ AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
 	)
 
 	# So..
-	AS_IF([`AS_VAR_SET(HAS_PYT_MOD) && test "AS_VAR_GET(PYFORT)" != "no" -a \
+	AS_IF([`AS_VAR_GET(HAS_PYT_MOD) && test "AS_VAR_GET(PYFORT)" != "no" -a \
 			"AS_VAR_GET(PERL)" != "no" -a "AS_VAR_GET(HAS_BLASLAPACK)" != "no"`],
 			[AS_VAR_SET(WITH_PYTHON,"yes")])
 	AM_CONDITIONAL([WITH_PYTHON],AS_VAR_TEST_SET(WITH_PYTHON))
@@ -55,7 +55,6 @@ You need cdms and vcs python modules from CDAT.])])
 	AS_VAR_SET_IF(MYPYTHONPATH,
 		AC_CHECK_PROG(VCDAT,vcdat,vcdat,no,AS_VAR_GET(MYPYTHONPATH)),
 		[AC_CHECK_PROG(VCDAT,vcdat,vcdat,no)])
-	AS_VAR_SET(HAS_VCDAT,[`test "AS_VAR_GET(VCDAT)" != "no"`])
 
 
 ])

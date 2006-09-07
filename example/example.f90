@@ -76,7 +76,7 @@ program example
 		&	lon_name, lat_name, time_name, time_units
 	integer :: ncid, dimid, dimids(4), varid, dims(3), thisdim, &
 		& lonid, latid, phaseid, timeid, phcoid, recoid, origid
-	integer(kind=4) :: i, nspace, nlon, nlat, ntime, nspace
+	integer(kind=4) :: i, nspace, nlon, nlat, ntime
 	real :: pi, missing_value
 
 	! Get the initial sst field from the netcdf file
@@ -142,17 +142,17 @@ program example
 	print*,'PCA...'
 	allocate(eof(nspace, nkeep_pca))
 	allocate(pc(ntime,   nkeep_pca))
-	call sl_pca(packed_field, nkeep=nkeep_pca, xeof=eof, &
+	call sl_pca(packed_field, nkeep_pca, xeof=eof, &
 		&	pc=pc, weights=packed_weights)
 	deallocate(packed_field)
 
 	! We send results from PCA to MSSA
 	! --------------------------------
 	print*,'MSSA...'
-	allocate(steof(nspace*nwindow, first_mode+1))
-	allocate(stpc(ntime-nwindow+1, first_mode+1))
-	allocate(stev(                 first_mode+1))
-	call sl_mssa(transpose(pc), nwindow, nkeep=first_mode+1, &
+	allocate(steof(nkeep_pca*nwindow, first_mode+1))
+	allocate(stpc(ntime-nwindow+1,    first_mode+1))
+	allocate(stev(                    first_mode+1))
+	call sl_mssa(transpose(pc), nwindow, first_mode+1, &
 		&	steof=steof, stpc=stpc, ev=stev)
 
 	! We reconstruct modes [first_mode + first_mode+1] of MSSA

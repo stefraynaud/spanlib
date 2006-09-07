@@ -15,11 +15,10 @@ AC_DEFUN([AC_SR_PYFORT],
 	AC_ARG_VAR(PYFORT,[Absolute path to pyfort executable])
 	AS_VAR_SET_IF([PYFORT],[:],
 		[AC_PATH_PROG(PYFORT,pyfort,no,AS_VAR_GET(MYPYTHONPATH))])
-	AS_VAR_SET([HAS_PYFORT],[`test "AS_VAR_GET(PYFORT)" != "no"`])
-	AM_CONDITIONAL([HAS_PYFORT],AS_VAR_GET(HAS_PYFORT))
+	AM_CONDITIONAL([HAS_PYFORT],[`test "AS_VAR_GET(PYFORT)" != "no"`])
 
 	# F90 compiler id
-	AS_IF(AS_VAR_GET(HAS_PYFORT),
+	AS_IF([`test "AS_VAR_GET(PYFORT)" != "no"`],
 		AS_IF([scripts/check_fortran.py AS_VAR_GET(FC)],
 			AS_VAR_SET(ac_cv_goodfcid,yes),[
 			AC_SR_WARNING([You f90 compiler (AS_VAR_GET(FC)) is not in the available list with pyfort.
@@ -45,7 +44,7 @@ You wont be able to build the python package.])
 	)
 
 	# Build directory
-	AS_IF(AS_VAR_GET(HAS_PYFORT),
+	AS_IF([`test "AS_VAR_GET(PYFORT)" != "no"`],
 	[
 		AC_MSG_CHECKING([the generic directory name for building python libraries])
 		AS_VAR_SET(PYFORT_BUILD_DIR,
@@ -58,7 +57,7 @@ You wont be able to build the python package.])
 		AS_VAR_SET(PYFORT_BUILD_OPT,[-b]),
 		[
 			AS_VAR_SET(PYFORT_BUILD_OPT,[-b])
-			AS_IF(AS_VAR_GET(HAS_PYFORT),[
+			AS_IF([`test "AS_VAR_GET(PYFORT)" != "no"`],[
 					AC_MSG_CHECKING([where is the default place for python packages])
 					AS_VAR_SET(PYTHONDIR,
 						[`AS_VAR_GET(PYTHON) -c ["from distutils import sysconfig; print sysconfig.get_python_lib(1,0)"]`])

@@ -66,7 +66,7 @@ if HAS_NCVIEWER
 	@echo "# - reco1: reconstruction of the first pair of mssa modes"
 	@echo "# - pair1: phases composites of the first pair"
 	@echo "###########################################################"
-	$(NCVIEWER) $(F90NCOUTPUT) $(VARIABLE)
+	$(NCVIEWER) $(NCVIEWER_ARGS)
 else
 	@echo "###########################################################"
 	@echo "# Results are stored in the following netcdf file:"

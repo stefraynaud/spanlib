@@ -48,7 +48,6 @@ AS_VAR_SET(LIBS,"$LIBS -lnetcdf")
 
 # Check
 AC_MSG_CHECKING([for f90 netcdf support])
-###dnl AC_COMPILE_IFELSE([subroutine conftest_routine])
 AC_LINK_IFELSE([program conftest_routine
 	use netcdf
 	integer :: n
@@ -57,7 +56,7 @@ end program conftest_routine],
 	AS_VAR_SET(HAS_F90NETCDF,yes),AS_VAR_SET(HAS_F90NETCDF,no))
 AC_MSG_RESULT([AS_VAR_GET(HAS_F90NETCDF)])
 
-# # End
+# End
 AS_VAR_SET(LIBS,$save_libs)
 AS_VAR_SET(FCFLAGS,$save_fcflags)
 AC_SUBST(NETCDF_LIB)

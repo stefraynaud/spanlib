@@ -671,6 +671,7 @@ contains
 
 	! Find the first PC and its derivative
 	! ====================================
+	allocate(pc(nt,1))
 	call sl_pca(ffrec, 1, pc=pc, weights=weights)
 	pc = pc * sqrt(real(nt)/sum(pc**2))
 	dpc = 0.5 * (eoshift(pc(:,1), 1, pc(nt,1)) - eoshift(pc(:,1), -1, pc(1,1)))
@@ -749,8 +750,7 @@ contains
 	! -----
 
 	! Data set
-!!$	n=size(a,1)
-!!$	allocate(eig(n))
+	n=size(a,1)
 
 	! Working array [other values of lwork: (N+2)*N, n*(3+n/2)]
 	lwork=1+ 6*N + 2*N**2

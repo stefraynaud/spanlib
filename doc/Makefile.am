@@ -42,13 +42,13 @@ endif
 
 if HAS_DOC_SUPPORT
 spanlib.html: spanlib.xml spanlib_single.xsl $(XML_SRC_INC) $(XML_DOC_SUB) spanlib.css
-	$(XSLTPROC) --xinclude -o $@ spanlib_single.xsl $<
+	$(XSLTPROC) $(XSLTPROC_FLAGS) -o $@ spanlib_single.xsl $<
 
 index.html: spanlib.xml spanlib.xsl $(XML_SRC_INC) $(XML_DOC_SUB)
-	$(XSLTPROC) --xinclude -o $@ spanlib.xsl $<
+	$(XSLTPROC) $(XSLTPROC_FLAGS) -o $@ spanlib.xsl $<
 
 src_%.html: src_%.xml src_%_inc.xml src.xsl
-	$(XSLTPROC) --xinclude -o $@ src.xsl $<
+	$(XSLTPROC) $(XSLTPROC_FLAGS) -o $@ src.xsl $<
 
 $(XML_SRC_INC) $(XML_DOC_SUB): $(PARSE)
 	$^

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 example</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" id="src_f90_exa" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3056825"></a>SpanLib - Fortran 90 example</h1></div></div><div></div><hr /></div><table bgcolor="" width="100%" align="center" border="0"><tr><td><pre class="programlisting"><span class="HLcomments">! File: example.f90</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 example</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" id="src_f90_exa" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3241618"></a>SpanLib - Fortran 90 example</h1></div></div><div></div><hr /></div><table bgcolor="" width="100%" align="center" border="0"><tr><td><pre class="programlisting"><span class="HLcomments">! File: example.f90</span>
 <span class="HLcomments">!</span>
 <span class="HLcomments">! This file is part of the SpanLib library.</span>
 <span class="HLcomments">! Copyright (C) 2006  Stephane Raynaud</span>
@@ -78,7 +78,7 @@
 		&amp;	lon_name, lat_name, time_name, time_units
 	<span class="HLroutines">integer</span> :: ncid, dimid, dimids(<span class="HLdigits">4</span>), varid, dims(<span class="HLdigits">3</span>), thisdim, &amp;
 		&amp; lonid, latid, phaseid, timeid, phcoid, recoid, origid
-	<span class="HLroutines">integer</span>(kind=<span class="HLdigits">4</span>) :: i, nspace, nlon, nlat, ntime, nspace
+	<span class="HLroutines">integer</span>(kind=<span class="HLdigits">4</span>) :: i, nspace, nlon, nlat, ntime
 	<span class="HLroutines">real</span> :: pi, missing_value
 
 	<span class="HLcomments">! Get the initial sst field from the netcdf file</span>
@@ -144,17 +144,17 @@
 	<span class="HLroutines">print</span>*,<span class="HLstrings">'PCA...'</span>
 	<span class="HLfunctions">allocate</span>(eof(nspace, nkeep_pca))
 	<span class="HLfunctions">allocate</span>(pc(ntime,   nkeep_pca))
-	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca</span>(packed_field, nkeep=nkeep_pca, xeof=eof, &amp;
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca</span>(packed_field, nkeep_pca, xeof=eof, &amp;
 		&amp;	pc=pc, weights=packed_weights)
 	<span class="HLfunctions">deallocate</span>(packed_field)
 
 	<span class="HLcomments">! We send results from PCA to MSSA</span>
 	<span class="HLcomments">! --------------------------------</span>
 	<span class="HLroutines">print</span>*,<span class="HLstrings">'MSSA...'</span>
-	<span class="HLfunctions">allocate</span>(steof(nspace*nwindow, first_mode+<span class="HLdigits">1</span>))
-	<span class="HLfunctions">allocate</span>(stpc(ntime-nwindow+<span class="HLdigits">1</span>, first_mode+<span class="HLdigits">1</span>))
-	<span class="HLfunctions">allocate</span>(stev(                 first_mode+<span class="HLdigits">1</span>))
-	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_mssa</span>(<span class="HLfunctions">transpose</span>(pc), nwindow, nkeep=first_mode+<span class="HLdigits">1</span>, &amp;
+	<span class="HLfunctions">allocate</span>(steof(nkeep_pca*nwindow, first_mode+<span class="HLdigits">1</span>))
+	<span class="HLfunctions">allocate</span>(stpc(ntime-nwindow+<span class="HLdigits">1</span>,    first_mode+<span class="HLdigits">1</span>))
+	<span class="HLfunctions">allocate</span>(stev(                    first_mode+<span class="HLdigits">1</span>))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_mssa</span>(<span class="HLfunctions">transpose</span>(pc), nwindow, first_mode+<span class="HLdigits">1</span>, &amp;
 		&amp;	steof=steof, stpc=stpc, ev=stev)
 
 	<span class="HLcomments">! We reconstruct modes [first_mode + first_mode+1] of MSSA</span>
