@@ -465,7 +465,7 @@ class SpAn(object):
           phases :: Operate phase reconstruction True/False (default is False)
 
         Output:::
-          ffec :: Reconstructed field
+          ffrec :: Reconstructed field
         :::
         """
         n1=start
@@ -503,6 +503,7 @@ class SpAn(object):
 
             if n2 is None:
                 n2=self.nmssa
+
             ffrec = spanlib_fort.mssarec(self.steof, self.stpc, nspace, self.nt, self.nmssa, self.window, n1, n2)
 ##             print 'Ok did mssa',ffrec.shape
             comments+=' MSSA '
@@ -531,8 +532,15 @@ class SpAn(object):
             else:
                 pcreconstruct = self.pc
 
+				if mssa:
+					n1 = 1
+					n2 = self.npca
+				else if n2 is None:
+					n2 = self.npca
+					
+
 ##             print pcreconstruct.shape,self.ns,ntimes
-            ffrec = spanlib_fort.pcarec(self.eof, pcreconstruct, self.ns, ntimes, self.npca, 1,self.npca)
+            ffrec = spanlib_fort.pcarec(self.eof, pcreconstruct, self.ns, ntimes, self.npca, n1, n2)
 
 ##         print 'SEF.mask is:',self.mask
         if self.mask is not None:
