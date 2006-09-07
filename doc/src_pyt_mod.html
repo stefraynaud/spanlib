@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Source of python module</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.58.1" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><h1 class="title"><a id="id2855488"></a>SpanLib - Source of python module</h1></div><hr /></div><table bgcolor="" width="100%" align="center"><tr><td><pre class="programlisting"><span class="HLcomments">#################################################################################</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Source of python module</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.69.1" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id2498172"></a>SpanLib - Source of python module</h1></div></div><hr /></div><pre class="programlisting"><span class="HLcomments">#################################################################################</span>
 <span class="HLcomments"># File: spanlib_python.py</span>
 <span class="HLcomments">#</span>
 <span class="HLcomments"># This file is part of the SpanLib library.</span>
@@ -28,7 +28,7 @@
 
 
 <span class="HLcommands">def</span> <span class="HLpersonalised">stackData</span>(*data):
-    <span class="HLcomments">&quot;&quot;&quot; Takes several data files, of same time and stacks them up together</span>
+    <span class="HLcomments">""" Takes several data files, of same time and stacks them up together</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">    Description:::</span>
 <span class="HLcomments">      This fonction concatenates several dataset that have the</span>
@@ -48,7 +48,7 @@
 <span class="HLcomments">      masks   :: Associated stacked masks</span>
 <span class="HLcomments">      axes    :: Associated stacked axes</span>
 <span class="HLcomments">    :::</span>
-<span class="HLcomments">	 &quot;&quot;&quot;</span>
+<span class="HLcomments">	 """</span>
     len_time=<span class="HLspecial">None</span>
     axes=[]
     dout=<span class="HLspecial">None</span> <span class="HLcomments"># data output</span>
@@ -79,7 +79,7 @@
     <span class="HLcommands">return</span> Numeric.transpose(dout),weights,masks,axes
 
 <span class="HLcommands">def</span> <span class="HLpersonalised">unStackData</span>(din,weights,masks,axes):
-    <span class="HLcomments">&quot;&quot;&quot; Unstack data in the form returned from stackData</span>
+    <span class="HLcomments">""" Unstack data in the form returned from stackData</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">    Description:::</span>
 <span class="HLcomments">      This function is the reverse operation of stakData.</span>
@@ -96,7 +96,7 @@
 <span class="HLcomments">    Output:::</span>
 <span class="HLcomments">      dout    :: List of unstacked data</span>
 <span class="HLcomments">    :::</span>
-<span class="HLcomments">    &quot;&quot;&quot;</span>
+<span class="HLcomments">    """</span>
     nvar=len(axes)
 
     <span class="HLcommands">if</span> nvar!=len(masks):
@@ -127,7 +127,7 @@
 
 
 <span class="HLcommands">def</span> <span class="HLpersonalised">pack</span>(data,weights=<span class="HLspecial">None</span>):
-    <span class="HLcomments">&quot;&quot;&quot; Pack a dataset and its weights according to its mask</span>
+    <span class="HLcomments">""" Pack a dataset and its weights according to its mask</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">    Description:::</span>
 <span class="HLcomments">      This function packs a dataset in 2D space by removing</span>
@@ -148,7 +148,7 @@
 <span class="HLcomments">      packed_weights :: Packed weights that were guessed or used</span>
 <span class="HLcomments">      mask           :: Mask that were guessed or used</span>
 <span class="HLcomments">    :::</span>
-<span class="HLcomments">    &quot;&quot;&quot;</span>
+<span class="HLcomments">    """</span>
     <span class="HLcommands">if</span> Numeric.rank(data)==<span class="HLdigits">2</span>: <span class="HLcomments"># Already packed but then needs weights!</span>
         <span class="HLcommands">if</span> weights <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
             raise <span class="HLstrings">'Error packed data must be sent with weights!'</span>
@@ -185,7 +185,7 @@
     <span class="HLcomments">## Now add the ones from the weights</span>
     mask=mask.filled()+MV.equal(weights,<span class="HLdigits">0</span>.).filled(<span class="HLdigits">1</span>)
 
-    <span class="HLcomments">## &gt;=1 means masked, Fortran &quot;mask&quot;: 1 means data ==&gt; 1-mask</span>
+    <span class="HLcomments">## &gt;=1 means masked, Fortran "mask": 1 means data ==&gt; 1-mask</span>
     mask=<span class="HLdigits">1</span>.-MV.greater_equal(mask,<span class="HLdigits">1</span>).filled()
     mask=Numeric.transpose(mask)
 
@@ -209,7 +209,7 @@
 
 
 <span class="HLcommands">def</span> <span class="HLpersonalised">computePhases</span>(data,nphases=<span class="HLdigits">8</span>,offset=.<span class="HLdigits">5</span>,firstphase=<span class="HLdigits">0</span>):
-    <span class="HLcomments">&quot;&quot;&quot; Phase composites for oscillatory fields</span>
+    <span class="HLcomments">""" Phase composites for oscillatory fields</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">    Description:::</span>
 <span class="HLcomments">      This computes temporal phase composites of a spatio-temporal</span>
@@ -229,7 +229,7 @@
 <span class="HLcomments">    Output:::</span>
 <span class="HLcomments">      phases :: Space-phase array</span>
 <span class="HLcomments">    :::</span>
-<span class="HLcomments">    &quot;&quot;&quot;</span>
+<span class="HLcomments">    """</span>
     <span class="HLcomments"># FIXME: maybe must be integrated to MSSA because</span>
     <span class="HLcomments">#        interesting only for MSSA outputs,</span>
     <span class="HLcomments">#        and usable only before PCA recontruction</span>
@@ -250,7 +250,7 @@
 
 class <span class="HLpersonalised">SpAn</span>(object):
     <span class="HLcommands">def</span> __init__(<span class="HLspecial">self</span>,data,weights=<span class="HLspecial">None</span>,npca=<span class="HLspecial">None</span>,window=<span class="HLspecial">None</span>,nmssa=<span class="HLspecial">None</span>):
-        <span class="HLcomments">&quot;&quot;&quot; Prepare the Spectral Analysis Object</span>
+        <span class="HLcomments">""" Prepare the Spectral Analysis Object</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">        Description:::</span>
 <span class="HLcomments">          This function creates an object for future analyses.</span>
@@ -264,7 +264,7 @@ class <span class="HLpersonalised">SpAn</span>(object):
 <span class="HLcomments">                     Last dimensions must represent the spatial dimensions.</span>
 <span class="HLcomments">                     Analysis will be run on the first dimension.</span>
 <span class="HLcomments">          weights :: If you which to apply weights on some points.</span>
-<span class="HLcomments">                     Set weights to &quot;0&quot; where you wish to mask.</span>
+<span class="HLcomments">                     Set weights to "0" where you wish to mask.</span>
 <span class="HLcomments">                     The input data mask will be applied,</span>
 <span class="HLcomments">                     using the union of all none spacial dimension mask.</span>
 <span class="HLcomments">                     If the data are on a regular grid, area weights</span>
@@ -277,7 +277,7 @@ class <span class="HLpersonalised">SpAn</span>(object):
 <span class="HLcomments">        Output:::</span>
 <span class="HLcomments">          analysis_object :: Object created for further analysis</span>
 <span class="HLcomments">        :::</span>
-<span class="HLcomments">        &quot;&quot;&quot;</span>
+<span class="HLcomments">        """</span>
         <span class="HLcomments">## Sets all values to None</span>
         <span class="HLspecial">self</span>.clean()
         <span class="HLcomments">## First pack our data, prepare the weights and mask for PCA</span>
@@ -309,7 +309,7 @@ class <span class="HLpersonalised">SpAn</span>(object):
 <span class="HLcomments">##         print 'At the end:',self.pdata.shape,self.ns,self.nt</span>
 
     <span class="HLcommands">def</span> <span class="HLpersonalised">pca</span>(<span class="HLspecial">self</span>,npca=<span class="HLspecial">None</span>):
-        <span class="HLcomments">&quot;&quot;&quot; Principal Components Analysis (PCA)</span>
+        <span class="HLcomments">""" Principal Components Analysis (PCA)</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">        Descriptions:::</span>
 <span class="HLcomments">          This function performs a PCA on the analysis objects</span>
@@ -326,7 +326,7 @@ class <span class="HLpersonalised">SpAn</span>(object):
 <span class="HLcomments">          pc  :: Principal Components array</span>
 <span class="HLcomments">          ev  :: Eigein Values array</span>
 <span class="HLcomments">        :::</span>
-<span class="HLcomments">        &quot;&quot;&quot;</span>
+<span class="HLcomments">        """</span>
 
         <span class="HLcommands">if</span> npca <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
             npca=<span class="HLspecial">self</span>.npca
@@ -363,7 +363,7 @@ class <span class="HLpersonalised">SpAn</span>(object):
 
 
     <span class="HLcommands">def</span> <span class="HLpersonalised">mssa</span>(<span class="HLspecial">self</span>,nmssa=<span class="HLspecial">None</span>,<span class="HLpersonalised">pca</span>=<span class="HLspecial">None</span>,window=<span class="HLspecial">None</span>):
-        <span class="HLcomments">&quot;&quot;&quot; MultiChannel Singular Spectrum Analysis (MSSA)</span>
+        <span class="HLcomments">""" MultiChannel Singular Spectrum Analysis (MSSA)</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">        Descriptions:::</span>
 <span class="HLcomments">          This function performs a MSSA on the analysis objects</span>
@@ -384,7 +384,7 @@ class <span class="HLpersonalised">SpAn</span>(object):
 <span class="HLcomments">          pc  :: Principal Components array</span>
 <span class="HLcomments">          ev  :: Eigen Values  array</span>
 <span class="HLcomments">        :::</span>
-<span class="HLcomments">        &quot;&quot;&quot;</span>
+<span class="HLcomments">        """</span>
 
         <span class="HLcomments">## Check for default values for mssa and pca if not passed by user</span>
         <span class="HLcommands">if</span> <span class="HLpersonalised">pca</span> <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
@@ -445,7 +445,7 @@ class <span class="HLpersonalised">SpAn</span>(object):
 
 
     <span class="HLcommands">def</span> <span class="HLpersonalised">reconstruct</span>(<span class="HLspecial">self</span>,start=<span class="HLdigits">1</span>,end=<span class="HLspecial">None</span>,<span class="HLpersonalised">mssa</span>=<span class="HLspecial">None</span>,<span class="HLpersonalised">pca</span>=<span class="HLspecial">None</span>,phases=False,nphases=<span class="HLdigits">8</span>,offset=.<span class="HLdigits">5</span>,firstphase=<span class="HLdigits">0</span>):
-        <span class="HLcomments">&quot;&quot;&quot; Reconstruct results from mssa or pca</span>
+        <span class="HLcomments">""" Reconstruct results from mssa or pca</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">        Description:::</span>
 <span class="HLcomments">          This function performs recontructions to retreive the</span>
@@ -469,7 +469,7 @@ class <span class="HLpersonalised">SpAn</span>(object):
 <span class="HLcomments">        Output:::</span>
 <span class="HLcomments">          ffec :: Reconstructed field</span>
 <span class="HLcomments">        :::</span>
-<span class="HLcomments">        &quot;&quot;&quot;</span>
+<span class="HLcomments">        """</span>
         n1=start
         n2=end
         <span class="HLcomments"># FIXME: needs MSSA alone</span>
@@ -561,4 +561,4 @@ class <span class="HLpersonalised">SpAn</span>(object):
 
 
 
-</pre></td></tr></table></div></body></html>
+</pre></div></body></html>

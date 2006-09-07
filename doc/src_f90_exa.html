@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 example</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.58.1" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><h1 class="title"><a id="id2855488"></a>SpanLib - Fortran 90 example</h1></div><hr /></div><table bgcolor="" width="100%" align="center"><tr><td><pre class="programlisting"><span class="HLcomments">! File: example.f90</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 example</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.69.1" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id2498172"></a>SpanLib - Fortran 90 example</h1></div></div><hr /></div><pre class="programlisting"><span class="HLcomments">! File: example.f90</span>
 <span class="HLcomments">!</span>
 <span class="HLcomments">! This file is part of the SpanLib library.</span>
 <span class="HLcomments">! Copyright (C) 2006  Stephane Raynaud</span>
@@ -29,7 +29,7 @@
 	<span class="HLcomments">! that include the El Nino Southern Oscillation signal.</span>
 	<span class="HLcomments">! Input is the netcdf file data.cdf.</span>
 	<span class="HLcomments">! We remove land points from the initial array according</span>
-	<span class="HLcomments">! to the netcdf missing_value attribute of the analysed variable (data are &quot;packed&quot;).</span>
+	<span class="HLcomments">! to the netcdf missing_value attribute of the analysed variable (data are "packed").</span>
 	<span class="HLcomments">! A PCA is used to reduce the degrees of freedoom before MSSA analysis.</span>
 	<span class="HLcomments">! Weights for PCA are computed as a fonction of latitude.</span>
 	<span class="HLcomments">! Then, we assume that we have already identified an oscillation (after tests).</span>
@@ -62,7 +62,7 @@
 	<span class="HLcomments">! ----------</span>
 	<span class="HLroutines">integer</span>,<span class="HLattributes">parameter</span> :: nkeep_pca=<span class="HLdigits">5</span>, nwindow=<span class="HLdigits">84</span>, first_mode=<span class="HLdigits">1</span>, nphases=<span class="HLdigits">8</span>
 	<span class="HLroutines">real</span>, <span class="HLattributes">parameter</span> :: offset=<span class="HLdigits">0</span>., first_phase=<span class="HLdigits">180</span>., new_missing_value=-<span class="HLdigits">999</span>.
-	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">&quot;data2.cdf&quot;</span>, output_nc_file=<span class="HLstrings">&quot;output.nc&quot;</span>, &amp;
+	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">"data2.cdf"</span>, output_nc_file=<span class="HLstrings">"output.nc"</span>, &amp;
 		var_name=<span class="HLstrings">'ssta'</span>
 
 	<span class="HLcomments">! Other declarations</span>
@@ -262,4 +262,4 @@
 
 <span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> err
 
-</pre></td></tr></table></div></body></html>
+</pre></div></body></html>

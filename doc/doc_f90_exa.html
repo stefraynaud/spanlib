@@ -1,33 +1,36 @@
-<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <title>3.3. A Fortran 90 example</title>
-    <link rel="stylesheet" href="spanlib.css" type="text/css"/>
-    <meta name="generator" content="DocBook XSL Stylesheets V1.58.1"/>
-    <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, PCA, EOF, POP"/>
-    <link rel="home" href="index.html" title="SpanLib - Spectral Analysis Library"/>
-    <link rel="up" href="doc_f90.html" title="3. The Fortran 90 library"/>
-    <link rel="previous" href="doc_f90_sub.html" title="3.2. F90 subroutines"/>
-    <link rel="next" href="doc_pyt.html" title="4. The python module"/>
+  <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>3.3.Â A Fortran 90 example</title>
+    <link rel="stylesheet" href="spanlib.css" type="text/css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.69.1" />
+    <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, PCA, EOF, POP" />
+    <link rel="start" href="index.html" title="SpanLib - Spectral Analysis Library" />
+    <link rel="up" href="doc_f90.html" title="3.Â The Fortran 90 library" />
+    <link rel="prev" href="doc_f90_sub.html" title="3.2.Â F90 subroutines" />
+    <link rel="next" href="doc_pyt.html" title="4.Â The python module" />
   </head>
   <body>
     <div class="navheader">
       <table width="100%" summary="Navigation header">
         <tr>
-          <th colspan="3" align="center">3.3. A Fortran 90 example</th>
+          <th colspan="3" align="center">3.3.Â A Fortran 90 example</th>
         </tr>
         <tr>
-          <td width="20%" align="left"><a accesskey="p" href="doc_f90_sub.html">Prev</a> </td>
-          <th width="60%" align="center">3. The Fortran 90 library</th>
-          <td width="20%" align="right"> <a accesskey="n" href="doc_pyt.html">Next</a></td>
+          <td width="20%" align="left"><a accesskey="p" href="doc_f90_sub.html">Prev</a>Â </td>
+          <th width="60%" align="center">3.Â The Fortran 90 library</th>
+          <td width="20%" align="right">Â <a accesskey="n" href="doc_pyt.html">Next</a></td>
         </tr>
       </table>
-      <hr/>
+      <hr />
     </div>
-    <div class="sect2" lang="en">
+    <div class="sect2" lang="en" xml:lang="en">
       <div class="titlepage">
         <div>
-          <h3 class="title"><a id="doc_f90_exa"/>3.3. A Fortran 90 example</h3>
+          <div>
+            <h3 class="title"><a id="doc_f90_exa"></a>3.3.Â A Fortran 90 example</h3>
+          </div>
         </div>
       </div>
       <p>
@@ -38,33 +41,24 @@
 				and stored in a netcdf file.
 			</p>
       <div class="example">
-        <a id="id2873142"/>
+        <a id="id2523930"></a>
         <p class="title">
-          <b>Example 1. F90 example</b>
+          <b>ExampleÂ 1.Â F90 example</b>
         </p>
         <p>
 					You can run this example typing (from package directory):
 					</p>
-        <table bgcolor="" width="100%" align="center">
-          <tr>
-            <td>
-              <pre class="programlisting"><tt>&lt;user&gt;</tt> <b><tt>cd example &amp;&amp; make</tt></b></pre>
-            </td>
-          </tr>
-        </table>
+        <pre class="programlisting"><code class="prompt">&lt;user&gt;</code> <strong class="userinput"><code>cd example &amp;&amp; make</code></strong></pre>
         <p>
 					This command will first try to download the dataset,
 					then compile the following f90 program, run it,
 					and finally try to visualise output data.
-					See <a href="doc_ins.html#doc_ins_req" title="2.1. Requirements">Section 2.1</a> if it fails.
+					See <a href="doc_ins.html#doc_ins_req" title="2.1.Â Requirements">SectionÂ 2.1, â€œRequirementsâ€</a> if it fails.
 				</p>
         <p>
 					The sources of this example is highlighted below, with comments inside.
 					</p>
-        <table bgcolor="" width="100%" align="center">
-          <tr>
-            <td>
-              <pre class="programlisting"><span class="HLcomments">! File: example.f90</span>
+        <pre class="programlisting"><span class="HLcomments">! File: example.f90</span>
 <span class="HLcomments">!</span>
 <span class="HLcomments">! This file is part of the SpanLib library.</span>
 <span class="HLcomments">! Copyright (C) 2006  Stephane Raynaud</span>
@@ -93,7 +87,7 @@
 	<span class="HLcomments">! that include the El Nino Southern Oscillation signal.</span>
 	<span class="HLcomments">! Input is the netcdf file data.cdf.</span>
 	<span class="HLcomments">! We remove land points from the initial array according</span>
-	<span class="HLcomments">! to the netcdf missing_value attribute of the analysed variable (data are &quot;packed&quot;).</span>
+	<span class="HLcomments">! to the netcdf missing_value attribute of the analysed variable (data are "packed").</span>
 	<span class="HLcomments">! A PCA is used to reduce the degrees of freedoom before MSSA analysis.</span>
 	<span class="HLcomments">! Weights for PCA are computed as a fonction of latitude.</span>
 	<span class="HLcomments">! Then, we assume that we have already identified an oscillation (after tests).</span>
@@ -126,7 +120,7 @@
 	<span class="HLcomments">! ----------</span>
 	<span class="HLroutines">integer</span>,<span class="HLattributes">parameter</span> :: nkeep_pca=<span class="HLdigits">5</span>, nwindow=<span class="HLdigits">84</span>, first_mode=<span class="HLdigits">1</span>, nphases=<span class="HLdigits">8</span>
 	<span class="HLroutines">real</span>, <span class="HLattributes">parameter</span> :: offset=<span class="HLdigits">0</span>., first_phase=<span class="HLdigits">180</span>., new_missing_value=-<span class="HLdigits">999</span>.
-	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">&quot;data2.cdf&quot;</span>, output_nc_file=<span class="HLstrings">&quot;output.nc&quot;</span>, &amp;
+	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">"data2.cdf"</span>, output_nc_file=<span class="HLstrings">"output.nc"</span>, &amp;
 		var_name=<span class="HLstrings">'ssta'</span>
 
 	<span class="HLcomments">! Other declarations</span>
@@ -327,33 +321,32 @@
 <span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> err
 
 </pre>
-            </td>
-          </tr>
-        </table>
         <p>
 				</p>
       </div>
     </div>
     <div class="navfooter">
-      <hr/>
+      <hr />
       <table width="100%" summary="Navigation footer">
         <tr>
-          <td width="40%" align="left"><a accesskey="p" href="doc_f90_sub.html">Prev</a> </td>
+          <td width="40%" align="left"><a accesskey="p" href="doc_f90_sub.html">Prev</a>Â </td>
           <td width="20%" align="center">
             <a accesskey="u" href="doc_f90.html">Up</a>
           </td>
-          <td width="40%" align="right"> <a accesskey="n" href="doc_pyt.html">Next</a></td>
+          <td width="40%" align="right">Â <a accesskey="n" href="doc_pyt.html">Next</a></td>
         </tr>
         <tr>
-          <td width="40%" align="left" valign="top">3.2. F90 subroutines </td>
-          <td width="20%" align="center"><a accesskey="h" href="index.html">Home</a> | <a accesskey="t" href="index-toc.html">ToC</a></td>
-          <td width="40%" align="right" valign="top"> 4. The python module</td>
+          <td width="40%" align="left" valign="top">3.2.Â F90 subroutinesÂ </td>
+          <td width="20%" align="center">
+            <a accesskey="h" href="index.html">Home</a>
+          </td>
+          <td width="40%" align="right" valign="top">Â 4.Â The python module</td>
         </tr>
       </table>
     </div>
-    <a xmlns="" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:date="http://exslt.org/dates-and-times" href="http://sourceforge.net">
-      <img src="http://sflogo.sourceforge.net/sflogo.php?group_id=168272&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo"/>
+    <a xmlns="" href="http://sourceforge.net">
+      <img src="http://sflogo.sourceforge.net/sflogo.php?group_id=168272&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo" />
     </a>
-    <div xmlns="" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:date="http://exslt.org/dates-and-times" class="generated">This document was generated using xsltproc and perl.</div>
+    <div xmlns="" class="generated">This document was generated using xsltproc and perl.</div>
   </body>
 </html>

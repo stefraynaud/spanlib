@@ -7,7 +7,7 @@
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 	xmlns:fo="http://www.w3.org/1999/XSL/Format"
 	xmlns:date="http://exslt.org/dates-and-times"
-	xclude-result-prefixes="date"
+	exclude-result-prefixes="date"
 	version="1.0">
 
 	<!-- Imports -->
@@ -15,7 +15,7 @@
 	<xsl:import href="common.xsl"/>
 
 	<!-- Chunking -->
-	<xsl:param name="chunk.tocs.and.lots" select="1"/>
+	<!--xsl:param name="chunk.tocs.and.lots" select="1"/-->
 	<xsl:param name="chunk.section.depth" select="2"/>
 	<xsl:param name="chunker.output.indent" select="'yes'"/>
 

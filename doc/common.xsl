@@ -7,7 +7,7 @@
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 	xmlns:fo="http://www.w3.org/1999/XSL/Format"
 	xmlns:date="http://exslt.org/dates-and-times"
-	xclude-result-prefixes="date"
+	exclude-result-prefixes="date"
 	version="1.0">
 
 	<!-- Automatic numbering -->
@@ -21,9 +21,8 @@
 	<xsl:param name="para.propagates.style" select="1"/>
 
 	<!-- Shade -->
-	<xsl:param name="shade.verbatim" select="1"/>
+	<!--xsl:param name="shade.verbatim" select="1"/-->
 	<xsl:attribute-set name="shade.verbatim.style">
-		<xsl:attribute name="bgcolor"></xsl:attribute>
 		<xsl:attribute name="width">100%</xsl:attribute>
 		<xsl:attribute name="align">center</xsl:attribute>
 	</xsl:attribute-set>

@@ -6,7 +6,7 @@
 <!-- Customization layer -->
 <xsl:stylesheet
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-	mlns:fo="http://www.w3.org/1999/XSL/Format"
+	xmlns:fo="http://www.w3.org/1999/XSL/Format"
 	version="1.0">
 
 	<!-- Imports -->

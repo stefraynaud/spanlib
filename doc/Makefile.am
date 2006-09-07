@@ -30,8 +30,7 @@ dist_doc_DATA = \
 	doc_ins.html doc_f90.html doc_pyt.html doc_lin.html doc_bib.html \
 	doc_ins_dow.html doc_ins_ins.html \
 	doc_f90_sub.html doc_f90_exa.html \
-	doc_pyt_sub.html doc_pyt_exa.html \
-	index.html-toc.html
+	doc_pyt_sub.html doc_pyt_exa.html
 
 if HAS_DOC_SUPPORT
 CLEANFILES = *_inc.xml *.html
