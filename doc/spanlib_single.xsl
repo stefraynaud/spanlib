@@ -11,7 +11,7 @@
 	xclude-result-prefixes="date"
 	version="1.0">
 
-	<xsl:import href="/usr/share/sgml/docbook/xsl-stylesheets-1.61.2-2/xhtml/docbook.xsl" />
+	<xsl:import href="/usr/share/sgml/docbook/xsl-stylesheets/xhtml/docbook.xsl" />
 
 	<!-- Date in header -->
 	<xsl:template name="user.head.content">
