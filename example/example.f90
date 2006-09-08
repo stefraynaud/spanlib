@@ -58,21 +58,26 @@ program example
 
 	! Parameters
 	! ----------
-	integer,parameter :: nkeep_pca=5, nwindow=84, first_mode=1, nphases=8
-	real, parameter :: offset=0., first_phase=180., new_missing_value=-999.
-	character(len=20), parameter :: input_nc_file="data2.cdf", output_nc_file="output.nc", &
-		var_name='ssta'
+	integer,parameter :: nkeep_pca=5, nwindow=84, first_mode=1, &
+		& nphases=8
+	real, parameter :: offset=0., first_phase=180., &
+		& new_missing_value=-999.
+	character(len=20), parameter :: input_nc_file="data2.cdf", &
+		& output_nc_file="output.nc", var_name='ssta'
 
 	! Other declarations
 	! ------------------
-	real, allocatable :: field(:,:,:), weights(:,:), lat(:), lon(:), time(:)
+	real, allocatable :: field(:,:,:), weights(:,:), &
+		& lat(:), lon(:), time(:)
 	real, allocatable :: reco(:,:,:), phasecomps(:,:,:)
 	logical, allocatable :: mask(:,:)
 	real, allocatable :: packed_field(:,:), packed_weights(:), &
 		& packed_phasecomps(:,:), stphasecomps(:,:)
-	real, allocatable :: eof(:,:), ev(:), pc(:,:), stpair(:,:), pair(:,:)
+	real, allocatable :: eof(:,:), ev(:), pc(:,:), &
+		& stpair(:,:), pair(:,:)
 	real, allocatable :: steof(:,:),stpc(:,:),stev(:)
-	character(len=20) :: dim_names(3), dim_name, lon_units, lat_units, var_units, &
+	character(len=20) :: dim_names(3), dim_name, &
+		& lon_units, lat_units, var_units, &
 		&	lon_name, lat_name, time_name, time_units
 	integer :: ncid, dimid, dimids(4), varid, dims(3), thisdim, &
 		& lonid, latid, phaseid, timeid, phcoid, recoid, origid
@@ -98,7 +103,8 @@ program example
 	allocate(lat(nlat))
 	allocate(time(ntime))
 	call err(nf90_get_var(ncid, varid, field))
-	call err(nf90_get_att(ncid, varid, 'missing_value', missing_value))
+	call err(nf90_get_att(ncid, varid, 'missing_value', &
+		& missing_value))
 	call err(nf90_get_att(ncid, varid, 'units', var_units))
 	call err(nf90_inq_varid(ncid, lon_name, varid))
 	call err(nf90_get_var(ncid, varid, lon))
@@ -123,11 +129,7 @@ program example
 	end do
 
 	! Now pack
-!!$	if(isnan(missing_value))then
-!!$		mask = not(isnan(field(:,:,1)))
-!!$	else
-		mask = (field(:,:,1) /= missing_value)
-!!$	end if
+	mask = (field(:,:,1) /= missing_value)
 	allocate(packed_field(count(mask), ntime))
 	do i=1, ntime
 		packed_field(:,i) = pack(field(:,:,i), mask)
@@ -175,7 +177,7 @@ program example
 	! We go back to the physical space for
 	! the full oscillation AND its composites
 	! ---------------------------------------
-	print*,'PCAREC...',stphasecomps
+	print*,'PCAREC...'
 	allocate(pair(nspace, ntime))
 	call sl_pcarec(eof, transpose(stpair), pair)
 	allocate(packed_phasecomps(nspace, nphases))
@@ -195,7 +197,8 @@ program example
 	end do
 	allocate(phasecomps(nlon,nlat,nphases))
 	do i=1, nphases
-		phasecomps(:,:,i) = unpack(packed_phasecomps(:,i), mask, new_missing_value)
+		phasecomps(:,:,i) = unpack(packed_phasecomps(:,i), mask, &
+		 & new_missing_value)
 	end do
 
 
@@ -216,24 +219,35 @@ program example
 	call err(nf90_def_var(ncid, 'lat', nf90_float, dimids(2), latid))
 	call err(nf90_put_att(ncid, latid, 'long_name', 'Latitude'))
 	call err(nf90_put_att(ncid, latid, 'units', lat_units))
-	call err(nf90_def_var(ncid, 'time', nf90_float, dimids(3), timeid))
+	call err(nf90_def_var(ncid, 'time', nf90_float, dimids(3), &
+		& timeid))
 	call err(nf90_put_att(ncid, timeid, 'long_name', 'Time'))
 	call err(nf90_put_att(ncid, timeid, 'units', time_units))
-	call err(nf90_def_var(ncid, 'phase', nf90_float, dimids(4), phaseid))
+	call err(nf90_def_var(ncid, 'phase', nf90_float, dimids(4), &
+		& phaseid))
 	call err(nf90_put_att(ncid, phaseid, 'long_name', 'Phase'))
 	call err(nf90_put_att(ncid, phaseid, 'units', 'level'))
-	call err(nf90_def_var(ncid, 'orig', nf90_float, dimids(1:3), origid))
-	call err(nf90_put_att(ncid, origid, 'long_name', 'SST anomaly / original field'))
+	call err(nf90_def_var(ncid, 'orig', nf90_float, dimids(1:3), &
+	 & origid))
+	call err(nf90_put_att(ncid, origid, 'long_name', &
+		& 'SST anomaly / original field'))
 	call err(nf90_put_att(ncid, origid, 'units', var_units))
-	call err(nf90_put_att(ncid, origid, 'missing_value', new_missing_value))
-	call err(nf90_def_var(ncid, 'reco1', nf90_float, dimids(1:3), recoid))
-	call err(nf90_put_att(ncid, recoid, 'long_name', 'SST anomaly / reconstruction of first pair'))
+	call err(nf90_put_att(ncid, origid, 'missing_value', &
+		& new_missing_value))
+	call err(nf90_def_var(ncid, 'reco1', nf90_float, dimids(1:3), &
+		& recoid))
+	call err(nf90_put_att(ncid, recoid, 'long_name', &
+		& 'SST anomaly / reconstruction of first pair'))
 	call err(nf90_put_att(ncid, recoid, 'units', var_units))
-	call err(nf90_put_att(ncid, recoid, 'missing_value', new_missing_value))
-	call err(nf90_def_var(ncid, 'pair1', nf90_float, (/dimids(1),dimids(2),dimids(4)/), phcoid))
-	call err(nf90_put_att(ncid, phcoid, 'long_name', 'SST anomaly / phase composite of first pair'))
+	call err(nf90_put_att(ncid, recoid, 'missing_value', &
+		& new_missing_value))
+	call err(nf90_def_var(ncid, 'pair1', nf90_float, &
+		& (/dimids(1),dimids(2),dimids(4)/), phcoid))
+	call err(nf90_put_att(ncid, phcoid, 'long_name', &
+		&'SST anomaly / phase composite of first pair'))
 	call err(nf90_put_att(ncid, phcoid, 'units', var_units))
-	call err(nf90_put_att(ncid, phcoid, 'missing_value', new_missing_value))
+	call err(nf90_put_att(ncid, phcoid, 'missing_value', &
+		& new_missing_value))
 	! Values
 	call err(nf90_enddef(ncid))
 	call err(nf90_put_var(ncid, lonid, lon))

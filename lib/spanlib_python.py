@@ -32,7 +32,8 @@ def stackData(*data):
       This fonction concatenates several dataset that have the
       same time axis. It is useful for analysing for example
       several variables at the same time.
-		It takes into account weights, masks and axes.
+      It takes into account weights, masks and axes.
+    :::
 
     Usage:::
     dout, weights, mask, axes = stackData(data1[, data2...])
@@ -40,6 +41,7 @@ def stackData(*data):
       *data   :: One or more data objects to stack.
                  They must all have the same time length.
     :::
+
     Output:::
       dout    :: Stacked data
       weights :: Associated stacked weights
@@ -82,6 +84,7 @@ def unStackData(din,weights,masks,axes):
     Description:::
       This function is the reverse operation of stakData.
       It splits stacked datasets into a list.
+    :::
 
     Usage:::
     dout = unStackData(din,weights,mask,axes)
@@ -91,6 +94,7 @@ def unStackData(din,weights,masks,axes):
       masks   :: Associated stacked masks
       axes    :: Associated stacked axes
     :::
+
     Output:::
       dout    :: List of unstacked data
     :::
@@ -133,6 +137,7 @@ def pack(data,weights=None):
       It performs this operation also on the weights.
       It is used for removing unnecessary points and
       simplifying the input format for analysis functions.
+    :::
 
     Usage:::
     packed_data, packed_weights, mask = pack(data,weights)
@@ -141,6 +146,7 @@ def pack(data,weights=None):
                  its masked point
       weights :: Weights to be flatten also
     :::
+
     Output:::
       packed_data    :: Space-time packed array
       packed_weights :: Packed weights that were guessed or used
@@ -216,6 +222,7 @@ def computePhases(data,nphases=8,offset=.5,firstphase=0):
       to represents the dataset over its cycle in a arbitrary
       number of phases. It is useful, for example, to have a
       synthetic view of an reconstructed MSSA oscillation.
+    :::
 
     Usage:::
     phases = computePhases(data,nphases,offset,firstphase)
@@ -224,6 +231,8 @@ def computePhases(data,nphases=8,offset=.5,firstphase=0):
       nphases    :: Number of phases (divisions of the cycle)
       offset     :: Normalised offset to keep higher values only [default:
       firstphase :: Position of the first phase in the 360 degree cycle
+    :::
+
     Output:::
       phases :: Space-phase array
     :::
@@ -253,7 +262,7 @@ class SpAn(object):
         Description:::
           This function creates an object for future analyses.
           It optionally initializes some parameters.
-
+        :::
 
         Usage:::
         analysis_object = SpAn(data,weights=None,npca=None,window=None,nmssa=None)
@@ -272,6 +281,7 @@ class SpAn(object):
           nmssa   :: Number of MSSA modes retained [default: 4]
           window  :: MSSA window parameter [default: time_length/3.]
         :::
+
         Output:::
           analysis_object :: Object created for further analysis
         :::
@@ -313,12 +323,14 @@ class SpAn(object):
           This function performs a PCA on the analysis objects
           and returns EOF, PC and eigen values.
           EOF are automatically unpacked.
+        :::
 
         Usage:::
         eof, pc, ev = pca(data,npca=None,weights=None)
 
           npca    :: Number of principal components to return, default will be 10
         :::
+
         Output:::
           eof :: EOF array
           pc  :: Principal Components array
@@ -370,6 +382,7 @@ class SpAn(object):
           PCA is performed to reduced the number of d-o-f
           if already done and if the number of channels is
           greater than 30.
+        :::
 
         Usage:::
         eof, pc, ev = mssa(nmssa,pca)
@@ -377,6 +390,7 @@ class SpAn(object):
           nmssa  :: Number of MSSA modes retained
           window :: MSSA window parameter
           pca    :: If True, performs a preliminary PCA
+
         Output:::
           eof :: EOF array
           pc  :: Principal Components array
@@ -454,6 +468,7 @@ class SpAn(object):
           This function can optionally performs phase composites
           (useful for pairs of MSSA modes = oscillations) on MSSA
           recontructions.
+        :::
 
         Usage:::
         ffrec = reconstruct(start,end,mssa,pca)
@@ -463,6 +478,7 @@ class SpAn(object):
           mssa  :: Reconstruct MSSA if True
           pca   :: Reconstruct PCA if True
           phases :: Operate phase reconstruction True/False (default is False)
+        :::
 
         Output:::
           ffrec :: Reconstructed field
@@ -537,7 +553,7 @@ class SpAn(object):
 					n2 = self.npca
 				else if n2 is None:
 					n2 = self.npca
-					
+
 
 ##             print pcreconstruct.shape,self.ns,ntimes
             ffrec = spanlib_fort.pcarec(self.eof, pcreconstruct, self.ns, ntimes, self.npca, n1, n2)

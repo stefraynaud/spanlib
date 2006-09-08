@@ -115,21 +115,26 @@
 
 	<span class="HLcomments">! Parameters</span>
 	<span class="HLcomments">! ----------</span>
-	<span class="HLroutines">integer</span>,<span class="HLattributes">parameter</span> :: nkeep_pca=<span class="HLdigits">5</span>, nwindow=<span class="HLdigits">84</span>, first_mode=<span class="HLdigits">1</span>, nphases=<span class="HLdigits">8</span>
-	<span class="HLroutines">real</span>, <span class="HLattributes">parameter</span> :: offset=<span class="HLdigits">0</span>., first_phase=<span class="HLdigits">180</span>., new_missing_value=-<span class="HLdigits">999</span>.
-	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">&quot;data2.cdf&quot;</span>, output_nc_file=<span class="HLstrings">&quot;output.nc&quot;</span>, &amp;
-		var_name=<span class="HLstrings">'ssta'</span>
+	<span class="HLroutines">integer</span>,<span class="HLattributes">parameter</span> :: nkeep_pca=<span class="HLdigits">5</span>, nwindow=<span class="HLdigits">84</span>, first_mode=<span class="HLdigits">1</span>, &amp;
+		&amp; nphases=<span class="HLdigits">8</span>
+	<span class="HLroutines">real</span>, <span class="HLattributes">parameter</span> :: offset=<span class="HLdigits">0</span>., first_phase=<span class="HLdigits">180</span>., &amp;
+		&amp; new_missing_value=-<span class="HLdigits">999</span>.
+	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">&quot;data2.cdf&quot;</span>, &amp;
+		&amp; output_nc_file=<span class="HLstrings">&quot;output.nc&quot;</span>, var_name=<span class="HLstrings">'ssta'</span>
 
 	<span class="HLcomments">! Other declarations</span>
 	<span class="HLcomments">! ------------------</span>
-	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: field(:,:,:), weights(:,:), lat(:), lon(:), time(:)
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: field(:,:,:), weights(:,:), &amp;
+		&amp; lat(:), lon(:), time(:)
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: reco(:,:,:), phasecomps(:,:,:)
 	<span class="HLroutines">logical</span>, <span class="HLattributes">allocatable</span> :: mask(:,:)
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: packed_field(:,:), packed_weights(:), &amp;
 		&amp; packed_phasecomps(:,:), stphasecomps(:,:)
-	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: eof(:,:), ev(:), pc(:,:), stpair(:,:), pair(:,:)
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: eof(:,:), ev(:), pc(:,:), &amp;
+		&amp; stpair(:,:), pair(:,:)
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: steof(:,:),stpc(:,:),stev(:)
-	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>) :: dim_names(<span class="HLdigits">3</span>), dim_name, lon_units, lat_units, var_units, &amp;
+	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>) :: dim_names(<span class="HLdigits">3</span>), dim_name, &amp;
+		&amp; lon_units, lat_units, var_units, &amp;
 		&amp;	lon_name, lat_name, time_name, time_units
 	<span class="HLroutines">integer</span> :: ncid, dimid, dimids(<span class="HLdigits">4</span>), varid, dims(<span class="HLdigits">3</span>), thisdim, &amp;
 		&amp; lonid, latid, phaseid, timeid, phcoid, recoid, origid
@@ -155,7 +160,8 @@
 	<span class="HLfunctions">allocate</span>(lat(nlat))
 	<span class="HLfunctions">allocate</span>(time(ntime))
 	<span class="HLroutines">call</span> err(nf90_get_var(ncid, varid, field))
-	<span class="HLroutines">call</span> err(nf90_get_att(ncid, varid, <span class="HLstrings">'missing_value'</span>, missing_value))
+	<span class="HLroutines">call</span> err(nf90_get_att(ncid, varid, <span class="HLstrings">'missing_value'</span>, &amp;
+		&amp; missing_value))
 	<span class="HLroutines">call</span> err(nf90_get_att(ncid, varid, <span class="HLstrings">'units'</span>, var_units))
 	<span class="HLroutines">call</span> err(nf90_inq_varid(ncid, lon_name, varid))
 	<span class="HLroutines">call</span> err(nf90_get_var(ncid, varid, lon))
@@ -180,11 +186,7 @@
 	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 
 	<span class="HLcomments">! Now pack</span>
-<span class="HLcomments">!!$	if(isnan(missing_value))then</span>
-<span class="HLcomments">!!$		mask = not(isnan(field(:,:,1)))</span>
-<span class="HLcomments">!!$	else</span>
-		mask = (field(:,:,<span class="HLdigits">1</span>) /= missing_value)
-<span class="HLcomments">!!$	end if</span>
+	mask = (field(:,:,<span class="HLdigits">1</span>) /= missing_value)
 	<span class="HLfunctions">allocate</span>(packed_field(count(mask), ntime))
 	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, ntime
 		packed_field(:,i) = <span class="HLfunctions">pack</span>(field(:,:,i), mask)
@@ -246,13 +248,14 @@
 	<span class="HLfunctions">allocate</span>(reco(nlon,nlat,ntime))
 	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, ntime
 		reco(:,:,i) = <span class="HLfunctions">unpack</span>(pair(:,i), mask, new_missing_value)
-		where(mask .eqv. .false.)
+		where(mask .eq. .false.)
 			field(:,:,i) = new_missing_value
 		<span class="HLroutines">end</span> where
 	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 	<span class="HLfunctions">allocate</span>(phasecomps(nlon,nlat,nphases))
 	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, nphases
-		phasecomps(:,:,i) = <span class="HLfunctions">unpack</span>(packed_phasecomps(:,i), mask, new_missing_value)
+		phasecomps(:,:,i) = <span class="HLfunctions">unpack</span>(packed_phasecomps(:,i), mask, &amp;
+		 &amp; new_missing_value)
 	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 
 
@@ -273,24 +276,35 @@
 	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lat'</span>, nf90_float, dimids(<span class="HLdigits">2</span>), latid))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, latid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'Latitude'</span>))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, latid, <span class="HLstrings">'units'</span>, lat_units))
-	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'time'</span>, nf90_float, dimids(<span class="HLdigits">3</span>), timeid))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'time'</span>, nf90_float, dimids(<span class="HLdigits">3</span>), &amp;
+		&amp; timeid))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, timeid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'Time'</span>))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, timeid, <span class="HLstrings">'units'</span>, time_units))
-	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'phase'</span>, nf90_float, dimids(<span class="HLdigits">4</span>), phaseid))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'phase'</span>, nf90_float, dimids(<span class="HLdigits">4</span>), &amp;
+		&amp; phaseid))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phaseid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'Phase'</span>))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phaseid, <span class="HLstrings">'units'</span>, <span class="HLstrings">'level'</span>))
-	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'orig'</span>, nf90_float, dimids(<span class="HLdigits">1</span>:<span class="HLdigits">3</span>), origid))
-	<span class="HLroutines">call</span> err(nf90_put_att(ncid, origid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'SST anomaly / original field'</span>))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'orig'</span>, nf90_float, dimids(<span class="HLdigits">1</span>:<span class="HLdigits">3</span>), &amp;
+	 &amp; origid))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, origid, <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'SST anomaly / original field'</span>))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, origid, <span class="HLstrings">'units'</span>, var_units))
-	<span class="HLroutines">call</span> err(nf90_put_att(ncid, origid, <span class="HLstrings">'missing_value'</span>, new_missing_value))
-	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'reco1'</span>, nf90_float, dimids(<span class="HLdigits">1</span>:<span class="HLdigits">3</span>), recoid))
-	<span class="HLroutines">call</span> err(nf90_put_att(ncid, recoid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'SST anomaly / reconstruction of first pair'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, origid, <span class="HLstrings">'missing_value'</span>, &amp;
+		&amp; new_missing_value))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'reco1'</span>, nf90_float, dimids(<span class="HLdigits">1</span>:<span class="HLdigits">3</span>), &amp;
+		&amp; recoid))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, recoid, <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'SST anomaly / reconstruction of first pair'</span>))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, recoid, <span class="HLstrings">'units'</span>, var_units))
-	<span class="HLroutines">call</span> err(nf90_put_att(ncid, recoid, <span class="HLstrings">'missing_value'</span>, new_missing_value))
-	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'pair1'</span>, nf90_float, (/dimids(<span class="HLdigits">1</span>),dimids(<span class="HLdigits">2</span>),dimids(<span class="HLdigits">4</span>)/), phcoid))
-	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phcoid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'SST anomaly / phase composite of first pair'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, recoid, <span class="HLstrings">'missing_value'</span>, &amp;
+		&amp; new_missing_value))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'pair1'</span>, nf90_float, &amp;
+		&amp; (/dimids(<span class="HLdigits">1</span>),dimids(<span class="HLdigits">2</span>),dimids(<span class="HLdigits">4</span>)/), phcoid))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phcoid, <span class="HLstrings">'long_name'</span>, &amp;
+		&amp;<span class="HLstrings">'SST anomaly / phase composite of first pair'</span>))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phcoid, <span class="HLstrings">'units'</span>, var_units))
-	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phcoid, <span class="HLstrings">'missing_value'</span>, new_missing_value))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phcoid, <span class="HLstrings">'missing_value'</span>, &amp;
+		&amp; new_missing_value))
 	<span class="HLcomments">! Values</span>
 	<span class="HLroutines">call</span> err(nf90_enddef(ncid))
 	<span class="HLroutines">call</span> err(nf90_put_var(ncid, lonid, lon))

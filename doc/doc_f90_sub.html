@@ -39,15 +39,15 @@
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2806091"/>Usage</h5>
+              <h5 class="title"><a id="id2806088"/>Usage</h5>
             </div>
           </div>
-          <pre class="programlisting">call <span class="HLpersonalised">sl_pca</span>(<span class="HLpersonalised">ff</span>, nkeep=nkeep=<span class="HLpersonalised">nkeep</span>, xeof=<span class="HLpersonalised">xeof</span>, pc=<span class="HLpersonalised">pc</span>, ev=<span class="HLpersonalised">ev</span>, weights=<span class="HLpersonalised">weights</span>, useteof=<span class="HLpersonalised">useteof</span>)</pre>
+          <pre class="programlisting">call <span class="HLpersonalised">sl_pca</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nkeep</span>, xeof=<span class="HLpersonalised">xeof</span>, pc=<span class="HLpersonalised">pc</span>, ev=<span class="HLpersonalised">ev</span>, weights=<span class="HLpersonalised">weights</span>, useteof=<span class="HLpersonalised">useteof</span>)</pre>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2806155"/>Description</h5>
+              <h5 class="title"><a id="id2806153"/>Description</h5>
             </div>
           </div>
           <p>
@@ -62,24 +62,35 @@ than the time dimension. This default behavior can be overridden.
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2806174"/>Optional arguments</h5>
+              <h5 class="title"><a id="id2806172"/>Necessary arguments</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt>ff    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+              <li><tt>ff    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>			Space-time array</em></span></li>
-              <li><tt>nkeep    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+              <li><tt>nkeep    </tt><tt><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em>		Maximum number of modes to keep in outputs</em></span></li>
-              <li><tt>xeof    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+            </ul>
+          </div>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <h5 class="title"><a id="id2808785"/>Optional arguments</h5>
+            </div>
+          </div>
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li><tt>xeof    </tt><tt><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>		Space-mode array of EOFs</em></span></li>
-              <li><tt>pc    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+              <li><tt>pc    </tt><tt><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>			Time-mode array of PCs</em></span></li>
-              <li><tt>ev    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+              <li><tt>ev    </tt><tt><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>			Mode array of eigen values (variances)</em></span></li>
-              <li><tt>weights    </tt><tt><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+              <li><tt>weights    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>	Space array of weights</em></span></li>
-              <li><tt>useteof    </tt><tt><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+              <li><tt>useteof    </tt><tt><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em>	To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]</em></span></li>
             </ul>
           </div>
@@ -87,7 +98,7 @@ than the time dimension. This default behavior can be overridden.
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2808910"/>Dependencies</h5>
+              <h5 class="title"><a id="id2808917"/>Dependencies</h5>
             </div>
           </div>
           <p>
@@ -104,7 +115,7 @@ than the time dimension. This default behavior can be overridden.
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2808949"/>Usage</h5>
+              <h5 class="title"><a id="id2808956"/>Usage</h5>
             </div>
           </div>
           <pre class="programlisting">call <span class="HLpersonalised">sl_pcarec</span>(<span class="HLpersonalised">xeof</span>, <span class="HLpersonalised">pc</span>, <span class="HLpersonalised">ffrec</span>, istart=<span class="HLpersonalised">istart</span>, iend=<span class="HLpersonalised">iend</span>)</pre>
@@ -112,7 +123,7 @@ than the time dimension. This default behavior can be overridden.
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2804968"/>Description</h5>
+              <h5 class="title"><a id="id2804984"/>Description</h5>
             </div>
           </div>
           <p>
@@ -125,16 +136,16 @@ by its PC. The sum of all reconstructed component is the original field.
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2804985"/>Necessary arguments</h5>
+              <h5 class="title"><a id="id2805001"/>Necessary arguments</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt>xeof    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+              <li><tt>xeof    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>		Space-mode array of EOFs</em></span></li>
-              <li><tt>pc    </tt><tt><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+              <li><tt>pc    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>		Time-mode array of PCs</em></span></li>
-              <li><tt>ffrec    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+              <li><tt>ffrec    </tt><tt><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>	Space-time array of the reconstructed field</em></span></li>
             </ul>
           </div>
@@ -142,14 +153,14 @@ by its PC. The sum of all reconstructed component is the original field.
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2805070"/>Optional arguments</h5>
+              <h5 class="title"><a id="id2805085"/>Optional arguments</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt>istart    </tt><tt><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+              <li><tt>istart    </tt><tt><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em>	Index of the first component to use</em></span></li>
-              <li><tt>iend    </tt><tt><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+              <li><tt>iend    </tt><tt><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em>		Index of the last component to use</em></span></li>
             </ul>
           </div>
@@ -164,15 +175,15 @@ by its PC. The sum of all reconstructed component is the original field.
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2805146"/>Usage</h5>
+              <h5 class="title"><a id="id2805161"/>Usage</h5>
             </div>
           </div>
-          <pre class="programlisting">call <span class="HLpersonalised">sl_mssa</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nwindow</span>, nkeep=nkeep=<span class="HLpersonalised">nkeep</span>, steof=<span class="HLpersonalised">steof</span>, stpc=<span class="HLpersonalised">stpc</span>, ev=<span class="HLpersonalised">ev</span>)</pre>
+          <pre class="programlisting">call <span class="HLpersonalised">sl_mssa</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nwindow</span>, <span class="HLpersonalised">nkeep</span>, steof=<span class="HLpersonalised">steof</span>, stpc=<span class="HLpersonalised">stpc</span>, ev=<span class="HLpersonalised">ev</span>)</pre>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2805207"/>Description</h5>
+              <h5 class="title"><a id="id2805222"/>Description</h5>
             </div>
           </div>
           <p>
@@ -185,44 +196,33 @@ parameter.
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2805223"/>Optional arguments</h5>
+              <h5 class="title"><a id="id2805238"/>Necessary arguments</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt>ff    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+              <li><tt>ff    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>      Space-time array</em></span></li>
-            </ul>
-          </div>
-        </div>
-        <div class="simplesect" lang="en">
-          <div class="titlepage">
-            <div>
-              <h5 class="title"><a id="id2875316"/>Necessary arguments</h5>
-            </div>
-          </div>
-          <div class="itemizedlist">
-            <ul type="disc">
-              <li><tt>nwindow    </tt><tt><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+              <li><tt>nwindow    </tt><tt><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em> Window size</em></span></li>
+              <li><tt>nkeep    </tt><tt><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+				 :: <span class="emphasis"><em>   Maximum number of modes to keep in outputs</em></span></li>
             </ul>
           </div>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2875352"/>Optional arguments</h5>
+              <h5 class="title"><a id="id2875376"/>Optional arguments</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt>nkeep    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
-				 :: <span class="emphasis"><em>   Maximum number of modes to keep in outputs</em></span></li>
-              <li><tt>steof    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+              <li><tt>steof    </tt><tt><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em> SpaceXwindow-mode array of EOFs</em></span></li>
-              <li><tt>stpc    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+              <li><tt>stpc    </tt><tt><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>  Time-mode array of PCs</em></span></li>
-              <li><tt>ev    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+              <li><tt>ev    </tt><tt><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>    Mode array of eigen values (variances)</em></span></li>
             </ul>
           </div>
@@ -270,13 +270,13 @@ Same as for the reconstruction of PCA components, but for MSSA.
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt>steof    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+              <li><tt>steof    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>   SpaceXwindow-mode array of EOFs</em></span></li>
-              <li><tt>stpc    </tt><tt><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+              <li><tt>stpc    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>    Time-mode array of PCs</em></span></li>
-              <li><tt>nwindow    </tt><tt><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+              <li><tt>nwindow    </tt><tt><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em> Window size</em></span></li>
-              <li><tt>ffrec    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+              <li><tt>ffrec    </tt><tt><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>   Space-time array of the reconstructed field</em></span></li>
             </ul>
           </div>
@@ -284,14 +284,14 @@ Same as for the reconstruction of PCA components, but for MSSA.
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2875684"/>Optional arguments</h5>
+              <h5 class="title"><a id="id2875683"/>Optional arguments</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt>istart    </tt><tt><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+              <li><tt>istart    </tt><tt><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em> Index of the first component to use</em></span></li>
-              <li><tt>iend    </tt><tt><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+              <li><tt>iend    </tt><tt><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em>   Index of the last component to use</em></span></li>
             </ul>
           </div>
@@ -314,7 +314,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2875821"/>Description</h5>
+              <h5 class="title"><a id="id2875820"/>Description</h5>
             </div>
           </div>
           <p>
@@ -333,16 +333,16 @@ the first phase conincides with the maximmum.
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2875844"/>Necessary arguments</h5>
+              <h5 class="title"><a id="id2875843"/>Necessary arguments</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt>ffrec    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+              <li><tt>ffrec    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em> Space-time array</em></span></li>
-              <li><tt>np    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+              <li><tt>np    </tt><tt><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em>    Number of requested phases over the 360 degrees cycle (default = 8)</em></span></li>
-              <li><tt>phases    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+              <li><tt>phases    </tt><tt><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em/></span></li>
             </ul>
           </div>
@@ -350,16 +350,16 @@ the first phase conincides with the maximmum.
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2875928"/>Optional arguments</h5>
+              <h5 class="title"><a id="id2875927"/>Optional arguments</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt>weights    </tt><tt><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+              <li><tt>weights    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>    Space array of weights</em></span></li>
-              <li><tt>offset    </tt><tt><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+              <li><tt>offset    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>     Minimal normalized amplitude of the index (default = 0.)</em></span></li>
-              <li><tt>firstphase    </tt><tt><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+              <li><tt>firstphase    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em> Value in degrees of the first phase (default = 0)</em></span></li>
             </ul>
           </div>
@@ -367,7 +367,7 @@ the first phase conincides with the maximmum.
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2876014"/>Dependencies</h5>
+              <h5 class="title"><a id="id2876013"/>Dependencies</h5>
             </div>
           </div>
           <p>
@@ -407,9 +407,9 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt>a    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+              <li><tt>a    </tt><tt><span class="ARGspec">[intent:inoutput, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>		Input = symetric matrix, output = EOFs</em></span></li>
-              <li><tt>eig    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+              <li><tt>eig    </tt><tt><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>	Eigen values</em></span></li>
             </ul>
           </div>

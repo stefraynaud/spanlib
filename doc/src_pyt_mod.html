@@ -34,7 +34,8 @@
 <span class="HLcomments">      This fonction concatenates several dataset that have the</span>
 <span class="HLcomments">      same time axis. It is useful for analysing for example</span>
 <span class="HLcomments">      several variables at the same time.</span>
-<span class="HLcomments">		It takes into account weights, masks and axes.</span>
+<span class="HLcomments">      It takes into account weights, masks and axes.</span>
+<span class="HLcomments">    :::</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">    Usage:::</span>
 <span class="HLcomments">    dout, weights, mask, axes = stackData(data1[, data2...])</span>
@@ -42,6 +43,7 @@
 <span class="HLcomments">      *data   :: One or more data objects to stack.</span>
 <span class="HLcomments">                 They must all have the same time length.</span>
 <span class="HLcomments">    :::</span>
+<span class="HLcomments"></span>
 <span class="HLcomments">    Output:::</span>
 <span class="HLcomments">      dout    :: Stacked data</span>
 <span class="HLcomments">      weights :: Associated stacked weights</span>
@@ -84,6 +86,7 @@
 <span class="HLcomments">    Description:::</span>
 <span class="HLcomments">      This function is the reverse operation of stakData.</span>
 <span class="HLcomments">      It splits stacked datasets into a list.</span>
+<span class="HLcomments">    :::</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">    Usage:::</span>
 <span class="HLcomments">    dout = unStackData(din,weights,mask,axes)</span>
@@ -93,6 +96,7 @@
 <span class="HLcomments">      masks   :: Associated stacked masks</span>
 <span class="HLcomments">      axes    :: Associated stacked axes</span>
 <span class="HLcomments">    :::</span>
+<span class="HLcomments"></span>
 <span class="HLcomments">    Output:::</span>
 <span class="HLcomments">      dout    :: List of unstacked data</span>
 <span class="HLcomments">    :::</span>
@@ -135,6 +139,7 @@
 <span class="HLcomments">      It performs this operation also on the weights.</span>
 <span class="HLcomments">      It is used for removing unnecessary points and</span>
 <span class="HLcomments">      simplifying the input format for analysis functions.</span>
+<span class="HLcomments">    :::</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">    Usage:::</span>
 <span class="HLcomments">    packed_data, packed_weights, mask = pack(data,weights)</span>
@@ -143,6 +148,7 @@
 <span class="HLcomments">                 its masked point</span>
 <span class="HLcomments">      weights :: Weights to be flatten also</span>
 <span class="HLcomments">    :::</span>
+<span class="HLcomments"></span>
 <span class="HLcomments">    Output:::</span>
 <span class="HLcomments">      packed_data    :: Space-time packed array</span>
 <span class="HLcomments">      packed_weights :: Packed weights that were guessed or used</span>
@@ -218,6 +224,7 @@
 <span class="HLcomments">      to represents the dataset over its cycle in a arbitrary</span>
 <span class="HLcomments">      number of phases. It is useful, for example, to have a</span>
 <span class="HLcomments">      synthetic view of an reconstructed MSSA oscillation.</span>
+<span class="HLcomments">    :::</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">    Usage:::</span>
 <span class="HLcomments">    phases = computePhases(data,nphases,offset,firstphase)</span>
@@ -226,6 +233,8 @@
 <span class="HLcomments">      nphases    :: Number of phases (divisions of the cycle)</span>
 <span class="HLcomments">      offset     :: Normalised offset to keep higher values only [default:</span>
 <span class="HLcomments">      firstphase :: Position of the first phase in the 360 degree cycle</span>
+<span class="HLcomments">    :::</span>
+<span class="HLcomments"></span>
 <span class="HLcomments">    Output:::</span>
 <span class="HLcomments">      phases :: Space-phase array</span>
 <span class="HLcomments">    :::</span>
@@ -255,7 +264,7 @@ class <span class="HLpersonalised">SpAn</span>(object):
 <span class="HLcomments">        Description:::</span>
 <span class="HLcomments">          This function creates an object for future analyses.</span>
 <span class="HLcomments">          It optionally initializes some parameters.</span>
-<span class="HLcomments"></span>
+<span class="HLcomments">        :::</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">        Usage:::</span>
 <span class="HLcomments">        analysis_object = SpAn(data,weights=None,npca=None,window=None,nmssa=None)</span>
@@ -274,6 +283,7 @@ class <span class="HLpersonalised">SpAn</span>(object):
 <span class="HLcomments">          nmssa   :: Number of MSSA modes retained [default: 4]</span>
 <span class="HLcomments">          window  :: MSSA window parameter [default: time_length/3.]</span>
 <span class="HLcomments">        :::</span>
+<span class="HLcomments"></span>
 <span class="HLcomments">        Output:::</span>
 <span class="HLcomments">          analysis_object :: Object created for further analysis</span>
 <span class="HLcomments">        :::</span>
@@ -315,12 +325,14 @@ class <span class="HLpersonalised">SpAn</span>(object):
 <span class="HLcomments">          This function performs a PCA on the analysis objects</span>
 <span class="HLcomments">          and returns EOF, PC and eigen values.</span>
 <span class="HLcomments">          EOF are automatically unpacked.</span>
+<span class="HLcomments">        :::</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">        Usage:::</span>
 <span class="HLcomments">        eof, pc, ev = pca(data,npca=None,weights=None)</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">          npca    :: Number of principal components to return, default will be 10</span>
 <span class="HLcomments">        :::</span>
+<span class="HLcomments"></span>
 <span class="HLcomments">        Output:::</span>
 <span class="HLcomments">          eof :: EOF array</span>
 <span class="HLcomments">          pc  :: Principal Components array</span>
@@ -372,6 +384,7 @@ class <span class="HLpersonalised">SpAn</span>(object):
 <span class="HLcomments">          PCA is performed to reduced the number of d-o-f</span>
 <span class="HLcomments">          if already done and if the number of channels is</span>
 <span class="HLcomments">          greater than 30.</span>
+<span class="HLcomments">        :::</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">        Usage:::</span>
 <span class="HLcomments">        eof, pc, ev = mssa(nmssa,pca)</span>
@@ -379,6 +392,7 @@ class <span class="HLpersonalised">SpAn</span>(object):
 <span class="HLcomments">          nmssa  :: Number of MSSA modes retained</span>
 <span class="HLcomments">          window :: MSSA window parameter</span>
 <span class="HLcomments">          pca    :: If True, performs a preliminary PCA</span>
+<span class="HLcomments"></span>
 <span class="HLcomments">        Output:::</span>
 <span class="HLcomments">          eof :: EOF array</span>
 <span class="HLcomments">          pc  :: Principal Components array</span>
@@ -456,6 +470,7 @@ class <span class="HLpersonalised">SpAn</span>(object):
 <span class="HLcomments">          This function can optionally performs phase composites</span>
 <span class="HLcomments">          (useful for pairs of MSSA modes = oscillations) on MSSA</span>
 <span class="HLcomments">          recontructions.</span>
+<span class="HLcomments">        :::</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">        Usage:::</span>
 <span class="HLcomments">        ffrec = reconstruct(start,end,mssa,pca)</span>
@@ -465,6 +480,7 @@ class <span class="HLpersonalised">SpAn</span>(object):
 <span class="HLcomments">          mssa  :: Reconstruct MSSA if True</span>
 <span class="HLcomments">          pca   :: Reconstruct PCA if True</span>
 <span class="HLcomments">          phases :: Operate phase reconstruction True/False (default is False)</span>
+<span class="HLcomments">        :::</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">        Output:::</span>
 <span class="HLcomments">          ffrec :: Reconstructed field</span>
@@ -539,7 +555,7 @@ class <span class="HLpersonalised">SpAn</span>(object):
 					n2 = <span class="HLspecial">self</span>.npca
 				<span class="HLcommands">else</span> <span class="HLcommands">if</span> n2 <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
 					n2 = <span class="HLspecial">self</span>.npca
-					
+
 
 <span class="HLcomments">##             print pcreconstruct.shape,self.ns,ntimes</span>
             ffrec = spanlib_fort.pcarec(<span class="HLspecial">self</span>.eof, pcreconstruct, <span class="HLspecial">self</span>.ns, ntimes, <span class="HLspecial">self</span>.npca, n1, n2)

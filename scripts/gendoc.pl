@@ -263,15 +263,26 @@ while(<F90_LIBRARY>) {
 		# Parse declarations of external subroutine arguments
 		$inside = 0;
 		while(<F90_LIBRARY>) {
-			if(/^[\s\t]*! External/) {
+			if(/^[ \t]*! External/) {
 				$inside = 1;
 			} elsif($inside==1){
 				if(/(real|integer),[ \t]*intent\((in|out|inout)\)[^:]*::(.+)$/i) {
-					$desc = "[intent:${2}put, type:$1]:";
+					# Attributes
+					$desc = "[intent:${2}put, type:$1]";
 					$vars = "$3";
 					$opt = /optional/;
+					# Splitted lines
+					while($vars =~ s/&[\t ]*$//) {
+						$tmp = <F90_LIBRARY>;
+						last if ! $tmp;
+						$tmp =~ s/^[\t ]*\&//;
+						$vars .= $tmp;
+					}
+					# Clean
+					$vars =~ s/\n//g;
 					$vars =~ s/ +//g;
-					$vars =~ s/(\w+)\b([^,]*)/$1/g;
+					while($vars =~ s/\([^()]+\)//){next;}
+					# Loop on variables
 					for $var (split(',',$vars)) {
 						$tmp = $argRef{$var};
 						$argDesc[$tmp]{'spec'} = $desc;
@@ -447,7 +458,7 @@ while(<PYTHON_MODULE>){
 				last;
 			} elsif($inside==1) {
 				# Description of variable (long_name)
-				if(/^[\t\s]+([^:\t\s]+)[\t\s]*::([^:].*)$/) {
+				if(/^[\t\s]+([\w\*]+)[\t\s]*::([^:]*)$/) {
 					# Input or output?
 					$isInputArg = 0;
 					for my $key (keys(%argRef)) {

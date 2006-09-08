@@ -303,7 +303,7 @@ div.note h3.title {font-size:smaller;}
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2792251"></a>CPU: space versus time</h5>
+                  <h5 class="title"><a id="id2789422"></a>CPU: space versus time</h5>
                 </div>
               </div>
               <p>
@@ -321,7 +321,7 @@ div.note h3.title {font-size:smaller;}
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2792284"></a>Weights</h5>
+                  <h5 class="title"><a id="id2789455"></a>Weights</h5>
                 </div>
               </div>
               <p>
@@ -339,7 +339,7 @@ div.note h3.title {font-size:smaller;}
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2792332"></a>Mask</h5>
+                  <h5 class="title"><a id="id2789503"></a>Mask</h5>
                 </div>
               </div>
               <p>
@@ -357,7 +357,7 @@ div.note h3.title {font-size:smaller;}
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2792373"></a>Analysing several variables at the same time</h5>
+                  <h5 class="title"><a id="id2789997"></a>Analysing several variables at the same time</h5>
                 </div>
               </div>
               <p>
@@ -380,7 +380,7 @@ div.note h3.title {font-size:smaller;}
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2789754"></a>Reconstructions</h5>
+                  <h5 class="title"><a id="id2790052"></a>Reconstructions</h5>
                 </div>
               </div>
               <p>
@@ -419,7 +419,7 @@ div.note h3.title {font-size:smaller;}
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2789856"></a>Phase composites</h5>
+                  <h5 class="title"><a id="id2790156"></a>Phase composites</h5>
                 </div>
               </div>
               <p>
@@ -511,7 +511,7 @@ div.note h3.title {font-size:smaller;}
           <div class="sect3" lang="en" xml:lang="en">
             <div class="titlepage">
               <div>
-                <h4 class="title"><a id="id2855906"></a>2.1.2. Python module</h4>
+                <h4 class="title"><a id="id2855907"></a>2.1.2. Python module</h4>
               </div>
             </div>
             <p>You need the fortran library, and the pyfort and Numeric modules from <a href="http://www-pcmdi.llnl.gov/software-portal/cdat" target="_top">CDAT</a>.</p>
@@ -612,15 +612,15 @@ div.note h3.title {font-size:smaller;}
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2789227"></a>Usage</h5>
+                  <h5 class="title"><a id="id2789224"></a>Usage</h5>
                 </div>
               </div>
-              <pre class="programlisting">call <span class="HLpersonalised">sl_pca</span>(<span class="HLpersonalised">ff</span>, nkeep=nkeep=<span class="HLpersonalised">nkeep</span>, xeof=<span class="HLpersonalised">xeof</span>, pc=<span class="HLpersonalised">pc</span>, ev=<span class="HLpersonalised">ev</span>, weights=<span class="HLpersonalised">weights</span>, useteof=<span class="HLpersonalised">useteof</span>)</pre>
+              <pre class="programlisting">call <span class="HLpersonalised">sl_pca</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nkeep</span>, xeof=<span class="HLpersonalised">xeof</span>, pc=<span class="HLpersonalised">pc</span>, ev=<span class="HLpersonalised">ev</span>, weights=<span class="HLpersonalised">weights</span>, useteof=<span class="HLpersonalised">useteof</span>)</pre>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2789290"></a>Description</h5>
+                  <h5 class="title"><a id="id2789288"></a>Description</h5>
                 </div>
               </div>
               <p>
@@ -635,24 +635,35 @@ than the time dimension. This default behavior can be overridden.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2789309"></a>Optional arguments</h5>
+                  <h5 class="title"><a id="id2789307"></a>Necessary arguments</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt>ff    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+                  <li><tt>ff    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>			Space-time array</em></span></li>
-                  <li><tt>nkeep    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+                  <li><tt>nkeep    </tt><tt><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em>		Maximum number of modes to keep in outputs</em></span></li>
-                  <li><tt>xeof    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2789368"></a>Optional arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>xeof    </tt><tt><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>		Space-mode array of EOFs</em></span></li>
-                  <li><tt>pc    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+                  <li><tt>pc    </tt><tt><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>			Time-mode array of PCs</em></span></li>
-                  <li><tt>ev    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+                  <li><tt>ev    </tt><tt><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>			Mode array of eigen values (variances)</em></span></li>
-                  <li><tt>weights    </tt><tt><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+                  <li><tt>weights    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>	Space array of weights</em></span></li>
-                  <li><tt>useteof    </tt><tt><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+                  <li><tt>useteof    </tt><tt><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em>	To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]</em></span></li>
                 </ul>
               </div>
@@ -660,7 +671,7 @@ than the time dimension. This default behavior can be overridden.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2792035"></a>Dependencies</h5>
+                  <h5 class="title"><a id="id2789817"></a>Dependencies</h5>
                 </div>
               </div>
               <p>
@@ -677,7 +688,7 @@ than the time dimension. This default behavior can be overridden.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2792074"></a>Usage</h5>
+                  <h5 class="title"><a id="id2789857"></a>Usage</h5>
                 </div>
               </div>
               <pre class="programlisting">call <span class="HLpersonalised">sl_pcarec</span>(<span class="HLpersonalised">xeof</span>, <span class="HLpersonalised">pc</span>, <span class="HLpersonalised">ffrec</span>, istart=<span class="HLpersonalised">istart</span>, iend=<span class="HLpersonalised">iend</span>)</pre>
@@ -685,7 +696,7 @@ than the time dimension. This default behavior can be overridden.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2788122"></a>Description</h5>
+                  <h5 class="title"><a id="id2788137"></a>Description</h5>
                 </div>
               </div>
               <p>
@@ -698,16 +709,16 @@ by its PC. The sum of all reconstructed component is the original field.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2788139"></a>Necessary arguments</h5>
+                  <h5 class="title"><a id="id2788154"></a>Necessary arguments</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt>xeof    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+                  <li><tt>xeof    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>		Space-mode array of EOFs</em></span></li>
-                  <li><tt>pc    </tt><tt><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+                  <li><tt>pc    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>		Time-mode array of PCs</em></span></li>
-                  <li><tt>ffrec    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+                  <li><tt>ffrec    </tt><tt><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>	Space-time array of the reconstructed field</em></span></li>
                 </ul>
               </div>
@@ -715,14 +726,14 @@ by its PC. The sum of all reconstructed component is the original field.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2788225"></a>Optional arguments</h5>
+                  <h5 class="title"><a id="id2788239"></a>Optional arguments</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt>istart    </tt><tt><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+                  <li><tt>istart    </tt><tt><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em>	Index of the first component to use</em></span></li>
-                  <li><tt>iend    </tt><tt><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+                  <li><tt>iend    </tt><tt><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em>		Index of the last component to use</em></span></li>
                 </ul>
               </div>
@@ -737,15 +748,15 @@ by its PC. The sum of all reconstructed component is the original field.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2788300"></a>Usage</h5>
+                  <h5 class="title"><a id="id2788315"></a>Usage</h5>
                 </div>
               </div>
-              <pre class="programlisting">call <span class="HLpersonalised">sl_mssa</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nwindow</span>, nkeep=nkeep=<span class="HLpersonalised">nkeep</span>, steof=<span class="HLpersonalised">steof</span>, stpc=<span class="HLpersonalised">stpc</span>, ev=<span class="HLpersonalised">ev</span>)</pre>
+              <pre class="programlisting">call <span class="HLpersonalised">sl_mssa</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nwindow</span>, <span class="HLpersonalised">nkeep</span>, steof=<span class="HLpersonalised">steof</span>, stpc=<span class="HLpersonalised">stpc</span>, ev=<span class="HLpersonalised">ev</span>)</pre>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2788362"></a>Description</h5>
+                  <h5 class="title"><a id="id2788376"></a>Description</h5>
                 </div>
               </div>
               <p>
@@ -758,44 +769,33 @@ parameter.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2788377"></a>Optional arguments</h5>
+                  <h5 class="title"><a id="id2788391"></a>Necessary arguments</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt>ff    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+                  <li><tt>ff    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>      Space-time array</em></span></li>
-                </ul>
-              </div>
-            </div>
-            <div class="simplesect" lang="en" xml:lang="en">
-              <div class="titlepage">
-                <div>
-                  <h5 class="title"><a id="id2858451"></a>Necessary arguments</h5>
-                </div>
-              </div>
-              <div class="itemizedlist">
-                <ul type="disc">
-                  <li><tt>nwindow    </tt><tt><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+                  <li><tt>nwindow    </tt><tt><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em> Window size</em></span></li>
+                  <li><tt>nkeep    </tt><tt><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+				 :: <span class="emphasis"><em>   Maximum number of modes to keep in outputs</em></span></li>
                 </ul>
               </div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2858486"></a>Optional arguments</h5>
+                  <h5 class="title"><a id="id2858510"></a>Optional arguments</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt>nkeep    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
-				 :: <span class="emphasis"><em>   Maximum number of modes to keep in outputs</em></span></li>
-                  <li><tt>steof    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+                  <li><tt>steof    </tt><tt><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em> SpaceXwindow-mode array of EOFs</em></span></li>
-                  <li><tt>stpc    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+                  <li><tt>stpc    </tt><tt><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>  Time-mode array of PCs</em></span></li>
-                  <li><tt>ev    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+                  <li><tt>ev    </tt><tt><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>    Mode array of eigen values (variances)</em></span></li>
                 </ul>
               </div>
@@ -843,13 +843,13 @@ Same as for the reconstruction of PCA components, but for MSSA.
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt>steof    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+                  <li><tt>steof    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>   SpaceXwindow-mode array of EOFs</em></span></li>
-                  <li><tt>stpc    </tt><tt><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+                  <li><tt>stpc    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>    Time-mode array of PCs</em></span></li>
-                  <li><tt>nwindow    </tt><tt><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+                  <li><tt>nwindow    </tt><tt><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em> Window size</em></span></li>
-                  <li><tt>ffrec    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+                  <li><tt>ffrec    </tt><tt><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>   Space-time array of the reconstructed field</em></span></li>
                 </ul>
               </div>
@@ -857,14 +857,14 @@ Same as for the reconstruction of PCA components, but for MSSA.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2858818"></a>Optional arguments</h5>
+                  <h5 class="title"><a id="id2858819"></a>Optional arguments</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt>istart    </tt><tt><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+                  <li><tt>istart    </tt><tt><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em> Index of the first component to use</em></span></li>
-                  <li><tt>iend    </tt><tt><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+                  <li><tt>iend    </tt><tt><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em>   Index of the last component to use</em></span></li>
                 </ul>
               </div>
@@ -887,7 +887,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2858955"></a>Description</h5>
+                  <h5 class="title"><a id="id2858956"></a>Description</h5>
                 </div>
               </div>
               <p>
@@ -906,16 +906,16 @@ the first phase conincides with the maximmum.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2858978"></a>Necessary arguments</h5>
+                  <h5 class="title"><a id="id2858979"></a>Necessary arguments</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt>ffrec    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+                  <li><tt>ffrec    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em> Space-time array</em></span></li>
-                  <li><tt>np    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+                  <li><tt>np    </tt><tt><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em>    Number of requested phases over the 360 degrees cycle (default = 8)</em></span></li>
-                  <li><tt>phases    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+                  <li><tt>phases    </tt><tt><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em></em></span></li>
                 </ul>
               </div>
@@ -928,11 +928,11 @@ the first phase conincides with the maximmum.
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt>weights    </tt><tt><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+                  <li><tt>weights    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>    Space array of weights</em></span></li>
-                  <li><tt>offset    </tt><tt><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+                  <li><tt>offset    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>     Minimal normalized amplitude of the index (default = 0.)</em></span></li>
-                  <li><tt>firstphase    </tt><tt><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+                  <li><tt>firstphase    </tt><tt><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em> Value in degrees of the first phase (default = 0)</em></span></li>
                 </ul>
               </div>
@@ -940,7 +940,7 @@ the first phase conincides with the maximmum.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2859148"></a>Dependencies</h5>
+                  <h5 class="title"><a id="id2859149"></a>Dependencies</h5>
                 </div>
               </div>
               <p>
@@ -980,9 +980,9 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt>a    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+                  <li><tt>a    </tt><tt><span class="ARGspec">[intent:inoutput, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>		Input = symetric matrix, output = EOFs</em></span></li>
-                  <li><tt>eig    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+                  <li><tt>eig    </tt><tt><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>	Eigen values</em></span></li>
                 </ul>
               </div>
@@ -1090,21 +1090,26 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 
 	<span class="HLcomments">! Parameters</span>
 	<span class="HLcomments">! ----------</span>
-	<span class="HLroutines">integer</span>,<span class="HLattributes">parameter</span> :: nkeep_pca=<span class="HLdigits">5</span>, nwindow=<span class="HLdigits">84</span>, first_mode=<span class="HLdigits">1</span>, nphases=<span class="HLdigits">8</span>
-	<span class="HLroutines">real</span>, <span class="HLattributes">parameter</span> :: offset=<span class="HLdigits">0</span>., first_phase=<span class="HLdigits">180</span>., new_missing_value=-<span class="HLdigits">999</span>.
-	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">&quot;data2.cdf&quot;</span>, output_nc_file=<span class="HLstrings">&quot;output.nc&quot;</span>, &amp;
-		var_name=<span class="HLstrings">'ssta'</span>
+	<span class="HLroutines">integer</span>,<span class="HLattributes">parameter</span> :: nkeep_pca=<span class="HLdigits">5</span>, nwindow=<span class="HLdigits">84</span>, first_mode=<span class="HLdigits">1</span>, &amp;
+		&amp; nphases=<span class="HLdigits">8</span>
+	<span class="HLroutines">real</span>, <span class="HLattributes">parameter</span> :: offset=<span class="HLdigits">0</span>., first_phase=<span class="HLdigits">180</span>., &amp;
+		&amp; new_missing_value=-<span class="HLdigits">999</span>.
+	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">&quot;data2.cdf&quot;</span>, &amp;
+		&amp; output_nc_file=<span class="HLstrings">&quot;output.nc&quot;</span>, var_name=<span class="HLstrings">'ssta'</span>
 
 	<span class="HLcomments">! Other declarations</span>
 	<span class="HLcomments">! ------------------</span>
-	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: field(:,:,:), weights(:,:), lat(:), lon(:), time(:)
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: field(:,:,:), weights(:,:), &amp;
+		&amp; lat(:), lon(:), time(:)
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: reco(:,:,:), phasecomps(:,:,:)
 	<span class="HLroutines">logical</span>, <span class="HLattributes">allocatable</span> :: mask(:,:)
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: packed_field(:,:), packed_weights(:), &amp;
 		&amp; packed_phasecomps(:,:), stphasecomps(:,:)
-	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: eof(:,:), ev(:), pc(:,:), stpair(:,:), pair(:,:)
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: eof(:,:), ev(:), pc(:,:), &amp;
+		&amp; stpair(:,:), pair(:,:)
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: steof(:,:),stpc(:,:),stev(:)
-	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>) :: dim_names(<span class="HLdigits">3</span>), dim_name, lon_units, lat_units, var_units, &amp;
+	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>) :: dim_names(<span class="HLdigits">3</span>), dim_name, &amp;
+		&amp; lon_units, lat_units, var_units, &amp;
 		&amp;	lon_name, lat_name, time_name, time_units
 	<span class="HLroutines">integer</span> :: ncid, dimid, dimids(<span class="HLdigits">4</span>), varid, dims(<span class="HLdigits">3</span>), thisdim, &amp;
 		&amp; lonid, latid, phaseid, timeid, phcoid, recoid, origid
@@ -1130,7 +1135,8 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 	<span class="HLfunctions">allocate</span>(lat(nlat))
 	<span class="HLfunctions">allocate</span>(time(ntime))
 	<span class="HLroutines">call</span> err(nf90_get_var(ncid, varid, field))
-	<span class="HLroutines">call</span> err(nf90_get_att(ncid, varid, <span class="HLstrings">'missing_value'</span>, missing_value))
+	<span class="HLroutines">call</span> err(nf90_get_att(ncid, varid, <span class="HLstrings">'missing_value'</span>, &amp;
+		&amp; missing_value))
 	<span class="HLroutines">call</span> err(nf90_get_att(ncid, varid, <span class="HLstrings">'units'</span>, var_units))
 	<span class="HLroutines">call</span> err(nf90_inq_varid(ncid, lon_name, varid))
 	<span class="HLroutines">call</span> err(nf90_get_var(ncid, varid, lon))
@@ -1155,11 +1161,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 
 	<span class="HLcomments">! Now pack</span>
-<span class="HLcomments">!!$	if(isnan(missing_value))then</span>
-<span class="HLcomments">!!$		mask = not(isnan(field(:,:,1)))</span>
-<span class="HLcomments">!!$	else</span>
-		mask = (field(:,:,<span class="HLdigits">1</span>) /= missing_value)
-<span class="HLcomments">!!$	end if</span>
+	mask = (field(:,:,<span class="HLdigits">1</span>) /= missing_value)
 	<span class="HLfunctions">allocate</span>(packed_field(count(mask), ntime))
 	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, ntime
 		packed_field(:,i) = <span class="HLfunctions">pack</span>(field(:,:,i), mask)
@@ -1221,13 +1223,14 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 	<span class="HLfunctions">allocate</span>(reco(nlon,nlat,ntime))
 	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, ntime
 		reco(:,:,i) = <span class="HLfunctions">unpack</span>(pair(:,i), mask, new_missing_value)
-		where(mask .eqv. .false.)
+		where(mask .eq. .false.)
 			field(:,:,i) = new_missing_value
 		<span class="HLroutines">end</span> where
 	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 	<span class="HLfunctions">allocate</span>(phasecomps(nlon,nlat,nphases))
 	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, nphases
-		phasecomps(:,:,i) = <span class="HLfunctions">unpack</span>(packed_phasecomps(:,i), mask, new_missing_value)
+		phasecomps(:,:,i) = <span class="HLfunctions">unpack</span>(packed_phasecomps(:,i), mask, &amp;
+		 &amp; new_missing_value)
 	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 
 
@@ -1248,24 +1251,35 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lat'</span>, nf90_float, dimids(<span class="HLdigits">2</span>), latid))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, latid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'Latitude'</span>))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, latid, <span class="HLstrings">'units'</span>, lat_units))
-	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'time'</span>, nf90_float, dimids(<span class="HLdigits">3</span>), timeid))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'time'</span>, nf90_float, dimids(<span class="HLdigits">3</span>), &amp;
+		&amp; timeid))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, timeid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'Time'</span>))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, timeid, <span class="HLstrings">'units'</span>, time_units))
-	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'phase'</span>, nf90_float, dimids(<span class="HLdigits">4</span>), phaseid))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'phase'</span>, nf90_float, dimids(<span class="HLdigits">4</span>), &amp;
+		&amp; phaseid))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phaseid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'Phase'</span>))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phaseid, <span class="HLstrings">'units'</span>, <span class="HLstrings">'level'</span>))
-	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'orig'</span>, nf90_float, dimids(<span class="HLdigits">1</span>:<span class="HLdigits">3</span>), origid))
-	<span class="HLroutines">call</span> err(nf90_put_att(ncid, origid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'SST anomaly / original field'</span>))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'orig'</span>, nf90_float, dimids(<span class="HLdigits">1</span>:<span class="HLdigits">3</span>), &amp;
+	 &amp; origid))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, origid, <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'SST anomaly / original field'</span>))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, origid, <span class="HLstrings">'units'</span>, var_units))
-	<span class="HLroutines">call</span> err(nf90_put_att(ncid, origid, <span class="HLstrings">'missing_value'</span>, new_missing_value))
-	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'reco1'</span>, nf90_float, dimids(<span class="HLdigits">1</span>:<span class="HLdigits">3</span>), recoid))
-	<span class="HLroutines">call</span> err(nf90_put_att(ncid, recoid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'SST anomaly / reconstruction of first pair'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, origid, <span class="HLstrings">'missing_value'</span>, &amp;
+		&amp; new_missing_value))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'reco1'</span>, nf90_float, dimids(<span class="HLdigits">1</span>:<span class="HLdigits">3</span>), &amp;
+		&amp; recoid))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, recoid, <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'SST anomaly / reconstruction of first pair'</span>))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, recoid, <span class="HLstrings">'units'</span>, var_units))
-	<span class="HLroutines">call</span> err(nf90_put_att(ncid, recoid, <span class="HLstrings">'missing_value'</span>, new_missing_value))
-	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'pair1'</span>, nf90_float, (/dimids(<span class="HLdigits">1</span>),dimids(<span class="HLdigits">2</span>),dimids(<span class="HLdigits">4</span>)/), phcoid))
-	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phcoid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'SST anomaly / phase composite of first pair'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, recoid, <span class="HLstrings">'missing_value'</span>, &amp;
+		&amp; new_missing_value))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'pair1'</span>, nf90_float, &amp;
+		&amp; (/dimids(<span class="HLdigits">1</span>),dimids(<span class="HLdigits">2</span>),dimids(<span class="HLdigits">4</span>)/), phcoid))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phcoid, <span class="HLstrings">'long_name'</span>, &amp;
+		&amp;<span class="HLstrings">'SST anomaly / phase composite of first pair'</span>))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phcoid, <span class="HLstrings">'units'</span>, var_units))
-	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phcoid, <span class="HLstrings">'missing_value'</span>, new_missing_value))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phcoid, <span class="HLstrings">'missing_value'</span>, &amp;
+		&amp; new_missing_value))
 	<span class="HLcomments">! Values</span>
 	<span class="HLroutines">call</span> err(nf90_enddef(ncid))
 	<span class="HLroutines">call</span> err(nf90_put_var(ncid, lonid, lon))
@@ -1344,7 +1358,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2925544"></a>Usage</h5>
+                  <h5 class="title"><a id="id2857886"></a>Usage</h5>
                 </div>
               </div>
               <pre class="programlisting"><span class="HLpersonalised">dout</span>, <span class="HLpersonalised">weights</span>, <span class="HLpersonalised">masks</span>, <span class="HLpersonalised">axes</span> = <span class="HLpersonalised">spanlib.stackData</span>(*<span class="HLpersonalised">data</span>)</pre>
@@ -1352,45 +1366,50 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2925595"></a>Description</h5>
+                  <h5 class="title"><a id="id2857939"></a>Description</h5>
                 </div>
               </div>
               <p>      This fonction concatenates several dataset that have the
       same time axis. It is useful for analysing for example
       several variables at the same time.
-		It takes into account weights, masks and axes.
-
+      It takes into account weights, masks and axes.
 </p>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2925612"></a>Necessary arguments</h5>
+                  <h5 class="title"><a id="id2857956"></a>Necessary arguments</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
                   <li><tt>*data    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> One or more data objects to stack.
+                 They must all have the same time length.
+</em></span></li>
                 </ul>
               </div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2925646"></a>Outputs</h5>
+                  <h5 class="title"><a id="id2857994"></a>Outputs</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
                   <li><tt>dout    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Stacked data
+</em></span></li>
                   <li><tt>weights    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Associated stacked weights
+</em></span></li>
                   <li><tt>masks    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Associated stacked masks
+</em></span></li>
                   <li><tt>axes    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Associated stacked axes
+</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1404,7 +1423,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2868250"></a>Usage</h5>
+                  <h5 class="title"><a id="id2868300"></a>Usage</h5>
                 </div>
               </div>
               <pre class="programlisting"><span class="HLpersonalised">dout</span> = <span class="HLpersonalised">spanlib.unStackData</span>(<span class="HLpersonalised">din</span>, <span class="HLpersonalised">weights</span>, <span class="HLpersonalised">masks</span>, <span class="HLpersonalised">axes</span>)</pre>
@@ -1412,43 +1431,47 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2868303"></a>Description</h5>
+                  <h5 class="title"><a id="id2868353"></a>Description</h5>
                 </div>
               </div>
               <p>      This function is the reverse operation of stakData.
       It splits stacked datasets into a list.
-
 </p>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2868317"></a>Necessary arguments</h5>
+                  <h5 class="title"><a id="id2868367"></a>Necessary arguments</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
                   <li><tt>din    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Stacked data (see stackData function)
+</em></span></li>
                   <li><tt>weights    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Associated stacked weights
+</em></span></li>
                   <li><tt>masks    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Associated stacked masks
+</em></span></li>
                   <li><tt>axes    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Associated stacked axes
+</em></span></li>
                 </ul>
               </div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2868418"></a>Outputs</h5>
+                  <h5 class="title"><a id="id2868475"></a>Outputs</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
                   <li><tt>dout    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> List of unstacked data
+</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1462,7 +1485,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2868469"></a>Usage</h5>
+                  <h5 class="title"><a id="id2924999"></a>Usage</h5>
                 </div>
               </div>
               <pre class="programlisting"><span class="HLpersonalised">packed_data</span>, <span class="HLpersonalised">packed_weights</span>, <span class="HLpersonalised">mask</span> = <span class="HLpersonalised">spanlib.pack</span>(<span class="HLpersonalised">data</span>, <span class="HLpersonalised">weights</span>=<span class="HLpersonalised">None</span>)</pre>
@@ -1470,7 +1493,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2857868"></a>Description</h5>
+                  <h5 class="title"><a id="id2925059"></a>Description</h5>
                 </div>
               </div>
               <p>      This function packs a dataset in 2D space by removing
@@ -1478,49 +1501,54 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
       It performs this operation also on the weights.
       It is used for removing unnecessary points and
       simplifying the input format for analysis functions.
-
 </p>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2857886"></a>Necessary arguments</h5>
+                  <h5 class="title"><a id="id2925077"></a>Necessary arguments</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
                   <li><tt>data    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Flatten in space an [x,y,t] array by removing
+                 its masked point
+</em></span></li>
                 </ul>
               </div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2857920"></a>Optional arguments</h5>
+                  <h5 class="title"><a id="id2925114"></a>Optional arguments</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
                   <li><tt>weights    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Weights to be flatten also
+</em></span></li>
                 </ul>
               </div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2857961"></a>Outputs</h5>
+                  <h5 class="title"><a id="id2925158"></a>Outputs</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
                   <li><tt>packed_data    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Space-time packed array
+</em></span></li>
                   <li><tt>packed_weights    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Packed weights that were guessed or used
+</em></span></li>
                   <li><tt>mask    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Mask that were guessed or used
+</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1534,7 +1562,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2858058"></a>Usage</h5>
+                  <h5 class="title"><a id="id2925260"></a>Usage</h5>
                 </div>
               </div>
               <pre class="programlisting"><span class="HLpersonalised">phases</span> = <span class="HLpersonalised">spanlib.computePhases</span>(<span class="HLpersonalised">data</span>, <span class="HLpersonalised">nphases</span>=<span class="HLpersonalised">8</span>, <span class="HLpersonalised">offset</span>=.<span class="HLpersonalised">5</span>, <span class="HLpersonalised">firstphase</span>=<span class="HLpersonalised">0</span>)</pre>
@@ -1542,7 +1570,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2858132"></a>Description</h5>
+                  <h5 class="title"><a id="id2925334"></a>Description</h5>
                 </div>
               </div>
               <p>      This computes temporal phase composites of a spatio-temporal
@@ -1551,49 +1579,53 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
       to represents the dataset over its cycle in a arbitrary
       number of phases. It is useful, for example, to have a
       synthetic view of an reconstructed MSSA oscillation.
-
 </p>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2858151"></a>Necessary arguments</h5>
+                  <h5 class="title"><a id="id2925354"></a>Necessary arguments</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
                   <li><tt>data    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Space-time data oscillatory in time data.shape is rank 2 and dim 0 is space
+</em></span></li>
                 </ul>
               </div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2858186"></a>Optional arguments</h5>
+                  <h5 class="title"><a id="id2925391"></a>Optional arguments</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
                   <li><tt>nphases    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">8</span>]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Number of phases (divisions of the cycle)
+      offset     :: Normalised offset to keep higher values only [default:
+</em></span></li>
                   <li><tt>offset    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">.5</span>]    </span></tt> 
 				 :: <span class="emphasis"><em></em></span></li>
                   <li><tt>firstphase    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">0</span>]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Position of the first phase in the 360 degree cycle
+</em></span></li>
                 </ul>
               </div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2859402"></a>Outputs</h5>
+                  <h5 class="title"><a id="id2925497"></a>Outputs</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
                   <li><tt>phases    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Space-phase array
+</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1607,7 +1639,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2859454"></a>Usage</h5>
+                  <h5 class="title"><a id="id2925551"></a>Usage</h5>
                 </div>
               </div>
               <pre class="programlisting"><span class="HLpersonalised">&lt;SpAn_object&gt;</span> = <span class="HLpersonalised">spanlib.SpAn</span>(<span class="HLpersonalised">data</span>, <span class="HLpersonalised">weights</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">npca</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">window</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">nmssa</span>=<span class="HLpersonalised">None</span>)</pre>
@@ -1615,38 +1647,49 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2859541"></a>Description</h5>
+                  <h5 class="title"><a id="id2925638"></a>Description</h5>
                 </div>
               </div>
               <p>          This function creates an object for future analyses.
           It optionally initializes some parameters.
-
-
 </p>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2859556"></a>Necessary arguments</h5>
+                  <h5 class="title"><a id="id2925653"></a>Necessary arguments</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
                   <li><tt>data    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Data on which to run the PC Analysis
+                     Last dimensions must represent the spatial dimensions.
+                     Analysis will be run on the first dimension.
+</em></span></li>
                 </ul>
               </div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2859591"></a>Optional arguments</h5>
+                  <h5 class="title"><a id="id2925693"></a>Optional arguments</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt>weights    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>weights    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">1. everywhere</span>]    </span></tt> 
+				 :: <span class="emphasis"><em> If you which to apply weights on some points.
+                     Set weights to &quot;0&quot; where you wish to mask.
+                     The input data mask will be applied,
+                     using the union of all none spacial dimension mask.
+                     If the data are on a regular grid, area weights
+                     will be generated, if the cdutil (CDAT) module is available.
+                     
+          npca    :: Number of principal components to return [default: 10]
+          nmssa   :: Number of MSSA modes retained [default: 4]
+          window  :: MSSA window parameter [default: time_length/3.]
+</em></span></li>
                   <li><tt>npca    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
 				 :: <span class="emphasis"><em></em></span></li>
                   <li><tt>window    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
@@ -1659,7 +1702,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2859720"></a>Outputs</h5>
+                  <h5 class="title"><a id="id2859423"></a>Outputs</h5>
                 </div>
               </div>
               <div class="itemizedlist">
@@ -1679,7 +1722,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2859774"></a>Usage</h5>
+                  <h5 class="title"><a id="id2859477"></a>Usage</h5>
                 </div>
               </div>
               <pre class="programlisting"><span class="HLpersonalised">eof</span>, <span class="HLpersonalised">pc</span>, <span class="HLpersonalised">ev</span> = <span class="HLpersonalised">&lt;SpAn_object&gt;.pca</span>(<span class="HLpersonalised">npca</span>=<span class="HLpersonalised">None</span>)</pre>
@@ -1687,30 +1730,34 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2859827"></a>Optional arguments</h5>
+                  <h5 class="title"><a id="id2859530"></a>Optional arguments</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
                   <li><tt>npca    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Number of principal components to return, default will be 10
+</em></span></li>
                 </ul>
               </div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2859869"></a>Outputs</h5>
+                  <h5 class="title"><a id="id2859574"></a>Outputs</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
                   <li><tt>eof    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> EOF array
+</em></span></li>
                   <li><tt>pc    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Principal Components array
+</em></span></li>
                   <li><tt>ev    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Eigein Values array
+</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1724,7 +1771,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2859965"></a>Usage</h5>
+                  <h5 class="title"><a id="id2859676"></a>Usage</h5>
                 </div>
               </div>
               <pre class="programlisting"><span class="HLpersonalised">eof</span>, <span class="HLpersonalised">pc</span>, <span class="HLpersonalised">ev</span> = <span class="HLpersonalised">&lt;SpAn_object&gt;.mssa</span>(<span class="HLpersonalised">nmssa</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">pca</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">window</span>=<span class="HLpersonalised">None</span>)</pre>
@@ -1732,34 +1779,41 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2860045"></a>Optional arguments</h5>
+                  <h5 class="title"><a id="id2859756"></a>Optional arguments</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
                   <li><tt>nmssa    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Number of MSSA modes retained
+</em></span></li>
                   <li><tt>pca    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> If True, performs a preliminary PCA
+
+</em></span></li>
                   <li><tt>window    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> MSSA window parameter
+</em></span></li>
                 </ul>
               </div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2860145"></a>Outputs</h5>
+                  <h5 class="title"><a id="id2859862"></a>Outputs</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
                   <li><tt>eof    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> EOF array
+</em></span></li>
                   <li><tt>pc    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Principal Components array
+</em></span></li>
                   <li><tt>ev    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Eigen Values  array
+</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1773,7 +1827,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2860242"></a>Usage</h5>
+                  <h5 class="title"><a id="id2859963"></a>Usage</h5>
                 </div>
               </div>
               <pre class="programlisting"><span class="HLpersonalised">ffrec</span> = <span class="HLpersonalised">&lt;SpAn_object&gt;.reconstruct</span>(<span class="HLpersonalised">start</span>=<span class="HLpersonalised">1</span>, <span class="HLpersonalised">end</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">mssa</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">pca</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">phases</span>=<span class="HLpersonalised">False</span>, <span class="HLpersonalised">nphases</span>=<span class="HLpersonalised">8</span>, <span class="HLpersonalised">offset</span>=.<span class="HLpersonalised">5</span>, <span class="HLpersonalised">firstphase</span>=<span class="HLpersonalised">0</span>)</pre>
@@ -1781,7 +1835,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2860378"></a>Description</h5>
+                  <h5 class="title"><a id="id2860099"></a>Description</h5>
                 </div>
               </div>
               <p>          This function performs recontructions to retreive the
@@ -1792,27 +1846,31 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
           This function can optionally performs phase composites
           (useful for pairs of MSSA modes = oscillations) on MSSA
           recontructions.
-
 </p>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2860400"></a>Optional arguments</h5>
+                  <h5 class="title"><a id="id2860121"></a>Optional arguments</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
                   <li><tt>start    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">1</span>]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> First mode
+</em></span></li>
                   <li><tt>end    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Last mode
+</em></span></li>
                   <li><tt>mssa    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Reconstruct MSSA if True
+</em></span></li>
                   <li><tt>pca    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Reconstruct PCA if True
+</em></span></li>
                   <li><tt>phases    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">False</span>]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Operate phase reconstruction True/False (default is False)
+</em></span></li>
                   <li><tt>nphases    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">8</span>]    </span></tt> 
 				 :: <span class="emphasis"><em></em></span></li>
                   <li><tt>offset    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">.5</span>]    </span></tt> 
@@ -1825,13 +1883,14 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <h5 class="title"><a id="id2860645"></a>Outputs</h5>
+                  <h5 class="title"><a id="id2860375"></a>Outputs</h5>
                 </div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
                   <li><tt>ffrec    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em></em></span></li>
+				 :: <span class="emphasis"><em> Reconstructed field
+</em></span></li>
                 </ul>
               </div>
             </div>
@@ -1863,7 +1922,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
           <p>
 			</p>
           <div class="example">
-            <a id="id2856430"></a>
+            <a id="id2856431"></a>
             <p class="title">
               <b>Example 2. Python example</b>
             </p>

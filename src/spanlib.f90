@@ -20,11 +20,6 @@
 
 module spanlib
 
-!	interface spanlib_interface
-!		module procedure sl_pca, sl_pcarec, sl_mssa, sl_mssarec, sl_phasecomp, sl_diasym
-!	end interface
-
-
 contains
 
 	! ############################################################
@@ -70,9 +65,10 @@ contains
 	! --------
 	real,    intent(in)           :: ff(:,:)
 	integer, intent(in)	         :: nkeep
-	real,    intent(out),optional :: pc(size(ff,2),nkeep), xeof(size(ff,1),nkeep), ev(nkeep)
-	real,    intent(in),	optional :: weights(:)
-	integer, intent(in),	optional :: useteof
+	real,    intent(out),optional :: pc(size(ff,2),nkeep), &
+	&                                xeof(size(ff,1),nkeep), ev(nkeep)
+	real,    intent(in), optional :: weights(:)
+	integer, intent(in), optional :: useteof
 
 	! Internal
 	! --------
@@ -81,7 +77,6 @@ contains
 	real, allocatable :: wff(:,:), ww(:), zeof(:,:), zff(:,:)
 	real, allocatable :: eig(:)
 	integer           :: zuseteof, znkeepmax, i,j
-real                  :: t1,t2
 
 	! Setups
 	! ======
@@ -92,13 +87,15 @@ real                  :: t1,t2
 	nt = size(ff,2)
 	znkeepmax = 100
 	if(nkeep>znkeepmax)then
-		print*,'[pca] You want to keep a number of PCs greater than ',znkeepmax
+		print*,'[pca] You want to keep a number of PCs '//&
+		 & 'greater than ',znkeepmax
 		return
 	end if
 
 	! What does the user want?
 	! ------------------------
-	if(.not.present(xeof).and..not.present(pc).and..not.present(ev))then
+	if(.not.present(xeof).and..not.present(pc)&
+	  &.and..not.present(ev))then
 		print*,'[pca] Nothing to do. Quit.'
 		return
 	end if
@@ -184,7 +181,8 @@ real                  :: t1,t2
 				& cov(:,nt:nt-nkeep+1:-1),nt,0.,zeof,ns)
 			deallocate(cov)
 			do i = 1, nkeep
-				zeof(:,i) = zeof(:,i) / sqrt(dot_product(ww(:), zeof(:,i)**2))
+				zeof(:,i) = zeof(:,i) / &
+				 &          sqrt(dot_product(ww(:), zeof(:,i)**2))
 			end do
 			if(.not.present(pc))then
 				deallocate(ww)
@@ -207,6 +205,7 @@ real                  :: t1,t2
 		! Covariance
 		allocate(cov(ns,ns))
 		allocate(eig(ns))
+		cov = 0.
 		do i=1,ns
 			do j=1,i
 				cov(i,j) = dot_product(wff(i,:), wff(j,:))
@@ -261,7 +260,6 @@ real                  :: t1,t2
 	end if
 
 	end subroutine sl_pca
-
 
 
 	subroutine sl_pcarec(xeof, pc, ffrec, istart, iend)
@@ -412,7 +410,8 @@ real                  :: t1,t2
 	nt = size(ff,2)
 	znkeepmax = 100
 	if(nkeep>znkeepmax)then
-		print*,'[pca] You want to keep a number of PCs greater than ',znkeepmax
+		print*,'[pca] You want to keep a number of PCs '//&
+		 & 'greater than ',znkeepmax
 		return
 	else if(nkeep>nsteof) then
 		print*,'[pca] You want to keep a number of PCs greater '// &
@@ -436,8 +435,9 @@ real                  :: t1,t2
 					i2 = (ic2-1) * nwindow + iw2
 					iw = iw2 - iw1 + 1
 					cov(i1,i2) = &
-						& dot_product(zff(ic1, 1  : nt-iw+1), &
-						&			 zff(ic2, iw : nt	 )) / real(nt-iw+1)
+						& dot_product(zff(ic1, 1  : nt-iw+1),  &
+						&             zff(ic2, iw : nt	 )) / &
+						& real(nt-iw+1)
 					cov(i2,i1) = cov(i1,i2)
 				end do
 			end do
@@ -474,11 +474,12 @@ real                  :: t1,t2
 	! ==========
 	if(present(stpc))then
 		allocate(wpc(nt-nwindow+1))
+		stpc = 0.
 		do im = 1, nkeep
 			do iw = 1, nwindow
 				call sgemm('T','N', nt-nwindow+1, 1, nchan, 1.,&
 					& zff(:,iw:iw+nt-nwindow), nchan, &
-					& steof(iw:iw+(nchan-1)*nwindow:nwindow, im), nchan, &
+					& steof(iw:iw+(nchan-1)*nwindow:nwindow, im),nchan,&
 					& 0., wpc, nt-nwindow+1)
 					stpc(:, im)  =  stpc(:, im) + wpc
 			end do
@@ -517,13 +518,15 @@ real                  :: t1,t2
 	! External
 	! --------
 	real,   intent(in)           :: steof(:,:), stpc(:,:)
-	real,   intent(out)          :: ffrec(size(steof, 1)/nwindow,size(stpc, 1)+nwindow-1)
+	real,   intent(out)          :: ffrec(size(steof, 1)/nwindow,&
+	 &                                    size(stpc, 1)+nwindow-1)
 	integer,intent(in)           :: nwindow
 	integer,intent(in), optional :: istart, iend
 
 	! Internal
 	! --------
-	integer :: ntpc, nchan, nt, ic, im, iw, nkept, itmp, zistart, ziend
+	integer :: ntpc, nchan, nt, ic, im, iw, nkept, &
+	 &         itmp, zistart, ziend
 	real, allocatable :: reof(:), epc(:,:)
 
 
@@ -555,7 +558,8 @@ real                  :: t1,t2
 	end if
 	if(ziend.lt.1.or.ziend.gt.nkept)then
 		ziend = nkept
-		print*,'[mssarec] iend greater than the number of avalaible modes => reduced to',iend
+		print*,'[mssarec] iend greater than the number of '// &
+		 &     'avalaible modes => reduced to',iend
 	end if
 	if(zistart>ziend)then
 		itmp    = ziend
@@ -566,6 +570,7 @@ real                  :: t1,t2
 
 	! Computation
 	! ===========
+	ffrec = 0.
 	do im = zistart, ziend ! sum over the selection of modes
 
 		! (ntpc-nwindow+1) length slices
@@ -610,7 +615,7 @@ real                  :: t1,t2
   ! ############################################################
   ! ############################################################
 
-	subroutine sl_phasecomp(ffrec, np, phases, weights, offset, firstphase)
+	subroutine sl_phasecomp(ffrec,np,phases,weights,offset,firstphase)
 
 	! Title:
 	!	Phase composites
@@ -661,7 +666,8 @@ real                  :: t1,t2
 	integer :: nt, iphase
 	real :: angles(np), projection(size(ffrec,2))
 	real :: pi, deltarad, pcos, psin, zoffset, zfirstphase
-	logical :: select_amplitude(size(ffrec,2)), select_phase(size(ffrec,2))
+	logical :: select_amplitude(size(ffrec,2)), &
+	 &         select_phase(size(ffrec,2))
 	integer :: itime(size(ffrec,2)), nsel, i, ns
 	integer, allocatable :: isel(:)
 
@@ -683,7 +689,8 @@ real                  :: t1,t2
 	allocate(pc(nt,1))
 	call sl_pca(ffrec, 1, pc=pc, weights=weights)
 	pc = pc * sqrt(real(nt)/sum(pc**2))
-	dpc = 0.5 * (eoshift(pc(:,1), 1, pc(nt,1)) - eoshift(pc(:,1), -1, pc(1,1)))
+	dpc = 0.5 * (eoshift(pc(:,1),  1, pc(nt,1)) - &
+	 &           eoshift(pc(:,1), -1, pc(1,1)))
 	dpc((/1,nt/)) = dpc((/1,nt/)) * 2.
 	dpc = dpc * sqrt(real(nt)/sum(dpc**2))
 	amp = sqrt(pc(:,1)**2 + dpc**2)
@@ -700,7 +707,8 @@ real                  :: t1,t2
 	else
 	   zfirstphase = 0.
 	end if
-	angles = (/ (real(iphase), iphase=0,np-1) /) * deltarad + zfirstphase
+	angles = (/ (real(iphase), iphase=0,np-1) /) * deltarad + &
+	 &       zfirstphase
 
 	! Compute the phase maps
 	! ----------------------
@@ -710,7 +718,8 @@ real                  :: t1,t2
 		pcos = cos(angles(iphase))
 		psin = sin(angles(iphase))
 		projection =  (pc(:,1)*pcos+dpc*psin) / amp
-		select_phase = ( projection >= cos(0.5*deltarad) ) .and. select_amplitude
+		select_phase = ( projection >= cos(0.5*deltarad) ) &
+		 &             .and. select_amplitude
 		if(any(select_phase))then
 			nsel = count(select_phase)
 			allocate(isel(nsel))

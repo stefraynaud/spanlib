@@ -39,7 +39,7 @@
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2885085"/>Usage</h5>
+              <h5 class="title"><a id="id2874749"/>Usage</h5>
             </div>
           </div>
           <pre class="programlisting"><span class="HLpersonalised">dout</span>, <span class="HLpersonalised">weights</span>, <span class="HLpersonalised">masks</span>, <span class="HLpersonalised">axes</span> = <span class="HLpersonalised">spanlib.stackData</span>(*<span class="HLpersonalised">data</span>)</pre>
@@ -47,45 +47,50 @@
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2885136"/>Description</h5>
+              <h5 class="title"><a id="id2874802"/>Description</h5>
             </div>
           </div>
           <p>      This fonction concatenates several dataset that have the
       same time axis. It is useful for analysing for example
       several variables at the same time.
-		It takes into account weights, masks and axes.
-
+      It takes into account weights, masks and axes.
 </p>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2885152"/>Necessary arguments</h5>
+              <h5 class="title"><a id="id2874818"/>Necessary arguments</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
               <li><tt>*data    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> One or more data objects to stack.
+                 They must all have the same time length.
+</em></span></li>
             </ul>
           </div>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2885187"/>Outputs</h5>
+              <h5 class="title"><a id="id2874856"/>Outputs</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
               <li><tt>dout    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Stacked data
+</em></span></li>
               <li><tt>weights    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Associated stacked weights
+</em></span></li>
               <li><tt>masks    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Associated stacked masks
+</em></span></li>
               <li><tt>axes    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Associated stacked axes
+</em></span></li>
             </ul>
           </div>
         </div>
@@ -99,7 +104,7 @@
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2885305"/>Usage</h5>
+              <h5 class="title"><a id="id2874981"/>Usage</h5>
             </div>
           </div>
           <pre class="programlisting"><span class="HLpersonalised">dout</span> = <span class="HLpersonalised">spanlib.unStackData</span>(<span class="HLpersonalised">din</span>, <span class="HLpersonalised">weights</span>, <span class="HLpersonalised">masks</span>, <span class="HLpersonalised">axes</span>)</pre>
@@ -107,43 +112,47 @@
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2885358"/>Description</h5>
+              <h5 class="title"><a id="id2875034"/>Description</h5>
             </div>
           </div>
           <p>      This function is the reverse operation of stakData.
       It splits stacked datasets into a list.
-
 </p>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2885372"/>Necessary arguments</h5>
+              <h5 class="title"><a id="id2875048"/>Necessary arguments</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
               <li><tt>din    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Stacked data (see stackData function)
+</em></span></li>
               <li><tt>weights    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Associated stacked weights
+</em></span></li>
               <li><tt>masks    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Associated stacked masks
+</em></span></li>
               <li><tt>axes    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Associated stacked axes
+</em></span></li>
             </ul>
           </div>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2898657"/>Outputs</h5>
+              <h5 class="title"><a id="id2885178"/>Outputs</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
               <li><tt>dout    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> List of unstacked data
+</em></span></li>
             </ul>
           </div>
         </div>
@@ -157,7 +166,7 @@
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2898708"/>Usage</h5>
+              <h5 class="title"><a id="id2885231"/>Usage</h5>
             </div>
           </div>
           <pre class="programlisting"><span class="HLpersonalised">packed_data</span>, <span class="HLpersonalised">packed_weights</span>, <span class="HLpersonalised">mask</span> = <span class="HLpersonalised">spanlib.pack</span>(<span class="HLpersonalised">data</span>, <span class="HLpersonalised">weights</span>=<span class="HLpersonalised">None</span>)</pre>
@@ -165,7 +174,7 @@
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2898768"/>Description</h5>
+              <h5 class="title"><a id="id2885291"/>Description</h5>
             </div>
           </div>
           <p>      This function packs a dataset in 2D space by removing
@@ -173,49 +182,54 @@
       It performs this operation also on the weights.
       It is used for removing unnecessary points and
       simplifying the input format for analysis functions.
-
 </p>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2898786"/>Necessary arguments</h5>
+              <h5 class="title"><a id="id2885308"/>Necessary arguments</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
               <li><tt>data    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Flatten in space an [x,y,t] array by removing
+                 its masked point
+</em></span></li>
             </ul>
           </div>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2898821"/>Optional arguments</h5>
+              <h5 class="title"><a id="id2885346"/>Optional arguments</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
               <li><tt>weights    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Weights to be flatten also
+</em></span></li>
             </ul>
           </div>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2898863"/>Outputs</h5>
+              <h5 class="title"><a id="id2885390"/>Outputs</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
               <li><tt>packed_data    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Space-time packed array
+</em></span></li>
               <li><tt>packed_weights    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Packed weights that were guessed or used
+</em></span></li>
               <li><tt>mask    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Mask that were guessed or used
+</em></span></li>
             </ul>
           </div>
         </div>
@@ -229,7 +243,7 @@
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2898959"/>Usage</h5>
+              <h5 class="title"><a id="id2876258"/>Usage</h5>
             </div>
           </div>
           <pre class="programlisting"><span class="HLpersonalised">phases</span> = <span class="HLpersonalised">spanlib.computePhases</span>(<span class="HLpersonalised">data</span>, <span class="HLpersonalised">nphases</span>=<span class="HLpersonalised">8</span>, <span class="HLpersonalised">offset</span>=.<span class="HLpersonalised">5</span>, <span class="HLpersonalised">firstphase</span>=<span class="HLpersonalised">0</span>)</pre>
@@ -237,7 +251,7 @@
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2899033"/>Description</h5>
+              <h5 class="title"><a id="id2876331"/>Description</h5>
             </div>
           </div>
           <p>      This computes temporal phase composites of a spatio-temporal
@@ -246,49 +260,53 @@
       to represents the dataset over its cycle in a arbitrary
       number of phases. It is useful, for example, to have a
       synthetic view of an reconstructed MSSA oscillation.
-
 </p>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2899053"/>Necessary arguments</h5>
+              <h5 class="title"><a id="id2876351"/>Necessary arguments</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
               <li><tt>data    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Space-time data oscillatory in time data.shape is rank 2 and dim 0 is space
+</em></span></li>
             </ul>
           </div>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2899087"/>Optional arguments</h5>
+              <h5 class="title"><a id="id2876388"/>Optional arguments</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
               <li><tt>nphases    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">8</span>]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Number of phases (divisions of the cycle)
+      offset     :: Normalised offset to keep higher values only [default:
+</em></span></li>
               <li><tt>offset    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">.5</span>]    </span></tt> 
 				 :: <span class="emphasis"><em/></span></li>
               <li><tt>firstphase    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">0</span>]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Position of the first phase in the 360 degree cycle
+</em></span></li>
             </ul>
           </div>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2899188"/>Outputs</h5>
+              <h5 class="title"><a id="id2876494"/>Outputs</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
               <li><tt>phases    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Space-phase array
+</em></span></li>
             </ul>
           </div>
         </div>
@@ -302,7 +320,7 @@
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2899240"/>Usage</h5>
+              <h5 class="title"><a id="id2876548"/>Usage</h5>
             </div>
           </div>
           <pre class="programlisting"><span class="HLpersonalised">&lt;SpAn_object&gt;</span> = <span class="HLpersonalised">spanlib.SpAn</span>(<span class="HLpersonalised">data</span>, <span class="HLpersonalised">weights</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">npca</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">window</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">nmssa</span>=<span class="HLpersonalised">None</span>)</pre>
@@ -310,38 +328,49 @@
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2899327"/>Description</h5>
+              <h5 class="title"><a id="id2876636"/>Description</h5>
             </div>
           </div>
           <p>          This function creates an object for future analyses.
           It optionally initializes some parameters.
-
-
 </p>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2899342"/>Necessary arguments</h5>
+              <h5 class="title"><a id="id2876650"/>Necessary arguments</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
               <li><tt>data    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Data on which to run the PC Analysis
+                     Last dimensions must represent the spatial dimensions.
+                     Analysis will be run on the first dimension.
+</em></span></li>
             </ul>
           </div>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2899377"/>Optional arguments</h5>
+              <h5 class="title"><a id="id2876690"/>Optional arguments</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt>weights    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+              <li><tt>weights    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">1. everywhere</span>]    </span></tt> 
+				 :: <span class="emphasis"><em> If you which to apply weights on some points.
+                     Set weights to &quot;0&quot; where you wish to mask.
+                     The input data mask will be applied,
+                     using the union of all none spacial dimension mask.
+                     If the data are on a regular grid, area weights
+                     will be generated, if the cdutil (CDAT) module is available.
+                     
+          npca    :: Number of principal components to return [default: 10]
+          nmssa   :: Number of MSSA modes retained [default: 4]
+          window  :: MSSA window parameter [default: time_length/3.]
+</em></span></li>
               <li><tt>npca    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
 				 :: <span class="emphasis"><em/></span></li>
               <li><tt>window    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
@@ -354,7 +383,7 @@
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2899506"/>Outputs</h5>
+              <h5 class="title"><a id="id2876832"/>Outputs</h5>
             </div>
           </div>
           <div class="itemizedlist">
@@ -374,7 +403,7 @@
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2899560"/>Usage</h5>
+              <h5 class="title"><a id="id2876886"/>Usage</h5>
             </div>
           </div>
           <pre class="programlisting"><span class="HLpersonalised">eof</span>, <span class="HLpersonalised">pc</span>, <span class="HLpersonalised">ev</span> = <span class="HLpersonalised">&lt;SpAn_object&gt;.pca</span>(<span class="HLpersonalised">npca</span>=<span class="HLpersonalised">None</span>)</pre>
@@ -382,30 +411,34 @@
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2899613"/>Optional arguments</h5>
+              <h5 class="title"><a id="id2876939"/>Optional arguments</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
               <li><tt>npca    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Number of principal components to return, default will be 10
+</em></span></li>
             </ul>
           </div>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2899654"/>Outputs</h5>
+              <h5 class="title"><a id="id2876984"/>Outputs</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
               <li><tt>eof    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> EOF array
+</em></span></li>
               <li><tt>pc    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Principal Components array
+</em></span></li>
               <li><tt>ev    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Eigein Values array
+</em></span></li>
             </ul>
           </div>
         </div>
@@ -419,7 +452,7 @@
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2899751"/>Usage</h5>
+              <h5 class="title"><a id="id2877085"/>Usage</h5>
             </div>
           </div>
           <pre class="programlisting"><span class="HLpersonalised">eof</span>, <span class="HLpersonalised">pc</span>, <span class="HLpersonalised">ev</span> = <span class="HLpersonalised">&lt;SpAn_object&gt;.mssa</span>(<span class="HLpersonalised">nmssa</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">pca</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">window</span>=<span class="HLpersonalised">None</span>)</pre>
@@ -427,34 +460,41 @@
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2899831"/>Optional arguments</h5>
+              <h5 class="title"><a id="id2877165"/>Optional arguments</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
               <li><tt>nmssa    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Number of MSSA modes retained
+</em></span></li>
               <li><tt>pca    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> If True, performs a preliminary PCA
+
+</em></span></li>
               <li><tt>window    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> MSSA window parameter
+</em></span></li>
             </ul>
           </div>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2899931"/>Outputs</h5>
+              <h5 class="title"><a id="id2877271"/>Outputs</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
               <li><tt>eof    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> EOF array
+</em></span></li>
               <li><tt>pc    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Principal Components array
+</em></span></li>
               <li><tt>ev    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Eigen Values  array
+</em></span></li>
             </ul>
           </div>
         </div>
@@ -468,7 +508,7 @@
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2900028"/>Usage</h5>
+              <h5 class="title"><a id="id2877372"/>Usage</h5>
             </div>
           </div>
           <pre class="programlisting"><span class="HLpersonalised">ffrec</span> = <span class="HLpersonalised">&lt;SpAn_object&gt;.reconstruct</span>(<span class="HLpersonalised">start</span>=<span class="HLpersonalised">1</span>, <span class="HLpersonalised">end</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">mssa</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">pca</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">phases</span>=<span class="HLpersonalised">False</span>, <span class="HLpersonalised">nphases</span>=<span class="HLpersonalised">8</span>, <span class="HLpersonalised">offset</span>=.<span class="HLpersonalised">5</span>, <span class="HLpersonalised">firstphase</span>=<span class="HLpersonalised">0</span>)</pre>
@@ -476,7 +516,7 @@
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2900164"/>Description</h5>
+              <h5 class="title"><a id="id2877508"/>Description</h5>
             </div>
           </div>
           <p>          This function performs recontructions to retreive the
@@ -487,27 +527,31 @@
           This function can optionally performs phase composites
           (useful for pairs of MSSA modes = oscillations) on MSSA
           recontructions.
-
 </p>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2900186"/>Optional arguments</h5>
+              <h5 class="title"><a id="id2877530"/>Optional arguments</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
               <li><tt>start    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">1</span>]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> First mode
+</em></span></li>
               <li><tt>end    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Last mode
+</em></span></li>
               <li><tt>mssa    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Reconstruct MSSA if True
+</em></span></li>
               <li><tt>pca    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Reconstruct PCA if True
+</em></span></li>
               <li><tt>phases    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">False</span>]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Operate phase reconstruction True/False (default is False)
+</em></span></li>
               <li><tt>nphases    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">8</span>]    </span></tt> 
 				 :: <span class="emphasis"><em/></span></li>
               <li><tt>offset    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">.5</span>]    </span></tt> 
@@ -520,13 +564,14 @@
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
-              <h5 class="title"><a id="id2900431"/>Outputs</h5>
+              <h5 class="title"><a id="id2877784"/>Outputs</h5>
             </div>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
               <li><tt>ffrec    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
+				 :: <span class="emphasis"><em> Reconstructed field
+</em></span></li>
             </ul>
           </div>
         </div>
