@@ -32,9 +32,9 @@ all-local: $(NCDATA) view
 else
 all-local:
 	@echo "###########################################################"
-	@echo "# Your configuration has no f90 netcdf support so you can't
-	@echo "# run the example. If you wish to do it, use ./configure
-	@echo "# options --with-netcdf-inc and --with-netcdf-lib or
+	@echo "# Your configuration has no f90 netcdf support so you can't"
+	@echo "# run the example. If you wish to do it, use ./configure"
+	@echo "# options --with-netcdf-inc and --with-netcdf-lib or"
 	@echo "# or associated variables."
 	@echo "###########################################################"
 endif
@@ -59,14 +59,15 @@ endif
 
 view: $(F90NCOUTPUT)
 if HAS_NCVIEWER
-	@echo "###########################################################"
-	@echo "# Visualisation of output netcdf file $(F90NCOUTPUT)"
-	@echo "# This contains the following variables of interest:"
-	@echo "# - orig:  original field (before its analysis)"
-	@echo "# - reco1: reconstruction of the first pair of mssa modes"
-	@echo "# - pair1: phases composites of the first pair"
-	@echo "###########################################################"
-	$(NCVIEWER) $(NCVIEWER_ARGS)
+	@test -f $(F90NCOUTPUT) &&  ( \
+	echo "###########################################################" ; \
+	echo "# Visualisation of output netcdf file $(F90NCOUTPUT)"; \
+	echo "# This contains the following variables of interest:"; \
+	echo "# - orig:  original field (before its analysis)"; \
+	echo "# - reco1: reconstruction of the first pair of mssa modes"; \
+	echo "# - pair1: phases composites of the first pair"; \
+	echo "###########################################################" )
+	test -f $(F90NCOUTPUT) && $(NCVIEWER) $(NCVIEWER_ARGS)
 else
 	@echo "###########################################################"
 	@echo "# Results are stored in the following netcdf file:"
@@ -75,10 +76,13 @@ else
 endif
 
 $(F90NCOUTPUT): $(NCINPUT) $(LOCAL_LIB) $(PROGRAMS)
+	@rm -f $(F90NCOUTPUT)
 	@echo "###########################################################"
 	@echo "# Running the F90 example program..."
 	@echo "###########################################################"
 	./example
+	@test -f $(F90NCOUTPUT) || echo "No netcdf file created"
+	
 
 
 $(LOCAL_LIB):
