@@ -81,6 +81,7 @@ contains
 	real, allocatable :: wff(:,:), ww(:), zeof(:,:), zff(:,:)
 	real, allocatable :: eig(:)
 	integer           :: zuseteof, znkeepmax, i,j
+real                  :: t1,t2
 
 	! Setups
 	! ======
@@ -179,7 +180,8 @@ contains
 		! Back to S-EOFs
 		if(present(pc).or.present(xeof))then
 			allocate(zeof(ns,nkeep))
-			zeof = matmul(zff, cov(:,nt:nt-nkeep+1:-1))
+			call sgemm('N','N',ns,nkeep,nt,1.,zff,ns, &
+				& cov(:,nt:nt-nkeep+1:-1),nt,0.,zeof,ns)
 			deallocate(cov)
 			do i = 1, nkeep
 				zeof(:,i) = zeof(:,i) / sqrt(dot_product(ww(:), zeof(:,i)**2))
@@ -250,7 +252,9 @@ contains
 				zff(:,i) = zff(:,i) * ww(:)
 			end do
 		end if
-		pc = matmul( transpose(zff), zeof)
+		! pc = matmul( transpose(zff), zeof)
+		call sgemm('T','N',nt,nkeep,ns,1.,zff,ns, &
+			& zeof,ns,0.,pc,nt)
 		do i = 1, nkeep
 			pc(:,i) = pc(:,i) / dot_product(zeof(:,i)**2, ww(:))
 		end do
@@ -343,9 +347,6 @@ contains
 				&	matmul(xeof(i, zistart:ziend), zpc)
 		end do
 	end if
-
-!	Obsolete formulation using too much memory
-!	ffrec = matmul( xeof(:, zistart:ziend), transpose(pc(:, zistart:ziend)) )
 
 	end subroutine sl_pcarec
 
