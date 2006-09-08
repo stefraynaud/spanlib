@@ -175,7 +175,7 @@ program example
 	! We go back to the physical space for
 	! the full oscillation AND its composites
 	! ---------------------------------------
-	print*,'PCAREC...'
+	print*,'PCAREC...',stphasecomps
 	allocate(pair(nspace, ntime))
 	call sl_pcarec(eof, transpose(stpair), pair)
 	allocate(packed_phasecomps(nspace, nphases))

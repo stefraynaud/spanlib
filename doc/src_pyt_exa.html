@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Python example</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.69.1" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id2498172"></a>SpanLib - Python example</h1></div></div><hr /></div><pre class="programlisting"><span class="HLcomments"># File: example1.py</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Python example</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.58.1" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><h1 class="title"><a id="id2855431"></a>SpanLib - Python example</h1></div><hr /></div><pre class="programlisting"><span class="HLcomments"># File: example1.py</span>
 <span class="HLcomments">#</span>
 <span class="HLcomments"># This file is part of the SpanLib library.</span>
 <span class="HLcomments"># Copyright (C) 2006  Charles Doutiraux, Stephane Raynaud</span>
@@ -26,12 +26,12 @@
 <span class="HLcomments"># (first par of modes). Finally, we compute phase composites</span>
 <span class="HLcomments"># to represent the oscillation over its cycle.</span>
 <span class="HLcomments">###################################################################</span>
-<span class="HLcommands">print</span> "<span class="HLcomments">#################################################"</span>
-<span class="HLcommands">print</span> "<span class="HLcomments"># PCA+MSSA+Phase_composites of 1st oscillation. #"</span>
-<span class="HLcommands">print</span> "<span class="HLcomments"># Then reconstructions, and plots:              #"</span>
-<span class="HLcommands">print</span> "<span class="HLcomments"># - 1 phase over 2                              #"</span>
-<span class="HLcommands">print</span> "<span class="HLcomments"># - 1 time series                               #"</span>
-<span class="HLcommands">print</span> "<span class="HLcomments">#################################################"</span>
+<span class="HLcommands">print</span> &quot;<span class="HLcomments">#################################################&quot;</span>
+<span class="HLcommands">print</span> &quot;<span class="HLcomments"># PCA+MSSA+Phase_composites of 1st oscillation. #&quot;</span>
+<span class="HLcommands">print</span> &quot;<span class="HLcomments"># Then reconstructions, and plots:              #&quot;</span>
+<span class="HLcommands">print</span> &quot;<span class="HLcomments"># - 1 phase over 2                              #&quot;</span>
+<span class="HLcommands">print</span> &quot;<span class="HLcomments"># - 1 time series                               #&quot;</span>
+<span class="HLcommands">print</span> &quot;<span class="HLcomments">#################################################&quot;</span>
 
 
 <span class="HLcomments"># Needed modules</span>
@@ -50,20 +50,20 @@ cdms.axis.longitude_aliases.append(<span class="HLstrings">'X'</span>)
 cdms.axis.time_aliases.append(<span class="HLstrings">'T'</span>)
 
 <span class="HLcomments"># Simply open the netcdf file</span>
-<span class="HLcommands">print</span> <span class="HLstrings">"<span class="HLfunctions">Open</span> file"</span>
+<span class="HLcommands">print</span> <span class="HLstrings">&quot;<span class="HLfunctions">Open</span> file&quot;</span>
 f=cdms.<span class="HLfunctions">open</span>(<span class="HLstrings">'../example/data2.cdf'</span>)
 
 <span class="HLcomments"># Retrieve data</span>
-<span class="HLcommands">print</span> <span class="HLstrings">"Read two different regions"</span>
+<span class="HLcommands">print</span> <span class="HLstrings">&quot;Read two different regions&quot;</span>
 s=f(<span class="HLstrings">'ssta'</span>,time=slice(<span class="HLdigits">0</span>,<span class="HLdigits">120</span>))
 
 S<span class="HLcomments"># Create the analysis object</span>
-<span class="HLcommands">print</span> <span class="HLstrings">"Creating <span class="HLpersonalised">SpAn</span> object"</span>
+<span class="HLcommands">print</span> <span class="HLstrings">&quot;Creating <span class="HLpersonalised">SpAn</span> object&quot;</span>
 P=spanlib.<span class="HLpersonalised">SpAn</span>(s)
 
 <span class="HLcomments"># Perform a preliminary PCA+MSSA</span>
 <span class="HLcomments"># (equivalent to simple use SP.mssa(pca=True) later)</span>
-<span class="HLcommands">print</span> <span class="HLstrings">"<span class="HLpersonalised">PCA</span>..."</span>
+<span class="HLcommands">print</span> <span class="HLstrings">&quot;<span class="HLpersonalised">PCA</span>...&quot;</span>
 eof,pc,ev = SP.<span class="HLpersonalised">pca</span>()
 
 <span class="HLcomments"># MSSA on PCA results</span>
@@ -75,7 +75,7 @@ steof,stpc,stev = SP.<span class="HLpersonalised">mssa</span>()
 out = SP.<span class="HLpersonalised">reconstruct</span>(phases=<span class="HLspecial">True</span>,nphases=<span class="HLdigits">16</span>,end=<span class="HLdigits">2</span>)
 
 <span class="HLcomments"># Plot 1 phase over two, then a time series</span>
-<span class="HLcommands">print</span> <span class="HLstrings">"Now, plot!"</span>
+<span class="HLcommands">print</span> <span class="HLstrings">&quot;Now, plot!&quot;</span>
 x=vcs.init()
 <span class="HLcommands">for</span> i <span class="HLcommands">in</span> range(<span class="HLdigits">0</span>,out.shape[<span class="HLdigits">0</span>],out.shape[<span class="HLdigits">0</span>]/<span class="HLdigits">10</span>):
     x.plot(out[i])

@@ -1,85 +1,180 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
-  <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>SpanLib - Spectral Analysis Library</title>
-    <link rel="stylesheet" href="spanlib.css" type="text/css" />
-    <meta name="generator" content="DocBook XSL Stylesheets V1.69.1" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.58.1" />
     <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, PCA, EOF, POP" />
-    <link rel="start" href="spanlib.html" title="SpanLib - Spectral Analysis Library" />
-    <link rel="next" href="doc_ins.html" title="2. Installation" />
+    <style xmlns="" xmlns:fo="http://www.w3.org/1999/XSL/Format" type="text/css">
+			/* Main */
+body {
+	padding-right:30px;
+	background-color:white;
+}
+
+/* Shadow */
+h1 {
+	text-shadow: #bbb 0.1em 0.1em 3px;
+}
+h2, h3, h4, h5, div.navfooter, div.navheader {
+	text-shadow: #ccc 0.1em 0.1em 2px;
+}
+
+/* Links */
+a:link {
+	color:inherit;
+	text-decoration:underline;
+}
+a:hover {
+	color:inherit;
+	text-decoration:none;
+	background-color:#eee;
+}
+a:visited {
+	color:inherit;
+	text-decoration:underline;
+}
+
+/* Titles */
+h1 {text-align:center;}
+
+/* Code */
+pre.programlisting {
+	border:1px dashed black;
+	background-color:#eef;
+	padding:5px;
+	font-size:10px;
+}
+
+/* Special words */
+h4 tt.literal,h4 a tt.literal, tt.varname  {color:blue;}
+
+/* Syntax highlighting */
+.HLpersonalised			{color:blue;}
+.HLcomments					{color:#666;font-style:italic;}
+.HLdigits					{color:red;}
+.HLstrings					{color:#a80;}
+.HLspecial					{color:green;}
+.HLfunctions				{color:#077;}
+.HLroutines,.HLcommands	{color:#a0a;}
+
+/* Arguments */
+.ARGspec		{font-weight:bold;font-size:10px;}
+/*.ARGspec		{border-width:0;font-variant:small-caps;font-size:5px;}*/
+.ARGname		{color:blue;}
+/*.ARGlond_name	{padding-left:30px;}*/
+
+/* My footer */
+div.generated {
+	font-size:8pt;
+	font-style:italic;
+}
+
+/* Misc */
+div.authorgroup div.affiliation div.address {font-size:10px}
+div.note h3.title {font-size:smaller;}
+.term {font-weight:bold;}
+
+		</style>
   </head>
   <body>
-    <div class="navheader">
-      <table width="100%" summary="Navigation header">
-        <tr>
-          <th colspan="3" align="center">SpanLib - Spectral Analysis Library</th>
-        </tr>
-        <tr>
-          <td width="20%" align="left"> </td>
-          <th width="60%" align="center"> </th>
-          <td width="20%" align="right"> <a accesskey="n" href="doc_ins.html">Next</a></td>
-        </tr>
-      </table>
-      <hr />
-    </div>
     <div class="article" lang="en" xml:lang="en">
       <div class="titlepage">
         <div>
-          <div>
-            <h1 class="title"><a id="id2514202"></a>SpanLib - Spectral Analysis Library</h1>
-          </div>
-          <div>
-            <div class="authorgroup">
-              <div class="author">
-                <h3 class="author"><span class="firstname">Stéphane</span> <span class="surname">Raynaud</span></h3>
-              </div>
-              <div class="author">
-                <h3 class="author"><span class="firstname">Charles</span> <span class="surname">Doutriaux</span></h3>
-              </div>
-              <div class="affiliation">
-                <div class="address">
-                  <p>Contact: <code class="email">&lt;<a href="mailto:stephane.raynaud at gmail.com">stephane.raynaud at gmail.com</a>&gt;</code><br />
+          <h1 class="title"><a id="id2855586"></a>SpanLib - Spectral Analysis Library</h1>
+        </div>
+        <div>
+          <div class="authorgroup">
+            <div class="author">
+              <h3 class="author">Stéphane Raynaud</h3>
+            </div>
+            <div class="author">
+              <h3 class="author">Charles Doutriaux</h3>
+            </div>
+            <div class="affiliation">
+              <div class="address">
+                <p>Contact: <tt>&lt;<a href="mailto:stephane.raynaud at gmail.com">stephane.raynaud at gmail.com</a>&gt;</tt><br />
 				</p>
-                </div>
               </div>
             </div>
           </div>
-          <div>
-            <p class="releaseinfo">
+        </div>
+        <div>
+          <p class="releaseinfo">
 			</p>
-            <p>Version 1.0</p>
-            <p class="releaseinfo">
+          <p>Version 1.0</p>
+          <p class="releaseinfo">
 			</p>
-            <p>
+          <p>
 				Project hosted by:
 				<a href="http://sourceforge.net" target="_top">
 					<div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="88"><tr><td><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=168272&amp;type=1" width="88" /></td></tr></table></div>
 				</a>
 			</p>
-            <p class="releaseinfo">
+          <p class="releaseinfo">
 		</p>
-          </div>
-          <div>
-            <fo:block xmlns:fo="http://www.w3.org/1999/XSL/Format">This documentation was generated on 7 September 2006</fo:block>
-          </div>
+        </div>
+        <div>
+          <fo:block xmlns:fo="http://www.w3.org/1999/XSL/Format">This documentation was generated on 8 September 2006</fo:block>
         </div>
         <hr />
+      </div>
+      <div class="toc">
+        <p>
+          <b>Table of Contents</b>
+        </p>
+        <dl>
+          <dt>1. <a href="#doc_pre">Presentation</a></dt>
+          <dd>
+            <dl>
+              <dt>1.1. <a href="#doc_pre_int">Introduction</a></dt>
+              <dt>1.2. <a href="#doc_pre_fun">Fundamentals</a></dt>
+              <dt>1.3. <a href="#doc_pre_tec">Some technical details...</a></dt>
+              <dt>1.4. <a href="#doc_pre_mor">For more information</a></dt>
+              <dt>1.5. <a href="#doc_int_vie">View colorized sources</a></dt>
+            </dl>
+          </dd>
+          <dt>2. <a href="#doc_ins">Installation</a></dt>
+          <dd>
+            <dl>
+              <dt>2.1. <a href="#doc_ins_req">Requirements</a></dt>
+              <dt>2.2. <a href="#doc_ins_dow">Download</a></dt>
+              <dt>2.3. <a href="#doc_ins_ins">Compilation and installation</a></dt>
+            </dl>
+          </dd>
+          <dt>3. <a href="#doc_f90">The Fortran 90 library</a></dt>
+          <dd>
+            <dl>
+              <dt>3.1. <a href="#doc_f90_int">Introduction</a></dt>
+              <dt>3.2. <a href="#doc_f90_sub">F90 subroutines</a></dt>
+              <dt>3.3. <a href="#doc_f90_exa">A Fortran 90 example</a></dt>
+            </dl>
+          </dd>
+          <dt>4. <a href="#doc_pyt">The python module</a></dt>
+          <dd>
+            <dl>
+              <dt>4.1. <a href="#doc_pyt_int">Introduction</a></dt>
+              <dt>4.2. <a href="#doc_pyt_sub">Python functions</a></dt>
+              <dt>4.3. <a href="#doc_pyt_exa">A python example</a></dt>
+            </dl>
+          </dd>
+          <dt>5. <a href="#doc_lin">Links</a></dt>
+          <dt>
+            <a href="#doc_bib">Bibliography</a>
+          </dt>
+        </dl>
       </div>
       <div class="sect1" lang="en" xml:lang="en">
         <div class="titlepage">
           <div>
-            <div>
-              <h2 class="title" style="clear: both"><a id="doc_pre"></a>1. Presentation</h2>
-            </div>
+            <h2 class="title" style="clear: both"><a id="doc_pre"></a>1. Presentation</h2>
           </div>
         </div>
         <div class="sect2" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
-              <div>
-                <h3 class="title"><a id="doc_pre_int"></a>1.1. Introduction</h3>
-              </div>
+              <h3 class="title"><a id="doc_pre_int"></a>1.1. Introduction</h3>
             </div>
           </div>
           <p>
@@ -94,12 +189,12 @@
 				that rely on eign solutions of covariance or correlations matrices
 			</p>
           <p>
-				This package provides a <a href="doc_f90.html" title="3. The Fortran 90 library">F90 library</a> (as a module)
+				This package provides a <a href="#doc_f90" title="3.&#xA0;The Fortran 90 library">F90 library</a> (as a module)
 				containing a minimal collection of subroutines to perform
-				<span class="bold"><strong>Principal Componant Analysis</strong></span> (PCA),
-				<span class="bold"><strong>Multi-channel Singular Spectrum Analysis</strong></span> (MSSA), reconstruction
+				<span class="bold"><b>Principal Componant Analysis</b></span> (PCA),
+				<span class="bold"><b>Multi-channel Singular Spectrum Analysis</b></span> (MSSA), reconstruction
 				of components and phase composites.
-				The package also provide a <a href="doc_pyt.html" title="4. The python module">python module</a>
+				The package also provide a <a href="#doc_pyt" title="4.&#xA0;The python module">python module</a>
 				that calls the F90 library and gives the user a set of useful functions
 				to perform analyses.
 			</p>
@@ -111,13 +206,11 @@
         <div class="sect2" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
-              <div>
-                <h3 class="title"><a id="doc_pre_fun"></a>1.2. Fundamentals</h3>
-              </div>
+              <h3 class="title"><a id="doc_pre_fun"></a>1.2. Fundamentals</h3>
             </div>
           </div>
           <p>
-				<span class="bold"><strong><a href="spanlib.html#pca">PCA</a></strong></span> is also know as Empirical Orthogonal Functions (EOFs) decomposition:
+				<span class="bold"><b><a href="#pca">PCA</a></b></span> is also know as Empirical Orthogonal Functions (EOFs) decomposition:
 				it decomposes a space-time signal in pairs of
 				spatial EOFs and temporal
 				Principal Components (PCs)
@@ -126,14 +219,14 @@
 				and their associated PCs are the coefficients that regulate these patterns.
 				</p>
           <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3>
-					In this document, "space" refers to the more general notion
-					of "channel",  in opposition to "time".
+					In this document, &quot;space&quot; refers to the more general notion
+					of &quot;channel&quot;,  in opposition to &quot;time&quot;.
 					In climate studies, the channel dimension generally coincides with space.
 				</div>
           <p>
 			</p>
           <p>
-				<span class="bold"><strong><a href="spanlib.html#ssa">SSA</a></strong></span> (Singular Spectrum Analysis)
+				<span class="bold"><b><a href="#ssa">SSA</a></b></span> (Singular Spectrum Analysis)
 				is mathematically very similar to PCA:
 				there is now only one channel as an input dataset, and eigenmodes are computed on
 				the lag-covariance matrix (instead of on the cross -between channels- covriance matrix).
@@ -147,7 +240,7 @@
               <li>
 						It removes <span class="emphasis"><em>incoherent noise</em></span> (white noise):
 						the noisy part of the signal takes the form of low order
-						modes, identified as a "background" that can be easily neglected.
+						modes, identified as a &quot;background&quot; that can be easily neglected.
 					</li>
               <li>
 						It naturally extracts <span class="emphasis"><em>regular oscillations</em></span> (with a narrow spectral peak).
@@ -164,13 +257,13 @@
           </div>
           <p>
 				The maximal lag (the only parameter of SSA) is known as the
-				<a href="spanlib.html#window" title="The window parameter">window</a>.
+				<a href="#window" title="The window parameter">window</a>.
 			</p>
           <p>
-				<span class="bold"><strong><a href="spanlib.html#mssa">MSSA</a></strong></span>
+				<span class="bold"><b><a href="#mssa">MSSA</a></b></span>
 				is a combination of PCA and SSA: it is an SSA on several channels.
 				The diagonalized is built on covariances between channels (cross) and time segments (lag).
-				Therefore, it has the advantage of PCA for extracting the dominant "spatial" patterns
+				Therefore, it has the advantage of PCA for extracting the dominant &quot;spatial&quot; patterns
 				of the variability, and has also the spectral filtering capabilities of SSA.
 				All identified modes have spatio-temporal properties.
 				For example, oscillations are not constrained on a fixed spatial pattern, but can also
@@ -182,7 +275,7 @@
           <p>
 				All these analysis methods act as a linear filter.
 				For each of them, it is possible to reconstruct part of the filtered signal.
-				A reconstructed mode is the "multiplication" of its EOF by its PC, and
+				A reconstructed mode is the &quot;multiplication&quot; of its EOF by its PC, and
 				it has the same dimension of the initial dataset.
 				Such operation is necessary to go back from the EOF space to the physical space.
 			</p>
@@ -198,25 +291,19 @@
         <div class="sect2" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
-              <div>
-                <h3 class="title"><a id="doc_pre_tec"></a>1.3. Some technical details...</h3>
-              </div>
+              <h3 class="title"><a id="doc_pre_tec"></a>1.3. Some technical details...</h3>
             </div>
           </div>
           <div class="sect3" lang="en" xml:lang="en">
             <div class="titlepage">
               <div>
-                <div>
-                  <h4 class="title"><a id="doc_pre_tec_pca"></a>1.3.1. ...about PCA</h4>
-                </div>
+                <h4 class="title"><a id="doc_pre_tec_pca"></a>1.3.1. ...about PCA</h4>
               </div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <div>
-                    <h5 class="title"><a id="id2476402"></a>CPU: space versus time</h5>
-                  </div>
+                  <h5 class="title"><a id="id2792251"></a>CPU: space versus time</h5>
                 </div>
               </div>
               <p>
@@ -226,7 +313,7 @@
 						It is possible to partly avoid this problem when the time dimension is lower
 						than the spatial dimension, using a correlation matrix
 						in time instead of in space.
-						F90 subroutine <code class="varname"><a href="doc_f90_sub.html#sl_pca" title="3.2.1. Principal Component Analysis: sl_pca">sl_pca</a></code> of SpanLib
+						F90 subroutine <tt><a href="#sl_pca" title="3.2.1.&#xA0;Principal Component Analysis: sl_pca">sl_pca</a></tt> of SpanLib
 						provides the ability
 						to choose which of theses approaches to use for PCA.
 					</p>
@@ -234,9 +321,7 @@
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <div>
-                    <h5 class="title"><a id="id2476430"></a>Weights</h5>
-                  </div>
+                  <h5 class="title"><a id="id2792284"></a>Weights</h5>
                 </div>
               </div>
               <p>
@@ -245,38 +330,34 @@
 						to the grid cell area.
 						Whereas common PCA analysis does not take these weights into account
 						it is possible to give optional weights to
-						<code class="varname"><a href="doc_f90_sub.html#sl_pca" title="3.2.1. Principal Component Analysis: sl_pca">sl_pca</a></code>.
-						Using the <a href="doc_pyt.html" title="4. The python module">python module</a>,
-						it is easy to "attach" weights to a variable for use by
-						<code class="varname"><a href="doc_pyt_sub.html#&lt;SpAn_object&gt;.pca" title="4.2.6.  Principal Components Analysis (PCA): &lt;SpAn_object&gt;.pca">pca</a></code>.
+						<tt><a href="#sl_pca" title="3.2.1.&#xA0;Principal Component Analysis: sl_pca">sl_pca</a></tt>.
+						Using the <a href="#doc_pyt" title="4.&#xA0;The python module">python module</a>,
+						it is easy to &quot;attach&quot; weights to a variable for use by
+						<tt><a href="#&lt;SpAn_object&gt;.pca" title="4.2.6.&#xA0; Principal Components Analysis (PCA): &lt;SpAn_object&gt;.pca">pca</a></tt>.
 					</p>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <div>
-                    <h5 class="title"><a id="id2476470"></a>Mask</h5>
-                  </div>
+                  <h5 class="title"><a id="id2792332"></a>Mask</h5>
                 </div>
               </div>
               <p>
 						Similarly, it is not useful to analyse masked points
 						(for example, gridded points situated on land when use analyse oceanic data).
-						The F90 subroutine <code class="varname"><a href="doc_f90_sub.html#sl_pca" title="3.2.1. Principal Component Analysis: sl_pca">sl_pca</a></code>
+						The F90 subroutine <tt><a href="#sl_pca" title="3.2.1.&#xA0;Principal Component Analysis: sl_pca">sl_pca</a></tt>
 						makes the supposition that none of the masked (all channels are analysed).
 						However, as well as for the weights, it is possible to associate
 						an spatial mask to a dataset in order to remove masked points when
 						using the python module.
-						Then, <code class="varname"><a href="doc_pyt_sub.html#spanlib.pack" title="4.2.3.  Pack a dataset and its weights according to its mask: spanlib.pack">spanlib.pack</a></code>
-						can be used to "pack" (compress) data before they are analysed.
+						Then, <tt><a href="#spanlib.pack" title="4.2.3.&#xA0; Pack a dataset and its weights according to its mask: spanlib.pack">spanlib.pack</a></tt>
+						can be used to &quot;pack&quot; (compress) data before they are analysed.
 					</p>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <div>
-                    <h5 class="title"><a id="id2476506"></a>Analysing several variables at the same time</h5>
-                  </div>
+                  <h5 class="title"><a id="id2792373"></a>Analysing several variables at the same time</h5>
                 </div>
               </div>
               <p>
@@ -285,11 +366,11 @@
 						even of completely different nature.
 						The essential problem of units may be solved using simple
 						normalisations.
-						Python function <code class="varname"><a href="doc_pyt_sub.html#spanlib.stackData" title="4.2.1.  Takes several data files, of same time and stacks them up together: spanlib.stackData">spanlib.stackData</a></code>
-						can be used to "pack" (compress) data before they are analysed.
-						Then, using <code class="varname"><a href="doc_pyt_sub.html#spanlib.unStackData" title="4.2.2.  Unstack data in the form returned from stackData: spanlib.unStackData">spanlib.unStackData</a></code>
+						Python function <tt><a href="#spanlib.stackData" title="4.2.1.&#xA0; Takes several data files, of same time and stacks them up together: spanlib.stackData">spanlib.stackData</a></tt>
+						can be used to &quot;pack&quot; (compress) data before they are analysed.
+						Then, using <tt><a href="#spanlib.unStackData" title="4.2.2.&#xA0; Unstack data in the form returned from stackData: spanlib.unStackData">spanlib.unStackData</a></tt>
 						you can unpack results from you analysis.
-						<a href="doc_bib.html#raynal06">Raynaud et al (2006)</a> presents an example of use where variables
+						<a href="#raynal06">Raynaud et al (2006)</a> presents an example of use where variables
 						such as sea surface temperature, wind stress modulus and air-sea CO2
 						fluxes are analysed at the same time:
 						the simultaneous variability of the variables is filtered and
@@ -299,16 +380,14 @@
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <div>
-                    <h5 class="title"><a id="id2476554"></a>Reconstructions</h5>
-                  </div>
+                  <h5 class="title"><a id="id2789754"></a>Reconstructions</h5>
                 </div>
               </div>
               <p>
-						Reconstructions (F90:<code class="varname"><a href="doc_f90_sub.html#sl_pcarec" title="3.2.2. Reconstruction of a set of PCA components: sl_pcarec">sl_pcarec</a></code>,
-						Python:<code class="varname"><a href="doc_pyt_sub.html#&lt;SpAn_object&gt;.reconstruct" title="4.2.8.  Reconstruct results from mssa or pca: &lt;SpAn_object&gt;.reconstruct">&lt;SpAn_object&gt;.reconstruct</a></code>)
+						Reconstructions (F90:<tt><a href="#sl_pcarec" title="3.2.2.&#xA0;Reconstruction of a set of PCA components: sl_pcarec">sl_pcarec</a></tt>,
+						Python:<tt><a href="#&lt;SpAn_object&gt;.reconstruct" title="4.2.8.&#xA0; Reconstruct results from mssa or pca: &lt;SpAn_object&gt;.reconstruct">&lt;SpAn_object&gt;.reconstruct</a></tt>)
 						may not be necessary the multiplication of an EOF by its associated PC.
-						When PCA is used for a reduction of d-o-f (see <a href="spanlib.html#pg:dof">Section 1.2, “Fundamentals”</a>),
+						When PCA is used for a reduction of d-o-f (see <a href="#pg:dof">Section 1.2</a>),
 						orginal PCs are first filtered and then converted back to the original space
 						using saved EOFs.
 					</p>
@@ -317,23 +396,19 @@
           <div class="sect3" lang="en" xml:lang="en">
             <div class="titlepage">
               <div>
-                <div>
-                  <h4 class="title"><a id="doc_pre_tec_msa"></a>1.3.2. ...about MSSA</h4>
-                </div>
+                <h4 class="title"><a id="doc_pre_tec_msa"></a>1.3.2. ...about MSSA</h4>
               </div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <div>
-                    <h5 class="title"><a id="window"></a>The window parameter</h5>
-                  </div>
+                  <h5 class="title"><a id="window"></a>The window parameter</h5>
                 </div>
               </div>
               <p>
 						This is the only and essential parameter of SSA and MSSA
-						(F90:<code class="varname"><a href="doc_f90_sub.html#sl_pcarec" title="3.2.2. Reconstruction of a set of PCA components: sl_pcarec">sl_mssa</a></code>,
-						Python:<code class="varname"><a href="doc_pyt_sub.html#&lt;SpAn_object&gt;.mssa" title="4.2.7.  MultiChannel Singular Spectrum Analysis (MSSA): &lt;SpAn_object&gt;.mssa">&lt;SpAn_object&gt;.mssa</a></code>).
+						(F90:<tt><a href="#sl_pcarec" title="3.2.2.&#xA0;Reconstruction of a set of PCA components: sl_pcarec">sl_mssa</a></tt>,
+						Python:<tt><a href="#&lt;SpAn_object&gt;.mssa" title="4.2.7.&#xA0; MultiChannel Singular Spectrum Analysis (MSSA): &lt;SpAn_object&gt;.mssa">&lt;SpAn_object&gt;.mssa</a></tt>).
 						It defines the maximal value of the lags use when building
 						the covariance matrix.
 						It acts as a spectral parameter: the spectral resolution
@@ -344,18 +419,16 @@
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
-                  <div>
-                    <h5 class="title"><a id="id2476641"></a>Phase composites</h5>
-                  </div>
+                  <h5 class="title"><a id="id2789856"></a>Phase composites</h5>
                 </div>
               </div>
               <p>
 						One of the most important interests of MSSA is to be able to
 						extract intermittent space-time oscillations from the signal.
-						At the first order, an oscillation is its "typical" cycle.
-						<code class="varname"><a href="doc_f90_sub.html#sl_phasecomp" title="3.2.5. Phase composites: sl_phasecomp">sl_phasecomp</a></code> (F90)
+						At the first order, an oscillation is its &quot;typical&quot; cycle.
+						<tt><a href="#sl_phasecomp" title="3.2.5.&#xA0;Phase composites: sl_phasecomp">sl_phasecomp</a></tt> (F90)
 						and
-						<code class="varname"><a href="doc_pyt_sub.html#spanlib.computePhases" title="4.2.4.  Phase composites for oscillatory fields: spanlib.computePhases">spanlib.computePhases</a></code> (Python)
+						<tt><a href="#spanlib.computePhases" title="4.2.4.&#xA0; Phase composites for oscillatory fields: spanlib.computePhases">spanlib.computePhases</a></tt> (Python)
 						perfom phases composites: it computes an averaged cycle and cut it an
 						homegeneous parts (as one can do for the annual cycle in 12 months).
 					</p>
@@ -365,9 +438,7 @@
         <div class="sect2" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
-              <div>
-                <h3 class="title"><a id="doc_pre_mor"></a>1.4. For more information</h3>
-              </div>
+              <h3 class="title"><a id="doc_pre_mor"></a>1.4. For more information</h3>
             </div>
           </div>
           <p>
@@ -376,28 +447,26 @@
 				</p>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><span class="bold"><a id="pca"></a><strong>PCA: </strong></span><a href="doc_bib.html#prei88">Preisendorfer (1988)</a>,
-						<a href="doc_bib.html#wilk95">Wilks (1995)</a>.
+              <li><span class="bold"><a id="pca"></a><b>PCA: </b></span><a href="#prei88">Preisendorfer (1988)</a>,
+						<a href="#wilk95">Wilks (1995)</a>.
 					</li>
-              <li><span class="bold"><a id="ssa"></a><strong>SSA: </strong></span><a href="doc_bib.html#brki86">Broomhead and King (1986)</a>,
-						<a href="doc_bib.html#vagh89">Vautard and Ghil (1989)</a>.
+              <li><span class="bold"><a id="ssa"></a><b>SSA: </b></span><a href="#brki86">Broomhead and King (1986)</a>,
+						<a href="#vagh89">Vautard and Ghil (1989)</a>.
 					</li>
-              <li><span class="bold"><a id="mssa"></a><strong>MSSA: </strong></span><a href="doc_bib.html#plva94">Plaut and Vautard (1994)</a>,
-						<a href="doc_bib.html#raynal05">Raynaud et al (2005)</a>,
-						<a href="doc_bib.html#raynal06">Raynaud et al (2006)</a>.
+              <li><span class="bold"><a id="mssa"></a><b>MSSA: </b></span><a href="#plva94">Plaut and Vautard (1994)</a>,
+						<a href="#raynal05">Raynaud et al (2005)</a>,
+						<a href="#raynal06">Raynaud et al (2006)</a>.
 					</li>
             </ul>
           </div>
           <p>
-				You can also browse <a href="doc_lin.html" title="5. Links">Section 5, “Links”</a>.
+				You can also browse <a href="#doc_lin" title="5.&#xA0;Links">Section 5</a>.
 			</p>
         </div>
         <div class="sect2" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
-              <div>
-                <h3 class="title"><a id="doc_int_vie"></a>1.5. View colorized sources</h3>
-              </div>
+              <h3 class="title"><a id="doc_int_vie"></a>1.5. View colorized sources</h3>
             </div>
           </div>
           <p>
@@ -405,11 +474,11 @@
 				</p>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><code class="filename"><a href="src_f90_lib.html" target="_top">spanlib.f90</a></code>
-						for the <a href="doc_f90.html" title="3. The Fortran 90 library">fortran library</a>,
+              <li><tt><a href="src_f90_lib.html" target="_top">spanlib.f90</a></tt>
+						for the <a href="#doc_f90" title="3.&#xA0;The Fortran 90 library">fortran library</a>,
 					</li>
-              <li><code class="filename"><a href="src_pyt_mod.html" target="_top">spanlib_python.py</a></code>
-						for the <a href="doc_pyt.html" title="4. The python module">python module</a>.
+              <li><tt><a href="src_pyt_mod.html" target="_top">spanlib_python.py</a></tt>
+						for the <a href="#doc_pyt" title="4.&#xA0;The python module">python module</a>.
 					</li>
             </ul>
           </div>
@@ -418,25 +487,1544 @@
 			</p>
         </div>
       </div>
+      <div class="sect1" lang="en" xml:lang="en">
+        <div class="titlepage">
+          <div>
+            <h2 class="title" style="clear: both"><a id="doc_ins"></a>2. Installation</h2>
+          </div>
+        </div>
+        <div class="sect2" lang="en" xml:lang="en">
+          <div class="titlepage">
+            <div>
+              <h3 class="title"><a id="doc_ins_req"></a>2.1. Requirements</h3>
+            </div>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <h4 class="title"><a id="id2855879"></a>2.1.1. Fortran library</h4>
+              </div>
+            </div>
+            <p>You need a F90 compiler to compile it, and <a href="http://www.netlib.org/lapack/" target="_top">BLAS/LAPACK</a>  libraries compilated using this F90 compiler to be able to link with library.</p>
+            <p>To run the F90 example, you need the F90 netcdf library.</p>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <h4 class="title"><a id="id2855906"></a>2.1.2. Python module</h4>
+              </div>
+            </div>
+            <p>You need the fortran library, and the pyfort and Numeric modules from <a href="http://www-pcmdi.llnl.gov/software-portal/cdat" target="_top">CDAT</a>.</p>
+            <p>To run python example, you needs the <tt>cdms</tt> and <tt>vcs</tt> modules (delivered with <a href="http://www-pcmdi.llnl.gov/software-portal/cdat" target="_top">CDAT</a>).</p>
+          </div>
+        </div>
+        <div class="sect2" lang="en" xml:lang="en">
+          <div class="titlepage">
+            <div>
+              <h3 class="title"><a id="doc_ins_dow"></a>2.2. Download</h3>
+            </div>
+          </div>
+          <p>You can download the sources of the package from the <a href="http://sourceforge.net/project/showfiles.php?group_id=168272" target="_top">Sourceforge repositories</a> of the project.</p>
+        </div>
+        <div class="sect2" lang="en" xml:lang="en">
+          <div class="titlepage">
+            <div>
+              <h3 class="title"><a id="doc_ins_ins"></a>2.3. Compilation and installation</h3>
+            </div>
+          </div>
+          <p>Detailed instructions can be found in the INSTALL file of the package.</p>
+          <div class="procedure">
+            <ol type="1">
+              <li>
+                <p>
+						First, compile it with:
+
+</p>
+                <pre class="programlisting">
+<tt>&lt;user&gt;</tt> <b><tt>./configure</tt></b>
+<tt>&lt;user&gt;</tt> <b><tt>make</tt></b>
+</pre>
+                <p>
+					</p>
+              </li>
+              <li>
+                <p>
+						Second, install it as root:
+</p>
+                <pre class="programlisting">
+<tt>&lt;user&gt;</tt> <b><tt>su</tt></b>
+<tt>&lt;root&gt;</tt> <b><tt>make install</tt></b>
+</pre>
+                <p>.
+
+					</p>
+              </li>
+            </ol>
+          </div>
+          <p>
+				Here is an example of <b><tt>./configure</tt></b>:
+				</p>
+          <pre class="programlisting"><tt>&lt;raynaud&gt;</tt> <b><tt>./configure --with-blas-lib=/usr/local/install/lapack-3.0/lib \
+--with-netcdf-lib=/usr/local/install/netcdf-3.6.1/lib \
+--with-netcdf-inc=/usr/local/install/netcdf-3.6.1/include \
+--prefix=$HOME --with-pythondir=$HOME/python FC=ifort</tt></b></pre>
+          <p>
+			</p>
+        </div>
+      </div>
+      <div class="sect1" lang="en" xml:lang="en">
+        <div class="titlepage">
+          <div>
+            <h2 class="title" style="clear: both"><a id="doc_f90"></a>3. The Fortran 90 library</h2>
+          </div>
+        </div>
+        <div class="sect2" lang="en" xml:lang="en">
+          <div class="titlepage">
+            <div>
+              <h3 class="title"><a id="doc_f90_int"></a>3.1. Introduction</h3>
+            </div>
+          </div>
+          <p>
+				The fortran 90 library provides a list of subroutines to perform PCA, MSSA, recontructions and phase composites.
+			</p>
+          <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3>
+				The channel (spatial) dimension is always 1D.
+				Therefore, as in the python module, multi-dimensional arrays must be
+				packed before being analysed.
+				You can use <tt>pack</tt> and <tt>unpack</tt> F90 subroutines
+				for this task, and optionally give a mask to remove masked points.
+				If you analyse several variables at the same time, concatenate
+				normalised packed arrays before the analsysis.
+			</div>
+        </div>
+        <div class="sect2" lang="en" xml:lang="en">
+          <div class="titlepage">
+            <div>
+              <h3 class="title"><a id="doc_f90_sub"></a>3.2. F90 subroutines</h3>
+            </div>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <h4 class="title"><a id="sl_pca"></a>3.2.1. Principal Component Analysis: <tt>sl_pca</tt></h4>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2789227"></a>Usage</h5>
+                </div>
+              </div>
+              <pre class="programlisting">call <span class="HLpersonalised">sl_pca</span>(<span class="HLpersonalised">ff</span>, nkeep=nkeep=<span class="HLpersonalised">nkeep</span>, xeof=<span class="HLpersonalised">xeof</span>, pc=<span class="HLpersonalised">pc</span>, ev=<span class="HLpersonalised">ev</span>, weights=<span class="HLpersonalised">weights</span>, useteof=<span class="HLpersonalised">useteof</span>)</pre>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2789290"></a>Description</h5>
+                </div>
+              </div>
+              <p>
+Perform a decomposition of space-time field in a set of
+Empirical Orthogonal Functions (EOFs) and Principal components (PCs).
+The input data set can be optionally weighted in space.
+By default, the analysis computes  &quot;temporal&quot; (T) or classical
+spatial (S) EOFs depending on if the space dimension is greater
+than the time dimension. This default behavior can be overridden.
+		</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2789309"></a>Optional arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>ff    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>			Space-time array</em></span></li>
+                  <li><tt>nkeep    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Maximum number of modes to keep in outputs</em></span></li>
+                  <li><tt>xeof    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Space-mode array of EOFs</em></span></li>
+                  <li><tt>pc    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>			Time-mode array of PCs</em></span></li>
+                  <li><tt>ev    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>			Mode array of eigen values (variances)</em></span></li>
+                  <li><tt>weights    </tt><tt><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Space array of weights</em></span></li>
+                  <li><tt>useteof    </tt><tt><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>	To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]</em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2792035"></a>Dependencies</h5>
+                </div>
+              </div>
+              <p>
+			<span class="HLpersonalised"><tt><a href="#sl_diasym" title="3.2.6.&#xA0;Diagonalisation of a symetric matrix: sl_diasym">sl_diasym</a></tt></span>
+		</p>
+            </div>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <h4 class="title"><a id="sl_pcarec"></a>3.2.2. Reconstruction of a set of PCA components: <tt>sl_pcarec</tt></h4>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2792074"></a>Usage</h5>
+                </div>
+              </div>
+              <pre class="programlisting">call <span class="HLpersonalised">sl_pcarec</span>(<span class="HLpersonalised">xeof</span>, <span class="HLpersonalised">pc</span>, <span class="HLpersonalised">ffrec</span>, istart=<span class="HLpersonalised">istart</span>, iend=<span class="HLpersonalised">iend</span>)</pre>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2788122"></a>Description</h5>
+                </div>
+              </div>
+              <p>
+Perform a reconstruction using a set of components previously
+computed with a PCA. All the reconstructed components are summed.
+A reconstructed component is simply the &quot;product&quot; of an EOF
+by its PC. The sum of all reconstructed component is the original field.
+		</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2788139"></a>Necessary arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>xeof    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Space-mode array of EOFs</em></span></li>
+                  <li><tt>pc    </tt><tt><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Time-mode array of PCs</em></span></li>
+                  <li><tt>ffrec    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Space-time array of the reconstructed field</em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2788225"></a>Optional arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>istart    </tt><tt><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Index of the first component to use</em></span></li>
+                  <li><tt>iend    </tt><tt><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Index of the last component to use</em></span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <h4 class="title"><a id="sl_mssa"></a>3.2.3. Multi-channel Singular Spectrum Analysis: <tt>sl_mssa</tt></h4>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2788300"></a>Usage</h5>
+                </div>
+              </div>
+              <pre class="programlisting">call <span class="HLpersonalised">sl_mssa</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nwindow</span>, nkeep=nkeep=<span class="HLpersonalised">nkeep</span>, steof=<span class="HLpersonalised">steof</span>, stpc=<span class="HLpersonalised">stpc</span>, ev=<span class="HLpersonalised">ev</span>)</pre>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2788362"></a>Description</h5>
+                </div>
+              </div>
+              <p>
+Perform a decomposition of space-time field in a set of
+space-time Empirical Orthogonal Functions (EOFs) and
+time Principal components (PCs), according to a window
+parameter.
+		</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2788377"></a>Optional arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>ff    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>      Space-time array</em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2858451"></a>Necessary arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>nwindow    </tt><tt><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em> Window size</em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2858486"></a>Optional arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>nkeep    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>   Maximum number of modes to keep in outputs</em></span></li>
+                  <li><tt>steof    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em> SpaceXwindow-mode array of EOFs</em></span></li>
+                  <li><tt>stpc    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>  Time-mode array of PCs</em></span></li>
+                  <li><tt>ev    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>    Mode array of eigen values (variances)</em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2858595"></a>Dependencies</h5>
+                </div>
+              </div>
+              <p>
+			<span class="HLpersonalised"><tt><a href="#sl_diasym" title="3.2.6.&#xA0;Diagonalisation of a symetric matrix: sl_diasym">sl_diasym</a></tt></span>
+		</p>
+            </div>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <h4 class="title"><a id="sl_mssarec"></a>3.2.4. Reconstruction of a set of MSSA components: <tt>sl_mssarec</tt></h4>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2858635"></a>Usage</h5>
+                </div>
+              </div>
+              <pre class="programlisting">call <span class="HLpersonalised">sl_mssarec</span>(<span class="HLpersonalised">steof</span>, <span class="HLpersonalised">stpc</span>, <span class="HLpersonalised">nwindow</span>, <span class="HLpersonalised">ffrec</span>, istart=<span class="HLpersonalised">istart</span>, iend=<span class="HLpersonalised">iend</span>)</pre>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2858696"></a>Description</h5>
+                </div>
+              </div>
+              <p>
+Same as for the reconstruction of PCA components, but for MSSA.
+		</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2858709"></a>Necessary arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>steof    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>   SpaceXwindow-mode array of EOFs</em></span></li>
+                  <li><tt>stpc    </tt><tt><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>    Time-mode array of PCs</em></span></li>
+                  <li><tt>nwindow    </tt><tt><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em> Window size</em></span></li>
+                  <li><tt>ffrec    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>   Space-time array of the reconstructed field</em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2858818"></a>Optional arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>istart    </tt><tt><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em> Index of the first component to use</em></span></li>
+                  <li><tt>iend    </tt><tt><span class="ARGspec">[intent:input, type:integer]:    </span></tt> 
+				 :: <span class="emphasis"><em>   Index of the last component to use</em></span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <h4 class="title"><a id="sl_phasecomp"></a>3.2.5. Phase composites: <tt>sl_phasecomp</tt></h4>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2858894"></a>Usage</h5>
+                </div>
+              </div>
+              <pre class="programlisting">call <span class="HLpersonalised">sl_phasecomp</span>(<span class="HLpersonalised">ffrec</span>, <span class="HLpersonalised">np</span>, <span class="HLpersonalised">phases</span>, weights=<span class="HLpersonalised">weights</span>, offset=<span class="HLpersonalised">offset</span>, firstphase=<span class="HLpersonalised">firstphase</span>)</pre>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2858955"></a>Description</h5>
+                </div>
+              </div>
+              <p>
+Performs phase composites of S-T oscillatory field.
+This field is typically a reconstructed pair of MSSA modes.
+Composites are evaluated according to an index defined by the
+first PC of the input field and its derivative.
+Space weights can be optionally used to compute the PC.
+A minimal normalized amplitude can be also used: when the
+index is under value, data are not used to compute phases.
+It is also possible so specify the angle of the first phase
+in the 360 degrees phase diagram circle: zero means the
+the first phase conincides with the maximmum.
+		</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2858978"></a>Necessary arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>ffrec    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em> Space-time array</em></span></li>
+                  <li><tt>np    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>    Number of requested phases over the 360 degrees cycle (default = 8)</em></span></li>
+                  <li><tt>phases    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2859062"></a>Optional arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>weights    </tt><tt><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>    Space array of weights</em></span></li>
+                  <li><tt>offset    </tt><tt><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>     Minimal normalized amplitude of the index (default = 0.)</em></span></li>
+                  <li><tt>firstphase    </tt><tt><span class="ARGspec">[intent:input, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em> Value in degrees of the first phase (default = 0)</em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2859148"></a>Dependencies</h5>
+                </div>
+              </div>
+              <p>
+			<span class="HLpersonalised"><tt><a href="#sl_pca" title="3.2.1.&#xA0;Principal Component Analysis: sl_pca">sl_pca</a></tt></span>
+		</p>
+            </div>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <h4 class="title"><a id="sl_diasym"></a>3.2.6. Diagonalisation of a symetric matrix: <tt>sl_diasym</tt></h4>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2859188"></a>Usage</h5>
+                </div>
+              </div>
+              <pre class="programlisting">call <span class="HLpersonalised">sl_diasym</span>(<span class="HLpersonalised">a</span>, <span class="HLpersonalised">eig</span>)</pre>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2859221"></a>Description</h5>
+                </div>
+              </div>
+              <p>
+A simple interface to the ssyev diagonalisation subroutine from LAPACK.
+		</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2859235"></a>Necessary arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>a    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>		Input = symetric matrix, output = EOFs</em></span></li>
+                  <li><tt>eig    </tt><tt><span class="ARGspec">[intent:output, type:real]:    </span></tt> 
+				 :: <span class="emphasis"><em>	Eigen values</em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2859296"></a>Dependencies</h5>
+                </div>
+              </div>
+              <p>
+<tt>ssyev(LAPACK)</tt>
+		</p>
+            </div>
+          </div>
+        </div>
+        <div class="sect2" lang="en" xml:lang="en">
+          <div class="titlepage">
+            <div>
+              <h3 class="title"><a id="doc_f90_exa"></a>3.3. A Fortran 90 example</h3>
+            </div>
+          </div>
+          <p>
+				This is an example of how to use this the Fortran 90 component of Spanlib.
+				In this example, an analysis of Sea surface Temperature anomalies using data
+				stored in the netcdf format.
+				The dominant oscillatory mode of the El Nino variability is then extracted
+				and stored in a netcdf file.
+			</p>
+          <div class="example">
+            <a id="id2856234"></a>
+            <p class="title">
+              <b>Example 1. F90 example</b>
+            </p>
+            <p>
+					You can run this example typing (from package directory):
+					</p>
+            <pre class="programlisting"><tt>&lt;user&gt;</tt> <b><tt>cd example &amp;&amp; make</tt></b></pre>
+            <p>
+					This command will first try to download the dataset,
+					then compile the following f90 program, run it,
+					and finally try to visualise output data.
+					See <a href="#doc_ins_req" title="2.1.&#xA0;Requirements">Section 2.1</a> if it fails.
+				</p>
+            <p>
+					The sources of this example is highlighted below, with comments inside.
+					</p>
+            <pre class="programlisting"><span class="HLcomments">! File: example.f90</span>
+<span class="HLcomments">!</span>
+<span class="HLcomments">! This file is part of the SpanLib library.</span>
+<span class="HLcomments">! Copyright (C) 2006  Stephane Raynaud</span>
+<span class="HLcomments">! Contact: stephane dot raynaud at gmail dot com</span>
+<span class="HLcomments">!</span>
+<span class="HLcomments">! This library is free software; you can redistribute it and/or</span>
+<span class="HLcomments">! modify it under the terms of the GNU Lesser General Public</span>
+<span class="HLcomments">! License as published by the Free Software Foundation; either</span>
+<span class="HLcomments">! version 2.1 of the License, or (at your option) any later version.</span>
+<span class="HLcomments">!</span>
+<span class="HLcomments">! This library is distributed in the hope that it will be useful,</span>
+<span class="HLcomments">! but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="HLcomments">! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU</span>
+<span class="HLcomments">! Lesser General Public License for more details.</span>
+<span class="HLcomments">!</span>
+<span class="HLcomments">! You should have received a copy of the GNU Lesser General Public</span>
+<span class="HLcomments">! License along with this library; if not, write to the Free Software</span>
+<span class="HLcomments">! Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA</span>
+
+<span class="HLroutines">program</span> example
+
+	<span class="HLcomments">! This simple example shows how to use all subroutines from this package.</span>
+	<span class="HLcomments">! Warning: it requires netcdf for in/outputs.</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! We start from longitude/latitude/time value of Pacific Sea Surface Temperature</span>
+	<span class="HLcomments">! that include the El Nino Southern Oscillation signal.</span>
+	<span class="HLcomments">! Input is the netcdf file data.cdf.</span>
+	<span class="HLcomments">! We remove land points from the initial array according</span>
+	<span class="HLcomments">! to the netcdf missing_value attribute of the analysed variable (data are &quot;packed&quot;).</span>
+	<span class="HLcomments">! A PCA is used to reduce the degrees of freedoom before MSSA analysis.</span>
+	<span class="HLcomments">! Weights for PCA are computed as a fonction of latitude.</span>
+	<span class="HLcomments">! Then, we assume that we have already identified an oscillation (after tests).</span>
+	<span class="HLcomments">! This oscillation, given by a pair of MSSA modes, is then</span>
+	<span class="HLcomments">! reconstructed from the MSSA and PCA spaces.</span>
+	<span class="HLcomments">! Finally, phase composites are computed from this reconstructed oscillation.</span>
+	<span class="HLcomments">! The oscillation is outputed in a netcdf file (pair_1.cdf).</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! The initial data set (data.cdf):</span>
+	<span class="HLcomments">! - origin: updated Reynolds and Smith (1996) SST (netcdf file)</span>
+	<span class="HLcomments">! - origin url: data selector from http://iridl.ldeo.columbia.edu</span>
+	<span class="HLcomments">! - how to get it [10Mb]: http://stefdeperou.free.fr/pub/data.cdf</span>
+	<span class="HLcomments">! - area of study: tropical pacific [130.5E:75.5W, 29.5S:29.5N] (155x60 grid points)</span>
+	<span class="HLcomments">! - period of study: Jan1982:Dec2005 (288 time steps)</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! Parameters:</span>
+	<span class="HLcomments">! - Only the first 20 PCs are retainedand given to the MSSA</span>
+	<span class="HLcomments">! - A window of 7 years (84 months) is chosen for the MSSA</span>
+	<span class="HLcomments">! - Phase composites use 8 phases</span>
+	<span class="HLcomments">! - An offset of 0.4 and is used for composites</span>
+	<span class="HLcomments">! - The first phase of composites is set at 180 degrees (minimal value)</span>
+
+
+	<span class="HLroutines">use</span> spanlib
+	<span class="HLroutines">use</span> netcdf
+
+	<span class="HLroutines">implicit</span> <span class="HLattributes">none</span>
+
+	<span class="HLcomments">! Parameters</span>
+	<span class="HLcomments">! ----------</span>
+	<span class="HLroutines">integer</span>,<span class="HLattributes">parameter</span> :: nkeep_pca=<span class="HLdigits">5</span>, nwindow=<span class="HLdigits">84</span>, first_mode=<span class="HLdigits">1</span>, nphases=<span class="HLdigits">8</span>
+	<span class="HLroutines">real</span>, <span class="HLattributes">parameter</span> :: offset=<span class="HLdigits">0</span>., first_phase=<span class="HLdigits">180</span>., new_missing_value=-<span class="HLdigits">999</span>.
+	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">&quot;data2.cdf&quot;</span>, output_nc_file=<span class="HLstrings">&quot;output.nc&quot;</span>, &amp;
+		var_name=<span class="HLstrings">'ssta'</span>
+
+	<span class="HLcomments">! Other declarations</span>
+	<span class="HLcomments">! ------------------</span>
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: field(:,:,:), weights(:,:), lat(:), lon(:), time(:)
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: reco(:,:,:), phasecomps(:,:,:)
+	<span class="HLroutines">logical</span>, <span class="HLattributes">allocatable</span> :: mask(:,:)
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: packed_field(:,:), packed_weights(:), &amp;
+		&amp; packed_phasecomps(:,:), stphasecomps(:,:)
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: eof(:,:), ev(:), pc(:,:), stpair(:,:), pair(:,:)
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: steof(:,:),stpc(:,:),stev(:)
+	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>) :: dim_names(<span class="HLdigits">3</span>), dim_name, lon_units, lat_units, var_units, &amp;
+		&amp;	lon_name, lat_name, time_name, time_units
+	<span class="HLroutines">integer</span> :: ncid, dimid, dimids(<span class="HLdigits">4</span>), varid, dims(<span class="HLdigits">3</span>), thisdim, &amp;
+		&amp; lonid, latid, phaseid, timeid, phcoid, recoid, origid
+	<span class="HLroutines">integer</span>(kind=<span class="HLdigits">4</span>) :: i, nspace, nlon, nlat, ntime
+	<span class="HLroutines">real</span> :: pi, missing_value
+
+	<span class="HLcomments">! Get the initial sst field from the netcdf file</span>
+	<span class="HLcomments">! ----------------------------------------------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'Reading inputs...'</span>
+	<span class="HLroutines">call</span> err(nf90_open(input_nc_file, nf90_nowrite, ncid))
+	<span class="HLroutines">call</span> err(nf90_inq_varid(ncid, var_name, varid))
+	<span class="HLroutines">call</span> err(nf90_inquire_variable(ncid, varid, dimids=dimids(<span class="HLdigits">1</span>:<span class="HLdigits">3</span>)))
+	<span class="HLroutines">call</span> err(nf90_inquire_dimension(ncid, dimids(<span class="HLdigits">1</span>), &amp;
+		&amp;	name=lon_name, len=nlon))
+	<span class="HLroutines">call</span> err(nf90_inquire_dimension(ncid, dimids(<span class="HLdigits">2</span>), &amp;
+		&amp;	name=lat_name, len=nlat))
+	<span class="HLroutines">call</span> err(nf90_inquire_dimension(ncid, dimids(<span class="HLdigits">3</span>), &amp;
+		&amp;	name=time_name, len=ntime))
+	<span class="HLfunctions">allocate</span>(field(nlon,nlat,ntime))
+	<span class="HLfunctions">allocate</span>(mask(nlon,nlat))
+	<span class="HLfunctions">allocate</span>(weights(nlon,nlat))
+	<span class="HLfunctions">allocate</span>(lon(nlon))
+	<span class="HLfunctions">allocate</span>(lat(nlat))
+	<span class="HLfunctions">allocate</span>(time(ntime))
+	<span class="HLroutines">call</span> err(nf90_get_var(ncid, varid, field))
+	<span class="HLroutines">call</span> err(nf90_get_att(ncid, varid, <span class="HLstrings">'missing_value'</span>, missing_value))
+	<span class="HLroutines">call</span> err(nf90_get_att(ncid, varid, <span class="HLstrings">'units'</span>, var_units))
+	<span class="HLroutines">call</span> err(nf90_inq_varid(ncid, lon_name, varid))
+	<span class="HLroutines">call</span> err(nf90_get_var(ncid, varid, lon))
+	<span class="HLroutines">call</span> err(nf90_get_att(ncid, varid, <span class="HLstrings">'units'</span>, lon_units))
+	<span class="HLroutines">call</span> err(nf90_inq_varid(ncid, lat_name, varid))
+	<span class="HLroutines">call</span> err(nf90_get_var(ncid, varid, lat))
+	<span class="HLroutines">call</span> err(nf90_get_att(ncid, varid, <span class="HLstrings">'units'</span>, lat_units))
+	<span class="HLroutines">call</span> err(nf90_inq_varid(ncid, time_name, varid))
+	<span class="HLroutines">call</span> err(nf90_get_var(ncid, varid, time))
+	<span class="HLroutines">call</span> err(nf90_get_att(ncid, varid, <span class="HLstrings">'units'</span>, time_units))
+	<span class="HLroutines">call</span> err(nf90_close(ncid))
+
+
+	<span class="HLcomments">! Format (pack) data to have only one space dimension</span>
+	<span class="HLcomments">! ---------------------------------------------------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'Packaging...'</span>
+
+	<span class="HLcomments">! Compute weights proportional to grid point area</span>
+	pi = cos(-<span class="HLdigits">1</span>.)
+	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>,nlat
+		weights(:,i) = cos(lat(i)*pi/<span class="HLdigits">180</span>.)
+	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+
+	<span class="HLcomments">! Now pack</span>
+<span class="HLcomments">!!$	if(isnan(missing_value))then</span>
+<span class="HLcomments">!!$		mask = not(isnan(field(:,:,1)))</span>
+<span class="HLcomments">!!$	else</span>
+		mask = (field(:,:,<span class="HLdigits">1</span>) /= missing_value)
+<span class="HLcomments">!!$	end if</span>
+	<span class="HLfunctions">allocate</span>(packed_field(count(mask), ntime))
+	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, ntime
+		packed_field(:,i) = <span class="HLfunctions">pack</span>(field(:,:,i), mask)
+	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+	nspace = count(mask)
+	<span class="HLfunctions">allocate</span>(packed_weights(nspace))
+	packed_weights = <span class="HLfunctions">pack</span>(weights, mask)
+
+
+	<span class="HLcomments">! Perform a PCA to reduce the d.o.f</span>
+	<span class="HLcomments">! ---------------------------------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'PCA...'</span>
+	<span class="HLfunctions">allocate</span>(eof(nspace, nkeep_pca))
+	<span class="HLfunctions">allocate</span>(pc(ntime,   nkeep_pca))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca</span>(packed_field, nkeep_pca, xeof=eof, &amp;
+		&amp;	pc=pc, weights=packed_weights)
+	<span class="HLfunctions">deallocate</span>(packed_field)
+
+	<span class="HLcomments">! We send results from PCA to MSSA</span>
+	<span class="HLcomments">! --------------------------------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'MSSA...'</span>
+	<span class="HLfunctions">allocate</span>(steof(nkeep_pca*nwindow, first_mode+<span class="HLdigits">1</span>))
+	<span class="HLfunctions">allocate</span>(stpc(ntime-nwindow+<span class="HLdigits">1</span>,    first_mode+<span class="HLdigits">1</span>))
+	<span class="HLfunctions">allocate</span>(stev(                    first_mode+<span class="HLdigits">1</span>))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_mssa</span>(<span class="HLfunctions">transpose</span>(pc), nwindow, first_mode+<span class="HLdigits">1</span>, &amp;
+		&amp;	steof=steof, stpc=stpc, ev=stev)
+
+	<span class="HLcomments">! We reconstruct modes [first_mode + first_mode+1] of MSSA</span>
+	<span class="HLcomments">! --------------------------------------------------------</span>
+
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'MSSAREC...'</span>
+	<span class="HLfunctions">allocate</span>(stpair(nkeep_pca, ntime))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_mssarec</span>(steof, stpc, nwindow, stpair, &amp;
+		&amp;	istart=first_mode, iend=first_mode+<span class="HLdigits">1</span>)
+	<span class="HLfunctions">deallocate</span>(steof, stpc)
+
+	<span class="HLcomments">! We compute phases composites for the reconstructed oscillation</span>
+	<span class="HLcomments">! ---------------------------------------------------------------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'PHASECOMP...'</span>
+	<span class="HLfunctions">allocate</span>(stphasecomps(nkeep_pca, nphases))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_phasecomp</span>(stpair, nphases, stphasecomps, &amp;
+		&amp;	weights=packed_weights, &amp;
+		&amp;	offset=offset, firstphase=first_phase)
+
+	<span class="HLcomments">! We go back to the physical space for</span>
+	<span class="HLcomments">! the full oscillation AND its composites</span>
+	<span class="HLcomments">! ---------------------------------------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'PCAREC...'</span>
+	<span class="HLfunctions">allocate</span>(pair(nspace, ntime))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pcarec</span>(eof, <span class="HLfunctions">transpose</span>(stpair), pair)
+	<span class="HLfunctions">allocate</span>(packed_phasecomps(nspace, nphases))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pcarec</span>(eof, <span class="HLfunctions">transpose</span>(stphasecomps), packed_phasecomps)
+	<span class="HLfunctions">deallocate</span>(stpair, eof, stphasecomps)
+
+
+	<span class="HLcomments">! Unpacking</span>
+	<span class="HLcomments">! ---------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'Unpacking...'</span>
+	<span class="HLfunctions">allocate</span>(reco(nlon,nlat,ntime))
+	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, ntime
+		reco(:,:,i) = <span class="HLfunctions">unpack</span>(pair(:,i), mask, new_missing_value)
+		where(mask .eqv. .false.)
+			field(:,:,i) = new_missing_value
+		<span class="HLroutines">end</span> where
+	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+	<span class="HLfunctions">allocate</span>(phasecomps(nlon,nlat,nphases))
+	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, nphases
+		phasecomps(:,:,i) = <span class="HLfunctions">unpack</span>(packed_phasecomps(:,i), mask, new_missing_value)
+	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+
+
+	<span class="HLcomments">! Write out the phase composites of the first oscillation</span>
+	<span class="HLcomments">! -------------------------------------------------------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'Writing out...'</span>
+	<span class="HLcomments">! File</span>
+	<span class="HLroutines">call</span> err(nf90_create(output_nc_file, nf90_write, ncid))
+	<span class="HLcomments">! Dimensions</span>
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'lon'</span>, nlon, dimids(<span class="HLdigits">1</span>)))
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'lat'</span>, nlat, dimids(<span class="HLdigits">2</span>)))
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'time'</span>, ntime, dimids(<span class="HLdigits">3</span>)))
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'phase'</span>, nphases, dimids(<span class="HLdigits">4</span>)))
+	<span class="HLcomments">! Variables</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lon'</span>, nf90_float, dimids(<span class="HLdigits">1</span>), lonid))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, lonid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'Longitude'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, lonid, <span class="HLstrings">'units'</span>, lon_units))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lat'</span>, nf90_float, dimids(<span class="HLdigits">2</span>), latid))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, latid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'Latitude'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, latid, <span class="HLstrings">'units'</span>, lat_units))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'time'</span>, nf90_float, dimids(<span class="HLdigits">3</span>), timeid))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, timeid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'Time'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, timeid, <span class="HLstrings">'units'</span>, time_units))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'phase'</span>, nf90_float, dimids(<span class="HLdigits">4</span>), phaseid))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phaseid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'Phase'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phaseid, <span class="HLstrings">'units'</span>, <span class="HLstrings">'level'</span>))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'orig'</span>, nf90_float, dimids(<span class="HLdigits">1</span>:<span class="HLdigits">3</span>), origid))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, origid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'SST anomaly / original field'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, origid, <span class="HLstrings">'units'</span>, var_units))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, origid, <span class="HLstrings">'missing_value'</span>, new_missing_value))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'reco1'</span>, nf90_float, dimids(<span class="HLdigits">1</span>:<span class="HLdigits">3</span>), recoid))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, recoid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'SST anomaly / reconstruction of first pair'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, recoid, <span class="HLstrings">'units'</span>, var_units))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, recoid, <span class="HLstrings">'missing_value'</span>, new_missing_value))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'pair1'</span>, nf90_float, (/dimids(<span class="HLdigits">1</span>),dimids(<span class="HLdigits">2</span>),dimids(<span class="HLdigits">4</span>)/), phcoid))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phcoid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'SST anomaly / phase composite of first pair'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phcoid, <span class="HLstrings">'units'</span>, var_units))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phcoid, <span class="HLstrings">'missing_value'</span>, new_missing_value))
+	<span class="HLcomments">! Values</span>
+	<span class="HLroutines">call</span> err(nf90_enddef(ncid))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, lonid, lon))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, latid, lat))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, timeid, time))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, phaseid, float((/(i,i=<span class="HLdigits">1</span>,nphases)/))))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, origid, field))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, recoid, reco))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, phcoid, phasecomps))
+	<span class="HLroutines">call</span> err(nf90_close(ncid))
+
+<span class="HLroutines">end</span> <span class="HLroutines">program</span> example
+
+<span class="HLroutines">subroutine</span> err(jstatus)
+
+	<span class="HLroutines">use</span> netcdf
+
+	<span class="HLroutines">integer</span> :: jstatus
+
+	<span class="HLroutines">if</span> (jstatus .ne. nf90_noerr) <span class="HLroutines">then</span>
+		<span class="HLroutines">print</span> *, <span class="HLfunctions">trim</span>(nf90_strerror(jstatus))
+		stop
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+
+<span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> err
+
+</pre>
+            <p>
+				</p>
+          </div>
+        </div>
+      </div>
+      <div class="sect1" lang="en" xml:lang="en">
+        <div class="titlepage">
+          <div>
+            <h2 class="title" style="clear: both"><a id="doc_pyt"></a>4. The python module</h2>
+          </div>
+        </div>
+        <div class="sect2" lang="en" xml:lang="en">
+          <div class="titlepage">
+            <div>
+              <h3 class="title"><a id="doc_pyt_int"></a>4.1. Introduction</h3>
+            </div>
+          </div>
+          <p>
+				The intent of the python module is to offer
+				a scripting interface to the F90 subroutines.
+				It takes advantage of the power of python and
+				of the computational efficiency of fortran.
+			</p>
+          <p>
+				Thanks to the use of CDAT, the module easily handle
+				gridded dataset, using masks and weights for example.
+				It also allows the analysis of several datasets at the
+				same time by stacking them.
+				The module performs some tasks in a transparant way:
+				packing and unpacking of data, PCA reduction before MSSA anaysis, etc.
+			</p>
+          <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3>
+				The current version of this module only manage 3D dataset:
+				first two dimensions for &quot;space&quot;, the last dimension for time.
+			</div>
+        </div>
+        <div class="sect2" lang="en" xml:lang="en">
+          <div class="titlepage">
+            <div>
+              <h3 class="title"><a id="doc_pyt_sub"></a>4.2. Python functions</h3>
+            </div>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <h4 class="title"><a id="spanlib.stackData"></a>4.2.1.  Takes several data files, of same time and stacks them up together: <tt>spanlib.stackData</tt></h4>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2925544"></a>Usage</h5>
+                </div>
+              </div>
+              <pre class="programlisting"><span class="HLpersonalised">dout</span>, <span class="HLpersonalised">weights</span>, <span class="HLpersonalised">masks</span>, <span class="HLpersonalised">axes</span> = <span class="HLpersonalised">spanlib.stackData</span>(*<span class="HLpersonalised">data</span>)</pre>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2925595"></a>Description</h5>
+                </div>
+              </div>
+              <p>      This fonction concatenates several dataset that have the
+      same time axis. It is useful for analysing for example
+      several variables at the same time.
+		It takes into account weights, masks and axes.
+
+</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2925612"></a>Necessary arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>*data    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2925646"></a>Outputs</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>dout    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>weights    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>masks    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>axes    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <h4 class="title"><a id="spanlib.unStackData"></a>4.2.2.  Unstack data in the form returned from stackData: <tt>spanlib.unStackData</tt></h4>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2868250"></a>Usage</h5>
+                </div>
+              </div>
+              <pre class="programlisting"><span class="HLpersonalised">dout</span> = <span class="HLpersonalised">spanlib.unStackData</span>(<span class="HLpersonalised">din</span>, <span class="HLpersonalised">weights</span>, <span class="HLpersonalised">masks</span>, <span class="HLpersonalised">axes</span>)</pre>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2868303"></a>Description</h5>
+                </div>
+              </div>
+              <p>      This function is the reverse operation of stakData.
+      It splits stacked datasets into a list.
+
+</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2868317"></a>Necessary arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>din    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>weights    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>masks    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>axes    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2868418"></a>Outputs</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>dout    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <h4 class="title"><a id="spanlib.pack"></a>4.2.3.  Pack a dataset and its weights according to its mask: <tt>spanlib.pack</tt></h4>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2868469"></a>Usage</h5>
+                </div>
+              </div>
+              <pre class="programlisting"><span class="HLpersonalised">packed_data</span>, <span class="HLpersonalised">packed_weights</span>, <span class="HLpersonalised">mask</span> = <span class="HLpersonalised">spanlib.pack</span>(<span class="HLpersonalised">data</span>, <span class="HLpersonalised">weights</span>=<span class="HLpersonalised">None</span>)</pre>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2857868"></a>Description</h5>
+                </div>
+              </div>
+              <p>      This function packs a dataset in 2D space by removing
+      all masked points and returning a space-time array.
+      It performs this operation also on the weights.
+      It is used for removing unnecessary points and
+      simplifying the input format for analysis functions.
+
+</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2857886"></a>Necessary arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>data    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2857920"></a>Optional arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>weights    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2857961"></a>Outputs</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>packed_data    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>packed_weights    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>mask    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <h4 class="title"><a id="spanlib.computePhases"></a>4.2.4.  Phase composites for oscillatory fields: <tt>spanlib.computePhases</tt></h4>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2858058"></a>Usage</h5>
+                </div>
+              </div>
+              <pre class="programlisting"><span class="HLpersonalised">phases</span> = <span class="HLpersonalised">spanlib.computePhases</span>(<span class="HLpersonalised">data</span>, <span class="HLpersonalised">nphases</span>=<span class="HLpersonalised">8</span>, <span class="HLpersonalised">offset</span>=.<span class="HLpersonalised">5</span>, <span class="HLpersonalised">firstphase</span>=<span class="HLpersonalised">0</span>)</pre>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2858132"></a>Description</h5>
+                </div>
+              </div>
+              <p>      This computes temporal phase composites of a spatio-temporal
+      dataset. The dataset is expected to be oscillatory in time.
+      It corresponds to a reoganisation of the time axis to
+      to represents the dataset over its cycle in a arbitrary
+      number of phases. It is useful, for example, to have a
+      synthetic view of an reconstructed MSSA oscillation.
+
+</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2858151"></a>Necessary arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>data    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2858186"></a>Optional arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>nphases    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">8</span>]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>offset    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">.5</span>]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>firstphase    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">0</span>]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2859402"></a>Outputs</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>phases    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <h4 class="title"><a id="spanlib.SpAn"></a>4.2.5.  Prepare the Spectral Analysis Object: <tt>spanlib.SpAn</tt></h4>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2859454"></a>Usage</h5>
+                </div>
+              </div>
+              <pre class="programlisting"><span class="HLpersonalised">&lt;SpAn_object&gt;</span> = <span class="HLpersonalised">spanlib.SpAn</span>(<span class="HLpersonalised">data</span>, <span class="HLpersonalised">weights</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">npca</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">window</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">nmssa</span>=<span class="HLpersonalised">None</span>)</pre>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2859541"></a>Description</h5>
+                </div>
+              </div>
+              <p>          This function creates an object for future analyses.
+          It optionally initializes some parameters.
+
+
+</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2859556"></a>Necessary arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>data    </tt><tt><span class="ARGspec">[intent:input]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2859591"></a>Optional arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>weights    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>npca    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>window    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>nmssa    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2859720"></a>Outputs</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>&lt;SpAn_object&gt;    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em>Object created for further analysis</em></span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <h4 class="title"><a id="&lt;SpAn_object&gt;.pca"></a>4.2.6.  Principal Components Analysis (PCA): <tt>&lt;SpAn_object&gt;.pca</tt></h4>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2859774"></a>Usage</h5>
+                </div>
+              </div>
+              <pre class="programlisting"><span class="HLpersonalised">eof</span>, <span class="HLpersonalised">pc</span>, <span class="HLpersonalised">ev</span> = <span class="HLpersonalised">&lt;SpAn_object&gt;.pca</span>(<span class="HLpersonalised">npca</span>=<span class="HLpersonalised">None</span>)</pre>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2859827"></a>Optional arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>npca    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2859869"></a>Outputs</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>eof    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>pc    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>ev    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <h4 class="title"><a id="&lt;SpAn_object&gt;.mssa"></a>4.2.7.  MultiChannel Singular Spectrum Analysis (MSSA): <tt>&lt;SpAn_object&gt;.mssa</tt></h4>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2859965"></a>Usage</h5>
+                </div>
+              </div>
+              <pre class="programlisting"><span class="HLpersonalised">eof</span>, <span class="HLpersonalised">pc</span>, <span class="HLpersonalised">ev</span> = <span class="HLpersonalised">&lt;SpAn_object&gt;.mssa</span>(<span class="HLpersonalised">nmssa</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">pca</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">window</span>=<span class="HLpersonalised">None</span>)</pre>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2860045"></a>Optional arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>nmssa    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>pca    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>window    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2860145"></a>Outputs</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>eof    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>pc    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>ev    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <h4 class="title"><a id="&lt;SpAn_object&gt;.reconstruct"></a>4.2.8.  Reconstruct results from mssa or pca: <tt>&lt;SpAn_object&gt;.reconstruct</tt></h4>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2860242"></a>Usage</h5>
+                </div>
+              </div>
+              <pre class="programlisting"><span class="HLpersonalised">ffrec</span> = <span class="HLpersonalised">&lt;SpAn_object&gt;.reconstruct</span>(<span class="HLpersonalised">start</span>=<span class="HLpersonalised">1</span>, <span class="HLpersonalised">end</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">mssa</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">pca</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">phases</span>=<span class="HLpersonalised">False</span>, <span class="HLpersonalised">nphases</span>=<span class="HLpersonalised">8</span>, <span class="HLpersonalised">offset</span>=.<span class="HLpersonalised">5</span>, <span class="HLpersonalised">firstphase</span>=<span class="HLpersonalised">0</span>)</pre>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2860378"></a>Description</h5>
+                </div>
+              </div>
+              <p>          This function performs recontructions to retreive the
+          the contribution of a selection of modes to the original field.
+          By default, it recontructs from available PCA and MSSA
+          results. Recontruction of MSSA modes also calls recontruction
+          from of pre-PCA to get back to the original space.
+          This function can optionally performs phase composites
+          (useful for pairs of MSSA modes = oscillations) on MSSA
+          recontructions.
+
+</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2860400"></a>Optional arguments</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>start    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">1</span>]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>end    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>mssa    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>pca    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>phases    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">False</span>]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>nphases    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">8</span>]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>offset    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">.5</span>]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><tt>firstphase    </tt><tt><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">0</span>]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <h5 class="title"><a id="id2860645"></a>Outputs</h5>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt>ffrec    </tt><tt><span class="ARGspec">[intent:output]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="sect2" lang="en" xml:lang="en">
+          <div class="titlepage">
+            <div>
+              <h3 class="title"><a id="doc_pyt_exa"></a>4.3. A python example</h3>
+            </div>
+          </div>
+          <p>
+				This example shows how to use some of the available
+				components of the python module.
+				It uses the same dataset as for <a href="#doc_f90_exa" title="3.3.&#xA0;A Fortran 90 example">Section 3.3</a>.
+				However, is this example, two different areas are analysed at
+				the same time.
+				This is intented to mimics the used of two different datasets
+				that are stacked, before being analysed.
+				Such approach (see for example <a href="#raynal06">Raynaud et al (2006)</a>) allows
+				to find modes of variability in a arbitrary number of variables,
+				provided you are careful with units (performing appropriate normalisations).
+			</p>
+          <p>
+				If you configurations allows it, you can run this example typing
+				this from the installation package directory:
+				</p>
+          <pre class="programlisting"><tt>&lt;user&gt;</tt> <b><tt>cd example &amp;&amp; make python1</tt></b></pre>
+          <p>
+			</p>
+          <div class="example">
+            <a id="id2856430"></a>
+            <p class="title">
+              <b>Example 2. Python example</b>
+            </p>
+            <pre class="programlisting"><span class="HLcomments"># File: example1.py</span>
+<span class="HLcomments">#</span>
+<span class="HLcomments"># This file is part of the SpanLib library.</span>
+<span class="HLcomments"># Copyright (C) 2006  Charles Doutiraux, Stephane Raynaud</span>
+<span class="HLcomments"># Contact: stephane dot raynaud at gmail dot com</span>
+<span class="HLcomments">#</span>
+<span class="HLcomments"># This library is free software; you can redistribute it and/or</span>
+<span class="HLcomments"># modify it under the terms of the GNU Lesser General Public</span>
+<span class="HLcomments"># License as published by the Free Software Foundation; either</span>
+<span class="HLcomments"># version 2.1 of the License, or (at your option) any later version.</span>
+<span class="HLcomments">#</span>
+<span class="HLcomments"># This library is distributed in the hope that it will be useful,</span>
+<span class="HLcomments"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="HLcomments"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU</span>
+<span class="HLcomments"># Lesser General Public License for more details.</span>
+<span class="HLcomments">#</span>
+<span class="HLcomments"># You should have received a copy of the GNU Lesser General Public</span>
+<span class="HLcomments"># License along with this library; if not, write to the Free Software</span>
+<span class="HLcomments"># Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA</span>
+
+<span class="HLcomments">###################################################################</span>
+<span class="HLcomments"># In this example, we perform a pre-PCA to reduce the number of</span>
+<span class="HLcomments"># d-o-f, then we perform an MSSA to extract the first oscillation</span>
+<span class="HLcomments"># (first par of modes). Finally, we compute phase composites</span>
+<span class="HLcomments"># to represent the oscillation over its cycle.</span>
+<span class="HLcomments">###################################################################</span>
+<span class="HLcommands">print</span> &quot;<span class="HLcomments">#################################################&quot;</span>
+<span class="HLcommands">print</span> &quot;<span class="HLcomments"># PCA+MSSA+Phase_composites of 1st oscillation. #&quot;</span>
+<span class="HLcommands">print</span> &quot;<span class="HLcomments"># Then reconstructions, and plots:              #&quot;</span>
+<span class="HLcommands">print</span> &quot;<span class="HLcomments"># - 1 phase over 2                              #&quot;</span>
+<span class="HLcommands">print</span> &quot;<span class="HLcomments"># - 1 time series                               #&quot;</span>
+<span class="HLcommands">print</span> &quot;<span class="HLcomments">#################################################&quot;</span>
+
+
+<span class="HLcomments"># Needed modules</span>
+<span class="HLcommands">import</span> sys
+<span class="HLcommands">import</span> cdms
+<span class="HLcommands">import</span> spanlib
+<span class="HLcommands">import</span> vcs
+<span class="HLcommands">import</span> MV
+<span class="HLcommands">import</span> Numeric
+<span class="HLcommands">import</span> cdutil
+<span class="HLcommands">import</span> genutil
+
+<span class="HLcomments"># We tell cdms that we have longitude, latitude and time</span>
+cdms.axis.latitude_aliases.append(<span class="HLstrings">'Y'</span>)
+cdms.axis.longitude_aliases.append(<span class="HLstrings">'X'</span>)
+cdms.axis.time_aliases.append(<span class="HLstrings">'T'</span>)
+
+<span class="HLcomments"># Simply open the netcdf file</span>
+<span class="HLcommands">print</span> <span class="HLstrings">&quot;<span class="HLfunctions">Open</span> file&quot;</span>
+f=cdms.<span class="HLfunctions">open</span>(<span class="HLstrings">'../example/data2.cdf'</span>)
+
+<span class="HLcomments"># Retrieve data</span>
+<span class="HLcommands">print</span> <span class="HLstrings">&quot;Read two different regions&quot;</span>
+s=f(<span class="HLstrings">'ssta'</span>,time=slice(<span class="HLdigits">0</span>,<span class="HLdigits">120</span>))
+
+S<span class="HLcomments"># Create the analysis object</span>
+<span class="HLcommands">print</span> <span class="HLstrings">&quot;Creating <span class="HLpersonalised">SpAn</span> object&quot;</span>
+P=spanlib.<span class="HLpersonalised">SpAn</span>(s)
+
+<span class="HLcomments"># Perform a preliminary PCA+MSSA</span>
+<span class="HLcomments"># (equivalent to simple use SP.mssa(pca=True) later)</span>
+<span class="HLcommands">print</span> <span class="HLstrings">&quot;<span class="HLpersonalised">PCA</span>...&quot;</span>
+eof,pc,ev = SP.<span class="HLpersonalised">pca</span>()
+
+<span class="HLcomments"># MSSA on PCA results</span>
+<span class="HLcommands">print</span> <span class="HLstrings">'<span class="HLpersonalised">MSSA</span>...'</span>
+steof,stpc,stev = SP.<span class="HLpersonalised">mssa</span>()
+
+<span class="HLcomments"># Phase composites of first two MSSA modes</span>
+<span class="HLcommands">print</span> <span class="HLstrings">'Phase composites...'</span>
+out = SP.<span class="HLpersonalised">reconstruct</span>(phases=<span class="HLspecial">True</span>,nphases=<span class="HLdigits">16</span>,end=<span class="HLdigits">2</span>)
+
+<span class="HLcomments"># Plot 1 phase over two, then a time series</span>
+<span class="HLcommands">print</span> <span class="HLstrings">&quot;Now, plot!&quot;</span>
+x=vcs.init()
+<span class="HLcommands">for</span> i <span class="HLcommands">in</span> range(<span class="HLdigits">0</span>,out.shape[<span class="HLdigits">0</span>],out.shape[<span class="HLdigits">0</span>]/<span class="HLdigits">10</span>):
+    x.plot(out[i])
+    <span class="HLfunctions">raw_input</span>(<span class="HLstrings">'map out %i/%i ok?'</span> % ( i+<span class="HLdigits">1</span> , out.shape[<span class="HLdigits">0</span>]))
+    x.clear()
+<span class="HLcommands">for</span> i <span class="HLcommands">in</span> range(<span class="HLdigits">0</span>,out.shape[<span class="HLdigits">0</span>],out.shape[<span class="HLdigits">0</span>]/<span class="HLdigits">10</span>):
+    x.plot(s[i]-out[i])
+    <span class="HLfunctions">raw_input</span>(<span class="HLstrings">'residual noise map out %i/%i ok?'</span> % ( i+<span class="HLdigits">1</span> , out.shape[<span class="HLdigits">0</span>]))
+    x.clear()
+x.plot(out[:,<span class="HLdigits">30</span>,<span class="HLdigits">80</span>])
+<span class="HLfunctions">raw_input</span>(<span class="HLstrings">'Time series at center of bassin ok?'</span>)
+x.clear()
+</pre>
+          </div>
+        </div>
+      </div>
+      <div class="sect1" lang="en" xml:lang="en">
+        <div class="titlepage">
+          <div>
+            <h2 class="title" style="clear: both"><a id="doc_lin"></a>5. Links</h2>
+          </div>
+        </div>
+        <div class="itemizedlist">
+          <ul type="disc">
+            <li>
+				Home page of the project:
+				<a href="http://spanlib.sourceforge.net" target="_top">http://spanlib.sourceforge.net</a></li>
+            <li>
+				Sourceforge page of the project where you can find news, forums,
+				where to report bugs, where to request features, files to download, etc:
+				<a href="http://sourceforge.net/projects/spanlib/" target="_top">http://sourceforge.net/projects/spanlib/</a></li>
+            <li>
+				An example of use of MSSA is available
+				at <a href="http://stefdeperou.free.fr/meteo.php" target="_top">http://stefdeperou.free.fr/meteo.php</a> (french).
+				This example shows an analysis of air temperatures at Orly airport,
+				with different values of parameters.
+				It also provides an example of prediction using the analysis results.
+			</li>
+            <li><a id="ssa-mtm"></a>
+				The <a href="http://www.atmos.ucla.edu/tcd/ssa/" target="_top">SSA-MTM Toolkit </a>
+				is graphical interface to PCA, MSSA and other methods.
+				It is useful to make comparisons of methods.
+				This website provides a lot of exlplanations of how these analysis methods works.
+			</li>
+          </ul>
+        </div>
+      </div>
+      <div class="bibliography">
+        <div class="titlepage">
+          <div>
+            <h2 class="title"><a id="doc_bib"></a>Bibliography</h2>
+          </div>
+        </div>
+        <div class="biblioentry">
+          <a id="prei88"></a>
+          <p>[1] <span class="authorgroup">R. Preisendorfer. </span><span class="citetitle">“Principal Component Analysis in Meteorology and Oceanography”. </span><span class="publisher"><span class="publishername">Elsevier Sci.. </span></span><span class="pubdate">1988. </span></p>
+        </div>
+        <div class="biblioentry">
+          <a id="wilk95"></a>
+          <p>[2] <span class="authorgroup">D. Wilks. </span><span class="citetitle">“Statistical methods in the atmospheric sciences”. </span><span class="publisher"><span class="publishername">Cornell University. </span></span><span class="pubdate">1995. </span></p>
+        </div>
+        <div class="biblioentry">
+          <a id="brki86"></a>
+          <p>[3] <span class="authorgroup">S. D. Broomhead and G. P. King. </span><span class="citetitle">“Extracting qualitative dynamics from experimental data”. </span><span class="citetitle"><i>Physica D</i>. </span><span class="publisher"><span class="publishername">Elsevier Science Publishers B. V.. </span></span><span class="volumenum">20. </span><span class="artpagenums">217–236. </span><span class="pubdate">1986. </span></p>
+        </div>
+        <div class="biblioentry">
+          <a id="vagh89"></a>
+          <p>[4] <span class="authorgroup">R. Vautard and M. Ghil. </span><span class="citetitle">“Singular Spectrum Analysis in nonlinear dynamics,with application to paleoclimatic time series”. </span><span class="citetitle"><i>Physica D</i>. </span><span class="volumenum">35. </span><span class="artpagenums">395-424. </span><span class="pubdate">1989. </span></p>
+        </div>
+        <div class="biblioentry">
+          <a id="plva94"></a>
+          <p>[5] <span class="authorgroup">G. Plaut and R. Vautard. </span><span class="citetitle">“ Spells of low-frequency oscillations and weather regimes in the northern hemisphere”. </span><span class="citetitle"><i>J. Atm. Sc.</i>. </span><span class="volumenum">51. </span><span class="artpagenums">210-236. </span><span class="pubdate">1994. </span></p>
+        </div>
+        <div class="biblioentry">
+          <a id="raynal05"></a>
+          <p>[6] <span class="authorgroup">S. Raynaud, P. Yiou, R. Kleeman, and S. Speich. </span><span class="citetitle">“Using MSSA to determine explicitly the oscillatory dynamics of weakly nonlinear climate systems”. </span><span class="citetitle"><i>Nonlin. Proc. Geophys.</i>. </span><span class="volumenum">12. </span><span class="artpagenums">807–815. </span><span class="pubdate">2005. </span><span class="releaseinfo"><a href="http://www.nonlin-processes-geophys.net/12/807/2005/npg-12-807-2005.pdf" target="_top">Download</a>. </span></p>
+        </div>
+        <div class="biblioentry">
+          <a id="raynal06"></a>
+          <p>[7] <span class="authorgroup">S. Raynaud, O. Aumont, K. Rodgers, and P. Yiou. </span><span class="citetitle">“Interannual to decadal variability of air-sea CO2 fluxes in the North Atlantic”. </span><span class="citetitle"><i>Ocean Sci.</i>. </span><span class="volumenum">2. </span><span class="artpagenums">43-60. </span><span class="pubdate">2006. </span><span class="releaseinfo"><a href="http://www.ocean-sci.net/2/43/2006/os-2-43-2006.pdf" target="_top">Download</a>. </span></p>
+        </div>
+      </div>
     </div>
-    <div class="navfooter">
-      <hr />
-      <table width="100%" summary="Navigation footer">
-        <tr>
-          <td width="40%" align="left"> </td>
-          <td width="20%" align="center"> </td>
-          <td width="40%" align="right"> <a accesskey="n" href="doc_ins.html">Next</a></td>
-        </tr>
-        <tr>
-          <td width="40%" align="left" valign="top"> </td>
-          <td width="20%" align="center"> <a accesskey="t" href="ar01-toc.html">ToC</a></td>
-          <td width="40%" align="right" valign="top"> 2. Installation</td>
-        </tr>
-      </table>
-    </div>
-    <a xmlns="" href="http://sourceforge.net">
-      <img src="http://sflogo.sourceforge.net/sflogo.php?group_id=168272&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo" />
-    </a>
-    <div xmlns="" class="generated">This document was generated using xsltproc and perl.</div>
   </body>
 </html>
