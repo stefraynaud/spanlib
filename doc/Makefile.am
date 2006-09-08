@@ -33,7 +33,7 @@ dist_doc_DATA = \
 	doc_pyt_sub.html doc_pyt_exa.html
 
 if HAS_DOC_SUPPORT
-CLEANFILES = *_inc.xml *.html
+CLEANFILES = *_inc.xml
 endif
 
 ######################################################################
