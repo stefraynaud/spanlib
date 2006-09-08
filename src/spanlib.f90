@@ -395,7 +395,7 @@ contains
 
 	! Internal
 	! --------
-	real, allocatable :: cov(:,:), eig(:), trff(:,:), zff(:,:), zsteof(:,:)
+	real, allocatable :: cov(:,:), eig(:), zff(:,:), zsteof(:,:), wpc(:)
 	real :: wsteof
 	integer :: nchan, nsteof, nt, znkeepmax
 	integer :: iw, iw1, iw2, i1, i2, im, ic1, ic2
@@ -443,7 +443,6 @@ contains
 		end do
 	end do
 
-
 	! Diagonalisation
 	! ===============
 	allocate(eig(nsteof))
@@ -473,15 +472,16 @@ contains
 	! Get ST-PCs
 	! ==========
 	if(present(stpc))then
-		allocate(trff(nt, nchan))
-		trff = transpose(zff)
+		allocate(wpc(nt-nwindow+1))
 		do im = 1, nkeep
-			wsteof = sum(steof(:,im)**2)
 			do iw = 1, nwindow
-				stpc(:, im)  =  stpc(:, im) + matmul( &
-					& trff ( iw : iw+nt-nwindow, :), &
-					& steof( iw : iw+(nchan-1)*nwindow : nwindow , im ) ) / wsteof
+				call sgemm('T','N', nt-nwindow+1, 1, nchan, 1.,&
+					& zff(:,iw:iw+nt-nwindow), nchan, &
+					& steof(iw:iw+(nchan-1)*nwindow:nwindow, im), nchan, &
+					& 0., wpc, nt-nwindow+1)
+					stpc(:, im)  =  stpc(:, im) + wpc
 			end do
+			stpc(:, im) = stpc(:, im) / sum(steof(:,im)**2)
 		end do
 	end if
 
@@ -585,11 +585,13 @@ contains
 
 			 ! * beginning * [iw length projections]
 			 ffrec(ic, iw) = ffrec(ic, iw) + &
-				  & dot_product( reof(nwindow-iw+1:nwindow),  stpc(1:iw,   im) ) / real(iw)
+				  & dot_product(reof(nwindow-iw+1:nwindow), &
+				  &	stpc(1:iw, im)           ) / real(iw)
 !
 			 ! * end * [iw length projections]
 			 ffrec(ic, nt-iw+1) = ffrec(ic, nt-iw+1) + &
-				  & dot_product( reof(1:iw), stpc(ntpc-iw+1:ntpc, im) ) / real(iw)
+				  & dot_product(reof(1:iw), &
+				  &	stpc(ntpc-iw+1:ntpc, im) ) / real(iw)
 
 			end do
 

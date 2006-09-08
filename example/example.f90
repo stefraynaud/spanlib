@@ -189,7 +189,7 @@ program example
 	allocate(reco(nlon,nlat,ntime))
 	do i=1, ntime
 		reco(:,:,i) = unpack(pair(:,i), mask, new_missing_value)
-		where(mask .eqv. .false.)
+		where(mask .eq. .false.)
 			field(:,:,i) = new_missing_value
 		end where
 	end do
