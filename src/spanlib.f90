@@ -390,7 +390,8 @@ contains
 	! --------
 	real,   intent(in)            :: ff(:,:)
 	integer,intent(in)            :: nwindow, nkeep
-	real,   intent(out), optional :: steof(size(ff,1)*nwindow, nkeep), stpc(size(ff,2)-nwindow+1, nkeep), ev(nkeep)
+	real,   intent(out), optional :: steof(size(ff,1)*nwindow, nkeep), &
+		& stpc(size(ff,2)-nwindow+1, nkeep), ev(nkeep)
 
 	! Internal
 	! --------

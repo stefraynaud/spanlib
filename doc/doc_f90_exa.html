@@ -3,7 +3,7 @@
   <head>
     <title>3.3. A Fortran 90 example</title>
     <link rel="stylesheet" href="spanlib.css" type="text/css"/>
-    <meta name="generator" content="DocBook XSL Stylesheets V1.58.1"/>
+    <meta name="generator" content="DocBook XSL Stylesheets V1.61.2"/>
     <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, PCA, EOF, POP"/>
     <link rel="home" href="index.html" title="SpanLib - Spectral Analysis Library"/>
     <link rel="up" href="doc_f90.html" title="3. The Fortran 90 library"/>
@@ -27,8 +27,11 @@
     <div class="sect2" lang="en">
       <div class="titlepage">
         <div>
-          <h3 class="title"><a id="doc_f90_exa"/>3.3. A Fortran 90 example</h3>
+          <div>
+            <h3 class="title"><a id="doc_f90_exa"/>3.3. A Fortran 90 example</h3>
+          </div>
         </div>
+        <div/>
       </div>
       <p>
 				This is an example of how to use this the Fortran 90 component of Spanlib.
@@ -38,19 +41,19 @@
 				and stored in a netcdf file.
 			</p>
       <div class="example">
-        <a id="id2873099"/>
+        <a id="id3088701"/>
         <p class="title">
           <b>Example 1. F90 example</b>
         </p>
         <p>
 					You can run this example typing (from package directory):
 					</p>
-        <pre class="programlisting"><tt>&lt;user&gt;</tt> <b><tt>cd example &amp;&amp; make</tt></b></pre>
+        <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>cd example &amp;&amp; make</tt></b></pre>
         <p>
 					This command will first try to download the dataset,
 					then compile the following f90 program, run it,
 					and finally try to visualise output data.
-					See <a href="doc_ins.html#doc_ins_req" title="2.1. Requirements">Section 2.1</a> if it fails.
+					See <a href="doc_ins.html#doc_ins_req" title="2.1. Requirements">Section 2.1, &#8220;Requirements&#8221;</a> if it fails.
 				</p>
         <p>
 					The sources of this example is highlighted below, with comments inside.

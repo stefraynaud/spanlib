@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Source of python module</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.58.1" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><h1 class="title"><a id="id2855431"></a>SpanLib - Source of python module</h1></div><hr /></div><pre class="programlisting"><span class="HLcomments">#################################################################################</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Source of python module</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3024421"></a>SpanLib - Source of python module</h1></div></div><div></div><hr /></div><pre class="programlisting"><span class="HLcomments">#################################################################################</span>
 <span class="HLcomments"># File: spanlib_python.py</span>
 <span class="HLcomments">#</span>
 <span class="HLcomments"># This file is part of the SpanLib library.</span>
@@ -50,7 +50,7 @@
 <span class="HLcomments">      masks   :: Associated stacked masks</span>
 <span class="HLcomments">      axes    :: Associated stacked axes</span>
 <span class="HLcomments">    :::</span>
-<span class="HLcomments">	 &quot;&quot;&quot;</span>
+<span class="HLcomments">    &quot;&quot;&quot;</span>
     len_time=<span class="HLspecial">None</span>
     axes=[]
     dout=<span class="HLspecial">None</span> <span class="HLcomments"># data output</span>
@@ -239,10 +239,7 @@
 <span class="HLcomments">      phases :: Space-phase array</span>
 <span class="HLcomments">    :::</span>
 <span class="HLcomments">    &quot;&quot;&quot;</span>
-    <span class="HLcomments"># FIXME: maybe must be integrated to MSSA because</span>
-    <span class="HLcomments">#        interesting only for MSSA outputs,</span>
-    <span class="HLcomments">#        and usable only before PCA recontruction</span>
-<span class="HLcomments">##     print data.shape,'input array for phase'</span>
+
     ns=data.shape[<span class="HLdigits">0</span>]
     nt=data.shape[<span class="HLdigits">1</span>]
     w = MV.ones((ns),typecode=<span class="HLstrings">'f'</span>)
@@ -402,19 +399,20 @@ class <span class="HLpersonalised">SpAn</span>(object):
 
         <span class="HLcomments">## Check for default values for mssa and pca if not passed by user</span>
         <span class="HLcommands">if</span> <span class="HLpersonalised">pca</span> <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
-            <span class="HLcommands">if</span> <span class="HLspecial">self</span>.pc <span class="HLcommands">is</span> <span class="HLspecial">None</span> and <span class="HLspecial">self</span>.pdata.shape[<span class="HLdigits">0</span>] &gt; <span class="HLdigits">30</span>:
+            <span class="HLcommands">if</span> <span class="HLspecial">self</span>.pc <span class="HLcommands">is</span> <span class="HLspecial">None</span> and <span class="HLspecial">self</span>.ns &gt; <span class="HLdigits">30</span>: <span class="HLcomments"># Pre-PCA needed</span>
+                <span class="HLcommands">print</span> <span class="HLstrings">'[<span class="HLpersonalised">mssa</span>] The number of valid points <span class="HLcommands">is</span> greater than'</span>,<span class="HLdigits">30</span>,<span class="HLstrings">' so we perform a pre-<span class="HLpersonalised">PCA</span>'</span>
+                <span class="HLpersonalised">pca</span> = <span class="HLspecial">True</span>
+            elif <span class="HLspecial">self</span>.pc <span class="HLcommands">is</span> not <span class="HLspecial">None</span>:
                 <span class="HLpersonalised">pca</span> = <span class="HLspecial">True</span>
             <span class="HLcommands">else</span>:
                 <span class="HLpersonalised">pca</span> = False
 
-
-<span class="HLcomments">##         print 'In mssa : pca is:',pca</span>
-        <span class="HLcommands">if</span> <span class="HLpersonalised">pca</span> <span class="HLcommands">is</span> <span class="HLspecial">True</span>: <span class="HLcomments"># runs the pre PCA</span>
+        <span class="HLcommands">if</span> <span class="HLpersonalised">pca</span> <span class="HLcommands">is</span> <span class="HLspecial">True</span>: <span class="HLcomments"># From PCA to MSSA</span>
             nspace = <span class="HLspecial">self</span>.npca
-            <span class="HLcommands">if</span> <span class="HLspecial">self</span>.pc <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
+            <span class="HLcommands">if</span> <span class="HLspecial">self</span>.pc <span class="HLcommands">is</span> <span class="HLspecial">None</span>: <span class="HLcomments"># Still no PCA done</span>
                 <span class="HLspecial">self</span>.<span class="HLpersonalised">pca</span>()
         <span class="HLcommands">else</span>:
-            nspace = <span class="HLspecial">self</span>.pdata.shape[<span class="HLdigits">0</span>]
+            nspace = <span class="HLspecial">self</span>.ns
 
         <span class="HLcommands">if</span> nmssa <span class="HLcommands">is</span> not <span class="HLspecial">None</span>:
             <span class="HLspecial">self</span>.nmssa = nmssa
@@ -422,13 +420,11 @@ class <span class="HLpersonalised">SpAn</span>(object):
         <span class="HLcommands">if</span> window <span class="HLcommands">is</span> not <span class="HLspecial">None</span>:
             <span class="HLspecial">self</span>.window = window
 
-        <span class="HLcommands">if</span> <span class="HLspecial">self</span>.steof <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
-            <span class="HLcommands">if</span> <span class="HLpersonalised">pca</span> <span class="HLcommands">is</span> <span class="HLspecial">True</span>:
-<span class="HLcomments">##                 print 'Mssa done from self.pc'</span>
-                <span class="HLspecial">self</span>.steof, <span class="HLspecial">self</span>.stpc, <span class="HLspecial">self</span>.stev = spanlib_fort.<span class="HLpersonalised">mssa</span>(Numeric.transpose(<span class="HLspecial">self</span>.pc), <span class="HLspecial">self</span>.npca, <span class="HLspecial">self</span>.nt, <span class="HLspecial">self</span>.window, <span class="HLspecial">self</span>.nmssa)
-            <span class="HLcommands">else</span>:
-<span class="HLcomments">##                 print 'Mssa done from pdasta'</span>
-                <span class="HLspecial">self</span>.steof, <span class="HLspecial">self</span>.stpc, <span class="HLspecial">self</span>.stev = spanlib_fort.<span class="HLpersonalised">mssa</span>(<span class="HLspecial">self</span>.pdata, <span class="HLspecial">self</span>.ns, <span class="HLspecial">self</span>.nt, <span class="HLspecial">self</span>.window, <span class="HLspecial">self</span>.nmssa)
+        <span class="HLcommands">if</span> <span class="HLspecial">self</span>.stpc <span class="HLcommands">is</span> <span class="HLspecial">None</span>: <span class="HLcomments"># Still no MSSA</span>
+            <span class="HLcommands">if</span> <span class="HLpersonalised">pca</span> <span class="HLcommands">is</span> <span class="HLspecial">True</span>: <span class="HLcomments"># Pre-PCA case</span>
+                <span class="HLspecial">self</span>.steof, <span class="HLspecial">self</span>.stpc, <span class="HLspecial">self</span>.stev = spanlib_fort.<span class="HLpersonalised">mssa</span>(Numeric.transpose(<span class="HLspecial">self</span>.pc), nspace, <span class="HLspecial">self</span>.nt, <span class="HLspecial">self</span>.window, <span class="HLspecial">self</span>.nmssa)
+            <span class="HLcommands">else</span>: <span class="HLcomments"># Direct MSSA case</span>
+                <span class="HLspecial">self</span>.steof, <span class="HLspecial">self</span>.stpc, <span class="HLspecial">self</span>.stev = spanlib_fort.<span class="HLpersonalised">mssa</span>(<span class="HLspecial">self</span>.pdata, nspace, <span class="HLspecial">self</span>.nt, <span class="HLspecial">self</span>.window, <span class="HLspecial">self</span>.nmssa)
 
         eof = MV.transpose(MV.reshape(<span class="HLspecial">self</span>.steof,(<span class="HLspecial">self</span>.window,nspace,<span class="HLspecial">self</span>.nmssa)))
         eof.<span class="HLfunctions">id</span>=<span class="HLstrings">'EOF'</span>
@@ -527,7 +523,7 @@ class <span class="HLpersonalised">SpAn</span>(object):
             comments+=<span class="HLstrings">' <span class="HLpersonalised">MSSA</span> '</span>
 
         <span class="HLcommands">if</span> phases:
-            <span class="HLcommands">if</span> <span class="HLpersonalised">mssa</span> :
+            <span class="HLcommands">if</span> <span class="HLpersonalised">mssa</span>:
 <span class="HLcomments">##                 print 'phase+mssa reconst'</span>
                 ffrec = <span class="HLpersonalised">computePhases</span>(ffrec,nphases,offset,firstphase)
             <span class="HLcommands">else</span>:
@@ -545,16 +541,16 @@ class <span class="HLpersonalised">SpAn</span>(object):
         <span class="HLcommands">if</span> <span class="HLpersonalised">pca</span>:
             comments+=<span class="HLstrings">' <span class="HLpersonalised">PCA</span>'</span>
             axes=<span class="HLspecial">self</span>.axes
-            <span class="HLcommands">if</span> <span class="HLpersonalised">mssa</span> or phases:
+            <span class="HLcommands">if</span> <span class="HLpersonalised">mssa</span> <span class="HLcommands">is</span> <span class="HLspecial">True</span> or phases <span class="HLcommands">is</span> <span class="HLspecial">True</span>:
                 pcreconstruct = Numeric.transpose(ffrec) ; del(ffrec)
             <span class="HLcommands">else</span>:
                 pcreconstruct = <span class="HLspecial">self</span>.pc
 
-				<span class="HLcommands">if</span> <span class="HLpersonalised">mssa</span>:
-					n1 = <span class="HLdigits">1</span>
-					n2 = <span class="HLspecial">self</span>.npca
-				<span class="HLcommands">else</span> <span class="HLcommands">if</span> n2 <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
-					n2 = <span class="HLspecial">self</span>.npca
+            <span class="HLcommands">if</span> <span class="HLpersonalised">mssa</span>:
+               n1 = <span class="HLdigits">1</span>
+               n2 = <span class="HLspecial">self</span>.npca
+            elif n2 <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
+               n2 = <span class="HLspecial">self</span>.npca
 
 
 <span class="HLcomments">##             print pcreconstruct.shape,self.ns,ntimes</span>

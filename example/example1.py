@@ -52,12 +52,12 @@ print "Open file"
 f=cdms.open('../example/data2.cdf')
 
 # Retrieve data
-print "Read two different regions"
+print "Read the whole dataset"
 s=f('ssta',time=slice(0,120))
 
-S# Create the analysis object
+# Create the analysis object
 print "Creating SpAn object"
-P=spanlib.SpAn(s)
+SP=spanlib.SpAn(s)
 
 # Perform a preliminary PCA+MSSA
 # (equivalent to simple use SP.mssa(pca=True) later)
@@ -75,14 +75,10 @@ out = SP.reconstruct(phases=True,nphases=16,end=2)
 # Plot 1 phase over two, then a time series
 print "Now, plot!"
 x=vcs.init()
-for i in range(0,out.shape[0],out.shape[0]/10):
-    x.plot(out[i])
+for i in range(0,out.shape[0],2):
+    x.plot(out[i],xtitle="Longitude",ytitle="Latitude",title="Phase composites of the first MSSA oscillation")
     raw_input('map out %i/%i ok?' % ( i+1 , out.shape[0]))
     x.clear()
-for i in range(0,out.shape[0],out.shape[0]/10):
-    x.plot(s[i]-out[i])
-    raw_input('residual noise map out %i/%i ok?' % ( i+1 , out.shape[0]))
-    x.clear()
-x.plot(out[:,30,80])
+x.plot(out[:,30,80],xtitle="Phase in degrees",ytitle="SST anomalie",title="Cycle of the ocillation")
 raw_input('Time series at center of bassin ok?')
 x.clear()

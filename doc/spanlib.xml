@@ -15,7 +15,7 @@
 			</author>
 			<author><firstname>Charles</firstname> <surname>Doutriaux</surname></author>
 			<affiliation>
-				<address>Contact: <email>stephane.raynaud at gmail.com</email>
+				<address>Contact: <email>stephane dot raynaud at gmail dot com</email>
 				</address>
 			</affiliation>
 		</authorgroup>
@@ -34,7 +34,7 @@
 		</keywordset>
 		<productname>SpanLib</productname>
 		<releaseinfo>
-			<para>Version 1.0</para>
+			<xi:include href="doc_ver_inc.xml"/>
 			<para>
 				Project hosted by:
 				<ulink url="http://sourceforge.net">

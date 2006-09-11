@@ -3,7 +3,7 @@
 ! This file is part of the SpanLib library.
 ! Copyright (C) 2006  Stephane Raynaud
 ! Contact: stephane dot raynaud at gmail dot com
-! 
+!
 ! This library is free software; you can redistribute it and/or
 ! modify it under the terms of the GNU Lesser General Public
 ! License as published by the Free Software Foundation; either
@@ -13,7 +13,7 @@
 ! but WITHOUT ANY WARRANTY; without even the implied warranty of
 ! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ! Lesser General Public License for more details.
-! 
+!
 ! You should have received a copy of the GNU Lesser General Public
 ! License along with this library; if not, write to the Free Software
 ! Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
@@ -35,7 +35,8 @@ subroutine pca(ff, ns, nt, nkeep, xeof, pc, ev, weights, useteof)
 
 	! Call to original subroutine
 	! ---------------------------
-	call sl_pca(ff, nkeep, xeof=xeof, pc=pc, ev=ev, weights=weights, useteof=useteof)
+	call sl_pca(ff, nkeep, xeof=xeof, pc=pc, ev=ev, &
+	 & weights=weights, useteof=useteof)
 
 end subroutine pca
 
@@ -43,7 +44,7 @@ end subroutine pca
 subroutine pcarec(xeof, pc, ns, nt, nkept, ffrec, istart, iend)
 
 	use spanlib, only: sl_pcarec
-	
+
 	implicit none
 
 	! External
@@ -61,48 +62,53 @@ end subroutine pcarec
 
 
 subroutine mssa(ff, nchan, nt, nwindow, nkeep, steof, stpc, ev)
-	
+
 	use spanlib, only: sl_mssa
-	
+
 	implicit none
 
 	! External
 	! --------
 	integer,intent(in)  :: nchan, nt, nwindow, nkeep
 	real,   intent(in)  :: ff(nchan,nt)
-	real,	  intent(out) :: steof(nchan*nwindow,nkeep), stpc(nt-nwindow+1,nkeep), ev(nkeep)
+	real,	  intent(out) :: steof(nchan*nwindow,nkeep), &
+	 & stpc(nt-nwindow+1,nkeep), ev(nkeep)
 
 	! Call to original subroutine
 	! ---------------------------
 	call sl_mssa(ff, nwindow, nkeep, steof=steof, stpc=stpc, ev=ev)
-		
+
 end subroutine mssa
 
 
 
 
-subroutine mssarec(steof, stpc, nchan, nt, nkeep, nwindow, ffrec, istart, iend)
+subroutine mssarec(steof, stpc, nchan, nt, nkeep, nwindow, &
+  & ffrec, istart, iend)
 
 	use spanlib, only: sl_mssarec
-	
+
 	implicit none
 
 	! External
 	! --------
 	integer,intent(in)  :: nchan, nt, nwindow, nkeep
 	integer,intent(in)  :: istart, iend
-	real,	  intent(in)  :: steof(nchan*nwindow,nkeep), stpc(nt-nwindow+1,nkeep)
+	real,	  intent(in)  :: steof(nchan*nwindow,nkeep), &
+	 & stpc(nt-nwindow+1,nkeep)
 	real,   intent(out) :: ffrec(nchan,nt)
 
 	! Call to original subroutine
 	! ---------------------------
-	call sl_mssarec(steof, stpc, nwindow, ffrec=ffrec, istart=istart, iend=iend)
+	call sl_mssarec(steof, stpc, nwindow, ffrec=ffrec, &
+	 & istart=istart, iend=iend)
 
 end subroutine mssarec
 
 
 
-subroutine phasecomp(ffrec, ns, nt, np,  phases, weights, offset, firstphase)
+subroutine phasecomp(ffrec, ns, nt, np,  phases, weights, &
+  & offset, firstphase)
 
 	use spanlib, only: sl_phasecomp
 
@@ -118,7 +124,8 @@ subroutine phasecomp(ffrec, ns, nt, np,  phases, weights, offset, firstphase)
 
 	! Call to original subroutine
 	! ---------------------------
-	call sl_phasecomp(ffrec, np, phases, weights=weights, offset=offset, firstphase=firstphase)
+	call sl_phasecomp(ffrec, np, phases, weights=weights, &
+	 & offset=offset, firstphase=firstphase)
 
 end subroutine phasecomp
 
@@ -148,7 +155,8 @@ subroutine pack3d(ff3d, mask, ns1, ns2, nt, ff2d, ns)
 end subroutine pack3d
 
 
-subroutine unpack3d(ff3d, mask, ns1, ns2, nt, ff2d, ns, missing_value)
+subroutine unpack3d(ff3d, mask, ns1, ns2, nt, ff2d, ns, &
+  & missing_value)
 
 	implicit none
 

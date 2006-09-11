@@ -48,7 +48,7 @@ def stackData(*data):
       masks   :: Associated stacked masks
       axes    :: Associated stacked axes
     :::
-	 """
+    """
     len_time=None
     axes=[]
     dout=None # data output
@@ -237,10 +237,7 @@ def computePhases(data,nphases=8,offset=.5,firstphase=0):
       phases :: Space-phase array
     :::
     """
-    # FIXME: maybe must be integrated to MSSA because
-    #        interesting only for MSSA outputs,
-    #        and usable only before PCA recontruction
-##     print data.shape,'input array for phase'
+
     ns=data.shape[0]
     nt=data.shape[1]
     w = MV.ones((ns),typecode='f')
@@ -400,19 +397,20 @@ class SpAn(object):
 
         ## Check for default values for mssa and pca if not passed by user
         if pca is None:
-            if self.pc is None and self.pdata.shape[0] > 30:
+            if self.pc is None and self.ns > 30: # Pre-PCA needed
+                print '[mssa] The number of valid points is greater than',30,' so we perform a pre-PCA'
+                pca = True
+            elif self.pc is not None:
                 pca = True
             else:
                 pca = False
 
-
-##         print 'In mssa : pca is:',pca
-        if pca is True: # runs the pre PCA
+        if pca is True: # From PCA to MSSA
             nspace = self.npca
-            if self.pc is None:
+            if self.pc is None: # Still no PCA done
                 self.pca()
         else:
-            nspace = self.pdata.shape[0]
+            nspace = self.ns
 
         if nmssa is not None:
             self.nmssa = nmssa
@@ -420,13 +418,11 @@ class SpAn(object):
         if window is not None:
             self.window = window
 
-        if self.steof is None:
-            if pca is True:
-##                 print 'Mssa done from self.pc'
-                self.steof, self.stpc, self.stev = spanlib_fort.mssa(Numeric.transpose(self.pc), self.npca, self.nt, self.window, self.nmssa)
-            else:
-##                 print 'Mssa done from pdasta'
-                self.steof, self.stpc, self.stev = spanlib_fort.mssa(self.pdata, self.ns, self.nt, self.window, self.nmssa)
+        if self.stpc is None: # Still no MSSA
+            if pca is True: # Pre-PCA case
+                self.steof, self.stpc, self.stev = spanlib_fort.mssa(Numeric.transpose(self.pc), nspace, self.nt, self.window, self.nmssa)
+            else: # Direct MSSA case
+                self.steof, self.stpc, self.stev = spanlib_fort.mssa(self.pdata, nspace, self.nt, self.window, self.nmssa)
 
         eof = MV.transpose(MV.reshape(self.steof,(self.window,nspace,self.nmssa)))
         eof.id='EOF'
@@ -525,7 +521,7 @@ class SpAn(object):
             comments+=' MSSA '
 
         if phases:
-            if mssa :
+            if mssa:
 ##                 print 'phase+mssa reconst'
                 ffrec = computePhases(ffrec,nphases,offset,firstphase)
             else:
@@ -543,16 +539,16 @@ class SpAn(object):
         if pca:
             comments+=' PCA'
             axes=self.axes
-            if mssa or phases:
+            if mssa is True or phases is True:
                 pcreconstruct = Numeric.transpose(ffrec) ; del(ffrec)
             else:
                 pcreconstruct = self.pc
 
-				if mssa:
-					n1 = 1
-					n2 = self.npca
-				else if n2 is None:
-					n2 = self.npca
+            if mssa:
+               n1 = 1
+               n2 = self.npca
+            elif n2 is None:
+               n2 = self.npca
 
 
 ##             print pcreconstruct.shape,self.ns,ntimes

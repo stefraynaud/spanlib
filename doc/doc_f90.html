@@ -3,7 +3,7 @@
   <head>
     <title>3. The Fortran 90 library</title>
     <link rel="stylesheet" href="spanlib.css" type="text/css"/>
-    <meta name="generator" content="DocBook XSL Stylesheets V1.58.1"/>
+    <meta name="generator" content="DocBook XSL Stylesheets V1.61.2"/>
     <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, PCA, EOF, POP"/>
     <link rel="home" href="index.html" title="SpanLib - Spectral Analysis Library"/>
     <link rel="up" href="index.html" title="SpanLib - Spectral Analysis Library"/>
@@ -27,14 +27,20 @@
     <div class="sect1" lang="en">
       <div class="titlepage">
         <div>
-          <h2 class="title" style="clear: both"><a id="doc_f90"/>3. The Fortran 90 library</h2>
+          <div>
+            <h2 class="title" style="clear: both"><a id="doc_f90"/>3. The Fortran 90 library</h2>
+          </div>
         </div>
+        <div/>
       </div>
       <div class="sect2" lang="en">
         <div class="titlepage">
           <div>
-            <h3 class="title"><a id="doc_f90_int"/>3.1. Introduction</h3>
+            <div>
+              <h3 class="title"><a id="doc_f90_int"/>3.1. Introduction</h3>
+            </div>
           </div>
+          <div/>
         </div>
         <p>
 				The fortran 90 library provides a list of subroutines to perform PCA, MSSA, recontructions and phase composites.
@@ -43,7 +49,7 @@
 				The channel (spatial) dimension is always 1D.
 				Therefore, as in the python module, multi-dimensional arrays must be
 				packed before being analysed.
-				You can use <tt>pack</tt> and <tt>unpack</tt> F90 subroutines
+				You can use <tt class="literal">pack</tt> and <tt class="literal">unpack</tt> F90 subroutines
 				for this task, and optionally give a mask to remove masked points.
 				If you analyse several variables at the same time, concatenate
 				normalised packed arrays before the analsysis.

@@ -37,7 +37,7 @@ clean-local:
 $(PYTHON_LIBRARY): $(PACKAGE).pfp $(WRAPPER) $(PACKAGE).pyf $(LIBRARIES) $(HEADERS) $(top_srcdir)/lib/__init__.py $(top_srcdir)/lib/spanlib_python.py
 	$(PYFORT) -c $(FC) $(PYFORT_BUILD_OPT) $(PACKAGE).pfp
 
-$(PACKAGE).pyf: $(WRAPPER)
+$(PACKAGE).pyf: $(top_srcdir)/scripts/genpyf.pl $(WRAPPER)
 	@echo Creating $(PACKAGE).pyf
 	$(top_srcdir)/scripts/genpyf.pl $(WRAPPER) $(PACKAGE).pyf
 

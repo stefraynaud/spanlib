@@ -3,7 +3,7 @@
   <head>
     <title>4.3. A python example</title>
     <link rel="stylesheet" href="spanlib.css" type="text/css"/>
-    <meta name="generator" content="DocBook XSL Stylesheets V1.58.1"/>
+    <meta name="generator" content="DocBook XSL Stylesheets V1.61.2"/>
     <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, PCA, EOF, POP"/>
     <link rel="home" href="index.html" title="SpanLib - Spectral Analysis Library"/>
     <link rel="up" href="doc_pyt.html" title="4. The python module"/>
@@ -27,13 +27,16 @@
     <div class="sect2" lang="en">
       <div class="titlepage">
         <div>
-          <h3 class="title"><a id="doc_pyt_exa"/>4.3. A python example</h3>
+          <div>
+            <h3 class="title"><a id="doc_pyt_exa"/>4.3. A python example</h3>
+          </div>
         </div>
+        <div/>
       </div>
       <p>
 				This example shows how to use some of the available
 				components of the python module.
-				It uses the same dataset as for <a href="doc_f90_exa.html" title="3.3. A Fortran 90 example">Section 3.3</a>.
+				It uses the same dataset as for <a href="doc_f90_exa.html" title="3.3. A Fortran 90 example">Section 3.3, &#8220;A Fortran 90 example&#8221;</a>.
 				However, is this example, two different areas are analysed at
 				the same time.
 				This is intented to mimics the used of two different datasets
@@ -46,11 +49,11 @@
 				If you configurations allows it, you can run this example typing
 				this from the installation package directory:
 				</p>
-      <pre class="programlisting"><tt>&lt;user&gt;</tt> <b><tt>cd example &amp;&amp; make python1</tt></b></pre>
+      <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>cd example &amp;&amp; make python1</tt></b></pre>
       <p>
 			</p>
       <div class="example">
-        <a id="id2873296"/>
+        <a id="id3035547"/>
         <p class="title">
           <b>Example 2. Python example</b>
         </p>
@@ -108,12 +111,12 @@ cdms.axis.time_aliases.append(<span class="HLstrings">'T'</span>)
 f=cdms.<span class="HLfunctions">open</span>(<span class="HLstrings">'../example/data2.cdf'</span>)
 
 <span class="HLcomments"># Retrieve data</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;Read two different regions&quot;</span>
+<span class="HLcommands">print</span> <span class="HLstrings">&quot;Read the whole dataset&quot;</span>
 s=f(<span class="HLstrings">'ssta'</span>,time=slice(<span class="HLdigits">0</span>,<span class="HLdigits">120</span>))
 
-S<span class="HLcomments"># Create the analysis object</span>
+<span class="HLcomments"># Create the analysis object</span>
 <span class="HLcommands">print</span> <span class="HLstrings">&quot;Creating <span class="HLpersonalised">SpAn</span> object&quot;</span>
-P=spanlib.<span class="HLpersonalised">SpAn</span>(s)
+SP=spanlib.<span class="HLpersonalised">SpAn</span>(s)
 
 <span class="HLcomments"># Perform a preliminary PCA+MSSA</span>
 <span class="HLcomments"># (equivalent to simple use SP.mssa(pca=True) later)</span>
@@ -131,15 +134,11 @@ out = SP.<span class="HLpersonalised">reconstruct</span>(phases=<span class="HLs
 <span class="HLcomments"># Plot 1 phase over two, then a time series</span>
 <span class="HLcommands">print</span> <span class="HLstrings">&quot;Now, plot!&quot;</span>
 x=vcs.init()
-<span class="HLcommands">for</span> i <span class="HLcommands">in</span> range(<span class="HLdigits">0</span>,out.shape[<span class="HLdigits">0</span>],out.shape[<span class="HLdigits">0</span>]/<span class="HLdigits">10</span>):
-    x.plot(out[i])
+<span class="HLcommands">for</span> i <span class="HLcommands">in</span> range(<span class="HLdigits">0</span>,out.shape[<span class="HLdigits">0</span>],<span class="HLdigits">2</span>):
+    x.plot(out[i],xtitle=<span class="HLstrings">&quot;Longitude&quot;</span>,ytitle=<span class="HLstrings">&quot;Latitude&quot;</span>,title=<span class="HLstrings">&quot;Phase composites of the first <span class="HLpersonalised">MSSA</span> oscillation&quot;</span>)
     <span class="HLfunctions">raw_input</span>(<span class="HLstrings">'map out %i/%i ok?'</span> % ( i+<span class="HLdigits">1</span> , out.shape[<span class="HLdigits">0</span>]))
     x.clear()
-<span class="HLcommands">for</span> i <span class="HLcommands">in</span> range(<span class="HLdigits">0</span>,out.shape[<span class="HLdigits">0</span>],out.shape[<span class="HLdigits">0</span>]/<span class="HLdigits">10</span>):
-    x.plot(s[i]-out[i])
-    <span class="HLfunctions">raw_input</span>(<span class="HLstrings">'residual noise map out %i/%i ok?'</span> % ( i+<span class="HLdigits">1</span> , out.shape[<span class="HLdigits">0</span>]))
-    x.clear()
-x.plot(out[:,<span class="HLdigits">30</span>,<span class="HLdigits">80</span>])
+x.plot(out[:,<span class="HLdigits">30</span>,<span class="HLdigits">80</span>],xtitle=<span class="HLstrings">&quot;Phase <span class="HLcommands">in</span> degrees&quot;</span>,ytitle=<span class="HLstrings">&quot;SST anomalie&quot;</span>,title=<span class="HLstrings">&quot;Cycle of the ocillation&quot;</span>)
 <span class="HLfunctions">raw_input</span>(<span class="HLstrings">'Time series at center of bassin ok?'</span>)
 x.clear()
 </pre>

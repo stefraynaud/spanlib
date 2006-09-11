@@ -16,5 +16,8 @@ documentation:
 example:
 	cd $(top_srcdir)/example && make
 
+python1 python2:
+	cd $(top_srcdir)/example && make $@
+
 clean-local:
 	cd example && make clean

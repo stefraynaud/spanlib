@@ -17,6 +17,9 @@ HTML_SRC = $(XML_SRC:.xml=.html)
 ## XML list of subroutines
 XML_DOC_SUB = doc_f90_sub_inc.xml doc_pyt_sub_inc.xml
 
+## Vurrent version
+XML_DOC_VER_INC = doc_ver_inc.xml
+
 ## Source parsing command
 PARSE = $(top_srcdir)/scripts/gendoc.pl $(SOURCES)
 
@@ -40,17 +43,29 @@ endif
 ######################################################################
 
 if HAS_DOC_SUPPORT
-spanlib.html: spanlib.xml spanlib_single.xsl common.xsl $(XML_SRC_INC) $(XML_DOC_SUB) spanlib.css
-	$(XSLTPROC) $(XSLTPROC_FLAGS) -o $@ spanlib_single.xsl $<
+spanlib.html: spanlib.xml spanlib_single.xsl common.xsl $(XML_SRC_INC) $(XML_DOC_SUB) spanlib.css $(XML_DOC_VER_INC)
+	@echo "Generating single page html documentation..."
+	@$(XSLTPROC) $(XSLTPROC_FLAGS) -o $@ spanlib_single.xsl $<
 
-index.html: spanlib.xml spanlib.xsl common.xsl $(XML_SRC_INC) $(XML_DOC_SUB)
-	$(XSLTPROC) $(XSLTPROC_FLAGS) -o $@ spanlib.xsl $<
+index.html: spanlib.xml spanlib.xsl common.xsl $(XML_SRC_INC) $(XML_DOC_SUB) $(XML_DOC_VER_INC)
+	@echo "Generating mutiple page html documentation..."
+	@$(XSLTPROC) $(XSLTPROC_FLAGS) -o $@ spanlib.xsl $<
 
 src_%.html: src_%.xml src_%_inc.xml src.xsl common.xsl
-	$(XSLTPROC) $(XSLTPROC_FLAGS) -o $@ src.xsl $<
+	@echo "Generating $@..."
+	@$(XSLTPROC) $(XSLTPROC_FLAGS) -o $@ src.xsl $<
 
 $(XML_SRC_INC) $(XML_DOC_SUB): $(PARSE)
-	$^
+	@echo "Generating xml documentations from code sources..."
+	@$^
+
+$(XML_DOC_VER_INC): $(top_srcdir)/configure.in
+	@echo "Checking package version..."
+	@test -f $@ || echo "" > $@
+	@version=`grep "AM_INIT_AUTOMAKE" $^ | cut -d"," -f2 | cut -d")" -f1` ; \
+	test "x$$version" = "x`grep Version $@ | cut -d\  -f2 | cut -d'<' -f1`" ;\
+	rm -f $@ && echo '<para>Version '$$version'</para>' > $@ ; \
+	echo "Version updated"
 
 else
 endif

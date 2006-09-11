@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Python example</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.58.1" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><h1 class="title"><a id="id2855431"></a>SpanLib - Python example</h1></div><hr /></div><pre class="programlisting"><span class="HLcomments"># File: example1.py</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Python example</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3321775"></a>SpanLib - Python example</h1></div></div><div></div><hr /></div><pre class="programlisting"><span class="HLcomments"># File: example1.py</span>
 <span class="HLcomments">#</span>
 <span class="HLcomments"># This file is part of the SpanLib library.</span>
 <span class="HLcomments"># Copyright (C) 2006  Charles Doutiraux, Stephane Raynaud</span>
@@ -54,12 +54,12 @@ cdms.axis.time_aliases.append(<span class="HLstrings">'T'</span>)
 f=cdms.<span class="HLfunctions">open</span>(<span class="HLstrings">'../example/data2.cdf'</span>)
 
 <span class="HLcomments"># Retrieve data</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;Read two different regions&quot;</span>
+<span class="HLcommands">print</span> <span class="HLstrings">&quot;Read the whole dataset&quot;</span>
 s=f(<span class="HLstrings">'ssta'</span>,time=slice(<span class="HLdigits">0</span>,<span class="HLdigits">120</span>))
 
-S<span class="HLcomments"># Create the analysis object</span>
+<span class="HLcomments"># Create the analysis object</span>
 <span class="HLcommands">print</span> <span class="HLstrings">&quot;Creating <span class="HLpersonalised">SpAn</span> object&quot;</span>
-P=spanlib.<span class="HLpersonalised">SpAn</span>(s)
+SP=spanlib.<span class="HLpersonalised">SpAn</span>(s)
 
 <span class="HLcomments"># Perform a preliminary PCA+MSSA</span>
 <span class="HLcomments"># (equivalent to simple use SP.mssa(pca=True) later)</span>
@@ -77,15 +77,11 @@ out = SP.<span class="HLpersonalised">reconstruct</span>(phases=<span class="HLs
 <span class="HLcomments"># Plot 1 phase over two, then a time series</span>
 <span class="HLcommands">print</span> <span class="HLstrings">&quot;Now, plot!&quot;</span>
 x=vcs.init()
-<span class="HLcommands">for</span> i <span class="HLcommands">in</span> range(<span class="HLdigits">0</span>,out.shape[<span class="HLdigits">0</span>],out.shape[<span class="HLdigits">0</span>]/<span class="HLdigits">10</span>):
-    x.plot(out[i])
+<span class="HLcommands">for</span> i <span class="HLcommands">in</span> range(<span class="HLdigits">0</span>,out.shape[<span class="HLdigits">0</span>],<span class="HLdigits">2</span>):
+    x.plot(out[i],xtitle=<span class="HLstrings">&quot;Longitude&quot;</span>,ytitle=<span class="HLstrings">&quot;Latitude&quot;</span>,title=<span class="HLstrings">&quot;Phase composites of the first <span class="HLpersonalised">MSSA</span> oscillation&quot;</span>)
     <span class="HLfunctions">raw_input</span>(<span class="HLstrings">'map out %i/%i ok?'</span> % ( i+<span class="HLdigits">1</span> , out.shape[<span class="HLdigits">0</span>]))
     x.clear()
-<span class="HLcommands">for</span> i <span class="HLcommands">in</span> range(<span class="HLdigits">0</span>,out.shape[<span class="HLdigits">0</span>],out.shape[<span class="HLdigits">0</span>]/<span class="HLdigits">10</span>):
-    x.plot(s[i]-out[i])
-    <span class="HLfunctions">raw_input</span>(<span class="HLstrings">'residual noise map out %i/%i ok?'</span> % ( i+<span class="HLdigits">1</span> , out.shape[<span class="HLdigits">0</span>]))
-    x.clear()
-x.plot(out[:,<span class="HLdigits">30</span>,<span class="HLdigits">80</span>])
+x.plot(out[:,<span class="HLdigits">30</span>,<span class="HLdigits">80</span>],xtitle=<span class="HLstrings">&quot;Phase <span class="HLcommands">in</span> degrees&quot;</span>,ytitle=<span class="HLstrings">&quot;SST anomalie&quot;</span>,title=<span class="HLstrings">&quot;Cycle of the ocillation&quot;</span>)
 <span class="HLfunctions">raw_input</span>(<span class="HLstrings">'Time series at center of bassin ok?'</span>)
 x.clear()
 </pre></div></body></html>
