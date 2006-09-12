@@ -158,7 +158,7 @@ def pack(data,weights=None):
         else:
             packed_data = Numeric.transpose(data)
             packed_weights = weights
-            mask = True
+            mask = None
             return packed_data,packed_weights,mask
     
     sh=list(data.shape)
@@ -341,7 +341,7 @@ class SpAn(object):
 
         Axes=self.axes[1:]
 
-        print 'SEF.mask is:',self.mask
+##        print 'SEF.mask is:',self.mask
         if self.mask is not None:
             eof = MV.transpose(MV.array(spanlib_fort.unpack3d(self.mask,self.ns1,self.ns2,npca,self.eof,self.ns,1.e20)))
             eof.id='EOF'
