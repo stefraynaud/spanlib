@@ -66,12 +66,11 @@ def stackData(*data):
 
         axes.append(d.getAxisList())
         tdata,w,m=pack(d)
-        if dout is None:
+        if dout is None: # Create
             dout=tdata
             weights=w
             masks=[m]
-        else:
-##             print dout.shape,tdata.shape
+        else: # Append
             dout=Numeric.concatenate((dout,tdata))
             weights=Numeric.concatenate((weights,w))
             masks.append(m)
@@ -161,6 +160,7 @@ def pack(data,weights=None):
             packed_weights = weights
             mask = True
             return packed_data,packed_weights,mask
+    
     sh=list(data.shape)
     ns1=sh[-1]
     ns2=sh[-2]
@@ -202,13 +202,13 @@ def pack(data,weights=None):
     ## Dummy 1D for time for tmask
     ## Pack data
     packed_data = spanlib_fort.pack3d(packed_data,mask,ns1,ns2,nt,ns)
-
+    
     weights=MV.reshape(weights,(1,sh[-2],sh[-1]))
     ## Pack weights
     tweights=Numeric.transpose(weights.filled(0))
     tweights=Numeric.ones(tweights.shape,'f')
     packed_weights = spanlib_fort.pack3d(tweights,mask,ns1,ns2,1,ns)[:,0].astype('f')
-
+    
     return packed_data,packed_weights,mask
 
 
@@ -267,8 +267,8 @@ class SpAn(object):
           data    :: Data on which to run the PC Analysis
                      Last dimensions must represent the spatial dimensions.
                      Analysis will be run on the first dimension.
-          weights :: If you which to apply weights on some points.
-                     Set weights to "0" where you wish to mask.
+          weights :: If you which to apply weights on some points,
+                     set weights to "0" where you wish to mask.
                      The input data mask will be applied,
                      using the union of all none spacial dimension mask.
                      If the data are on a regular grid, area weights
@@ -285,9 +285,9 @@ class SpAn(object):
         """
         ## Sets all values to None
         self.clean()
+        
         ## First pack our data, prepare the weights and mask for PCA
         self.pdata,self.weights,self.mask = pack(data,weights)
-
 
         ## Store axes for later
         self.axes=data.getAxisList()
@@ -310,8 +310,6 @@ class SpAn(object):
 
         if window is None:
             self.window = int(self.nt/3.)
-
-##         print 'At the end:',self.pdata.shape,self.ns,self.nt
 
     def pca(self,npca=None):
         """ Principal Components Analysis (PCA)
@@ -343,7 +341,7 @@ class SpAn(object):
 
         Axes=self.axes[1:]
 
-##         print 'SEF.mask is:',self.mask
+        print 'SEF.mask is:',self.mask
         if self.mask is not None:
             eof = MV.transpose(MV.array(spanlib_fort.unpack3d(self.mask,self.ns1,self.ns2,npca,self.eof,self.ns,1.e20)))
             eof.id='EOF'

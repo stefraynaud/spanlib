@@ -76,9 +76,9 @@ out = SP.reconstruct(phases=True,nphases=16,end=2)
 print "Now, plot!"
 x=vcs.init()
 for i in range(0,out.shape[0],2):
-    x.plot(out[i],xtitle="Longitude",ytitle="Latitude",title="Phase composites of the first MSSA oscillation")
+    x.plot(out[i],title="Phase composites of the first MSSA oscillation")
     raw_input('map out %i/%i ok?' % ( i+1 , out.shape[0]))
     x.clear()
-x.plot(out[:,30,80],xtitle="Phase in degrees",ytitle="SST anomalie",title="Cycle of the ocillation")
+x.plot(out[:,30,80],title="Cycle of the ocillation")
 raw_input('Time series at center of bassin ok?')
 x.clear()
