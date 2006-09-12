@@ -3,10 +3,10 @@
 ######################################################################
 
 ## Source files
-SOURCES = $(top_srcdir)/src/spanlib.f90 $(top_srcdir)/example/example.f90 $(top_srcdir)/lib/spanlib_python.py $(top_srcdir)/example/example1.py
+SOURCES = $(top_srcdir)/src/spanlib.f90 $(top_srcdir)/example/example.f90 $(top_srcdir)/lib/spanlib_python.py $(top_srcdir)/example/example1.py $(top_srcdir)/example/example2.py
 
 ## XML translation of source files
-XML_SRC = src_f90_lib.xml src_f90_exa.xml src_pyt_mod.xml src_pyt_exa.xml
+XML_SRC = src_f90_lib.xml src_f90_exa.xml src_pyt_mod.xml src_pyt_ex1.xml src_pyt_ex2.xml
 
 ## XML translation of source files to be included
 XML_SRC_INC = $(XML_SRC:.xml=_inc.xml)

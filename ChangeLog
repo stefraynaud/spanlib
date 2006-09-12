@@ -1,1 +1,5 @@
-TODO
+Version 1.1 [sep 19, 2006]
+- F90 library: now compliant with standards
+- Python module: reconstructions are clever and integrate phase composites
+- Python examples: switched example1.py to example2.py, added new example1.py
+- Autoconf: fixes, improvements for documentation

@@ -475,12 +475,30 @@
 
 		<!--#################################################################-->
 		<sect2 id="doc_pyt_exa">
-			<title>A python example</title>
+			<title>Python examples</title>
 			<para>
-				This example shows how to use some of the available
+				These examples show how to use some of the available
 				components of the python module.
-				It uses the same dataset as for <xref linkend="doc_f90_exa"/>.
-				However, is this example, two different areas are analysed at
+				They uses the same dataset as for <xref linkend="doc_f90_exa"/>.
+				If you configurations allows it, you can run theses examples typing
+				for example this from the installation package directory:
+				<programlisting><prompt>&lt;user&gt;</prompt> <userinput>cd example &amp;&amp; make python1</userinput></programlisting>
+			</para>
+			<note>
+				You must have previously performed a <programlisting><prompt>&lt;user&gt;</prompt> <userinput>make install</userinput></programlisting>
+			</note>
+			<para>
+				This first example is similar to <xref linkend="doc_f90_exa"/>:
+				a PCA/MSSA is performed on the whole dataset,
+				and the first oscillation (pair of MSSA modes) is
+				reconstructed using phases composites (16 phases).
+			</para>
+			<example>
+				<title>Python example</title>
+				<xi:include href="src_pyt_ex1_inc.xml"/>
+			</example>
+			<para>
+				In this second example, two different areas are analysed at
 				the same time.
 				This is intented to mimics the used of two different datasets
 				that are stacked, before being analysed.
@@ -488,14 +506,9 @@
 				to find modes of variability in a arbitrary number of variables,
 				provided you are careful with units (performing appropriate normalisations).
 			</para>
-			<para>
-				If you configurations allows it, you can run this example typing
-				this from the installation package directory:
-				<programlisting><prompt>&lt;user&gt;</prompt> <userinput>cd example &amp;&amp; make python1</userinput></programlisting>
-			</para>
 			<example>
 				<title>Python example</title>
-				<xi:include href="src_pyt_exa_inc.xml"/>
+				<xi:include href="src_pyt_ex2_inc.xml"/>
 			</example>
 		</sect2>
 	</sect1>

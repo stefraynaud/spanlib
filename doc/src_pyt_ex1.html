@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Python example</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3321775"></a>SpanLib - Python example</h1></div></div><div></div><hr /></div><pre class="programlisting"><span class="HLcomments"># File: example1.py</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Python example 1</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3107365"></a>SpanLib - Python example 1</h1></div></div><div></div><hr /></div><pre class="programlisting"><span class="HLcomments"># File: example1.py</span>
 <span class="HLcomments">#</span>
 <span class="HLcomments"># This file is part of the SpanLib library.</span>
 <span class="HLcomments"># Copyright (C) 2006  Charles Doutiraux, Stephane Raynaud</span>
@@ -78,10 +78,10 @@ out = SP.<span class="HLpersonalised">reconstruct</span>(phases=<span class="HLs
 <span class="HLcommands">print</span> <span class="HLstrings">&quot;Now, plot!&quot;</span>
 x=vcs.init()
 <span class="HLcommands">for</span> i <span class="HLcommands">in</span> range(<span class="HLdigits">0</span>,out.shape[<span class="HLdigits">0</span>],<span class="HLdigits">2</span>):
-    x.plot(out[i],xtitle=<span class="HLstrings">&quot;Longitude&quot;</span>,ytitle=<span class="HLstrings">&quot;Latitude&quot;</span>,title=<span class="HLstrings">&quot;Phase composites of the first <span class="HLpersonalised">MSSA</span> oscillation&quot;</span>)
+    x.plot(out[i],title=<span class="HLstrings">&quot;Phase composites of the first <span class="HLpersonalised">MSSA</span> oscillation&quot;</span>)
     <span class="HLfunctions">raw_input</span>(<span class="HLstrings">'map out %i/%i ok?'</span> % ( i+<span class="HLdigits">1</span> , out.shape[<span class="HLdigits">0</span>]))
     x.clear()
-x.plot(out[:,<span class="HLdigits">30</span>,<span class="HLdigits">80</span>],xtitle=<span class="HLstrings">&quot;Phase <span class="HLcommands">in</span> degrees&quot;</span>,ytitle=<span class="HLstrings">&quot;SST anomalie&quot;</span>,title=<span class="HLstrings">&quot;Cycle of the ocillation&quot;</span>)
+x.plot(out[:,<span class="HLdigits">30</span>,<span class="HLdigits">80</span>],title=<span class="HLstrings">&quot;Cycle of the ocillation&quot;</span>)
 <span class="HLfunctions">raw_input</span>(<span class="HLstrings">'Time series at center of bassin ok?'</span>)
 x.clear()
 </pre></div></body></html>

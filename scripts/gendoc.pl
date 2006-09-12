@@ -28,7 +28,7 @@ use File::Basename;
 
 # Inputs
 #my ($xmldir, $f90_library, $f90_example, $python_module) = @ARGV;
-my ($f90_library, $f90_example, $python_module, $python_example) = @ARGV;
+my ($f90_library, $f90_example, $python_module, $python_example1, $python_example2) = @ARGV;
 
 # Basic declarations
 my (@partNames, $partName, %parts, $line, $subroutineName, $arguments, $inside, $html);
@@ -62,7 +62,8 @@ my %xmlFiles = (
 	'f90_library'			=> "src_f90_lib_inc.xml",
 	'f90_example'			=> "src_f90_exa_inc.xml",
 	'python_module'		=> "src_pyt_mod_inc.xml",
-	'python_example'		=> "src_pyt_exa_inc.xml"
+	'python_example1'		=> "src_pyt_ex1_inc.xml",
+	'python_example2'		=> "src_pyt_ex2_inc.xml"
 );
 
 
@@ -622,11 +623,22 @@ close(F90_EXAMPLE);
 
 ####################################################################
 # Python
-open(XML_EXAMPLE,"> $xmlFiles{'python_example'}");
-open(PYTHON_EXAMPLE,$python_example);
+# 1)
+open(XML_EXAMPLE,"> $xmlFiles{'python_example1'}");
+open(PYTHON_EXAMPLE,$python_example1);
 print XML_EXAMPLE gen_xml_header('programlisting');
 print XML_EXAMPLE "<programlisting>";
 while(<PYTHON_EXAMPLE>){print XML_EXAMPLE pytoxml($_);}
 print XML_EXAMPLE "</programlisting>\n";
 close(XML_EXAMPLE);
 close(PYTHON_EXAMPLE);
+# 2)
+open(XML_EXAMPLE,"> $xmlFiles{'python_example2'}");
+open(PYTHON_EXAMPLE,$python_example2);
+print XML_EXAMPLE gen_xml_header('programlisting');
+print XML_EXAMPLE "<programlisting>";
+while(<PYTHON_EXAMPLE>){print XML_EXAMPLE pytoxml($_);}
+print XML_EXAMPLE "</programlisting>\n";
+close(XML_EXAMPLE);
+close(PYTHON_EXAMPLE);
+
