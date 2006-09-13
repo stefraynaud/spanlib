@@ -46,18 +46,18 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3229521"/>Usage</h5>
+                <h5 class="title"><a id="id3361458"/>Usage</h5>
               </div>
             </div>
             <div/>
           </div>
-          <pre class="programlisting">call <span class="HLpersonalised">sl_pca</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nkeep</span>, xeof=<span class="HLpersonalised">xeof</span>, pc=<span class="HLpersonalised">pc</span>, ev=<span class="HLpersonalised">ev</span>, weights=<span class="HLpersonalised">weights</span>, useteof=<span class="HLpersonalised">useteof</span>)</pre>
+          <pre class="programlisting">call <span class="HLpersonalised">sl_pca</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nkeep</span>, xeof=<span class="HLpersonalised">xeof</span>, pc=<span class="HLpersonalised">pc</span>, ev=<span class="HLpersonalised">ev</span>, weights=<span class="HLpersonalised">weights</span>, useteof=<span class="HLpersonalised">useteof</span>, <span class="HLpersonalised">bLargeMatrix</span>)</pre>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3169834"/>Description</h5>
+                <h5 class="title"><a id="id3361529"/>Description</h5>
               </div>
             </div>
             <div/>
@@ -75,7 +75,7 @@ than the time dimension. This default behavior can be overridden.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3169854"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3361548"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -93,7 +93,7 @@ than the time dimension. This default behavior can be overridden.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3169915"/>Optional arguments</h5>
+                <h5 class="title"><a id="id3361609"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -117,7 +117,23 @@ than the time dimension. This default behavior can be overridden.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3167895"/>Dependencies</h5>
+                <h5 class="title"><a id="id3359590"/>Necessary arguments</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li><tt class="varname">bLargeMatrix    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+				 :: <span class="emphasis"><em> Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) </em></span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id3359628"/>Dependencies</h5>
               </div>
             </div>
             <div/>
@@ -140,7 +156,7 @@ than the time dimension. This default behavior can be overridden.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3167935"/>Usage</h5>
+                <h5 class="title"><a id="id3359667"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -151,7 +167,7 @@ than the time dimension. This default behavior can be overridden.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3167989"/>Description</h5>
+                <h5 class="title"><a id="id3359721"/>Description</h5>
               </div>
             </div>
             <div/>
@@ -167,7 +183,7 @@ by its PC. The sum of all reconstructed component is the original field.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3168006"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3359738"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -187,7 +203,7 @@ by its PC. The sum of all reconstructed component is the original field.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3168091"/>Optional arguments</h5>
+                <h5 class="title"><a id="id3359824"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -215,18 +231,18 @@ by its PC. The sum of all reconstructed component is the original field.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3168167"/>Usage</h5>
+                <h5 class="title"><a id="id3430138"/>Usage</h5>
               </div>
             </div>
             <div/>
           </div>
-          <pre class="programlisting">call <span class="HLpersonalised">sl_mssa</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nwindow</span>, <span class="HLpersonalised">nkeep</span>, steof=<span class="HLpersonalised">steof</span>, stpc=<span class="HLpersonalised">stpc</span>, ev=<span class="HLpersonalised">ev</span>)</pre>
+          <pre class="programlisting">call <span class="HLpersonalised">sl_mssa</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nwindow</span>, <span class="HLpersonalised">nkeep</span>, steof=<span class="HLpersonalised">steof</span>, stpc=<span class="HLpersonalised">stpc</span>, ev=<span class="HLpersonalised">ev</span>, <span class="HLpersonalised">bLargeMatrix</span>)</pre>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3168905"/>Description</h5>
+                <h5 class="title"><a id="id3430206"/>Description</h5>
               </div>
             </div>
             <div/>
@@ -242,7 +258,7 @@ parameter.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3168921"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3430222"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -262,7 +278,7 @@ parameter.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3169006"/>Optional arguments</h5>
+                <h5 class="title"><a id="id3430307"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -282,7 +298,23 @@ parameter.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3169091"/>Dependencies</h5>
+                <h5 class="title"><a id="id3430392"/>Necessary arguments</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li><tt class="varname">bLargeMatrix    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+				 :: <span class="emphasis"><em> Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) </em></span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id3430430"/>Dependencies</h5>
               </div>
             </div>
             <div/>
@@ -305,7 +337,7 @@ parameter.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3169130"/>Usage</h5>
+                <h5 class="title"><a id="id3430469"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -316,7 +348,7 @@ parameter.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3169191"/>Description</h5>
+                <h5 class="title"><a id="id3430530"/>Description</h5>
               </div>
             </div>
             <div/>
@@ -329,7 +361,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3169205"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3430544"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -351,7 +383,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3169314"/>Optional arguments</h5>
+                <h5 class="title"><a id="id3430653"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -379,7 +411,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3169390"/>Usage</h5>
+                <h5 class="title"><a id="id3360551"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -390,7 +422,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3169451"/>Description</h5>
+                <h5 class="title"><a id="id3360612"/>Description</h5>
               </div>
             </div>
             <div/>
@@ -412,7 +444,7 @@ the first phase conincides with the maximmum.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3169473"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3360634"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -421,8 +453,8 @@ the first phase conincides with the maximmum.
             <ul type="disc">
               <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em> Space-time array</em></span></li>
-              <li><tt class="varname">np    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
-				 :: <span class="emphasis"><em>    Number of requested phases over the 360 degrees cycle (default = 8)</em></span></li>
+              <li><tt class="varname">np    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integerdefault:<span class="HLpersonalised">8</span>]    </span></tt> 
+				 :: <span class="emphasis"><em>    Number of requested phases over the 360 degrees cycle </em></span></li>
               <li><tt class="varname">phases    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em/></span></li>
             </ul>
@@ -432,7 +464,7 @@ the first phase conincides with the maximmum.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3238471"/>Optional arguments</h5>
+                <h5 class="title"><a id="id3360725"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -441,10 +473,10 @@ the first phase conincides with the maximmum.
             <ul type="disc">
               <li><tt class="varname">weights    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>    Space array of weights</em></span></li>
-              <li><tt class="varname">offset    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]    </span></tt> 
-				 :: <span class="emphasis"><em>     Minimal normalized amplitude of the index (default = 0.)</em></span></li>
-              <li><tt class="varname">firstphase    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]    </span></tt> 
-				 :: <span class="emphasis"><em> Value in degrees of the first phase (default = 0)</em></span></li>
+              <li><tt class="varname">offset    </tt><tt class="option"><span class="ARGspec">[intent:input, type:realdefault:<span class="HLpersonalised">0</span>.]    </span></tt> 
+				 :: <span class="emphasis"><em>     Minimal normalized amplitude of the index </em></span></li>
+              <li><tt class="varname">firstphase    </tt><tt class="option"><span class="ARGspec">[intent:input, type:realdefault:<span class="HLpersonalised">0</span>.]    </span></tt> 
+				 :: <span class="emphasis"><em> Value in degrees of the first phase </em></span></li>
             </ul>
           </div>
         </div>
@@ -452,7 +484,7 @@ the first phase conincides with the maximmum.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3238557"/>Dependencies</h5>
+                <h5 class="title"><a id="id3360824"/>Dependencies</h5>
               </div>
             </div>
             <div/>
@@ -475,18 +507,18 @@ the first phase conincides with the maximmum.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3238596"/>Usage</h5>
+                <h5 class="title"><a id="id3360864"/>Usage</h5>
               </div>
             </div>
             <div/>
           </div>
-          <pre class="programlisting">call <span class="HLpersonalised">sl_diasym</span>(<span class="HLpersonalised">a</span>, <span class="HLpersonalised">eig</span>)</pre>
+          <pre class="programlisting">call <span class="HLpersonalised">sl_diasym</span>(<span class="HLpersonalised">a</span>, <span class="HLpersonalised">eig</span>, <span class="HLpersonalised">bLargeMatrix</span>)</pre>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3238629"/>Description</h5>
+                <h5 class="title"><a id="id3360904"/>Description</h5>
               </div>
             </div>
             <div/>
@@ -499,7 +531,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3238643"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3360918"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -507,9 +539,11 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
           <div class="itemizedlist">
             <ul type="disc">
               <li><tt class="varname">a    </tt><tt class="option"><span class="ARGspec">[intent:inoutput, type:real]    </span></tt> 
-				 :: <span class="emphasis"><em>		Input = symetric matrix, output = EOFs</em></span></li>
+				 :: <span class="emphasis"><em>   Input = symetric matrix, output = EOFs</em></span></li>
               <li><tt class="varname">eig    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
-				 :: <span class="emphasis"><em>	Eigen values</em></span></li>
+				 :: <span class="emphasis"><em> Eigen values</em></span></li>
+              <li><tt class="varname">bLargeMatrix    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+				 :: <span class="emphasis"><em> Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) </em></span></li>
             </ul>
           </div>
         </div>
@@ -517,7 +551,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3238704"/>Dependencies</h5>
+                <h5 class="title"><a id="id3361003"/>Dependencies</h5>
               </div>
             </div>
             <div/>

@@ -53,7 +53,7 @@ f=cdms.open('../example/data2.cdf')
 
 # Retrieve data
 print "Read the whole dataset"
-s=f('ssta',time=slice(0,120))
+s=f('ssta')
 
 # Create the analysis object
 print "Creating SpAn object"

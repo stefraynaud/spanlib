@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 library source</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3212207"></a>SpanLib - Fortran 90 library source</h1></div></div><div></div><hr /></div><pre class="programlisting"><span class="HLcomments">! File: spanlib.f90</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 library source</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3270260"></a>SpanLib - Fortran 90 library source</h1></div></div><div></div><hr /></div><pre class="programlisting"><span class="HLcomments">! File: spanlib.f90</span>
 <span class="HLcomments">!</span>
 <span class="HLcomments">! This file is part of the SpanLib library.</span>
 <span class="HLcomments">! Copyright (C) 2006  Stephane Raynaud</span>
@@ -30,7 +30,7 @@
 	<span class="HLcomments">! ############################################################</span>
 	<span class="HLcomments">! ############################################################</span>
 
-	<span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_pca</span>(ff, nkeep, xeof, pc, ev, weights, useteof)
+	<span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_pca</span>(ff, nkeep, xeof, pc, ev, weights, useteof, bLargeMatrix)
 
 	<span class="HLcomments">! Title:</span>
 	<span class="HLcomments">!	Principal Component Analysis</span>
@@ -53,6 +53,7 @@
 	<span class="HLcomments">!	- ev:			Mode array of eigen values (variances)</span>
 	<span class="HLcomments">!	- weights:	Space array of weights</span>
 	<span class="HLcomments">!	- useteof:	To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]</span>
+	<span class="HLcomments">!	- bLargeMatrix: Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) [default:.true.]</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Dependencies:</span>
 	<span class="HLcomments">!	sl_diasym</span>
@@ -71,6 +72,7 @@
 	&amp;                                xeof(size(ff,<span class="HLdigits">1</span>),nkeep), ev(nkeep)
 	<span class="HLroutines">real</span>,    <span class="HLattributes">intent</span>(in), <span class="HLattributes">optional</span> :: weights(:)
 	<span class="HLroutines">integer</span>, <span class="HLattributes">intent</span>(in), <span class="HLattributes">optional</span> :: useteof
+	<span class="HLroutines">logical</span>, <span class="HLattributes">intent</span>(in), <span class="HLattributes">optional</span> :: bLargeMatrix
 
 	<span class="HLcomments">! Internal</span>
 	<span class="HLcomments">! --------</span>
@@ -79,6 +81,9 @@
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: wff(:,:), ww(:), zeof(:,:), zff(:,:)
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: eig(:)
 	<span class="HLroutines">integer</span>           :: zuseteof, znkeepmax, i,j
+	<span class="HLroutines">logical</span>           :: zbLargeMatrix
+
+	<span class="HLroutines">real</span> :: t1,t2
 
 	<span class="HLcomments">! Setups</span>
 	<span class="HLcomments">! ======</span>
@@ -128,6 +133,13 @@
 		<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 
+	<span class="HLcomments">! Use ssyevd?</span>
+	<span class="HLcomments">! -----------</span>
+	<span class="HLroutines">if</span>(.<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(bLargeMatrix))<span class="HLroutines">then</span>
+		zbLargeMatrix = .true.
+	<span class="HLroutines">else</span>
+		zbLargeMatrix = bLargeMatrix
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 
 	<span class="HLcomments">! Remove the mean</span>
 	<span class="HLcomments">! ---------------</span>
@@ -164,17 +176,15 @@
 		<span class="HLcomments">! Covariance</span>
 		<span class="HLfunctions">allocate</span>(cov(nt,nt))
 		<span class="HLfunctions">allocate</span>(eig(nt))
-		<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>,nt
-			<span class="HLroutines">do</span> j=<span class="HLdigits">1</span>,i
-				cov(i,j) = <span class="HLfunctions">dot_product</span>(wff(:,i),wff(:,j))
-				cov(j,i) = cov(i,j)
-			<span class="HLroutines">end</span> <span class="HLroutines">do</span>
-		<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+		cov=<span class="HLdigits">0</span>.
+		<span class="HLroutines">call</span> ssyrk(<span class="HLstrings">'U'</span>,<span class="HLstrings">'T'</span>,nt,ns,<span class="HLdigits">1</span>.,wff,ns, <span class="HLdigits">0</span>.,cov,nt)
+		where(cov==<span class="HLdigits">0</span>.) cov = <span class="HLfunctions">transpose</span>(cov)
 		cov = cov / float(ns)
 		<span class="HLfunctions">deallocate</span>(wff)
 
+
 		<span class="HLcomments">! Diagonalising (cov: input=cov, output=eof)</span>
-		<span class="HLroutines">call</span> sl_diasym(cov,eig)
+		<span class="HLroutines">call</span> sl_diasym(cov,eig,zbLargeMatrix)
 
 		<span class="HLcomments">! Back to S-EOFs</span>
 		<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(pc).or.<span class="HLfunctions">present</span>(xeof))<span class="HLroutines">then</span>
@@ -214,17 +224,18 @@
 				cov(j,i) = cov(i,j)
 			<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 		<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+		<span class="HLroutines">call</span> ssyrk(<span class="HLstrings">'U'</span>,<span class="HLstrings">'N'</span>,ns,nt,<span class="HLdigits">1</span>.,wff,ns, <span class="HLdigits">0</span>.,cov,ns)
+		where(cov==<span class="HLdigits">0</span>.) cov = <span class="HLfunctions">transpose</span>(cov)
 		cov = cov / float(nt)
 		<span class="HLfunctions">deallocate</span>(wff)
 
 		<span class="HLcomments">! Diagonalisation (cov: input=cov, output=eof)</span>
-		<span class="HLroutines">call</span> sl_diasym(cov,eig)
+		<span class="HLroutines">call</span> sl_diasym(cov,eig,zbLargeMatrix)
 
 		<span class="HLcomments">! Formatting S-EOFs</span>
 		<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(xeof).or.<span class="HLfunctions">present</span>(pc))<span class="HLroutines">then</span>
 			<span class="HLfunctions">allocate</span>(zeof(ns,nkeep))
 			<span class="HLroutines">do</span> i = <span class="HLdigits">1</span>, nkeep
-<span class="HLcomments">!				zeof(:,i) = cov(:,ns:ns-nkeep+1:-1) / sqrt(ww(:,1:nkeep))</span>
 				zeof(:,i) = cov(:,ns-i+<span class="HLdigits">1</span>) / <span class="HLfunctions">sqrt</span>(ww(:))
 			<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 		<span class="HLroutines">end</span> <span class="HLroutines">if</span>
@@ -359,7 +370,7 @@
   <span class="HLcomments">!############################################################</span>
   <span class="HLcomments">!############################################################</span>
 
-	<span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_mssa</span>(ff, nwindow, nkeep, steof, stpc, ev)
+	<span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_mssa</span>(ff, nwindow, nkeep, steof, stpc, ev, bLargeMatrix)
 
 	<span class="HLcomments">! Title:</span>
 	<span class="HLcomments">!	Multi-channel Singular Spectrum Analysis</span>
@@ -379,6 +390,7 @@
 	<span class="HLcomments">!	- steof: SpaceXwindow-mode array of EOFs</span>
 	<span class="HLcomments">!	- stpc:  Time-mode array of PCs</span>
 	<span class="HLcomments">!	- ev:    Mode array of eigen values (variances)</span>
+	<span class="HLcomments">!	- bLargeMatrix: Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) [default:.true.]</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Dependencies:</span>
 	<span class="HLcomments">!	sl_diasym</span>
@@ -394,6 +406,7 @@
 	<span class="HLroutines">integer</span>,<span class="HLattributes">intent</span>(in)            :: nwindow, nkeep
 	<span class="HLroutines">real</span>,   <span class="HLattributes">intent</span>(out), <span class="HLattributes">optional</span> :: steof(size(ff,<span class="HLdigits">1</span>)*nwindow, nkeep), &amp;
 		&amp; stpc(size(ff,<span class="HLdigits">2</span>)-nwindow+<span class="HLdigits">1</span>, nkeep), ev(nkeep)
+	<span class="HLroutines">logical</span>, <span class="HLattributes">intent</span>(in), <span class="HLattributes">optional</span> :: bLargeMatrix
 
 	<span class="HLcomments">! Internal</span>
 	<span class="HLcomments">! --------</span>
@@ -401,6 +414,7 @@
 	<span class="HLroutines">real</span> :: wsteof
 	<span class="HLroutines">integer</span> :: nchan, nsteof, nt, znkeepmax
 	<span class="HLroutines">integer</span> :: iw, iw1, iw2, i1, i2, im, ic1, ic2
+ 	<span class="HLroutines">logical</span> :: zbLargeMatrix
 
 
 	<span class="HLcomments">! Setup</span>
@@ -413,13 +427,21 @@
 	nt = size(ff,<span class="HLdigits">2</span>)
 	znkeepmax = <span class="HLdigits">100</span>
 	<span class="HLroutines">if</span>(nkeep&gt;znkeepmax)<span class="HLroutines">then</span>
-		<span class="HLroutines">print</span>*,<span class="HLstrings">'[pca] You want to keep a number of PCs '</span>//&amp;
+		<span class="HLroutines">print</span>*,<span class="HLstrings">'[mssa] You want to keep a number of PCs '</span>//&amp;
 		 &amp; <span class="HLstrings">'greater than '</span>,znkeepmax
 		return
 	<span class="HLroutines">else</span> <span class="HLroutines">if</span>(nkeep&gt;nsteof) <span class="HLroutines">then</span>
-		<span class="HLroutines">print</span>*,<span class="HLstrings">'[pca] You want to keep a number of PCs greater '</span>// &amp;
+		<span class="HLroutines">print</span>*,<span class="HLstrings">'[mssa] You want to keep a number of PCs greater '</span>// &amp;
 			&amp; <span class="HLstrings">'than the number of ST-EOFs:'</span>,nsteof
 		return
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+
+	<span class="HLcomments">! Use ssyevd?</span>
+	<span class="HLcomments">! -----------</span>
+	<span class="HLroutines">if</span>(.<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(bLargeMatrix))<span class="HLroutines">then</span>
+		zbLargeMatrix = .true.
+	<span class="HLroutines">else</span>
+		zbLargeMatrix = bLargeMatrix
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 
 	<span class="HLcomments">! Remove the mean</span>
@@ -450,7 +472,7 @@
 	<span class="HLcomments">! Diagonalisation</span>
 	<span class="HLcomments">! ===============</span>
 	<span class="HLfunctions">allocate</span>(eig(nsteof))
-	<span class="HLroutines">call</span> sl_diasym(cov,eig)
+	<span class="HLroutines">call</span> sl_diasym(cov,eig,zbLargeMatrix)
 
 
 	<span class="HLcomments">! Get ST-EOFs and eigenvalues</span>
@@ -638,12 +660,12 @@
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Necessary arguments:</span>
 	<span class="HLcomments">!	- ffrec: Space-time array</span>
-	<span class="HLcomments">!	- np:    Number of requested phases over the 360 degrees cycle (default = 8)</span>
+	<span class="HLcomments">!	- np:    Number of requested phases over the 360 degrees cycle [default:8]</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Optional arguments:</span>
 	<span class="HLcomments">!	- weights:    Space array of weights</span>
-	<span class="HLcomments">!	- offset:     Minimal normalized amplitude of the index (default = 0.)</span>
-	<span class="HLcomments">!	- firstphase: Value in degrees of the first phase (default = 0)</span>
+	<span class="HLcomments">!	- offset:     Minimal normalized amplitude of the index [default:0.]</span>
+	<span class="HLcomments">!	- firstphase: Value in degrees of the first phase [default:0.]</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Dependencies:</span>
 	<span class="HLcomments">!	sl_pca</span>
@@ -736,7 +758,7 @@
 
 
 
-  <span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_diasym</span>(a,eig)
+  <span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_diasym</span>(a,eig,bLargeMatrix)
 
 	<span class="HLcomments">! Title:</span>
 	<span class="HLcomments">!	Diagonalisation of a symetric matrix</span>
@@ -745,8 +767,11 @@
 	<span class="HLcomments">!	A simple interface to the ssyev diagonalisation subroutine from LAPACK.</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Necessary arguments:</span>
-	<span class="HLcomments">!	- a:		Input = symetric matrix, output = EOFs</span>
-	<span class="HLcomments">!	- eig:	Eigen values</span>
+	<span class="HLcomments">!	- a:   Input = symetric matrix, output = EOFs</span>
+	<span class="HLcomments">!	- eig: Eigen values</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! Optional arguments:</span>
+	<span class="HLcomments">!	- bLargeMatrix: Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) [default:.true.]</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Dependencies:</span>
 	<span class="HLcomments">!	ssyev(LAPACK)</span>
@@ -758,28 +783,55 @@
 
 	<span class="HLcomments">! External</span>
 	<span class="HLcomments">! --------</span>
-	<span class="HLroutines">real</span>, <span class="HLattributes">intent</span>(inout) 			::  a(:,:)
-	<span class="HLroutines">real</span>, <span class="HLattributes">intent</span>(out)	:: eig(size(a,<span class="HLdigits">1</span>))
+	<span class="HLroutines">real</span>,    <span class="HLattributes">intent</span>(inout) :: a(:,:)
+	<span class="HLroutines">real</span>,    <span class="HLattributes">intent</span>(out)   :: eig(size(a,<span class="HLdigits">1</span>))
+	<span class="HLroutines">logical</span>, <span class="HLattributes">intent</span>(in), <span class="HLattributes">optional</span> :: bLargeMatrix
 
 	<span class="HLcomments">! Internal</span>
 	<span class="HLcomments">! --------</span>
 	<span class="HLroutines">integer</span> :: n
-	<span class="HLroutines">integer</span> :: lwork,inf
-	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: work(:)
+	<span class="HLroutines">integer</span> :: lwork,inf,liwork
+	<span class="HLroutines">logical</span> :: zbLargeMatrix
+	<span class="HLroutines">real</span>,    <span class="HLattributes">allocatable</span> :: work(:)
+	<span class="HLroutines">integer</span>, <span class="HLattributes">allocatable</span> :: iwork(:)
 
-	<span class="HLcomments">! Sizes</span>
-	<span class="HLcomments">! -----</span>
+	<span class="HLcomments">! Initialisations</span>
+	<span class="HLcomments">! ---------------</span>
+
+	<span class="HLcomments">! Use ssyevd?</span>
+	<span class="HLroutines">if</span>(.<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(bLargeMatrix))<span class="HLroutines">then</span>
+		zbLargeMatrix = .true.
+	<span class="HLroutines">else</span>
+		zbLargeMatrix = bLargeMatrix
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 
 	<span class="HLcomments">! Data set</span>
 	n=size(a,<span class="HLdigits">1</span>)
 
-	<span class="HLcomments">! Working array [other values of lwork: (N+2)*N, n*(3+n/2)]</span>
-	lwork=<span class="HLdigits">1</span>+ <span class="HLdigits">6</span>*N + <span class="HLdigits">2</span>*N**<span class="HLdigits">2</span>
+	<span class="HLcomments">! Working array</span>
+	lwork = -<span class="HLdigits">1</span>
+	<span class="HLfunctions">allocate</span>(work(<span class="HLdigits">1</span>))
+ 	<span class="HLroutines">if</span>(zbLargeMatrix)<span class="HLroutines">then</span>
+		liwork = -<span class="HLdigits">1</span>
+		<span class="HLfunctions">allocate</span>(iwork(<span class="HLdigits">1</span>))
+		<span class="HLroutines">call</span> ssyevd(<span class="HLstrings">'V'</span>,<span class="HLstrings">'U'</span>,n,a,n,eig,work,lwork,iwork,liwork,inf)
+		liwork = iwork(<span class="HLdigits">1</span>)
+		<span class="HLfunctions">deallocate</span>(iwork)
+		<span class="HLfunctions">allocate</span>(iwork(liwork))
+	<span class="HLroutines">else</span>
+		<span class="HLroutines">call</span> <span class="HLfunctions">ssyev</span>(<span class="HLstrings">'V'</span>,<span class="HLstrings">'U'</span>,n,a,n,eig,work,lwork,inf)
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+	lwork = int(work(<span class="HLdigits">1</span>))
+	<span class="HLfunctions">deallocate</span>(work)
 	<span class="HLfunctions">allocate</span>(work(lwork))
 
 	<span class="HLcomments">! Diagonalisation</span>
 	<span class="HLcomments">! ---------------</span>
-	<span class="HLroutines">call</span> <span class="HLfunctions">ssyev</span>(<span class="HLstrings">'V'</span>,<span class="HLstrings">'U'</span>,n,a,n,eig,work,lwork,inf)
+	<span class="HLroutines">if</span>(zbLargeMatrix)<span class="HLroutines">then</span>
+		<span class="HLroutines">call</span> ssyevd(<span class="HLstrings">'V'</span>,<span class="HLstrings">'U'</span>,n,a,n,eig,work,lwork,iwork,liwork,inf)
+	<span class="HLroutines">else</span>
+		<span class="HLroutines">call</span> <span class="HLfunctions">ssyev</span>(<span class="HLstrings">'V'</span>,<span class="HLstrings">'U'</span>,n,a,n,eig,work,lwork,inf)
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 
 	<span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_diasym</span>
 
