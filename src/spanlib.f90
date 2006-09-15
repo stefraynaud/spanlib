@@ -30,7 +30,6 @@ contains
 
 	subroutine sl_pca(ff, nkeep, xeof, pc, ev, weights, useteof, bLargeMatrix)
 
-	! Title:
 	!	Principal Component Analysis
 	!
 	! Description:
@@ -51,14 +50,17 @@ contains
 	!	- ev:			Mode array of eigen values (variances)
 	!	- weights:	Space array of weights
 	!	- useteof:	To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]
-	!	- bLargeMatrix: Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) [default:.true.]
+	!	- bLargeMatrix: Use la_syevd instead of la_syev (faster for large matrices, but uses more workspace) [default:.true.]
 	!
 	! Dependencies:
-	!	sl_diasym
+	!	sgemm(BLAS) ssyrk(BLAS) la_syev(LAPACK95) la_syevd(LAPACK95)
 
 
 	! Declarations
 	! ============
+
+	use la_precision, only: wp => sp
+	use f95_lapack, only: la_syevd, la_syev
 
 	implicit none
 
@@ -77,11 +79,9 @@ contains
 	integer           :: ii,ij,nn,ns,nt
 	real, allocatable :: cov(:,:)
 	real, allocatable :: wff(:,:), ww(:), zeof(:,:), zff(:,:)
-	real, allocatable :: eig(:)
+	real, allocatable :: zev(:)
 	integer           :: zuseteof, znkeepmax, i,j
 	logical           :: zbLargeMatrix
-
-	real :: t1,t2
 
 	! Setups
 	! ======
@@ -118,13 +118,13 @@ contains
 	endif
 	znkeepmax=100
 	if(zuseteof)then
-		if(nkeep>znkeepmax)then
+		if(nkeep>nt)then
 			print*,'[pca] You want to keep a number of PCs '//&
 				&'greater than the number of EOF:',nt
 			return
 		end if
 	else
-		if(nkeep>znkeepmax)then
+		if(nkeep>ns)then
 			print*,'[pca] You want to keep a number of PCs '//&
 				&'greater than the number of EOF:',ns
 			return
@@ -173,16 +173,18 @@ contains
 
 		! Covariance
 		allocate(cov(nt,nt))
-		allocate(eig(nt))
+		allocate(zev(nt))
 		cov=0.
 		call ssyrk('U','T',nt,ns,1.,wff,ns, 0.,cov,nt)
-		where(cov==0.) cov = transpose(cov)
 		cov = cov / float(ns)
 		deallocate(wff)
 
-
 		! Diagonalising (cov: input=cov, output=eof)
-		call sl_diasym(cov,eig,zbLargeMatrix)
+		if(zbLargeMatrix)then
+			call la_syevd(cov,zev,jobz='V')
+		else
+			call la_syev(cov,zev,jobz='V')
+		end if
 
 		! Back to S-EOFs
 		if(present(pc).or.present(xeof))then
@@ -194,18 +196,14 @@ contains
 				zeof(:,i) = zeof(:,i) / &
 				 &          sqrt(dot_product(ww(:), zeof(:,i)**2))
 			end do
-			if(.not.present(pc))then
-				deallocate(ww)
-			end if
+			if(.not.present(pc)) deallocate(ww)
 		else
 			deallocate(cov)
 		end if
 
 		! Eigenvalues
 		! -----------
-		if(present(ev))then
-			ev = eig(nt:nt-nkeep+1:-1)
-		end if
+		if(present(ev))ev = zev(nt:nt-nkeep+1:-1)
 
 	else
 
@@ -214,21 +212,18 @@ contains
 
 		! Covariance
 		allocate(cov(ns,ns))
-		allocate(eig(ns))
+		allocate(zev(ns))
 		cov = 0.
-		do i=1,ns
-			do j=1,i
-				cov(i,j) = dot_product(wff(i,:), wff(j,:))
-				cov(j,i) = cov(i,j)
-			end do
-		end do
 		call ssyrk('U','N',ns,nt,1.,wff,ns, 0.,cov,ns)
-		where(cov==0.) cov = transpose(cov)
 		cov = cov / float(nt)
 		deallocate(wff)
 
 		! Diagonalisation (cov: input=cov, output=eof)
-		call sl_diasym(cov,eig,zbLargeMatrix)
+		if(zbLargeMatrix)then
+			call la_syevd(cov,zev,jobz='V')
+		else
+			call la_syev(cov,zev,jobz='V')
+		end if
 
 		! Formatting S-EOFs
 		if(present(xeof).or.present(pc))then
@@ -241,9 +236,7 @@ contains
 
 		! Eigenvalues
 		! -----------
-		if(present(ev))then
-			ev = eig(ns:ns-nkeep+1:-1)
-		end if
+		if(present(ev)) ev = zev(ns:ns-nkeep+1:-1)
 
 	end if
 
@@ -393,10 +386,14 @@ contains
 	! Dependencies:
 	!	sl_diasym
 
-	implicit none
 
 	! Declarations
 	! ============
+
+	use la_precision, only: wp => sp
+	use f95_lapack, only: la_syevd, la_syev
+
+	implicit none
 
 	! External
 	! --------
@@ -408,7 +405,7 @@ contains
 
 	! Internal
 	! --------
-	real, allocatable :: cov(:,:), eig(:), zff(:,:), zsteof(:,:), wpc(:)
+	real, allocatable :: cov(:,:), zev(:), zff(:,:), zsteof(:,:), wpc(:)
 	real :: wsteof
 	integer :: nchan, nsteof, nt, znkeepmax
 	integer :: iw, iw1, iw2, i1, i2, im, ic1, ic2
@@ -469,8 +466,13 @@ contains
 
 	! Diagonalisation
 	! ===============
-	allocate(eig(nsteof))
-	call sl_diasym(cov,eig,zbLargeMatrix)
+	allocate(zev(nsteof))
+	if(zbLargeMatrix)then
+		call la_syevd(cov,zev,jobz='V')
+	else
+		call la_syev(cov,zev,jobz='V')
+	end if
+
 
 
 	! Get ST-EOFs and eigenvalues
@@ -488,9 +490,9 @@ contains
 	! Eigen values
 	! ------------
 	if(present(ev))then
-		ev = eig(nsteof : nsteof-nkeep+1 : -1)
+		ev = zev(nsteof : nsteof-nkeep+1 : -1)
 	end if
-	deallocate(eig)
+	deallocate(zev)
 
 
 	! Get ST-PCs
@@ -632,6 +634,173 @@ contains
 
 
 
+  !############################################################
+  !############################################################
+  !## SVD PART ################################################
+  !############################################################
+  !############################################################
+
+	subroutine sl_svd(ll,rr,nkeep,leof,reof,lpc,rpc,ev,bLargeMatrix)
+
+	! Title:
+	!	Singular Value Decomposition
+	!
+	! Description:
+	!	Singular value decomposition between two datasets having
+	!	the same length in time.
+	!
+	! Necessary arguments:
+	!	- ll:    Left space-time array
+	!	- rr:    Right space-time array
+	!	- nkeep: Maximum number of modes to keep in outputs
+	!
+	! Optional arguments:
+	!	- leof:  Left EOFs
+	!	- reof:  Right EOFs
+	!	- lpc:   Left PCs
+	!	- rpc:   Right PCs
+	!	- bLargeMatrix: Use la_sgesdd instead of la_sgesvd (faster for large matrices, but uses more workspace) [default:.true.]
+
+
+	! Declarations
+	! ============
+
+	use la_precision, only: wp => sp
+	use f95_lapack, only: la_gesdd, la_gesvd
+	implicit none
+
+	! External
+	! --------
+	real,    intent(in)           :: ll(:,:),rr(:,:)
+	integer, intent(in)	         :: nkeep
+	real,    intent(out),optional :: lpc(size(ll,2),nkeep), &
+	&                                leof(size(ll,1),nkeep), &
+	&                                rpc(size(ll,2),nkeep), &
+	&                                reof(size(rr,1),nkeep), &
+	&                                ev(nkeep)
+	logical, intent(in), optional :: bLargeMatrix
+
+	! Internal
+	! --------
+	integer           :: ii,ij,nn,ns,nsl,nsr,nt
+	real, allocatable :: zll(:,:), zrr(:,:), cov(:,:)
+	real, allocatable :: zev(:), zleof(:,:)
+	integer           :: znkeepmax, i,j
+	logical           :: zbLargeMatrix
+
+
+	! Sizes
+	! -----
+	nsl = size(ll,1)
+	nsr = size(rr,1)
+	nt = size(ll,2)
+	if(nsl/=nsr.or.nt/=size(rr,2))then
+		print*,'[svd] Left and right array have incompatible sizes'
+		return
+	end if
+	ns = min(nsr,nsl)
+	znkeepmax = 100
+	if(nkeep>znkeepmax)then
+		print*,'[svd] You want to keep a number of PCs '//&
+		 & 'greater than ',znkeepmax
+		return
+	end if
+	if(nkeep>ns)then
+		print*,'[svd] You want to keep a number of PCs '//&
+			&'greater than the number of EOF:',ns
+		return
+	end if
+
+	! What does the user want?
+	! ------------------------
+	if(.not.present(leof).and..not.present(lpc).and.&
+	  &.not.present(reof).and..not.present(rpc).and.&
+	  &.not.present(ev))then
+		print*,'[svd] Nothing to do. Quit.'
+		return
+	end if
+
+	! Use ssyevd?
+	! -----------
+	if(.not.present(bLargeMatrix))then
+		zbLargeMatrix = .true.
+	else
+		zbLargeMatrix = bLargeMatrix
+	end if
+
+
+	! Computations
+	! ============
+
+	! Remove the mean
+	! ---------------
+	allocate(zll(nsl,nt))
+	zll = ll - spread(sum(ll,dim=2)/real(nt), ncopies=nt, dim=2)
+	allocate(zrr(nsr,nt))
+	zrr = rr - spread(sum(rr,dim=2)/real(nt), ncopies=nt, dim=2)
+
+	! Cross-covariances
+	! -----------------
+	allocate(cov(nsl,nsr))
+	call sgemm('N','T',nsl,nsr,nt,1.,zll,nsl, &
+				& zrr,nsr,0.,cov,nsl)
+	cov = cov / float(nt)
+	if(.not.present(leof).and..not.present(lpc)) deallocate(zll)
+	if(.not.present(reof).and..not.present(rpc)) deallocate(zrr)
+
+	! SVD
+	! ---
+	allocate(zleof(nsr,ns), zev(ns))
+	if(bLargeMatrix)then
+		call la_gesdd(cov, zev, u=zleof, job='V')
+	else
+		call la_gesvd(cov, zev, u=zleof, job='V')
+	end if
+	if(.not.present(reof).and..not.present(rpc)) deallocate(cov)
+
+
+	! Get output arrays
+	! =================
+
+	! Eigen values
+	! ------------
+	if(present(ev)) ev = zev(1:nkeep)
+	print*,'svd ev:',zev(1:nkeep)
+	deallocate(zev)
+
+	! EOFs
+	! ----
+	if(present(leof).or.present(lpc))then
+		leof = zleof(:,1:nkeep)
+		deallocate(zleof)
+	end if
+	if(present(reof).or.present(rpc))then
+		do i = 1, nkeep
+			reof(:, i) = cov(i,:)
+		end do
+		deallocate(cov)
+	end if
+
+	! PCs
+	! ---
+	if(present(lpc))then
+		lpc = matmul(transpose(zll), leof)
+		do i = 1, nkeep
+			lpc(:,i) = lpc(:,i) / sum(leof(:,i)**2)
+		end do
+	end if
+	if(present(rpc))then
+		rpc = matmul(transpose(zrr), reof)
+		do i = 1, nkeep
+			rpc(:,i) = rpc(:,i) / sum(reof(:,i)**2)
+		end do
+	end if
+
+	end subroutine sl_svd
+
+
+
+
   ! ############################################################
   ! ############################################################
   ! ## TOOLS PART ##############################################
@@ -754,83 +923,5 @@ contains
 
 	end subroutine sl_phasecomp
 
-
-
-  subroutine sl_diasym(a,eig,bLargeMatrix)
-
-	! Title:
-	!	Diagonalisation of a symetric matrix
-	!
-	! Description:
-	!	A simple interface to the ssyev diagonalisation subroutine from LAPACK.
-	!
-	! Necessary arguments:
-	!	- a:   Input = symetric matrix, output = EOFs
-	!	- eig: Eigen values
-	!
-	! Optional arguments:
-	!	- bLargeMatrix: Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) [default:.true.]
-	!
-	! Dependencies:
-	!	ssyev(LAPACK)
-
-	implicit none
-
-	! Declaratiions
-	! =============
-
-	! External
-	! --------
-	real,    intent(inout) :: a(:,:)
-	real,    intent(out)   :: eig(size(a,1))
-	logical, intent(in), optional :: bLargeMatrix
-
-	! Internal
-	! --------
-	integer :: n
-	integer :: lwork,inf,liwork
-	logical :: zbLargeMatrix
-	real,    allocatable :: work(:)
-	integer, allocatable :: iwork(:)
-
-	! Initialisations
-	! ---------------
-
-	! Use ssyevd?
-	if(.not.present(bLargeMatrix))then
-		zbLargeMatrix = .true.
-	else
-		zbLargeMatrix = bLargeMatrix
-	end if
-
-	! Data set
-	n=size(a,1)
-
-	! Working array
-	lwork = -1
-	allocate(work(1))
- 	if(zbLargeMatrix)then
-		liwork = -1
-		allocate(iwork(1))
-		call ssyevd('V','U',n,a,n,eig,work,lwork,iwork,liwork,inf)
-		liwork = iwork(1)
-		deallocate(iwork)
-		allocate(iwork(liwork))
-	else
-		call ssyev('V','U',n,a,n,eig,work,lwork,inf)
-	end if
-	lwork = int(work(1))
-	deallocate(work)
-	allocate(work(lwork))
-
-	! Diagonalisation
-	! ---------------
-	if(zbLargeMatrix)then
-		call ssyevd('V','U',n,a,n,eig,work,lwork,iwork,liwork,inf)
-	else
-		call ssyev('V','U',n,a,n,eig,work,lwork,inf)
-	end if
-
-	end subroutine sl_diasym
 
 end module spanlib

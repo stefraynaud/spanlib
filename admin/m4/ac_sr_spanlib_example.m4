@@ -10,7 +10,7 @@ AC_DEFUN([AC_SR_SPANLIB_EXAMPLE],[
 
 	AC_SR_NETCDF()
 	AS_IF([test "AS_VAR_GET(HAS_F90NETCDF)" = "yes"],[
-		AS_VAR_SET(F90_EXAMPLE_TEXT,["To run the f90 example, type from here '"AS_VAR_GET([NORMAL])"make example"AS_VAR_GET(GREEN)"'."])
+		AS_VAR_SET(F90_EXAMPLE_TEXT,["To run the first fortran example, type from here '"AS_VAR_GET([NORMAL])"make example"AS_VAR_GET(GREEN)"'."])
 	],[
 		AC_SR_WARNING([Without f90 netcdf support, you wont be able to run the f90 example])
 	])
@@ -25,7 +25,7 @@ AC_DEFUN([AC_SR_SPANLIB_EXAMPLE],[
 	# Python example
 	#################################################################
 	AS_VAR_SET_IF(WITH_PYTHON_EXAMPLE,[
-		AS_VAR_SET(PYTHON_EXAMPLE_TEXT,["To run the python examples, type from here '"AS_VAR_GET([NORMAL])"cd example && make python1 && make python2"AS_VAR_GET(GREEN)"'."])
+		AS_VAR_SET(PYTHON_EXAMPLE_TEXT,["To run the first python example, type from here '"AS_VAR_GET([NORMAL])"make python1"AS_VAR_GET(GREEN)"'."])
 	])
 
 
@@ -58,21 +58,22 @@ you will have to download yourself the input data file to run the example]))
 	AC_CHECK_PROG(NCVIEW,ncview,ncview,no)
 	AS_IF([test "AS_VAR_GET(NCVIEW)" != "no"],[
 		AS_VAR_SET(NCVIEWER,AS_VAR_GET(NCVIEW))
-		AS_VAR_SET(NCVIEWER_ARGS,['$(F90NCOUTPUT)'])
+		AS_VAR_SET(NCVIEWER_ARGS1,['$(F90NCOUTPUT1)'])
+		AS_VAR_SET(NCVIEWER_ARGS2,['$(F90NCOUTPUT2)'])
 	])
 
 	# VCDAT
 	AS_VAR_SET_IF(NCVIEWER,,[
 		AS_IF([test "AS_VAR_GET(VCDAT)" != "no"],[
 			AS_VAR_SET(NCVIEWER,AS_VAR_GET(VCDAT))
-			AS_VAR_SET(NCVIEWER_ARGS,[''])
 		])])
 
 	# Quick python viewer
 	AS_VAR_SET_IF(NCVIEWER,,[
 		AS_IF(AS_VAR_GET(WITH_PYTHON_EXAMPLE),[
 			AS_VAR_SET(NCVIEWER,[AS_VAR_GET(PYTHON) ../scripts/quickplot.py])
-			AS_VAR_SET(NCVIEWER_ARGS,['$(F90NCOUTPUT) $(VARIABLE)'])
+			AS_VAR_SET(NCVIEWER_ARGS1,['$(F90NCOUTPUT1) $(VARIABLE1)'])
+			AS_VAR_SET(NCVIEWER_ARGS2,['$(F90NCOUTPUT2) $(VARIABLE2)'])
 		])])
 
 	# So...
@@ -80,7 +81,8 @@ you will have to download yourself the input data file to run the example]))
 		AC_SR_WARNING([No netcdf viewer available:
 you will have to visualise the output netcdf file by your own]))
 	AC_SUBST(NCVIEWER)
-	AC_SUBST(NCVIEWER_ARGS)
+	AC_SUBST(NCVIEWER_ARGS1)
+	AC_SUBST(NCVIEWER_ARGS2)
 	AM_CONDITIONAL(HAS_NCVIEWER,AS_VAR_TEST_SET(NCVIEWER))
 
 ])

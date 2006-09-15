@@ -1,4 +1,4 @@
-! File: example.f90
+! File: example1.f90
 !
 ! This file is part of the SpanLib library.
 ! Copyright (C) 2006  Stephane Raynaud
@@ -20,7 +20,7 @@
 
 program example
 
-	! This simple example shows how to use all subroutines from this package.
+	! This simple example shows how to PCA and MSSA subroutines from this package.
 	! Warning: it requires netcdf for in/outputs.
 	!
 	! We start from longitude/latitude/time value of Pacific Sea Surface Temperature
@@ -36,7 +36,7 @@ program example
 	! Finally, phase composites are computed from this reconstructed oscillation.
 	! The oscillation is outputed in a netcdf file (pair_1.cdf).
 	!
-	! The initial data set (data.cdf):
+	! Initial data set (data2.cdf):
 	! - origin: updated Reynolds and Smith (1996) SST (netcdf file)
 	! - origin url: data selector from http://iridl.ldeo.columbia.edu
 	! - how to get it [10Mb]: http://stefdeperou.free.fr/pub/data.cdf
@@ -63,7 +63,7 @@ program example
 	real, parameter :: offset=0., first_phase=180., &
 		& new_missing_value=-999.
 	character(len=20), parameter :: input_nc_file="data2.cdf", &
-		& output_nc_file="output.nc", var_name='ssta'
+		& output_nc_file="output1.nc", var_name='ssta'
 
 	! Other declarations
 	! ------------------
@@ -120,7 +120,7 @@ program example
 
 	! Format (pack) data to have only one space dimension
 	! ---------------------------------------------------
-	print*,'Packaging...'
+	print*,'Packing...'
 
 	! Compute weights proportional to grid point area
 	pi = cos(-1.)
@@ -141,7 +141,7 @@ program example
 
 	! Perform a PCA to reduce the d.o.f
 	! ---------------------------------
-	print*,'PCA...'
+	print*,'Pre-PCA (sl_pca)...'
 	allocate(eof(nspace, nkeep_pca))
 	allocate(pc(ntime,   nkeep_pca))
 	call sl_pca(packed_field, nkeep_pca, xeof=eof, &
@@ -150,7 +150,7 @@ program example
 
 	! We send results from PCA to MSSA
 	! --------------------------------
-	print*,'MSSA...'
+	print*,'MSSA (sl_mssa)...'
 	allocate(steof(nkeep_pca*nwindow, first_mode+1))
 	allocate(stpc(ntime-nwindow+1,    first_mode+1))
 	allocate(stev(                    first_mode+1))
@@ -160,7 +160,7 @@ program example
 	! We reconstruct modes [first_mode + first_mode+1] of MSSA
 	! --------------------------------------------------------
 
-	print*,'MSSAREC...'
+	print*,'MSSA reconstruction (sl_mssarec)...'
 	allocate(stpair(nkeep_pca, ntime))
 	call sl_mssarec(steof, stpc, nwindow, stpair, &
 		&	istart=first_mode, iend=first_mode+1)
@@ -168,7 +168,7 @@ program example
 
 	! We compute phases composites for the reconstructed oscillation
 	! ---------------------------------------------------------------
-	print*,'PHASECOMP...'
+	print*,'Phase composites (sl_phasecomp)...'
 	allocate(stphasecomps(nkeep_pca, nphases))
 	call sl_phasecomp(stpair, nphases, stphasecomps, &
 		&	weights=packed_weights, &
@@ -177,7 +177,7 @@ program example
 	! We go back to the physical space for
 	! the full oscillation AND its composites
 	! ---------------------------------------
-	print*,'PCAREC...'
+	print*,'Back to the physical space (sl_pcarec)...'
 	allocate(pair(nspace, ntime))
 	call sl_pcarec(eof, transpose(stpair), pair)
 	allocate(packed_phasecomps(nspace, nphases))

@@ -13,11 +13,28 @@ doc: documentation
 documentation:
 	cd $(top_srcdir)/doc && make
 
-example:
-	cd $(top_srcdir)/example && make
+example: fortran1
 
-python1 python2:
+fortran1 fortran2 python1 python2:
 	cd $(top_srcdir)/example && make $@
 
 clean-local:
 	cd example && make clean
+
+help:
+	@echo "Typical usages of make"
+	@echo "======================"
+	@echo "make"
+	@echo "make install"
+	@echo "-"
+	@echo "make example OR make fortran1"
+	@echo "make fortran2"
+	@echo "make python1"
+	@echo "make python2"
+	@echo "-"
+	@echo "make clean"
+	@echo "make uninstall"
+
+
+
+

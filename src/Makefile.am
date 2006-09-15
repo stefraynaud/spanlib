@@ -7,6 +7,7 @@ nodist_include_HEADERS=spanlib.mod
 libspanlib_a_SOURCES=spanlib.f90
 CLEANFILES=*.pyf *.pfp
 EXTRA_DIST=spanlib_pywrap.f90
+AM_FCFLAGS = $(LAPACK_INC)
 
 WRAPPER = $(PACKAGE)_pywrap.f90
 PYTHON_PACKAGE = $(PACKAGE)_fort
@@ -46,8 +47,8 @@ $(PACKAGE).pfp:
 	@echo "pyf('$(PACKAGE).pyf',\
 	sources=['$(WRAPPER)'],\
 	libraries='$(PACKAGE) $(PYFORT_LIBS)',\
-	library_directories='. $(PYFORT_DIRS)',\
-	compiler_options='-I../..',\
+	library_directories='. $(PYFORT_LIBDIRS)',\
+	compiler_options='-I../.. -I$(PYFORT_INCDIRS)',\
 	python_directory='$(top_srcdir)/lib',\
 	package_name='$(PACKAGE)',\
 	generate_as='$(PYTHON_PACKAGE)',\
