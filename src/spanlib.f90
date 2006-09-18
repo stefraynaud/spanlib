@@ -383,7 +383,7 @@ contains
 	!	- bLargeMatrix: Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) [default:.true.]
 	!
 	! Dependencies:
-	!	sl_diasym
+	!	la_syev(LAPACK95) la_syevd(LAPACK95)
 
 
 	! Declarations
@@ -659,6 +659,9 @@ contains
 	!	- lpc:   Left PCs
 	!	- rpc:   Right PCs
 	!	- bLargeMatrix: Use la_sgesdd instead of la_sgesvd (faster for large matrices, but uses more workspace) [default:.false.]
+	!
+	! Dependencies:
+	!	sgemm(BLAS) la_gesvd(LAPACK95) la_gesdd(LAPACK95)
 
 
 	! Declarations

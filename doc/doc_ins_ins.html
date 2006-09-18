@@ -4,7 +4,7 @@
     <title>2.3. Compilation and installation</title>
     <link rel="stylesheet" href="spanlib.css" type="text/css"/>
     <meta name="generator" content="DocBook XSL Stylesheets V1.61.2"/>
-    <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, PCA, EOF, POP"/>
+    <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, Multichannel singular spectrum analysis, PCA, Principal component analysis, EOF, Empirical othogonal funtion, PC, Principal component, SVD, Singular value decomposition, POP, Principal oscillation patterns"/>
     <link rel="home" href="index.html" title="SpanLib - Spectral Analysis Library"/>
     <link rel="up" href="doc_ins.html" title="2. Installation"/>
     <link rel="previous" href="doc_ins_dow.html" title="2.2. Download"/>
@@ -65,10 +65,20 @@
       <p>
 				Here is an example of <b class="userinput"><tt>./configure</tt></b>:
 				</p>
-      <pre class="programlisting"><tt class="prompt">&lt;raynaud&gt;</tt> <b class="userinput"><tt>./configure --with-blas-lib=/usr/local/install/lapack-3.0/lib \
+      <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>./configure --with-blas-lib=/usr/local/install/lapack-3.0/lib \
 --with-netcdf-lib=/usr/local/install/netcdf-3.6.1/lib \
 --with-netcdf-inc=/usr/local/install/netcdf-3.6.1/include \
 --prefix=$HOME --with-pythondir=$HOME/python FC=ifort</tt></b></pre>
+      <p>
+			</p>
+      <p>
+				You can list all <b class="command">configure</b> options using:
+				</p>
+      <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>./configure --help</tt></b></pre>
+      <p>
+				You can also list usefull<b class="command">make</b> targets with:
+				</p>
+      <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>.make  help</tt></b></pre>
       <p>
 			</p>
     </div>

@@ -6,10 +6,10 @@ body {
 
 /* Shadow */
 h1 {
-	text-shadow: #bbb 0.1em 0.1em 3px;
+	text-shadow: #999 0.1em 0.1em 3px;
 }
 h2, h3, h4, h5, div.navfooter, div.navheader {
-	text-shadow: #ccc 0.1em 0.1em 2px;
+	text-shadow: #999 0.1em 0.1em 2px;
 }
 
 /* Links */

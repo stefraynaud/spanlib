@@ -4,11 +4,11 @@
     <title>3.2. F90 subroutines</title>
     <link rel="stylesheet" href="spanlib.css" type="text/css"/>
     <meta name="generator" content="DocBook XSL Stylesheets V1.61.2"/>
-    <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, PCA, EOF, POP"/>
+    <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, Multichannel singular spectrum analysis, PCA, Principal component analysis, EOF, Empirical othogonal funtion, PC, Principal component, SVD, Singular value decomposition, POP, Principal oscillation patterns"/>
     <link rel="home" href="index.html" title="SpanLib - Spectral Analysis Library"/>
     <link rel="up" href="doc_f90.html" title="3. The Fortran 90 library"/>
     <link rel="previous" href="doc_f90.html" title="3. The Fortran 90 library"/>
-    <link rel="next" href="doc_f90_exa.html" title="3.3. A Fortran 90 example"/>
+    <link rel="next" href="doc_f90_exa.html" title="3.3. Fortran 90 examples"/>
   </head>
   <body>
     <div class="navheader">
@@ -37,7 +37,7 @@
         <div class="titlepage">
           <div>
             <div>
-              <h4 class="title"><a id="sl_pca"/>3.2.1. Principal Component Analysis: <tt class="literal">sl_pca</tt></h4>
+              <h4 class="title"><a id="sl_pca"/>3.2.1. : <tt class="literal">sl_pca</tt></h4>
             </div>
           </div>
           <div/>
@@ -46,7 +46,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3361458"/>Usage</h5>
+                <h5 class="title"><a id="id3450301"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -57,7 +57,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3361529"/>Description</h5>
+                <h5 class="title"><a id="id3450372"/>Description</h5>
               </div>
             </div>
             <div/>
@@ -75,7 +75,7 @@ than the time dimension. This default behavior can be overridden.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3361548"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3450392"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -93,7 +93,7 @@ than the time dimension. This default behavior can be overridden.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3361609"/>Optional arguments</h5>
+                <h5 class="title"><a id="id3450452"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -117,7 +117,7 @@ than the time dimension. This default behavior can be overridden.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3359590"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3388577"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -125,7 +125,7 @@ than the time dimension. This default behavior can be overridden.
           <div class="itemizedlist">
             <ul type="disc">
               <li><tt class="varname">bLargeMatrix    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
-				 :: <span class="emphasis"><em> Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) </em></span></li>
+				 :: <span class="emphasis"><em> Use la_syevd instead of la_syev (faster for large matrices, but uses more workspace) </em></span></li>
             </ul>
           </div>
         </div>
@@ -133,13 +133,13 @@ than the time dimension. This default behavior can be overridden.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3359628"/>Dependencies</h5>
+                <h5 class="title"><a id="id3388615"/>Dependencies</h5>
               </div>
             </div>
             <div/>
           </div>
           <p>
-			<span class="HLpersonalised"><tt class="literal"><a href="doc_f90_sub.html#sl_diasym" title="3.2.6. Diagonalisation of a symetric matrix: sl_diasym">sl_diasym</a></tt></span>
+<tt class="literal">sgemm(BLAS) ssyrk(BLAS) la_syev(LAPACK95) la_syevd(LAPACK95)</tt>
 		</p>
         </div>
       </div>
@@ -156,7 +156,7 @@ than the time dimension. This default behavior can be overridden.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3359667"/>Usage</h5>
+                <h5 class="title"><a id="id3388647"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -167,7 +167,7 @@ than the time dimension. This default behavior can be overridden.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3359721"/>Description</h5>
+                <h5 class="title"><a id="id3388701"/>Description</h5>
               </div>
             </div>
             <div/>
@@ -183,7 +183,7 @@ by its PC. The sum of all reconstructed component is the original field.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3359738"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3388718"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -203,7 +203,7 @@ by its PC. The sum of all reconstructed component is the original field.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3359824"/>Optional arguments</h5>
+                <h5 class="title"><a id="id3388803"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -231,7 +231,7 @@ by its PC. The sum of all reconstructed component is the original field.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3430138"/>Usage</h5>
+                <h5 class="title"><a id="id3459563"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -242,7 +242,7 @@ by its PC. The sum of all reconstructed component is the original field.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3430206"/>Description</h5>
+                <h5 class="title"><a id="id3459631"/>Description</h5>
               </div>
             </div>
             <div/>
@@ -258,7 +258,7 @@ parameter.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3430222"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3459647"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -278,7 +278,7 @@ parameter.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3430307"/>Optional arguments</h5>
+                <h5 class="title"><a id="id3459732"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -298,7 +298,7 @@ parameter.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3430392"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3459817"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -314,13 +314,13 @@ parameter.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3430430"/>Dependencies</h5>
+                <h5 class="title"><a id="id3459855"/>Dependencies</h5>
               </div>
             </div>
             <div/>
           </div>
           <p>
-			<span class="HLpersonalised"><tt class="literal"><a href="doc_f90_sub.html#sl_diasym" title="3.2.6. Diagonalisation of a symetric matrix: sl_diasym">sl_diasym</a></tt></span>
+<tt class="literal">la_syev(LAPACK95) la_syevd(LAPACK95)</tt>
 		</p>
         </div>
       </div>
@@ -337,7 +337,7 @@ parameter.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3430469"/>Usage</h5>
+                <h5 class="title"><a id="id3459887"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -348,7 +348,7 @@ parameter.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3430530"/>Description</h5>
+                <h5 class="title"><a id="id3459948"/>Description</h5>
               </div>
             </div>
             <div/>
@@ -361,7 +361,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3430544"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3459961"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -383,7 +383,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3430653"/>Optional arguments</h5>
+                <h5 class="title"><a id="id3460071"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -402,7 +402,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
         <div class="titlepage">
           <div>
             <div>
-              <h4 class="title"><a id="sl_phasecomp"/>3.2.5. Phase composites: <tt class="literal">sl_phasecomp</tt></h4>
+              <h4 class="title"><a id="sl_svd"/>3.2.5. Singular Value Decomposition: <tt class="literal">sl_svd</tt></h4>
             </div>
           </div>
           <div/>
@@ -411,7 +411,115 @@ Same as for the reconstruction of PCA components, but for MSSA.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3360551"/>Usage</h5>
+                <h5 class="title"><a id="id3389522"/>Usage</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <pre class="programlisting">call <span class="HLpersonalised">sl_svd</span>(<span class="HLpersonalised">ll</span>, <span class="HLpersonalised">rr</span>, <span class="HLpersonalised">nkeep</span>, leof=<span class="HLpersonalised">leof</span>, reof=<span class="HLpersonalised">reof</span>, lpc=<span class="HLpersonalised">lpc</span>, rpc=<span class="HLpersonalised">rpc</span>, ev=<span class="HLpersonalised">ev</span>, <span class="HLpersonalised">bLargeMatrix</span>)</pre>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id3389604"/>Description</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <p>
+Singular value decomposition between two datasets having
+the same length in time.
+		</p>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id3389618"/>Necessary arguments</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li><tt class="varname">ll    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]    </span></tt> 
+				 :: <span class="emphasis"><em>    Left space-time array</em></span></li>
+              <li><tt class="varname">rr    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]    </span></tt> 
+				 :: <span class="emphasis"><em>    Right space-time array</em></span></li>
+              <li><tt class="varname">nkeep    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+				 :: <span class="emphasis"><em> Maximum number of modes to keep in outputs</em></span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id3389703"/>Optional arguments</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li><tt class="varname">leof    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
+				 :: <span class="emphasis"><em>  Left EOFs</em></span></li>
+              <li><tt class="varname">reof    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
+				 :: <span class="emphasis"><em>  Right EOFs</em></span></li>
+              <li><tt class="varname">lpc    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
+				 :: <span class="emphasis"><em>   Left PCs</em></span></li>
+              <li><tt class="varname">rpc    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
+				 :: <span class="emphasis"><em>   Right PCs</em></span></li>
+              <li><tt class="varname">ev    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
+				 :: <span class="emphasis"><em/></span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id3389833"/>Necessary arguments</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <div class="itemizedlist">
+            <ul type="disc">
+              <li><tt class="varname">bLargeMatrix    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+				 :: <span class="emphasis"><em> Use la_sgesdd instead of la_sgesvd (faster for large matrices, but uses more workspace) </em></span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id3389870"/>Dependencies</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <p>
+<tt class="literal">sgemm(BLAS) la_gesvd(LAPACK95) la_gesdd(LAPACK95)</tt>
+		</p>
+        </div>
+      </div>
+      <div class="sect3" lang="en">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="sl_phasecomp"/>3.2.6. Phase composites: <tt class="literal">sl_phasecomp</tt></h4>
+            </div>
+          </div>
+          <div/>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id3389902"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -422,7 +530,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3360612"/>Description</h5>
+                <h5 class="title"><a id="id3389964"/>Description</h5>
               </div>
             </div>
             <div/>
@@ -444,7 +552,7 @@ the first phase conincides with the maximmum.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3360634"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3389986"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -464,7 +572,7 @@ the first phase conincides with the maximmum.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3360725"/>Optional arguments</h5>
+                <h5 class="title"><a id="id3390076"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -484,80 +592,13 @@ the first phase conincides with the maximmum.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3360824"/>Dependencies</h5>
+                <h5 class="title"><a id="id3460416"/>Dependencies</h5>
               </div>
             </div>
             <div/>
           </div>
           <p>
-			<span class="HLpersonalised"><tt class="literal"><a href="doc_f90_sub.html#sl_pca" title="3.2.1. Principal Component Analysis: sl_pca">sl_pca</a></tt></span>
-		</p>
-        </div>
-      </div>
-      <div class="sect3" lang="en">
-        <div class="titlepage">
-          <div>
-            <div>
-              <h4 class="title"><a id="sl_diasym"/>3.2.6. Diagonalisation of a symetric matrix: <tt class="literal">sl_diasym</tt></h4>
-            </div>
-          </div>
-          <div/>
-        </div>
-        <div class="simplesect" lang="en">
-          <div class="titlepage">
-            <div>
-              <div>
-                <h5 class="title"><a id="id3360864"/>Usage</h5>
-              </div>
-            </div>
-            <div/>
-          </div>
-          <pre class="programlisting">call <span class="HLpersonalised">sl_diasym</span>(<span class="HLpersonalised">a</span>, <span class="HLpersonalised">eig</span>, <span class="HLpersonalised">bLargeMatrix</span>)</pre>
-        </div>
-        <div class="simplesect" lang="en">
-          <div class="titlepage">
-            <div>
-              <div>
-                <h5 class="title"><a id="id3360904"/>Description</h5>
-              </div>
-            </div>
-            <div/>
-          </div>
-          <p>
-A simple interface to the ssyev diagonalisation subroutine from LAPACK.
-		</p>
-        </div>
-        <div class="simplesect" lang="en">
-          <div class="titlepage">
-            <div>
-              <div>
-                <h5 class="title"><a id="id3360918"/>Necessary arguments</h5>
-              </div>
-            </div>
-            <div/>
-          </div>
-          <div class="itemizedlist">
-            <ul type="disc">
-              <li><tt class="varname">a    </tt><tt class="option"><span class="ARGspec">[intent:inoutput, type:real]    </span></tt> 
-				 :: <span class="emphasis"><em>   Input = symetric matrix, output = EOFs</em></span></li>
-              <li><tt class="varname">eig    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
-				 :: <span class="emphasis"><em> Eigen values</em></span></li>
-              <li><tt class="varname">bLargeMatrix    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
-				 :: <span class="emphasis"><em> Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) </em></span></li>
-            </ul>
-          </div>
-        </div>
-        <div class="simplesect" lang="en">
-          <div class="titlepage">
-            <div>
-              <div>
-                <h5 class="title"><a id="id3361003"/>Dependencies</h5>
-              </div>
-            </div>
-            <div/>
-          </div>
-          <p>
-<tt class="literal">ssyev(LAPACK)</tt>
+			<span class="HLpersonalised"><tt class="literal"><a href="doc_f90_sub.html#sl_pca" title="3.2.1. : sl_pca">sl_pca</a></tt></span>
 		</p>
         </div>
       </div>
@@ -577,7 +618,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
           <td width="20%" align="center">
             <a accesskey="h" href="index.html">Home</a>
           </td>
-          <td width="40%" align="right" valign="top"> 3.3. A Fortran 90 example</td>
+          <td width="40%" align="right" valign="top"> 3.3. Fortran 90 examples</td>
         </tr>
       </table>
     </div>

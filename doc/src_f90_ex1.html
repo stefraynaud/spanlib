@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 example</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3019222"></a>SpanLib - Fortran 90 example</h1></div></div><div></div><hr /></div><pre class="programlisting"><span class="HLcomments">! File: example.f90</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 example 1</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3391328"></a>SpanLib - Fortran 90 example 1</h1></div></div><div></div><hr /></div><pre class="programlisting"><span class="HLcomments">! File: example1.f90</span>
 <span class="HLcomments">!</span>
 <span class="HLcomments">! This file is part of the SpanLib library.</span>
 <span class="HLcomments">! Copyright (C) 2006  Stephane Raynaud</span>
@@ -22,12 +22,12 @@
 
 <span class="HLroutines">program</span> example
 
-	<span class="HLcomments">! This simple example shows how to use all subroutines from this package.</span>
+	<span class="HLcomments">! This simple example shows how to PCA and MSSA subroutines from this package.</span>
 	<span class="HLcomments">! Warning: it requires netcdf for in/outputs.</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! We start from longitude/latitude/time value of Pacific Sea Surface Temperature</span>
 	<span class="HLcomments">! that include the El Nino Southern Oscillation signal.</span>
-	<span class="HLcomments">! Input is the netcdf file data.cdf.</span>
+	<span class="HLcomments">! Input is the netcdf file data2.cdf.</span>
 	<span class="HLcomments">! We remove land points from the initial array according</span>
 	<span class="HLcomments">! to the netcdf missing_value attribute of the analysed variable (data are &quot;packed&quot;).</span>
 	<span class="HLcomments">! A PCA is used to reduce the degrees of freedoom before MSSA analysis.</span>
@@ -37,8 +37,10 @@
 	<span class="HLcomments">! reconstructed from the MSSA and PCA spaces.</span>
 	<span class="HLcomments">! Finally, phase composites are computed from this reconstructed oscillation.</span>
 	<span class="HLcomments">! The oscillation is outputed in a netcdf file (pair_1.cdf).</span>
+	<span class="HLcomments">! MSSA eigenvalue are stored in the output netcdf file. This shows</span>
+	<span class="HLcomments">! you pairs due to oscillatory modes.</span>
 	<span class="HLcomments">!</span>
-	<span class="HLcomments">! The initial data set (data.cdf):</span>
+	<span class="HLcomments">! Initial data set (data2.cdf):</span>
 	<span class="HLcomments">! - origin: updated Reynolds and Smith (1996) SST (netcdf file)</span>
 	<span class="HLcomments">! - origin url: data selector from http://iridl.ldeo.columbia.edu</span>
 	<span class="HLcomments">! - how to get it [10Mb]: http://stefdeperou.free.fr/pub/data.cdf</span>
@@ -51,7 +53,10 @@
 	<span class="HLcomments">! - Phase composites use 8 phases</span>
 	<span class="HLcomments">! - An offset of 0.4 and is used for composites</span>
 	<span class="HLcomments">! - The first phase of composites is set at 180 degrees (minimal value)</span>
-
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! Note:</span>
+	<span class="HLcomments">!	This example should run only a few seconds.</span>
+	<span class="HLcomments">!	If it is not the case, you BLAS/LAPACK librairy is not optimized.</span>
 
 	<span class="HLroutines">use</span> spanlib
 	<span class="HLroutines">use</span> netcdf
@@ -60,12 +65,12 @@
 
 	<span class="HLcomments">! Parameters</span>
 	<span class="HLcomments">! ----------</span>
-	<span class="HLroutines">integer</span>,<span class="HLattributes">parameter</span> :: nkeep_pca=<span class="HLdigits">5</span>, nwindow=<span class="HLdigits">84</span>, first_mode=<span class="HLdigits">1</span>, &amp;
-		&amp; nphases=<span class="HLdigits">8</span>
+	<span class="HLroutines">integer</span>,<span class="HLattributes">parameter</span> :: nkeep_pca=<span class="HLdigits">10</span>, nkeep_mssa=<span class="HLdigits">10</span>, nwindow=<span class="HLdigits">84</span>, &amp;
+		&amp; first_mode=<span class="HLdigits">1</span>, nphases=<span class="HLdigits">8</span>
 	<span class="HLroutines">real</span>, <span class="HLattributes">parameter</span> :: offset=<span class="HLdigits">0</span>., first_phase=<span class="HLdigits">180</span>., &amp;
 		&amp; new_missing_value=-<span class="HLdigits">999</span>.
 	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">&quot;data2.cdf&quot;</span>, &amp;
-		&amp; output_nc_file=<span class="HLstrings">&quot;output.nc&quot;</span>, var_name=<span class="HLstrings">'ssta'</span>
+		&amp; output_nc_file=<span class="HLstrings">&quot;output1.nc&quot;</span>, var_name=<span class="HLstrings">'ssta'</span>
 
 	<span class="HLcomments">! Other declarations</span>
 	<span class="HLcomments">! ------------------</span>
@@ -81,8 +86,9 @@
 	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>) :: dim_names(<span class="HLdigits">3</span>), dim_name, &amp;
 		&amp; lon_units, lat_units, var_units, &amp;
 		&amp;	lon_name, lat_name, time_name, time_units
-	<span class="HLroutines">integer</span> :: ncid, dimid, dimids(<span class="HLdigits">4</span>), varid, dims(<span class="HLdigits">3</span>), thisdim, &amp;
-		&amp; lonid, latid, phaseid, timeid, phcoid, recoid, origid
+	<span class="HLroutines">integer</span> :: ncid, dimid, dimids(<span class="HLdigits">5</span>), varid, dims(<span class="HLdigits">3</span>), thisdim, &amp;
+		&amp; lonid, latid, phaseid, timeid, phcoid, recoid, origid, &amp;
+		modeid, evid
 	<span class="HLroutines">integer</span>(kind=<span class="HLdigits">4</span>) :: i, nspace, nlon, nlat, ntime
 	<span class="HLroutines">real</span> :: pi, missing_value
 
@@ -122,7 +128,7 @@
 
 	<span class="HLcomments">! Format (pack) data to have only one space dimension</span>
 	<span class="HLcomments">! ---------------------------------------------------</span>
-	<span class="HLroutines">print</span>*,<span class="HLstrings">'Packaging...'</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'Packing...'</span>
 
 	<span class="HLcomments">! Compute weights proportional to grid point area</span>
 	pi = cos(-<span class="HLdigits">1</span>.)
@@ -143,7 +149,7 @@
 
 	<span class="HLcomments">! Perform a PCA to reduce the d.o.f</span>
 	<span class="HLcomments">! ---------------------------------</span>
-	<span class="HLroutines">print</span>*,<span class="HLstrings">'PCA...'</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_pca</span>] Pre-PCA...'</span>
 	<span class="HLfunctions">allocate</span>(eof(nspace, nkeep_pca))
 	<span class="HLfunctions">allocate</span>(pc(ntime,   nkeep_pca))
 	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca</span>(packed_field, nkeep_pca, xeof=eof, &amp;
@@ -152,25 +158,25 @@
 
 	<span class="HLcomments">! We send results from PCA to MSSA</span>
 	<span class="HLcomments">! --------------------------------</span>
-	<span class="HLroutines">print</span>*,<span class="HLstrings">'MSSA...'</span>
-	<span class="HLfunctions">allocate</span>(steof(nkeep_pca*nwindow, first_mode+<span class="HLdigits">1</span>))
-	<span class="HLfunctions">allocate</span>(stpc(ntime-nwindow+<span class="HLdigits">1</span>,    first_mode+<span class="HLdigits">1</span>))
-	<span class="HLfunctions">allocate</span>(stev(                    first_mode+<span class="HLdigits">1</span>))
-	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_mssa</span>(<span class="HLfunctions">transpose</span>(pc), nwindow, first_mode+<span class="HLdigits">1</span>, &amp;
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_mssa</span>] MSSA...'</span>
+	<span class="HLfunctions">allocate</span>(steof(nkeep_pca*nwindow, nkeep_mssa))
+	<span class="HLfunctions">allocate</span>(stpc(ntime-nwindow+<span class="HLdigits">1</span>,    nkeep_mssa))
+	<span class="HLfunctions">allocate</span>(stev(                    nkeep_mssa))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_mssa</span>(<span class="HLfunctions">transpose</span>(pc), nwindow, nkeep_mssa, &amp;
 		&amp;	steof=steof, stpc=stpc, ev=stev)
 
 	<span class="HLcomments">! We reconstruct modes [first_mode + first_mode+1] of MSSA</span>
 	<span class="HLcomments">! --------------------------------------------------------</span>
 
-	<span class="HLroutines">print</span>*,<span class="HLstrings">'MSSAREC...'</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_mssarec</span>] MSSA reconstruction...'</span>
 	<span class="HLfunctions">allocate</span>(stpair(nkeep_pca, ntime))
-	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_mssarec</span>(steof, stpc, nwindow, stpair, &amp;
-		&amp;	istart=first_mode, iend=first_mode+<span class="HLdigits">1</span>)
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_mssarec</span>(steof(:,first_mode:first_mode+<span class="HLdigits">1</span>), &amp;
+		&amp; stpc(:,first_mode:first_mode+<span class="HLdigits">1</span>), nwindow, stpair)
 	<span class="HLfunctions">deallocate</span>(steof, stpc)
 
 	<span class="HLcomments">! We compute phases composites for the reconstructed oscillation</span>
 	<span class="HLcomments">! ---------------------------------------------------------------</span>
-	<span class="HLroutines">print</span>*,<span class="HLstrings">'PHASECOMP...'</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_phasecomp</span>] Phase composites...'</span>
 	<span class="HLfunctions">allocate</span>(stphasecomps(nkeep_pca, nphases))
 	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_phasecomp</span>(stpair, nphases, stphasecomps, &amp;
 		&amp;	weights=packed_weights, &amp;
@@ -179,13 +185,12 @@
 	<span class="HLcomments">! We go back to the physical space for</span>
 	<span class="HLcomments">! the full oscillation AND its composites</span>
 	<span class="HLcomments">! ---------------------------------------</span>
-	<span class="HLroutines">print</span>*,<span class="HLstrings">'PCAREC...'</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_pcarec</span>] Back to the physical space...'</span>
 	<span class="HLfunctions">allocate</span>(pair(nspace, ntime))
 	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pcarec</span>(eof, <span class="HLfunctions">transpose</span>(stpair), pair)
 	<span class="HLfunctions">allocate</span>(packed_phasecomps(nspace, nphases))
 	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pcarec</span>(eof, <span class="HLfunctions">transpose</span>(stphasecomps), packed_phasecomps)
 	<span class="HLfunctions">deallocate</span>(stpair, eof, stphasecomps)
-
 
 	<span class="HLcomments">! Unpacking</span>
 	<span class="HLcomments">! ---------</span>
@@ -203,7 +208,6 @@
 		 &amp; new_missing_value)
 	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 
-
 	<span class="HLcomments">! Write out the phase composites of the first oscillation</span>
 	<span class="HLcomments">! -------------------------------------------------------</span>
 	<span class="HLroutines">print</span>*,<span class="HLstrings">'Writing out...'</span>
@@ -214,6 +218,7 @@
 	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'lat'</span>, nlat, dimids(<span class="HLdigits">2</span>)))
 	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'time'</span>, ntime, dimids(<span class="HLdigits">3</span>)))
 	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'phase'</span>, nphases, dimids(<span class="HLdigits">4</span>)))
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'mode'</span>, nkeep_mssa, dimids(<span class="HLdigits">5</span>)))
 	<span class="HLcomments">! Variables</span>
 	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lon'</span>, nf90_float, dimids(<span class="HLdigits">1</span>), lonid))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, lonid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'Longitude'</span>))
@@ -229,6 +234,10 @@
 		&amp; phaseid))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phaseid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'Phase'</span>))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phaseid, <span class="HLstrings">'units'</span>, <span class="HLstrings">'level'</span>))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'mode'</span>, nf90_float, dimids(<span class="HLdigits">5</span>), &amp;
+		&amp; modeid))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, modeid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'Mode'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, modeid, <span class="HLstrings">'units'</span>, <span class="HLstrings">'level'</span>))
 	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'orig'</span>, nf90_float, dimids(<span class="HLdigits">1</span>:<span class="HLdigits">3</span>), &amp;
 	 &amp; origid))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, origid, <span class="HLstrings">'long_name'</span>, &amp;
@@ -250,15 +259,21 @@
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phcoid, <span class="HLstrings">'units'</span>, var_units))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phcoid, <span class="HLstrings">'missing_value'</span>, &amp;
 		&amp; new_missing_value))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'ev'</span>, nf90_float, dimids(<span class="HLdigits">5</span>), evid))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, evid, <span class="HLstrings">'long_name'</span>, &amp;
+		&amp;<span class="HLstrings">'MSSA eigen values'</span>))
 	<span class="HLcomments">! Values</span>
 	<span class="HLroutines">call</span> err(nf90_enddef(ncid))
 	<span class="HLroutines">call</span> err(nf90_put_var(ncid, lonid, lon))
 	<span class="HLroutines">call</span> err(nf90_put_var(ncid, latid, lat))
 	<span class="HLroutines">call</span> err(nf90_put_var(ncid, timeid, time))
 	<span class="HLroutines">call</span> err(nf90_put_var(ncid, phaseid, float((/(i,i=<span class="HLdigits">1</span>,nphases)/))))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, modeid, &amp;
+		&amp; float((/(i,i=<span class="HLdigits">1</span>,nkeep_mssa)/))))
 	<span class="HLroutines">call</span> err(nf90_put_var(ncid, origid, field))
 	<span class="HLroutines">call</span> err(nf90_put_var(ncid, recoid, reco))
 	<span class="HLroutines">call</span> err(nf90_put_var(ncid, phcoid, phasecomps))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, evid, stev))
 	<span class="HLroutines">call</span> err(nf90_close(ncid))
 
 <span class="HLroutines">end</span> <span class="HLroutines">program</span> example

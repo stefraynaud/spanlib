@@ -4,7 +4,7 @@
     <title>4.3. Python examples</title>
     <link rel="stylesheet" href="spanlib.css" type="text/css"/>
     <meta name="generator" content="DocBook XSL Stylesheets V1.61.2"/>
-    <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, PCA, EOF, POP"/>
+    <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, Multichannel singular spectrum analysis, PCA, Principal component analysis, EOF, Empirical othogonal funtion, PC, Principal component, SVD, Singular value decomposition, POP, Principal oscillation patterns"/>
     <link rel="home" href="index.html" title="SpanLib - Spectral Analysis Library"/>
     <link rel="up" href="doc_pyt.html" title="4. The python module"/>
     <link rel="previous" href="doc_pyt_sub.html" title="4.2. Python functions"/>
@@ -36,27 +36,38 @@
       <p>
 				These examples show how to use some of the available
 				components of the python module.
-				They uses the same dataset as for <a href="doc_f90_exa.html" title="3.3. A Fortran 90 example">Section 3.3, &#8220;A Fortran 90 example&#8221;</a>.
-				If you configurations allows it, you can run theses examples typing
-				for example this from the installation package directory:
-				</p>
-      <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>cd example &amp;&amp; make python1</tt></b></pre>
-      <p>
+				They uses the same dataset as for <a href="doc_f90_exa.html" title="3.3. Fortran 90 examples">Section 3.3, &#8220;Fortran 90 examples&#8221;</a>.
 			</p>
       <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3>
-				You must have previously performed a <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make install</tt></b></pre></div>
-      <p>
-				This first example is similar to <a href="doc_f90_exa.html" title="3.3. A Fortran 90 example">Section 3.3, &#8220;A Fortran 90 example&#8221;</a>:
-				a PCA/MSSA is performed on the whole dataset,
-				and the first oscillation (pair of MSSA modes) is
+				You can run depending on your configuration, and
+				you must have previously performed a <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make install</tt></b></pre></div>
+      <div class="sect3" lang="en">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="doc_pyt_ex1"/>4.3.1. Python example 1</h4>
+            </div>
+          </div>
+          <div/>
+        </div>
+        <p>
+					This first example is similar to <a href="doc_f90_exa.html" title="3.3. Fortran 90 examples">Section 3.3, &#8220;Fortran 90 examples&#8221;</a>:
+					a PCA/MSSA is performed on the whole dataset,
+					and the first oscillation (pair of MSSA modes) is
 				reconstructed using phases composites (16 phases).
-			</p>
-      <div class="example">
-        <a id="id3362224"/>
-        <p class="title">
-          <b>Example 2. Python example</b>
-        </p>
-        <pre class="programlisting"><span class="HLcomments"># File: example1.py</span>
+				</p>
+        <div class="example">
+          <a id="id3394624"/>
+          <p class="title">
+            <b>Example 3. Python example 1</b>
+          </p>
+          <p>
+						Run this example using:
+						</p>
+          <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make python1</tt></b></pre>
+          <p>
+							</p>
+          <pre class="programlisting"><span class="HLcomments"># File: example1.py</span>
 <span class="HLcomments">#</span>
 <span class="HLcomments"># This file is part of the SpanLib library.</span>
 <span class="HLcomments"># Copyright (C) 2006  Charles Doutiraux, Stephane Raynaud</span>
@@ -141,21 +152,38 @@ x.plot(out[:,<span class="HLdigits">30</span>,<span class="HLdigits">80</span>],
 <span class="HLfunctions">raw_input</span>(<span class="HLstrings">'Time series at center of bassin ok?'</span>)
 x.clear()
 </pre>
+        </div>
       </div>
-      <p>
-				In this second example, two different areas are analysed at
-				the same time.
-				This is intented to mimics the used of two different datasets
-				that are stacked, before being analysed.
-				Such approach (see for example <a href="doc_bib.html#raynal06">Raynaud et al (2006)</a>) allows
-				to find modes of variability in a arbitrary number of variables,
-				provided you are careful with units (performing appropriate normalisations).
-			</p>
+      <div class="sect3" lang="en">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="doc_pyt_ex2"/>4.3.2. Python example 2</h4>
+            </div>
+          </div>
+          <div/>
+        </div>
+        <p>
+					In this second example, two different areas are analysed at
+					the same time.
+					This is intented to mimics the used of two different datasets
+					that are stacked, before being analysed.
+					Such approach (see for example <a href="doc_bib.html#raynal06">Raynaud et al (2006)</a>) allows
+					to find modes of variability in a arbitrary number of variables,
+					provided you are careful with units (performing appropriate normalisations).
+				</p>
+      </div>
       <div class="example">
-        <a id="id3362256"/>
+        <a id="id3449644"/>
         <p class="title">
-          <b>Example 3. Python example</b>
+          <b>Example 4. Python example 2</b>
         </p>
+        <p>
+					Run this example using:
+					</p>
+        <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make python2</tt></b></pre>
+        <p>
+				</p>
         <pre class="programlisting"><span class="HLcomments"># File: example2.py</span>
 <span class="HLcomments">#</span>
 <span class="HLcomments"># This file is part of the SpanLib library.</span>

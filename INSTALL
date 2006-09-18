@@ -20,7 +20,9 @@ Short
      --with-blas: BLAS library name OR LDFLAGS
      --with-blas-libdir: BLAS library directory
      --with-lapack: LAPACK library name OR LDFLAGS
-     --with-lapack-libdir: LAPACK library directory
+     --with-lapack95: LAPACK95 library name OR LDFLAGS
+     --with-lapack-lib: LAPACK library directory
+     --with-lapack-inc: LAPACK module directory
      --with-netcdf-inc: Netcdf module directory
      --with-netcdf-lib: Netcdf library directory
      --with-python: Absolute path name of Python executable
@@ -35,6 +37,14 @@ Short
      LAPACK_LIBDIR, CC, CFLAGS, CPPFLAGS, PYTHON, PYTHONDIR,
      NETCDF_INC, NETCDF_LIB.
 
+Help
+====
+
+	configure:
+		./configure --help
+
+	make:
+		make help
 
 Basic Installation
 ==================

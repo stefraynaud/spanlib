@@ -28,9 +28,17 @@
 			<keyword>eigen problem</keyword>
 			<keyword>spatio-temporal</keyword>
 			<keyword>MSSA</keyword>
+			<keyword>Multichannel singular spectrum analysis</keyword>
 			<keyword>PCA</keyword>
+			<keyword>Principal component analysis</keyword>
 			<keyword>EOF</keyword>
+			<keyword>Empirical othogonal funtion</keyword>
+			<keyword>PC</keyword>
+			<keyword>Principal component</keyword>
+			<keyword>SVD</keyword>
+			<keyword>Singular value decomposition</keyword>
 			<keyword>POP</keyword>
+			<keyword>Principal oscillation patterns</keyword>
 		</keywordset>
 		<productname>SpanLib</productname>
 		<releaseinfo>
@@ -60,25 +68,27 @@
 				a sum of different signals that can be hardly distinguished one another,
 				even if their respective origin is fundamentally different.
 				Analysis methods that are able to extract the most coherent modes
-				of variability generally helps to identify signals of interests.
+				of variability generally help to identify signals of interests.
 			</para>
 			<para>
 				SpanLib currently focuses on the use of linear analysis methods
-				that rely on eign solutions of covariance or correlations matrices
+				that rely on eign solutions of covariance or correlation matrices
 			</para>
 			<para>
 				This package provides a <link linkend="doc_f90">F90 library</link> (as a module)
 				containing a minimal collection of subroutines to perform
 				<emphasis role="bold">Principal Componant Analysis</emphasis> (PCA),
-				<emphasis role="bold">Multi-channel Singular Spectrum Analysis</emphasis> (MSSA), reconstruction
-				of components and phase composites.
+				<emphasis role="bold">Multi-channel Singular Spectrum Analysis</emphasis> (MSSA),
+				<emphasis role="bold">Singular Value Decomposition</emphasis> (SVD),
+				reconstruction of components and phase composites.
 				The package also provide a <link linkend="doc_pyt">python module</link>
 				that calls the F90 library and gives the user a set of useful functions
 				to perform analyses.
 			</para>
 			<para>
-				In its future version, SpanLib will also include others methods, such
-				Singular Value Decomposition or Principal Oscillation Pattern analysis.
+				In its future version, SpanLib will also include others methods
+				(such as Principal Oscillation Pattern analysis) and languages
+				(C, Java).
 			</para>
 		</sect2>
 
@@ -143,6 +153,15 @@
 				noisy signal.</emphasis>
 			</para>
 			<para>
+				<emphasis role="bold"><link linkend="svd">SVD</link></emphasis>
+				works in a similar way to PCA, except that two different dataset are
+				decomposed at the same time.
+				Therefore, the diagonalyzed matrix is a cross-covariance matrix and
+				may not be symetric and positive.
+				Dominant EOFs and PCs can be used for example to build a statiscal
+				model linking the second variable to the first one.
+			</para>
+			<para>
 				All these analysis methods act as a linear filter.
 				For each of them, it is possible to reconstruct part of the filtered signal.
 				A reconstructed mode is the "multiplication" of its EOF by its PC, and
@@ -151,9 +170,9 @@
 			</para>
 			<para id="pg:dof">
 				Finally, PCA may be used also to simply reduce the number of degree-of-freedom (d-o-f) of a dataset.
-				For example, you can keep the first PC that explain a 80% of the variance.
+				For example, you can keep the first PC that explain a 70% of the variance.
 				These PCs are then used as an input dataset for other analysis.
-				This methodology is useful for MSSA since the eigen problem solving
+				This methodology is useful for MSSA and SVD since the eigen problem solving
 				may be very time consuming: we are now able, for example, to potentially reduce the
 				number of channels from several hundred or thounsand, to less than 20.
 			</para>
@@ -259,6 +278,12 @@
 						A standard value is one third of the time dimension.
 					</para>
 				</simplesect>
+				<simplesect id="prepcamssa">
+					<title>Pre-PCA</title>
+					Since the covariance matrix may quickly huge depending on
+					parameters (number of channels and window size), is more appropriate
+					to perform a pre-PCA to reduce the number of channels.
+				</simplesect>
 				<simplesect>
 					<title>Phase composites</title>
 					<para>
@@ -274,13 +299,23 @@
 				</simplesect>
 
 			</sect3>
+			<sect3 id="doc_pre_tec_svd">
+				<title>...about SVD</title>
+				<simplesect id="prepcasvd">
+					<title>Pre-PCA</title>
+					Unlike PCA, is not possible to switch channel and time
+					dimension to computes EOFs.
+					Therefore, it is common to perform a pre-PCA, like with
+					MSSA, to reduce the number of channels.
+				</simplesect>
+			</sect3>
 		</sect2>
 
 		<!--#################################################################-->
 		<sect2 id="doc_pre_mor">
 			<title>For more information</title>
 			<para>
-				For more information about PCA and MSSA may be found in papers and on the web.
+				For more information about PCA, MSSA and SVD may be found in papers and on the web.
 				See for example:
 				<itemizedlist>
 					<listitem>
@@ -298,6 +333,10 @@
 						<xref linkend="plva94"/>,
 						<xref linkend="raynal05"/>,
 						<xref linkend="raynal06"/>.
+					</listitem>
+					<listitem>
+						<emphasis role="bold" id="svd">SVD: </emphasis>
+						<!--xref linkend=""/-->,
 					</listitem>
 				</itemizedlist>
 				You can also browse <xref linkend="doc_lin"/>.
@@ -333,8 +372,11 @@
 			<title>Requirements</title>
 			<sect3>
 				<title>Fortran library</title>
-				<para>You need a F90 compiler to compile it, and <ulink url="http://www.netlib.org/lapack/">BLAS/LAPACK</ulink>  libraries compilated using this F90 compiler to be able to link with library.</para>
-				<para>To run the F90 example, you need the F90 netcdf library.</para>
+				<para>
+					You need a F90 compiler to compile it, and <ulink url="http://www.netlib.org/lapack/">BLAS/LAPACK/LAPACK95</ulink>
+					libraries compilated using this F90 compiler to be able to link with library.
+				</para>
+				<para>To run the F90 examples, you also need the F90 netcdf library.</para>
 			</sect3>
 			<sect3>
 				<title>Python module</title>
@@ -345,7 +387,16 @@
 
 		<sect2 id="doc_ins_dow">
 			<title>Download</title>
-			<para>You can download the sources of the package from the <ulink url="http://sourceforge.net/project/showfiles.php?group_id=168272">Sourceforge repositories</ulink> of the project.</para>
+			<para>
+				You can download the sources (tarball) of the package from the <ulink url="http://sourceforge.net/project/showfiles.php?group_id=168272">Sourceforge repositories</ulink> of the project.
+				Then, just type for example:
+<!---->
+<programlisting>
+<prompt>&lt;user&gt;</prompt> <userinput>tar xzf spanlib-1.2.tgz</userinput>
+<prompt>&lt;user&gt;</prompt> <userinput>cd spanlib-1.2</userinput>
+</programlisting>.
+<!---->
+			</para>
 		</sect2>
 
 		<sect2 id="doc_ins_ins">
@@ -375,10 +426,16 @@
 			</procedure>
 			<para>
 				Here is an example of <userinput>./configure</userinput>:
-				<programlisting><prompt>&lt;raynaud&gt;</prompt> <userinput>./configure --with-blas-lib=/usr/local/install/lapack-3.0/lib \
+				<programlisting><prompt>&lt;user&gt;</prompt> <userinput>./configure --with-blas-lib=/usr/local/install/lapack-3.0/lib \
 --with-netcdf-lib=/usr/local/install/netcdf-3.6.1/lib \
 --with-netcdf-inc=/usr/local/install/netcdf-3.6.1/include \
 --prefix=$HOME --with-pythondir=$HOME/python FC=ifort</userinput></programlisting>
+			</para>
+			<para>
+				You can list all <command>configure</command> options using:
+				<programlisting><prompt>&lt;user&gt;</prompt> <userinput>./configure --help</userinput></programlisting>
+				You can also list usefull<command>make</command> targets with:
+				<programlisting><prompt>&lt;user&gt;</prompt> <userinput>.make  help</userinput></programlisting>
 			</para>
 		</sect2>
 
@@ -404,7 +461,6 @@
 				If you analyse several variables at the same time, concatenate
 				normalised packed arrays before the analsysis.
 			</note>
-
 		</sect2>
 
 		<!--#################################################################-->
@@ -412,29 +468,71 @@
 
 		<!--#################################################################-->
 		<sect2 id="doc_f90_exa">
-			<title>A Fortran 90 example</title>
+			<title>Fortran 90 examples</title>
 			<para>
-				This is an example of how to use this the Fortran 90 component of Spanlib.
-				In this example, an analysis of Sea surface Temperature anomalies using data
-				stored in the netcdf format.
-				The dominant oscillatory mode of the El Nino variability is then extracted
-				and stored in a netcdf file.
+				Theses examples illustrate of how to use the Fortran 90 component of Spanlib.
+				Sea surface Temperature anomalies from a netcdf format
+				is the dataset analysed in both examples.
+				<note>
+					Each example create an output netcdf file.
+					The configure script should have tried to find a way
+					to view these outputs (like <command>ncview</command>,
+					<command>vcdat</command>, or a simple python script provided
+					with the package).
+					If it failed, you will have to visualise results by yourself
+					(indications are provided and the end of the run).
+				</note>
 			</para>
-			<example>
-				<title>F90 example</title>
+			<sect3 id="doc_f90_ex1">
+				<title>F90 example 1</title>
 				<para>
-					You can run this example typing (from package directory):
-					<programlisting><prompt>&lt;user&gt;</prompt> <userinput>cd example &amp;&amp; make</userinput></programlisting>
-					This command will first try to download the dataset,
-					then compile the following f90 program, run it,
-					and finally try to visualise output data.
-					See <xref linkend="doc_ins_req"/> if it fails.
+					In this example, PCA is performed on the whole dataset to reduce
+					the number of channels. These channels are then given
+					as input to the MSSA, from which the eigenvalues and the
+					dominant oscillatory mode of the El Nino variability are extracted
+					and stored to the output netcdf file.
+					Phase composites are also computed to represent the oscillation over its cycle.
 				</para>
+				<example>
+					<title>F90 example 1</title>
+					<para>
+						You can run this example typing (from package directory):
+						<programlisting><prompt>&lt;user&gt;</prompt> <userinput>make example</userinput></programlisting> or
+						<programlisting><prompt>&lt;user&gt;</prompt> <userinput>make fortran1</userinput></programlisting>
+						This command will first try to download the dataset,
+						then compile the following f90 program, run it,
+						and finally try to visualise output data.
+						See <xref linkend="doc_ins_req"/> if it fails.
+					</para>
+					<para>
+						The source code of this example is highlighted below, with comments inside.
+						<xi:include href="src_f90_ex1_inc.xml"/>
+					</para>
+				</example>
+			</sect3>
+			<sect3 id="doc_f90_ex2">
+				<title>F90 example 2</title>
 				<para>
-					The sources of this example is highlighted below, with comments inside.
-					<xi:include href="src_f90_exa_inc.xml"/>
+					The goal is to provide an example to show how SVD works.
+					Using the same dataset of the previous example, two regions
+					are selected (one in the left of the basin, one the west).
+					Here PCA is performed these two resulting datasets to reduce
+					the number of channels (as in the previous example).
+					Then a SVD is computed and the first EOFs, PCs
+					and joint eigen values are stored to the netcdf file.
 				</para>
-			</example>
+				<example>
+					<title>F90 example 2</title>
+					<para>
+						You can run this example typing (from package directory):
+						<programlisting><prompt>&lt;user&gt;</prompt> <userinput>make fortran2</userinput></programlisting>
+					</para>
+					<para>
+						The source code of this example is highlighted below, with comments inside.
+						<xi:include href="src_f90_ex2_inc.xml"/>
+					</para>
+				</example>
+			</sect3>
 		</sect2>
 
 	</sect1>
@@ -480,34 +578,46 @@
 				These examples show how to use some of the available
 				components of the python module.
 				They uses the same dataset as for <xref linkend="doc_f90_exa"/>.
-				If you configurations allows it, you can run theses examples typing
-				for example this from the installation package directory:
-				<programlisting><prompt>&lt;user&gt;</prompt> <userinput>cd example &amp;&amp; make python1</userinput></programlisting>
 			</para>
 			<note>
-				You must have previously performed a <programlisting><prompt>&lt;user&gt;</prompt> <userinput>make install</userinput></programlisting>
+				You can run depending on your configuration, and
+				you must have previously performed a <programlisting><prompt>&lt;user&gt;</prompt> <userinput>make install</userinput></programlisting>
 			</note>
-			<para>
-				This first example is similar to <xref linkend="doc_f90_exa"/>:
-				a PCA/MSSA is performed on the whole dataset,
-				and the first oscillation (pair of MSSA modes) is
+			<sect3 id="doc_pyt_ex1">
+				<title>Python example 1</title>
+				<para>
+					This first example is similar to <xref linkend="doc_f90_exa"/>:
+					a PCA/MSSA is performed on the whole dataset,
+					and the first oscillation (pair of MSSA modes) is
 				reconstructed using phases composites (16 phases).
-			</para>
+				</para>
+				<example>
+					<para>
+						Run this example using:
+						<programlisting><prompt>&lt;user&gt;</prompt> <userinput>make python1</userinput></programlisting>
+							</para>
+					<title>Python example 1</title>
+					<xi:include href="src_pyt_ex1_inc.xml"/>
+				</example>
+			</sect3>
+			<sect3 id="doc_pyt_ex2">
+				<title>Python example 2</title>
+				<para>
+					In this second example, two different areas are analysed at
+					the same time.
+					This is intented to mimics the used of two different datasets
+					that are stacked, before being analysed.
+					Such approach (see for example <xref linkend="raynal06"/>) allows
+					to find modes of variability in a arbitrary number of variables,
+					provided you are careful with units (performing appropriate normalisations).
+				</para>
+			</sect3>
 			<example>
-				<title>Python example</title>
-				<xi:include href="src_pyt_ex1_inc.xml"/>
-			</example>
-			<para>
-				In this second example, two different areas are analysed at
-				the same time.
-				This is intented to mimics the used of two different datasets
-				that are stacked, before being analysed.
-				Such approach (see for example <xref linkend="raynal06"/>) allows
-				to find modes of variability in a arbitrary number of variables,
-				provided you are careful with units (performing appropriate normalisations).
-			</para>
-			<example>
-				<title>Python example</title>
+				<title>Python example 2</title>
+				<para>
+					Run this example using:
+					<programlisting><prompt>&lt;user&gt;</prompt> <userinput>make python2</userinput></programlisting>
+				</para>
 				<xi:include href="src_pyt_ex2_inc.xml"/>
 			</example>
 		</sect2>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 library source</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3270260"></a>SpanLib - Fortran 90 library source</h1></div></div><div></div><hr /></div><pre class="programlisting"><span class="HLcomments">! File: spanlib.f90</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 library source</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3120283"></a>SpanLib - Fortran 90 library source</h1></div></div><div></div><hr /></div><pre class="programlisting"><span class="HLcomments">! File: spanlib.f90</span>
 <span class="HLcomments">!</span>
 <span class="HLcomments">! This file is part of the SpanLib library.</span>
 <span class="HLcomments">! Copyright (C) 2006  Stephane Raynaud</span>
@@ -32,7 +32,6 @@
 
 	<span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_pca</span>(ff, nkeep, xeof, pc, ev, weights, useteof, bLargeMatrix)
 
-	<span class="HLcomments">! Title:</span>
 	<span class="HLcomments">!	Principal Component Analysis</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Description:</span>
@@ -53,14 +52,17 @@
 	<span class="HLcomments">!	- ev:			Mode array of eigen values (variances)</span>
 	<span class="HLcomments">!	- weights:	Space array of weights</span>
 	<span class="HLcomments">!	- useteof:	To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]</span>
-	<span class="HLcomments">!	- bLargeMatrix: Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) [default:.true.]</span>
+	<span class="HLcomments">!	- bLargeMatrix: Use la_syevd instead of la_syev (faster for large matrices, but uses more workspace) [default:.true.]</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Dependencies:</span>
-	<span class="HLcomments">!	sl_diasym</span>
+	<span class="HLcomments">!	sgemm(BLAS) ssyrk(BLAS) la_syev(LAPACK95) la_syevd(LAPACK95)</span>
 
 
 	<span class="HLcomments">! Declarations</span>
 	<span class="HLcomments">! ============</span>
+
+	<span class="HLroutines">use</span> la_precision, only: wp =&gt; sp
+	<span class="HLroutines">use</span> f95_lapack, only: la_syevd, la_syev
 
 	<span class="HLroutines">implicit</span> <span class="HLattributes">none</span>
 
@@ -79,11 +81,9 @@
 	<span class="HLroutines">integer</span>           :: ii,ij,nn,ns,nt
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: cov(:,:)
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: wff(:,:), ww(:), zeof(:,:), zff(:,:)
-	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: eig(:)
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: zev(:)
 	<span class="HLroutines">integer</span>           :: zuseteof, znkeepmax, i,j
 	<span class="HLroutines">logical</span>           :: zbLargeMatrix
-
-	<span class="HLroutines">real</span> :: t1,t2
 
 	<span class="HLcomments">! Setups</span>
 	<span class="HLcomments">! ======</span>
@@ -120,13 +120,13 @@
 	<span class="HLroutines">endif</span>
 	znkeepmax=<span class="HLdigits">100</span>
 	<span class="HLroutines">if</span>(zuseteof)<span class="HLroutines">then</span>
-		<span class="HLroutines">if</span>(nkeep&gt;znkeepmax)<span class="HLroutines">then</span>
+		<span class="HLroutines">if</span>(nkeep&gt;nt)<span class="HLroutines">then</span>
 			<span class="HLroutines">print</span>*,<span class="HLstrings">'[pca] You want to keep a number of PCs '</span>//&amp;
 				&amp;<span class="HLstrings">'greater than the number of EOF:'</span>,nt
 			return
 		<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 	<span class="HLroutines">else</span>
-		<span class="HLroutines">if</span>(nkeep&gt;znkeepmax)<span class="HLroutines">then</span>
+		<span class="HLroutines">if</span>(nkeep&gt;ns)<span class="HLroutines">then</span>
 			<span class="HLroutines">print</span>*,<span class="HLstrings">'[pca] You want to keep a number of PCs '</span>//&amp;
 				&amp;<span class="HLstrings">'greater than the number of EOF:'</span>,ns
 			return
@@ -175,16 +175,18 @@
 
 		<span class="HLcomments">! Covariance</span>
 		<span class="HLfunctions">allocate</span>(cov(nt,nt))
-		<span class="HLfunctions">allocate</span>(eig(nt))
+		<span class="HLfunctions">allocate</span>(zev(nt))
 		cov=<span class="HLdigits">0</span>.
 		<span class="HLroutines">call</span> ssyrk(<span class="HLstrings">'U'</span>,<span class="HLstrings">'T'</span>,nt,ns,<span class="HLdigits">1</span>.,wff,ns, <span class="HLdigits">0</span>.,cov,nt)
-		where(cov==<span class="HLdigits">0</span>.) cov = <span class="HLfunctions">transpose</span>(cov)
 		cov = cov / float(ns)
 		<span class="HLfunctions">deallocate</span>(wff)
 
-
 		<span class="HLcomments">! Diagonalising (cov: input=cov, output=eof)</span>
-		<span class="HLroutines">call</span> sl_diasym(cov,eig,zbLargeMatrix)
+		<span class="HLroutines">if</span>(zbLargeMatrix)<span class="HLroutines">then</span>
+			<span class="HLroutines">call</span> la_syevd(cov,zev,jobz=<span class="HLstrings">'V'</span>)
+		<span class="HLroutines">else</span>
+			<span class="HLroutines">call</span> la_syev(cov,zev,jobz=<span class="HLstrings">'V'</span>)
+		<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 
 		<span class="HLcomments">! Back to S-EOFs</span>
 		<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(pc).or.<span class="HLfunctions">present</span>(xeof))<span class="HLroutines">then</span>
@@ -196,18 +198,14 @@
 				zeof(:,i) = zeof(:,i) / &amp;
 				 &amp;          <span class="HLfunctions">sqrt</span>(<span class="HLfunctions">dot_product</span>(ww(:), zeof(:,i)**<span class="HLdigits">2</span>))
 			<span class="HLroutines">end</span> <span class="HLroutines">do</span>
-			<span class="HLroutines">if</span>(.<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(pc))<span class="HLroutines">then</span>
-				<span class="HLfunctions">deallocate</span>(ww)
-			<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+			<span class="HLroutines">if</span>(.<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(pc)) <span class="HLfunctions">deallocate</span>(ww)
 		<span class="HLroutines">else</span>
 			<span class="HLfunctions">deallocate</span>(cov)
 		<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 
 		<span class="HLcomments">! Eigenvalues</span>
 		<span class="HLcomments">! -----------</span>
-		<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(ev))<span class="HLroutines">then</span>
-			ev = eig(nt:nt-nkeep+<span class="HLdigits">1</span>:-<span class="HLdigits">1</span>)
-		<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+		<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(ev))ev = zev(nt:nt-nkeep+<span class="HLdigits">1</span>:-<span class="HLdigits">1</span>)
 
 	<span class="HLroutines">else</span>
 
@@ -216,21 +214,18 @@
 
 		<span class="HLcomments">! Covariance</span>
 		<span class="HLfunctions">allocate</span>(cov(ns,ns))
-		<span class="HLfunctions">allocate</span>(eig(ns))
+		<span class="HLfunctions">allocate</span>(zev(ns))
 		cov = <span class="HLdigits">0</span>.
-		<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>,ns
-			<span class="HLroutines">do</span> j=<span class="HLdigits">1</span>,i
-				cov(i,j) = <span class="HLfunctions">dot_product</span>(wff(i,:), wff(j,:))
-				cov(j,i) = cov(i,j)
-			<span class="HLroutines">end</span> <span class="HLroutines">do</span>
-		<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 		<span class="HLroutines">call</span> ssyrk(<span class="HLstrings">'U'</span>,<span class="HLstrings">'N'</span>,ns,nt,<span class="HLdigits">1</span>.,wff,ns, <span class="HLdigits">0</span>.,cov,ns)
-		where(cov==<span class="HLdigits">0</span>.) cov = <span class="HLfunctions">transpose</span>(cov)
 		cov = cov / float(nt)
 		<span class="HLfunctions">deallocate</span>(wff)
 
 		<span class="HLcomments">! Diagonalisation (cov: input=cov, output=eof)</span>
-		<span class="HLroutines">call</span> sl_diasym(cov,eig,zbLargeMatrix)
+		<span class="HLroutines">if</span>(zbLargeMatrix)<span class="HLroutines">then</span>
+			<span class="HLroutines">call</span> la_syevd(cov,zev,jobz=<span class="HLstrings">'V'</span>)
+		<span class="HLroutines">else</span>
+			<span class="HLroutines">call</span> la_syev(cov,zev,jobz=<span class="HLstrings">'V'</span>)
+		<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 
 		<span class="HLcomments">! Formatting S-EOFs</span>
 		<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(xeof).or.<span class="HLfunctions">present</span>(pc))<span class="HLroutines">then</span>
@@ -243,9 +238,7 @@
 
 		<span class="HLcomments">! Eigenvalues</span>
 		<span class="HLcomments">! -----------</span>
-		<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(ev))<span class="HLroutines">then</span>
-			ev = eig(ns:ns-nkeep+<span class="HLdigits">1</span>:-<span class="HLdigits">1</span>)
-		<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+		<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(ev)) ev = zev(ns:ns-nkeep+<span class="HLdigits">1</span>:-<span class="HLdigits">1</span>)
 
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 
@@ -341,7 +334,6 @@
 	ns = size(xeof,<span class="HLdigits">1</span>)
 	nt = size(pc,<span class="HLdigits">1</span>)
 
-
 	<span class="HLcomments">! Computation</span>
 	<span class="HLcomments">! ===========</span>
 	ffrec = <span class="HLdigits">0</span>.
@@ -393,12 +385,16 @@
 	<span class="HLcomments">!	- bLargeMatrix: Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) [default:.true.]</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Dependencies:</span>
-	<span class="HLcomments">!	sl_diasym</span>
+	<span class="HLcomments">!	la_syev(LAPACK95) la_syevd(LAPACK95)</span>
 
-	<span class="HLroutines">implicit</span> <span class="HLattributes">none</span>
 
 	<span class="HLcomments">! Declarations</span>
 	<span class="HLcomments">! ============</span>
+
+	<span class="HLroutines">use</span> la_precision, only: wp =&gt; sp
+	<span class="HLroutines">use</span> f95_lapack, only: la_syevd, la_syev
+
+	<span class="HLroutines">implicit</span> <span class="HLattributes">none</span>
 
 	<span class="HLcomments">! External</span>
 	<span class="HLcomments">! --------</span>
@@ -410,7 +406,7 @@
 
 	<span class="HLcomments">! Internal</span>
 	<span class="HLcomments">! --------</span>
-	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: cov(:,:), eig(:), zff(:,:), zsteof(:,:), wpc(:)
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: cov(:,:), zev(:), zff(:,:), zsteof(:,:), wpc(:)
 	<span class="HLroutines">real</span> :: wsteof
 	<span class="HLroutines">integer</span> :: nchan, nsteof, nt, znkeepmax
 	<span class="HLroutines">integer</span> :: iw, iw1, iw2, i1, i2, im, ic1, ic2
@@ -471,8 +467,13 @@
 
 	<span class="HLcomments">! Diagonalisation</span>
 	<span class="HLcomments">! ===============</span>
-	<span class="HLfunctions">allocate</span>(eig(nsteof))
-	<span class="HLroutines">call</span> sl_diasym(cov,eig,zbLargeMatrix)
+	<span class="HLfunctions">allocate</span>(zev(nsteof))
+	<span class="HLroutines">if</span>(zbLargeMatrix)<span class="HLroutines">then</span>
+		<span class="HLroutines">call</span> la_syevd(cov,zev,jobz=<span class="HLstrings">'V'</span>)
+	<span class="HLroutines">else</span>
+		<span class="HLroutines">call</span> la_syev(cov,zev,jobz=<span class="HLstrings">'V'</span>)
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+
 
 
 	<span class="HLcomments">! Get ST-EOFs and eigenvalues</span>
@@ -490,9 +491,9 @@
 	<span class="HLcomments">! Eigen values</span>
 	<span class="HLcomments">! ------------</span>
 	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(ev))<span class="HLroutines">then</span>
-		ev = eig(nsteof : nsteof-nkeep+<span class="HLdigits">1</span> : -<span class="HLdigits">1</span>)
+		ev = zev(nsteof : nsteof-nkeep+<span class="HLdigits">1</span> : -<span class="HLdigits">1</span>)
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
-	<span class="HLfunctions">deallocate</span>(eig)
+	<span class="HLfunctions">deallocate</span>(zev)
 
 
 	<span class="HLcomments">! Get ST-PCs</span>
@@ -634,6 +635,174 @@
 
 
 
+  <span class="HLcomments">!############################################################</span>
+  <span class="HLcomments">!############################################################</span>
+  <span class="HLcomments">!## SVD PART ################################################</span>
+  <span class="HLcomments">!############################################################</span>
+  <span class="HLcomments">!############################################################</span>
+
+	<span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_svd</span>(ll,rr,nkeep,leof,reof,lpc,rpc,ev,bLargeMatrix)
+
+	<span class="HLcomments">! Title:</span>
+	<span class="HLcomments">!	Singular Value Decomposition</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! Description:</span>
+	<span class="HLcomments">!	Singular value decomposition between two datasets having</span>
+	<span class="HLcomments">!	the same length in time.</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! Necessary arguments:</span>
+	<span class="HLcomments">!	- ll:    Left space-time array</span>
+	<span class="HLcomments">!	- rr:    Right space-time array</span>
+	<span class="HLcomments">!	- nkeep: Maximum number of modes to keep in outputs</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! Optional arguments:</span>
+	<span class="HLcomments">!	- leof:  Left EOFs</span>
+	<span class="HLcomments">!	- reof:  Right EOFs</span>
+	<span class="HLcomments">!	- lpc:   Left PCs</span>
+	<span class="HLcomments">!	- rpc:   Right PCs</span>
+	<span class="HLcomments">!	- bLargeMatrix: Use la_sgesdd instead of la_sgesvd (faster for large matrices, but uses more workspace) [default:.false.]</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! Dependencies:</span>
+	<span class="HLcomments">!	sgemm(BLAS) la_gesvd(LAPACK95) la_gesdd(LAPACK95)</span>
+
+
+	<span class="HLcomments">! Declarations</span>
+	<span class="HLcomments">! ============</span>
+
+	<span class="HLroutines">use</span> la_precision, only: wp =&gt; sp
+	<span class="HLroutines">use</span> f95_lapack, only: la_gesdd, la_gesvd
+	<span class="HLroutines">implicit</span> <span class="HLattributes">none</span>
+
+	<span class="HLcomments">! External</span>
+	<span class="HLcomments">! --------</span>
+	<span class="HLroutines">real</span>,    <span class="HLattributes">intent</span>(in)           :: ll(:,:),rr(:,:)
+	<span class="HLroutines">integer</span>, <span class="HLattributes">intent</span>(in)	         :: nkeep
+	<span class="HLroutines">real</span>,    <span class="HLattributes">intent</span>(out),<span class="HLattributes">optional</span> :: lpc(size(ll,<span class="HLdigits">2</span>),nkeep), &amp;
+	&amp;                                leof(size(ll,<span class="HLdigits">1</span>),nkeep), &amp;
+	&amp;                                rpc(size(rr,<span class="HLdigits">2</span>),nkeep), &amp;
+	&amp;                                reof(size(rr,<span class="HLdigits">1</span>),nkeep), &amp;
+	&amp;                                ev(nkeep)
+	<span class="HLroutines">logical</span>, <span class="HLattributes">intent</span>(in), <span class="HLattributes">optional</span> :: bLargeMatrix
+
+	<span class="HLcomments">! Internal</span>
+	<span class="HLcomments">! --------</span>
+	<span class="HLroutines">integer</span>           :: ii,ij,nn,ns,nsl,nsr,nt
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: zll(:,:), zrr(:,:), cov(:,:)
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: zev(:), zleof(:,:)
+	<span class="HLroutines">integer</span>           :: znkeepmax, i,j
+	<span class="HLroutines">logical</span>           :: zbLargeMatrix
+
+
+	<span class="HLcomments">! Sizes</span>
+	<span class="HLcomments">! -----</span>
+	nsl = size(ll,<span class="HLdigits">1</span>)
+	nsr = size(rr,<span class="HLdigits">1</span>)
+	nt = size(ll,<span class="HLdigits">2</span>)
+	<span class="HLroutines">if</span>(nsl/=nsr.or.nt/=size(rr,<span class="HLdigits">2</span>))<span class="HLroutines">then</span>
+		<span class="HLroutines">print</span>*,<span class="HLstrings">'[svd] Left and right array have incompatible sizes'</span>
+		return
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+	ns = min(nsr,nsl)
+	znkeepmax = <span class="HLdigits">100</span>
+	<span class="HLroutines">if</span>(nkeep&gt;znkeepmax)<span class="HLroutines">then</span>
+		<span class="HLroutines">print</span>*,<span class="HLstrings">'[svd] You want to keep a number of PCs '</span>//&amp;
+		 &amp; <span class="HLstrings">'greater than '</span>,znkeepmax
+		return
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+	<span class="HLroutines">if</span>(nkeep&gt;ns)<span class="HLroutines">then</span>
+		<span class="HLroutines">print</span>*,<span class="HLstrings">'[svd] You want to keep a number of PCs '</span>//&amp;
+			&amp;<span class="HLstrings">'greater than the number of EOF:'</span>,ns
+		return
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+
+	<span class="HLcomments">! What does the user want?</span>
+	<span class="HLcomments">! ------------------------</span>
+	<span class="HLroutines">if</span>(.<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(leof).and..<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(lpc).and.&amp;
+	  &amp;.<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(reof).and..<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(rpc).and.&amp;
+	  &amp;.<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(ev))<span class="HLroutines">then</span>
+		<span class="HLroutines">print</span>*,<span class="HLstrings">'[svd] Nothing to <span class="HLroutines">do</span>. Quit.'</span>
+		return
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+
+	<span class="HLcomments">! Use ssyevd?</span>
+	<span class="HLcomments">! -----------</span>
+	<span class="HLroutines">if</span>(.<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(bLargeMatrix))<span class="HLroutines">then</span>
+		zbLargeMatrix = .false.
+	<span class="HLroutines">else</span>
+		zbLargeMatrix = bLargeMatrix
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+
+	<span class="HLcomments">! Computations</span>
+	<span class="HLcomments">! ============</span>
+
+	<span class="HLcomments">! Remove the mean</span>
+	<span class="HLcomments">! ---------------</span>
+	<span class="HLfunctions">allocate</span>(zll(nsl,nt))
+	zll = ll - <span class="HLfunctions">spread</span>(<span class="HLfunctions">sum</span>(ll,dim=<span class="HLdigits">2</span>)/<span class="HLroutines">real</span>(nt), ncopies=nt, dim=<span class="HLdigits">2</span>)
+	<span class="HLfunctions">allocate</span>(zrr(nsr,nt))
+	zrr = rr - <span class="HLfunctions">spread</span>(<span class="HLfunctions">sum</span>(rr,dim=<span class="HLdigits">2</span>)/<span class="HLroutines">real</span>(nt), ncopies=nt, dim=<span class="HLdigits">2</span>)
+
+	<span class="HLcomments">! Cross-covariances</span>
+	<span class="HLcomments">! -----------------</span>
+	<span class="HLfunctions">allocate</span>(cov(nsl,nsr))
+	<span class="HLroutines">call</span> sgemm(<span class="HLstrings">'N'</span>,<span class="HLstrings">'T'</span>,nsl,nsr,nt,<span class="HLdigits">1</span>.,zll,nsl, &amp;
+				&amp; zrr,nsr,<span class="HLdigits">0</span>.,cov,nsl)
+	cov = cov / float(nt)
+	<span class="HLroutines">if</span>(.<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(leof).and..<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(lpc)) <span class="HLfunctions">deallocate</span>(zll)
+	<span class="HLroutines">if</span>(.<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(reof).and..<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(rpc)) <span class="HLfunctions">deallocate</span>(zrr)
+
+	<span class="HLcomments">! SVD</span>
+	<span class="HLcomments">! ---</span>
+	<span class="HLfunctions">allocate</span>(zleof(nsr,ns), zev(ns))
+	<span class="HLroutines">if</span>(zbLargeMatrix)<span class="HLroutines">then</span>
+		<span class="HLroutines">call</span> la_gesdd(cov, zev, u=zleof, job=<span class="HLstrings">'V'</span>)
+	<span class="HLroutines">else</span>
+		<span class="HLroutines">call</span> la_gesvd(cov, zev, u=zleof, job=<span class="HLstrings">'V'</span>)
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+
+
+	<span class="HLcomments">! Get output arrays</span>
+	<span class="HLcomments">! =================</span>
+
+	<span class="HLcomments">! Eigen values</span>
+	<span class="HLcomments">! ------------</span>
+	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(ev)) ev = zev(<span class="HLdigits">1</span>:nkeep)
+	<span class="HLfunctions">deallocate</span>(zev)
+
+	<span class="HLcomments">! EOFs</span>
+	<span class="HLcomments">! ----</span>
+	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(leof).or.<span class="HLfunctions">present</span>(lpc))<span class="HLroutines">then</span>
+		leof = zleof(:,<span class="HLdigits">1</span>:nkeep)
+		<span class="HLfunctions">deallocate</span>(zleof)
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(reof).or.<span class="HLfunctions">present</span>(rpc))<span class="HLroutines">then</span>
+		<span class="HLroutines">do</span> i = <span class="HLdigits">1</span>, nkeep
+			reof(:, i) = cov(i,:)
+		<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+		<span class="HLfunctions">deallocate</span>(cov)
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+
+	<span class="HLcomments">! PCs</span>
+	<span class="HLcomments">! ---</span>
+	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(lpc))<span class="HLroutines">then</span>
+		lpc = <span class="HLfunctions">matmul</span>(<span class="HLfunctions">transpose</span>(zll), leof)
+		<span class="HLroutines">do</span> i = <span class="HLdigits">1</span>, nkeep
+			lpc(:,i) = lpc(:,i) / <span class="HLfunctions">sum</span>(leof(:,i)**<span class="HLdigits">2</span>)
+		<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+		<span class="HLfunctions">deallocate</span>(zll)
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(rpc))<span class="HLroutines">then</span>
+		rpc = <span class="HLfunctions">matmul</span>(<span class="HLfunctions">transpose</span>(zrr), reof)
+		<span class="HLroutines">do</span> i = <span class="HLdigits">1</span>, nkeep
+			rpc(:,i) = rpc(:,i) / <span class="HLfunctions">sum</span>(reof(:,i)**<span class="HLdigits">2</span>)
+		<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+
+	<span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_svd</span>
+
+
+
+
   <span class="HLcomments">! ############################################################</span>
   <span class="HLcomments">! ############################################################</span>
   <span class="HLcomments">! ## TOOLS PART ##############################################</span>
@@ -756,84 +925,6 @@
 
 	<span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_phasecomp</span>
 
-
-
-  <span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_diasym</span>(a,eig,bLargeMatrix)
-
-	<span class="HLcomments">! Title:</span>
-	<span class="HLcomments">!	Diagonalisation of a symetric matrix</span>
-	<span class="HLcomments">!</span>
-	<span class="HLcomments">! Description:</span>
-	<span class="HLcomments">!	A simple interface to the ssyev diagonalisation subroutine from LAPACK.</span>
-	<span class="HLcomments">!</span>
-	<span class="HLcomments">! Necessary arguments:</span>
-	<span class="HLcomments">!	- a:   Input = symetric matrix, output = EOFs</span>
-	<span class="HLcomments">!	- eig: Eigen values</span>
-	<span class="HLcomments">!</span>
-	<span class="HLcomments">! Optional arguments:</span>
-	<span class="HLcomments">!	- bLargeMatrix: Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) [default:.true.]</span>
-	<span class="HLcomments">!</span>
-	<span class="HLcomments">! Dependencies:</span>
-	<span class="HLcomments">!	ssyev(LAPACK)</span>
-
-	<span class="HLroutines">implicit</span> <span class="HLattributes">none</span>
-
-	<span class="HLcomments">! Declaratiions</span>
-	<span class="HLcomments">! =============</span>
-
-	<span class="HLcomments">! External</span>
-	<span class="HLcomments">! --------</span>
-	<span class="HLroutines">real</span>,    <span class="HLattributes">intent</span>(inout) :: a(:,:)
-	<span class="HLroutines">real</span>,    <span class="HLattributes">intent</span>(out)   :: eig(size(a,<span class="HLdigits">1</span>))
-	<span class="HLroutines">logical</span>, <span class="HLattributes">intent</span>(in), <span class="HLattributes">optional</span> :: bLargeMatrix
-
-	<span class="HLcomments">! Internal</span>
-	<span class="HLcomments">! --------</span>
-	<span class="HLroutines">integer</span> :: n
-	<span class="HLroutines">integer</span> :: lwork,inf,liwork
-	<span class="HLroutines">logical</span> :: zbLargeMatrix
-	<span class="HLroutines">real</span>,    <span class="HLattributes">allocatable</span> :: work(:)
-	<span class="HLroutines">integer</span>, <span class="HLattributes">allocatable</span> :: iwork(:)
-
-	<span class="HLcomments">! Initialisations</span>
-	<span class="HLcomments">! ---------------</span>
-
-	<span class="HLcomments">! Use ssyevd?</span>
-	<span class="HLroutines">if</span>(.<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(bLargeMatrix))<span class="HLroutines">then</span>
-		zbLargeMatrix = .true.
-	<span class="HLroutines">else</span>
-		zbLargeMatrix = bLargeMatrix
-	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
-
-	<span class="HLcomments">! Data set</span>
-	n=size(a,<span class="HLdigits">1</span>)
-
-	<span class="HLcomments">! Working array</span>
-	lwork = -<span class="HLdigits">1</span>
-	<span class="HLfunctions">allocate</span>(work(<span class="HLdigits">1</span>))
- 	<span class="HLroutines">if</span>(zbLargeMatrix)<span class="HLroutines">then</span>
-		liwork = -<span class="HLdigits">1</span>
-		<span class="HLfunctions">allocate</span>(iwork(<span class="HLdigits">1</span>))
-		<span class="HLroutines">call</span> ssyevd(<span class="HLstrings">'V'</span>,<span class="HLstrings">'U'</span>,n,a,n,eig,work,lwork,iwork,liwork,inf)
-		liwork = iwork(<span class="HLdigits">1</span>)
-		<span class="HLfunctions">deallocate</span>(iwork)
-		<span class="HLfunctions">allocate</span>(iwork(liwork))
-	<span class="HLroutines">else</span>
-		<span class="HLroutines">call</span> <span class="HLfunctions">ssyev</span>(<span class="HLstrings">'V'</span>,<span class="HLstrings">'U'</span>,n,a,n,eig,work,lwork,inf)
-	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
-	lwork = int(work(<span class="HLdigits">1</span>))
-	<span class="HLfunctions">deallocate</span>(work)
-	<span class="HLfunctions">allocate</span>(work(lwork))
-
-	<span class="HLcomments">! Diagonalisation</span>
-	<span class="HLcomments">! ---------------</span>
-	<span class="HLroutines">if</span>(zbLargeMatrix)<span class="HLroutines">then</span>
-		<span class="HLroutines">call</span> ssyevd(<span class="HLstrings">'V'</span>,<span class="HLstrings">'U'</span>,n,a,n,eig,work,lwork,iwork,liwork,inf)
-	<span class="HLroutines">else</span>
-		<span class="HLroutines">call</span> <span class="HLfunctions">ssyev</span>(<span class="HLstrings">'V'</span>,<span class="HLstrings">'U'</span>,n,a,n,eig,work,lwork,inf)
-	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
-
-	<span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_diasym</span>
 
 <span class="HLroutines">end</span> <span class="HLroutines">module</span> spanlib
 </pre></div></body></html>

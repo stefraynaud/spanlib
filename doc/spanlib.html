@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>SpanLib - Spectral Analysis Library</title>
     <meta name="generator" content="DocBook XSL Stylesheets V1.61.2" />
-    <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, PCA, EOF, POP" />
+    <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, Multichannel singular spectrum analysis, PCA, Principal component analysis, EOF, Empirical othogonal funtion, PC, Principal component, SVD, Singular value decomposition, POP, Principal oscillation patterns" />
     <style xmlns="" xmlns:fo="http://www.w3.org/1999/XSL/Format" type="text/css">
 			/* Main */
 body {
@@ -15,10 +15,10 @@ body {
 
 /* Shadow */
 h1 {
-	text-shadow: #bbb 0.1em 0.1em 3px;
+	text-shadow: #999 0.1em 0.1em 3px;
 }
 h2, h3, h4, h5, div.navfooter, div.navheader {
-	text-shadow: #ccc 0.1em 0.1em 2px;
+	text-shadow: #999 0.1em 0.1em 2px;
 }
 
 /* Links */
@@ -83,7 +83,7 @@ div.note h3.title {font-size:smaller;}
       <div class="titlepage">
         <div>
           <div>
-            <h1 class="title"><a id="id3104860"></a>SpanLib - Spectral Analysis Library</h1>
+            <h1 class="title"><a id="id2981034"></a>SpanLib - Spectral Analysis Library</h1>
           </div>
           <div>
             <div class="authorgroup">
@@ -104,7 +104,7 @@ div.note h3.title {font-size:smaller;}
           <div>
             <p class="releaseinfo">
 			</p>
-            <p>Version 1.1</p>
+            <p>Version 1.2</p>
             <p class="releaseinfo">
 			</p>
             <p>
@@ -117,7 +117,7 @@ div.note h3.title {font-size:smaller;}
 		</p>
           </div>
           <div>
-            <fo:block xmlns:fo="http://www.w3.org/1999/XSL/Format">This documentation was generated on 13 September 2006</fo:block>
+            <fo:block xmlns:fo="http://www.w3.org/1999/XSL/Format">This documentation was generated on 18 September 2006</fo:block>
           </div>
         </div>
         <div></div>
@@ -151,7 +151,7 @@ div.note h3.title {font-size:smaller;}
             <dl>
               <dt>3.1. <a href="#doc_f90_int">Introduction</a></dt>
               <dt>3.2. <a href="#doc_f90_sub">F90 subroutines</a></dt>
-              <dt>3.3. <a href="#doc_f90_exa">A Fortran 90 example</a></dt>
+              <dt>3.3. <a href="#doc_f90_exa">Fortran 90 examples</a></dt>
             </dl>
           </dd>
           <dt>4. <a href="#doc_pyt">The python module</a></dt>
@@ -191,25 +191,27 @@ div.note h3.title {font-size:smaller;}
 				a sum of different signals that can be hardly distinguished one another,
 				even if their respective origin is fundamentally different.
 				Analysis methods that are able to extract the most coherent modes
-				of variability generally helps to identify signals of interests.
+				of variability generally help to identify signals of interests.
 			</p>
           <p>
 				SpanLib currently focuses on the use of linear analysis methods
-				that rely on eign solutions of covariance or correlations matrices
+				that rely on eign solutions of covariance or correlation matrices
 			</p>
           <p>
 				This package provides a <a href="#doc_f90" title="3.&#xA0;The Fortran 90 library">F90 library</a> (as a module)
 				containing a minimal collection of subroutines to perform
 				<span class="bold"><b>Principal Componant Analysis</b></span> (PCA),
-				<span class="bold"><b>Multi-channel Singular Spectrum Analysis</b></span> (MSSA), reconstruction
-				of components and phase composites.
+				<span class="bold"><b>Multi-channel Singular Spectrum Analysis</b></span> (MSSA),
+				<span class="bold"><b>Singular Value Decomposition</b></span> (SVD),
+				reconstruction of components and phase composites.
 				The package also provide a <a href="#doc_pyt" title="4.&#xA0;The python module">python module</a>
 				that calls the F90 library and gives the user a set of useful functions
 				to perform analyses.
 			</p>
           <p>
-				In its future version, SpanLib will also include others methods, such
-				Singular Value Decomposition or Principal Oscillation Pattern analysis.
+				In its future version, SpanLib will also include others methods
+				(such as Principal Oscillation Pattern analysis) and languages
+				(C, Java).
 			</p>
         </div>
         <div class="sect2" lang="en" xml:lang="en">
@@ -285,6 +287,15 @@ div.note h3.title {font-size:smaller;}
 				noisy signal.</em></span>
 			</p>
           <p>
+				<span class="bold"><b><a href="#svd">SVD</a></b></span>
+				works in a similar way to PCA, except that two different dataset are
+				decomposed at the same time.
+				Therefore, the diagonalyzed matrix is a cross-covariance matrix and
+				may not be symetric and positive.
+				Dominant EOFs and PCs can be used for example to build a statiscal
+				model linking the second variable to the first one.
+			</p>
+          <p>
 				All these analysis methods act as a linear filter.
 				For each of them, it is possible to reconstruct part of the filtered signal.
 				A reconstructed mode is the &quot;multiplication&quot; of its EOF by its PC, and
@@ -293,9 +304,9 @@ div.note h3.title {font-size:smaller;}
 			</p>
           <p><a id="pg:dof"></a>
 				Finally, PCA may be used also to simply reduce the number of degree-of-freedom (d-o-f) of a dataset.
-				For example, you can keep the first PC that explain a 80% of the variance.
+				For example, you can keep the first PC that explain a 70% of the variance.
 				These PCs are then used as an input dataset for other analysis.
-				This methodology is useful for MSSA since the eigen problem solving
+				This methodology is useful for MSSA and SVD since the eigen problem solving
 				may be very time consuming: we are now able, for example, to potentially reduce the
 				number of channels from several hundred or thounsand, to less than 20.
 			</p>
@@ -322,7 +333,7 @@ div.note h3.title {font-size:smaller;}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3036311"></a>CPU: space versus time</h5>
+                    <h5 class="title"><a id="id2966028"></a>CPU: space versus time</h5>
                   </div>
                 </div>
                 <div></div>
@@ -334,7 +345,7 @@ div.note h3.title {font-size:smaller;}
 						It is possible to partly avoid this problem when the time dimension is lower
 						than the spatial dimension, using a correlation matrix
 						in time instead of in space.
-						F90 subroutine <tt class="varname"><a href="#sl_pca" title="3.2.1.&#xA0;Principal Component Analysis: sl_pca">sl_pca</a></tt> of SpanLib
+						F90 subroutine <tt class="varname"><a href="#sl_pca" title="3.2.1.&#xA0;: sl_pca">sl_pca</a></tt> of SpanLib
 						provides the ability
 						to choose which of theses approaches to use for PCA.
 					</p>
@@ -343,7 +354,7 @@ div.note h3.title {font-size:smaller;}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3089813"></a>Weights</h5>
+                    <h5 class="title"><a id="id2966061"></a>Weights</h5>
                   </div>
                 </div>
                 <div></div>
@@ -354,7 +365,7 @@ div.note h3.title {font-size:smaller;}
 						to the grid cell area.
 						Whereas common PCA analysis does not take these weights into account
 						it is possible to give optional weights to
-						<tt class="varname"><a href="#sl_pca" title="3.2.1.&#xA0;Principal Component Analysis: sl_pca">sl_pca</a></tt>.
+						<tt class="varname"><a href="#sl_pca" title="3.2.1.&#xA0;: sl_pca">sl_pca</a></tt>.
 						Using the <a href="#doc_pyt" title="4.&#xA0;The python module">python module</a>,
 						it is easy to &quot;attach&quot; weights to a variable for use by
 						<tt class="varname"><a href="#&lt;SpAn_object&gt;.pca" title="4.2.6.&#xA0; Principal Components Analysis (PCA): &lt;SpAn_object&gt;.pca">pca</a></tt>.
@@ -364,7 +375,7 @@ div.note h3.title {font-size:smaller;}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3089860"></a>Mask</h5>
+                    <h5 class="title"><a id="id2966109"></a>Mask</h5>
                   </div>
                 </div>
                 <div></div>
@@ -372,7 +383,7 @@ div.note h3.title {font-size:smaller;}
               <p>
 						Similarly, it is not useful to analyse masked points
 						(for example, gridded points situated on land when use analyse oceanic data).
-						The F90 subroutine <tt class="varname"><a href="#sl_pca" title="3.2.1.&#xA0;Principal Component Analysis: sl_pca">sl_pca</a></tt>
+						The F90 subroutine <tt class="varname"><a href="#sl_pca" title="3.2.1.&#xA0;: sl_pca">sl_pca</a></tt>
 						makes the supposition that none of the masked (all channels are analysed).
 						However, as well as for the weights, it is possible to associate
 						an spatial mask to a dataset in order to remove masked points when
@@ -385,7 +396,7 @@ div.note h3.title {font-size:smaller;}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3089901"></a>Analysing several variables at the same time</h5>
+                    <h5 class="title"><a id="id2966150"></a>Analysing several variables at the same time</h5>
                   </div>
                 </div>
                 <div></div>
@@ -411,7 +422,7 @@ div.note h3.title {font-size:smaller;}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3089957"></a>Reconstructions</h5>
+                    <h5 class="title"><a id="id2966206"></a>Reconstructions</h5>
                   </div>
                 </div>
                 <div></div>
@@ -455,11 +466,16 @@ div.note h3.title {font-size:smaller;}
 						A standard value is one third of the time dimension.
 					</p>
             </div>
+            <div class="simplesect" lang="en" xml:lang="en"><div class="titlepage"><div><div><h5 class="title"><a id="prepcamssa"></a>Pre-PCA</h5></div></div><div></div></div>
+					Since the covariance matrix may quickly huge depending on
+					parameters (number of channels and window size), is more appropriate
+					to perform a pre-PCA to reduce the number of channels.
+				</div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3040377"></a>Phase composites</h5>
+                    <h5 class="title"><a id="id2966324"></a>Phase composites</h5>
                   </div>
                 </div>
                 <div></div>
@@ -468,13 +484,29 @@ div.note h3.title {font-size:smaller;}
 						One of the most important interests of MSSA is to be able to
 						extract intermittent space-time oscillations from the signal.
 						At the first order, an oscillation is its &quot;typical&quot; cycle.
-						<tt class="varname"><a href="#sl_phasecomp" title="3.2.5.&#xA0;Phase composites: sl_phasecomp">sl_phasecomp</a></tt> (F90)
+						<tt class="varname"><a href="#sl_phasecomp" title="3.2.6.&#xA0;Phase composites: sl_phasecomp">sl_phasecomp</a></tt> (F90)
 						and
 						<tt class="varname"><a href="#spanlib.computePhases" title="4.2.4.&#xA0; Phase composites for oscillatory fields: spanlib.computePhases">spanlib.computePhases</a></tt> (Python)
 						perfom phases composites: it computes an averaged cycle and cut it an
 						homegeneous parts (as one can do for the annual cycle in 12 months).
 					</p>
             </div>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <div>
+                  <h4 class="title"><a id="doc_pre_tec_svd"></a>1.3.3. ...about SVD</h4>
+                </div>
+              </div>
+              <div></div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en"><div class="titlepage"><div><div><h5 class="title"><a id="prepcasvd"></a>Pre-PCA</h5></div></div><div></div></div>
+					Unlike PCA, is not possible to switch channel and time
+					dimension to computes EOFs.
+					Therefore, it is common to perform a pre-PCA, like with
+					MSSA, to reduce the number of channels.
+				</div>
           </div>
         </div>
         <div class="sect2" lang="en" xml:lang="en">
@@ -487,7 +519,7 @@ div.note h3.title {font-size:smaller;}
             <div></div>
           </div>
           <p>
-				For more information about PCA and MSSA may be found in papers and on the web.
+				For more information about PCA, MSSA and SVD may be found in papers and on the web.
 				See for example:
 				</p>
           <div class="itemizedlist">
@@ -501,6 +533,8 @@ div.note h3.title {font-size:smaller;}
               <li><span class="bold"><a id="mssa"></a><b>MSSA: </b></span><a href="#plva94">Plaut and Vautard (1994)</a>,
 						<a href="#raynal05">Raynaud et al (2005)</a>,
 						<a href="#raynal06">Raynaud et al (2006)</a>.
+					</li>
+              <li><span class="bold"><a id="svd"></a><b>SVD: </b></span>,
 					</li>
             </ul>
           </div>
@@ -557,19 +591,22 @@ div.note h3.title {font-size:smaller;}
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="id3040653"></a>2.1.1. Fortran library</h4>
+                  <h4 class="title"><a id="id2912689"></a>2.1.1. Fortran library</h4>
                 </div>
               </div>
               <div></div>
             </div>
-            <p>You need a F90 compiler to compile it, and <a href="http://www.netlib.org/lapack/" target="_top">BLAS/LAPACK</a>  libraries compilated using this F90 compiler to be able to link with library.</p>
-            <p>To run the F90 example, you need the F90 netcdf library.</p>
+            <p>
+					You need a F90 compiler to compile it, and <a href="http://www.netlib.org/lapack/" target="_top">BLAS/LAPACK/LAPACK95</a>
+					libraries compilated using this F90 compiler to be able to link with library.
+				</p>
+            <p>To run the F90 examples, you also need the F90 netcdf library.</p>
           </div>
           <div class="sect3" lang="en" xml:lang="en">
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="id3040680"></a>2.1.2. Python module</h4>
+                  <h4 class="title"><a id="id2912717"></a>2.1.2. Python module</h4>
                 </div>
               </div>
               <div></div>
@@ -587,7 +624,18 @@ div.note h3.title {font-size:smaller;}
             </div>
             <div></div>
           </div>
-          <p>You can download the sources of the package from the <a href="http://sourceforge.net/project/showfiles.php?group_id=168272" target="_top">Sourceforge repositories</a> of the project.</p>
+          <p>
+				You can download the sources (tarball) of the package from the <a href="http://sourceforge.net/project/showfiles.php?group_id=168272" target="_top">Sourceforge repositories</a> of the project.
+				Then, just type for example:
+
+</p>
+          <pre class="programlisting">
+<tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>tar xzf spanlib-1.2.tgz</tt></b>
+<tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>cd spanlib-1.2</tt></b>
+</pre>
+          <p>.
+
+			</p>
         </div>
         <div class="sect2" lang="en" xml:lang="en">
           <div class="titlepage">
@@ -630,10 +678,20 @@ div.note h3.title {font-size:smaller;}
           <p>
 				Here is an example of <b class="userinput"><tt>./configure</tt></b>:
 				</p>
-          <pre class="programlisting"><tt class="prompt">&lt;raynaud&gt;</tt> <b class="userinput"><tt>./configure --with-blas-lib=/usr/local/install/lapack-3.0/lib \
+          <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>./configure --with-blas-lib=/usr/local/install/lapack-3.0/lib \
 --with-netcdf-lib=/usr/local/install/netcdf-3.6.1/lib \
 --with-netcdf-inc=/usr/local/install/netcdf-3.6.1/include \
 --prefix=$HOME --with-pythondir=$HOME/python FC=ifort</tt></b></pre>
+          <p>
+			</p>
+          <p>
+				You can list all <b class="command">configure</b> options using:
+				</p>
+          <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>./configure --help</tt></b></pre>
+          <p>
+				You can also list usefull<b class="command">make</b> targets with:
+				</p>
+          <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>.make  help</tt></b></pre>
           <p>
 			</p>
         </div>
@@ -682,7 +740,7 @@ div.note h3.title {font-size:smaller;}
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="sl_pca"></a>3.2.1. Principal Component Analysis: <tt class="literal">sl_pca</tt></h4>
+                  <h4 class="title"><a id="sl_pca"></a>3.2.1. : <tt class="literal">sl_pca</tt></h4>
                 </div>
               </div>
               <div></div>
@@ -691,7 +749,7 @@ div.note h3.title {font-size:smaller;}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3036490"></a>Usage</h5>
+                    <h5 class="title"><a id="id2972514"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -702,7 +760,7 @@ div.note h3.title {font-size:smaller;}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3036560"></a>Description</h5>
+                    <h5 class="title"><a id="id2972585"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -720,7 +778,7 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3036580"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2972605"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -738,7 +796,7 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3036641"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2972665"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -762,7 +820,7 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3034832"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2911008"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -770,7 +828,7 @@ than the time dimension. This default behavior can be overridden.
               <div class="itemizedlist">
                 <ul type="disc">
                   <li><tt class="varname">bLargeMatrix    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
-				 :: <span class="emphasis"><em> Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) </em></span></li>
+				 :: <span class="emphasis"><em> Use la_syevd instead of la_syev (faster for large matrices, but uses more workspace) </em></span></li>
                 </ul>
               </div>
             </div>
@@ -778,13 +836,13 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3034869"></a>Dependencies</h5>
+                    <h5 class="title"><a id="id2911045"></a>Dependencies</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <p>
-			<span class="HLpersonalised"><tt class="literal"><a href="#sl_diasym" title="3.2.6.&#xA0;Diagonalisation of a symetric matrix: sl_diasym">sl_diasym</a></tt></span>
+<tt class="literal">sgemm(BLAS) ssyrk(BLAS) la_syev(LAPACK95) la_syevd(LAPACK95)</tt>
 		</p>
             </div>
           </div>
@@ -801,7 +859,7 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3034909"></a>Usage</h5>
+                    <h5 class="title"><a id="id2911076"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -812,7 +870,7 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3034963"></a>Description</h5>
+                    <h5 class="title"><a id="id2911130"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -828,7 +886,7 @@ by its PC. The sum of all reconstructed component is the original field.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3034980"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2911148"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -848,7 +906,7 @@ by its PC. The sum of all reconstructed component is the original field.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3035065"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2911232"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -876,7 +934,7 @@ by its PC. The sum of all reconstructed component is the original field.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3105162"></a>Usage</h5>
+                    <h5 class="title"><a id="id2981776"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -887,7 +945,7 @@ by its PC. The sum of all reconstructed component is the original field.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3105230"></a>Description</h5>
+                    <h5 class="title"><a id="id2981844"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -903,7 +961,7 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3105246"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2981860"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -923,7 +981,7 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3105331"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2981945"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -943,7 +1001,7 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3105416"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2982030"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -959,13 +1017,13 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3105454"></a>Dependencies</h5>
+                    <h5 class="title"><a id="id2982068"></a>Dependencies</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <p>
-			<span class="HLpersonalised"><tt class="literal"><a href="#sl_diasym" title="3.2.6.&#xA0;Diagonalisation of a symetric matrix: sl_diasym">sl_diasym</a></tt></span>
+<tt class="literal">la_syev(LAPACK95) la_syevd(LAPACK95)</tt>
 		</p>
             </div>
           </div>
@@ -982,7 +1040,7 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3105493"></a>Usage</h5>
+                    <h5 class="title"><a id="id2982099"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -993,7 +1051,7 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3105554"></a>Description</h5>
+                    <h5 class="title"><a id="id2982160"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1006,7 +1064,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3105568"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2982174"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1028,7 +1086,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3105677"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2982283"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1047,7 +1105,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="sl_phasecomp"></a>3.2.5. Phase composites: <tt class="literal">sl_phasecomp</tt></h4>
+                  <h4 class="title"><a id="sl_svd"></a>3.2.5. Singular Value Decomposition: <tt class="literal">sl_svd</tt></h4>
                 </div>
               </div>
               <div></div>
@@ -1056,7 +1114,115 @@ Same as for the reconstruction of PCA components, but for MSSA.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3035583"></a>Usage</h5>
+                    <h5 class="title"><a id="id2911742"></a>Usage</h5>
+                  </div>
+                </div>
+                <div></div>
+              </div>
+              <pre class="programlisting">call <span class="HLpersonalised">sl_svd</span>(<span class="HLpersonalised">ll</span>, <span class="HLpersonalised">rr</span>, <span class="HLpersonalised">nkeep</span>, leof=<span class="HLpersonalised">leof</span>, reof=<span class="HLpersonalised">reof</span>, lpc=<span class="HLpersonalised">lpc</span>, rpc=<span class="HLpersonalised">rpc</span>, ev=<span class="HLpersonalised">ev</span>, <span class="HLpersonalised">bLargeMatrix</span>)</pre>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id2911824"></a>Description</h5>
+                  </div>
+                </div>
+                <div></div>
+              </div>
+              <p>
+Singular value decomposition between two datasets having
+the same length in time.
+		</p>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id2911838"></a>Necessary arguments</h5>
+                  </div>
+                </div>
+                <div></div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt class="varname">ll    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]    </span></tt> 
+				 :: <span class="emphasis"><em>    Left space-time array</em></span></li>
+                  <li><tt class="varname">rr    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]    </span></tt> 
+				 :: <span class="emphasis"><em>    Right space-time array</em></span></li>
+                  <li><tt class="varname">nkeep    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+				 :: <span class="emphasis"><em> Maximum number of modes to keep in outputs</em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id2911922"></a>Optional arguments</h5>
+                  </div>
+                </div>
+                <div></div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt class="varname">leof    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
+				 :: <span class="emphasis"><em>  Left EOFs</em></span></li>
+                  <li><tt class="varname">reof    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
+				 :: <span class="emphasis"><em>  Right EOFs</em></span></li>
+                  <li><tt class="varname">lpc    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
+				 :: <span class="emphasis"><em>   Left PCs</em></span></li>
+                  <li><tt class="varname">rpc    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
+				 :: <span class="emphasis"><em>   Right PCs</em></span></li>
+                  <li><tt class="varname">ev    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id2912052"></a>Necessary arguments</h5>
+                  </div>
+                </div>
+                <div></div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><tt class="varname">bLargeMatrix    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+				 :: <span class="emphasis"><em> Use la_sgesdd instead of la_sgesvd (faster for large matrices, but uses more workspace) </em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id2912090"></a>Dependencies</h5>
+                  </div>
+                </div>
+                <div></div>
+              </div>
+              <p>
+<tt class="literal">sgemm(BLAS) la_gesvd(LAPACK95) la_gesdd(LAPACK95)</tt>
+		</p>
+            </div>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <div>
+                  <h4 class="title"><a id="sl_phasecomp"></a>3.2.6. Phase composites: <tt class="literal">sl_phasecomp</tt></h4>
+                </div>
+              </div>
+              <div></div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id2912122"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1067,7 +1233,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3035644"></a>Description</h5>
+                    <h5 class="title"><a id="id2912183"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1089,7 +1255,7 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3035666"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2912205"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1109,7 +1275,7 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3035757"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2912296"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1129,80 +1295,13 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3035856"></a>Dependencies</h5>
+                    <h5 class="title"><a id="id2982628"></a>Dependencies</h5>
                   </div>
                 </div>
                 <div></div>
               </div>
               <p>
-			<span class="HLpersonalised"><tt class="literal"><a href="#sl_pca" title="3.2.1.&#xA0;Principal Component Analysis: sl_pca">sl_pca</a></tt></span>
-		</p>
-            </div>
-          </div>
-          <div class="sect3" lang="en" xml:lang="en">
-            <div class="titlepage">
-              <div>
-                <div>
-                  <h4 class="title"><a id="sl_diasym"></a>3.2.6. Diagonalisation of a symetric matrix: <tt class="literal">sl_diasym</tt></h4>
-                </div>
-              </div>
-              <div></div>
-            </div>
-            <div class="simplesect" lang="en" xml:lang="en">
-              <div class="titlepage">
-                <div>
-                  <div>
-                    <h5 class="title"><a id="id3035895"></a>Usage</h5>
-                  </div>
-                </div>
-                <div></div>
-              </div>
-              <pre class="programlisting">call <span class="HLpersonalised">sl_diasym</span>(<span class="HLpersonalised">a</span>, <span class="HLpersonalised">eig</span>, <span class="HLpersonalised">bLargeMatrix</span>)</pre>
-            </div>
-            <div class="simplesect" lang="en" xml:lang="en">
-              <div class="titlepage">
-                <div>
-                  <div>
-                    <h5 class="title"><a id="id3035936"></a>Description</h5>
-                  </div>
-                </div>
-                <div></div>
-              </div>
-              <p>
-A simple interface to the ssyev diagonalisation subroutine from LAPACK.
-		</p>
-            </div>
-            <div class="simplesect" lang="en" xml:lang="en">
-              <div class="titlepage">
-                <div>
-                  <div>
-                    <h5 class="title"><a id="id3035950"></a>Necessary arguments</h5>
-                  </div>
-                </div>
-                <div></div>
-              </div>
-              <div class="itemizedlist">
-                <ul type="disc">
-                  <li><tt class="varname">a    </tt><tt class="option"><span class="ARGspec">[intent:inoutput, type:real]    </span></tt> 
-				 :: <span class="emphasis"><em>   Input = symetric matrix, output = EOFs</em></span></li>
-                  <li><tt class="varname">eig    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
-				 :: <span class="emphasis"><em> Eigen values</em></span></li>
-                  <li><tt class="varname">bLargeMatrix    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
-				 :: <span class="emphasis"><em> Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) </em></span></li>
-                </ul>
-              </div>
-            </div>
-            <div class="simplesect" lang="en" xml:lang="en">
-              <div class="titlepage">
-                <div>
-                  <div>
-                    <h5 class="title"><a id="id3036035"></a>Dependencies</h5>
-                  </div>
-                </div>
-                <div></div>
-              </div>
-              <p>
-<tt class="literal">ssyev(LAPACK)</tt>
+			<span class="HLpersonalised"><tt class="literal"><a href="#sl_pca" title="3.2.1.&#xA0;: sl_pca">sl_pca</a></tt></span>
 		</p>
             </div>
           </div>
@@ -1211,37 +1310,66 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
           <div class="titlepage">
             <div>
               <div>
-                <h3 class="title"><a id="doc_f90_exa"></a>3.3. A Fortran 90 example</h3>
+                <h3 class="title"><a id="doc_f90_exa"></a>3.3. Fortran 90 examples</h3>
               </div>
             </div>
             <div></div>
           </div>
           <p>
-				This is an example of how to use this the Fortran 90 component of Spanlib.
-				In this example, an analysis of Sea surface Temperature anomalies using data
-				stored in the netcdf format.
-				The dominant oscillatory mode of the El Nino variability is then extracted
-				and stored in a netcdf file.
-			</p>
-          <div class="example">
-            <a id="id3090382"></a>
-            <p class="title">
-              <b>Example 1. F90 example</b>
-            </p>
-            <p>
-					You can run this example typing (from package directory):
-					</p>
-            <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>cd example &amp;&amp; make</tt></b></pre>
-            <p>
-					This command will first try to download the dataset,
-					then compile the following f90 program, run it,
-					and finally try to visualise output data.
-					See <a href="#doc_ins_req" title="2.1.&#xA0;Requirements">Section 2.1, “Requirements”</a> if it fails.
+				Theses examples illustrate of how to use the Fortran 90 component of Spanlib.
+				Sea surface Temperature anomalies from a netcdf format
+				is the dataset analysed in both examples.
 				</p>
+          <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3>
+					Each example create an output netcdf file.
+					The configure script should have tried to find a way
+					to view these outputs (like <b class="command">ncview</b>,
+					<b class="command">vcdat</b>, or a simple python script provided
+					with the package).
+					If it failed, you will have to visualise results by yourself
+					(indications are provided and the end of the run).
+				</div>
+          <p>
+			</p>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <div>
+                  <h4 class="title"><a id="doc_f90_ex1"></a>3.3.1. F90 example 1</h4>
+                </div>
+              </div>
+              <div></div>
+            </div>
             <p>
-					The sources of this example is highlighted below, with comments inside.
+					In this example, PCA is performed on the whole dataset to reduce
+					the number of channels. These channels are then given
+					as input to the MSSA, from which the eigenvalues and the
+					dominant oscillatory mode of the El Nino variability are extracted
+					and stored to the output netcdf file.
+					Phase composites are also computed to represent the oscillation over its cycle.
+				</p>
+            <div class="example">
+              <a id="id2913800"></a>
+              <p class="title">
+                <b>Example 1. F90 example 1</b>
+              </p>
+              <p>
+						You can run this example typing (from package directory):
+						</p>
+              <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make example</tt></b></pre>
+              <p> or
+						</p>
+              <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make fortran1</tt></b></pre>
+              <p>
+						This command will first try to download the dataset,
+						then compile the following f90 program, run it,
+						and finally try to visualise output data.
+						See <a href="#doc_ins_req" title="2.1.&#xA0;Requirements">Section 2.1, “Requirements”</a> if it fails.
 					</p>
-            <pre class="programlisting"><span class="HLcomments">! File: example.f90</span>
+              <p>
+						The source code of this example is highlighted below, with comments inside.
+						</p>
+              <pre class="programlisting"><span class="HLcomments">! File: example1.f90</span>
 <span class="HLcomments">!</span>
 <span class="HLcomments">! This file is part of the SpanLib library.</span>
 <span class="HLcomments">! Copyright (C) 2006  Stephane Raynaud</span>
@@ -1263,12 +1391,12 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 
 <span class="HLroutines">program</span> example
 
-	<span class="HLcomments">! This simple example shows how to use all subroutines from this package.</span>
+	<span class="HLcomments">! This simple example shows how to PCA and MSSA subroutines from this package.</span>
 	<span class="HLcomments">! Warning: it requires netcdf for in/outputs.</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! We start from longitude/latitude/time value of Pacific Sea Surface Temperature</span>
 	<span class="HLcomments">! that include the El Nino Southern Oscillation signal.</span>
-	<span class="HLcomments">! Input is the netcdf file data.cdf.</span>
+	<span class="HLcomments">! Input is the netcdf file data2.cdf.</span>
 	<span class="HLcomments">! We remove land points from the initial array according</span>
 	<span class="HLcomments">! to the netcdf missing_value attribute of the analysed variable (data are &quot;packed&quot;).</span>
 	<span class="HLcomments">! A PCA is used to reduce the degrees of freedoom before MSSA analysis.</span>
@@ -1278,8 +1406,10 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 	<span class="HLcomments">! reconstructed from the MSSA and PCA spaces.</span>
 	<span class="HLcomments">! Finally, phase composites are computed from this reconstructed oscillation.</span>
 	<span class="HLcomments">! The oscillation is outputed in a netcdf file (pair_1.cdf).</span>
+	<span class="HLcomments">! MSSA eigenvalue are stored in the output netcdf file. This shows</span>
+	<span class="HLcomments">! you pairs due to oscillatory modes.</span>
 	<span class="HLcomments">!</span>
-	<span class="HLcomments">! The initial data set (data.cdf):</span>
+	<span class="HLcomments">! Initial data set (data2.cdf):</span>
 	<span class="HLcomments">! - origin: updated Reynolds and Smith (1996) SST (netcdf file)</span>
 	<span class="HLcomments">! - origin url: data selector from http://iridl.ldeo.columbia.edu</span>
 	<span class="HLcomments">! - how to get it [10Mb]: http://stefdeperou.free.fr/pub/data.cdf</span>
@@ -1292,7 +1422,10 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 	<span class="HLcomments">! - Phase composites use 8 phases</span>
 	<span class="HLcomments">! - An offset of 0.4 and is used for composites</span>
 	<span class="HLcomments">! - The first phase of composites is set at 180 degrees (minimal value)</span>
-
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! Note:</span>
+	<span class="HLcomments">!	This example should run only a few seconds.</span>
+	<span class="HLcomments">!	If it is not the case, you BLAS/LAPACK librairy is not optimized.</span>
 
 	<span class="HLroutines">use</span> spanlib
 	<span class="HLroutines">use</span> netcdf
@@ -1301,12 +1434,12 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 
 	<span class="HLcomments">! Parameters</span>
 	<span class="HLcomments">! ----------</span>
-	<span class="HLroutines">integer</span>,<span class="HLattributes">parameter</span> :: nkeep_pca=<span class="HLdigits">5</span>, nwindow=<span class="HLdigits">84</span>, first_mode=<span class="HLdigits">1</span>, &amp;
-		&amp; nphases=<span class="HLdigits">8</span>
+	<span class="HLroutines">integer</span>,<span class="HLattributes">parameter</span> :: nkeep_pca=<span class="HLdigits">10</span>, nkeep_mssa=<span class="HLdigits">10</span>, nwindow=<span class="HLdigits">84</span>, &amp;
+		&amp; first_mode=<span class="HLdigits">1</span>, nphases=<span class="HLdigits">8</span>
 	<span class="HLroutines">real</span>, <span class="HLattributes">parameter</span> :: offset=<span class="HLdigits">0</span>., first_phase=<span class="HLdigits">180</span>., &amp;
 		&amp; new_missing_value=-<span class="HLdigits">999</span>.
 	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">&quot;data2.cdf&quot;</span>, &amp;
-		&amp; output_nc_file=<span class="HLstrings">&quot;output.nc&quot;</span>, var_name=<span class="HLstrings">'ssta'</span>
+		&amp; output_nc_file=<span class="HLstrings">&quot;output1.nc&quot;</span>, var_name=<span class="HLstrings">'ssta'</span>
 
 	<span class="HLcomments">! Other declarations</span>
 	<span class="HLcomments">! ------------------</span>
@@ -1322,8 +1455,9 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>) :: dim_names(<span class="HLdigits">3</span>), dim_name, &amp;
 		&amp; lon_units, lat_units, var_units, &amp;
 		&amp;	lon_name, lat_name, time_name, time_units
-	<span class="HLroutines">integer</span> :: ncid, dimid, dimids(<span class="HLdigits">4</span>), varid, dims(<span class="HLdigits">3</span>), thisdim, &amp;
-		&amp; lonid, latid, phaseid, timeid, phcoid, recoid, origid
+	<span class="HLroutines">integer</span> :: ncid, dimid, dimids(<span class="HLdigits">5</span>), varid, dims(<span class="HLdigits">3</span>), thisdim, &amp;
+		&amp; lonid, latid, phaseid, timeid, phcoid, recoid, origid, &amp;
+		modeid, evid
 	<span class="HLroutines">integer</span>(kind=<span class="HLdigits">4</span>) :: i, nspace, nlon, nlat, ntime
 	<span class="HLroutines">real</span> :: pi, missing_value
 
@@ -1363,7 +1497,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 
 	<span class="HLcomments">! Format (pack) data to have only one space dimension</span>
 	<span class="HLcomments">! ---------------------------------------------------</span>
-	<span class="HLroutines">print</span>*,<span class="HLstrings">'Packaging...'</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'Packing...'</span>
 
 	<span class="HLcomments">! Compute weights proportional to grid point area</span>
 	pi = cos(-<span class="HLdigits">1</span>.)
@@ -1384,7 +1518,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 
 	<span class="HLcomments">! Perform a PCA to reduce the d.o.f</span>
 	<span class="HLcomments">! ---------------------------------</span>
-	<span class="HLroutines">print</span>*,<span class="HLstrings">'PCA...'</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_pca</span>] Pre-PCA...'</span>
 	<span class="HLfunctions">allocate</span>(eof(nspace, nkeep_pca))
 	<span class="HLfunctions">allocate</span>(pc(ntime,   nkeep_pca))
 	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca</span>(packed_field, nkeep_pca, xeof=eof, &amp;
@@ -1393,25 +1527,25 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 
 	<span class="HLcomments">! We send results from PCA to MSSA</span>
 	<span class="HLcomments">! --------------------------------</span>
-	<span class="HLroutines">print</span>*,<span class="HLstrings">'MSSA...'</span>
-	<span class="HLfunctions">allocate</span>(steof(nkeep_pca*nwindow, first_mode+<span class="HLdigits">1</span>))
-	<span class="HLfunctions">allocate</span>(stpc(ntime-nwindow+<span class="HLdigits">1</span>,    first_mode+<span class="HLdigits">1</span>))
-	<span class="HLfunctions">allocate</span>(stev(                    first_mode+<span class="HLdigits">1</span>))
-	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_mssa</span>(<span class="HLfunctions">transpose</span>(pc), nwindow, first_mode+<span class="HLdigits">1</span>, &amp;
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_mssa</span>] MSSA...'</span>
+	<span class="HLfunctions">allocate</span>(steof(nkeep_pca*nwindow, nkeep_mssa))
+	<span class="HLfunctions">allocate</span>(stpc(ntime-nwindow+<span class="HLdigits">1</span>,    nkeep_mssa))
+	<span class="HLfunctions">allocate</span>(stev(                    nkeep_mssa))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_mssa</span>(<span class="HLfunctions">transpose</span>(pc), nwindow, nkeep_mssa, &amp;
 		&amp;	steof=steof, stpc=stpc, ev=stev)
 
 	<span class="HLcomments">! We reconstruct modes [first_mode + first_mode+1] of MSSA</span>
 	<span class="HLcomments">! --------------------------------------------------------</span>
 
-	<span class="HLroutines">print</span>*,<span class="HLstrings">'MSSAREC...'</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_mssarec</span>] MSSA reconstruction...'</span>
 	<span class="HLfunctions">allocate</span>(stpair(nkeep_pca, ntime))
-	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_mssarec</span>(steof, stpc, nwindow, stpair, &amp;
-		&amp;	istart=first_mode, iend=first_mode+<span class="HLdigits">1</span>)
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_mssarec</span>(steof(:,first_mode:first_mode+<span class="HLdigits">1</span>), &amp;
+		&amp; stpc(:,first_mode:first_mode+<span class="HLdigits">1</span>), nwindow, stpair)
 	<span class="HLfunctions">deallocate</span>(steof, stpc)
 
 	<span class="HLcomments">! We compute phases composites for the reconstructed oscillation</span>
 	<span class="HLcomments">! ---------------------------------------------------------------</span>
-	<span class="HLroutines">print</span>*,<span class="HLstrings">'PHASECOMP...'</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_phasecomp</span>] Phase composites...'</span>
 	<span class="HLfunctions">allocate</span>(stphasecomps(nkeep_pca, nphases))
 	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_phasecomp</span>(stpair, nphases, stphasecomps, &amp;
 		&amp;	weights=packed_weights, &amp;
@@ -1420,13 +1554,12 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 	<span class="HLcomments">! We go back to the physical space for</span>
 	<span class="HLcomments">! the full oscillation AND its composites</span>
 	<span class="HLcomments">! ---------------------------------------</span>
-	<span class="HLroutines">print</span>*,<span class="HLstrings">'PCAREC...'</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_pcarec</span>] Back to the physical space...'</span>
 	<span class="HLfunctions">allocate</span>(pair(nspace, ntime))
 	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pcarec</span>(eof, <span class="HLfunctions">transpose</span>(stpair), pair)
 	<span class="HLfunctions">allocate</span>(packed_phasecomps(nspace, nphases))
 	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pcarec</span>(eof, <span class="HLfunctions">transpose</span>(stphasecomps), packed_phasecomps)
 	<span class="HLfunctions">deallocate</span>(stpair, eof, stphasecomps)
-
 
 	<span class="HLcomments">! Unpacking</span>
 	<span class="HLcomments">! ---------</span>
@@ -1444,7 +1577,6 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 		 &amp; new_missing_value)
 	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 
-
 	<span class="HLcomments">! Write out the phase composites of the first oscillation</span>
 	<span class="HLcomments">! -------------------------------------------------------</span>
 	<span class="HLroutines">print</span>*,<span class="HLstrings">'Writing out...'</span>
@@ -1455,6 +1587,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'lat'</span>, nlat, dimids(<span class="HLdigits">2</span>)))
 	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'time'</span>, ntime, dimids(<span class="HLdigits">3</span>)))
 	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'phase'</span>, nphases, dimids(<span class="HLdigits">4</span>)))
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'mode'</span>, nkeep_mssa, dimids(<span class="HLdigits">5</span>)))
 	<span class="HLcomments">! Variables</span>
 	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lon'</span>, nf90_float, dimids(<span class="HLdigits">1</span>), lonid))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, lonid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'Longitude'</span>))
@@ -1470,6 +1603,10 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 		&amp; phaseid))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phaseid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'Phase'</span>))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phaseid, <span class="HLstrings">'units'</span>, <span class="HLstrings">'level'</span>))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'mode'</span>, nf90_float, dimids(<span class="HLdigits">5</span>), &amp;
+		&amp; modeid))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, modeid, <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'Mode'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, modeid, <span class="HLstrings">'units'</span>, <span class="HLstrings">'level'</span>))
 	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'orig'</span>, nf90_float, dimids(<span class="HLdigits">1</span>:<span class="HLdigits">3</span>), &amp;
 	 &amp; origid))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, origid, <span class="HLstrings">'long_name'</span>, &amp;
@@ -1491,15 +1628,21 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phcoid, <span class="HLstrings">'units'</span>, var_units))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, phcoid, <span class="HLstrings">'missing_value'</span>, &amp;
 		&amp; new_missing_value))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'ev'</span>, nf90_float, dimids(<span class="HLdigits">5</span>), evid))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, evid, <span class="HLstrings">'long_name'</span>, &amp;
+		&amp;<span class="HLstrings">'MSSA eigen values'</span>))
 	<span class="HLcomments">! Values</span>
 	<span class="HLroutines">call</span> err(nf90_enddef(ncid))
 	<span class="HLroutines">call</span> err(nf90_put_var(ncid, lonid, lon))
 	<span class="HLroutines">call</span> err(nf90_put_var(ncid, latid, lat))
 	<span class="HLroutines">call</span> err(nf90_put_var(ncid, timeid, time))
 	<span class="HLroutines">call</span> err(nf90_put_var(ncid, phaseid, float((/(i,i=<span class="HLdigits">1</span>,nphases)/))))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, modeid, &amp;
+		&amp; float((/(i,i=<span class="HLdigits">1</span>,nkeep_mssa)/))))
 	<span class="HLroutines">call</span> err(nf90_put_var(ncid, origid, field))
 	<span class="HLroutines">call</span> err(nf90_put_var(ncid, recoid, reco))
 	<span class="HLroutines">call</span> err(nf90_put_var(ncid, phcoid, phasecomps))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, evid, stev))
 	<span class="HLroutines">call</span> err(nf90_close(ncid))
 
 <span class="HLroutines">end</span> <span class="HLroutines">program</span> example
@@ -1518,8 +1661,369 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
 <span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> err
 
 </pre>
+              <p>
+					</p>
+            </div>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <div>
+                  <h4 class="title"><a id="doc_f90_ex2"></a>3.3.2. F90 example 2</h4>
+                </div>
+              </div>
+              <div></div>
+            </div>
             <p>
+					The goal is to provide an example to show how SVD works.
+					Using the same dataset of the previous example, two regions
+					are selected (one in the left of the basin, one the west).
+					Here PCA is performed these two resulting datasets to reduce
+					the number of channels (as in the previous example).
+					Then a SVD is computed and the first EOFs, PCs
+					and joint eigen values are stored to the netcdf file.
 				</p>
+            <div class="example">
+              <a id="id2916642"></a>
+              <p class="title">
+                <b>Example 2. F90 example 2</b>
+              </p>
+              <p>
+						You can run this example typing (from package directory):
+						</p>
+              <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make fortran2</tt></b></pre>
+              <p>
+					</p>
+              <p>
+						The source code of this example is highlighted below, with comments inside.
+						</p>
+              <pre class="programlisting"><span class="HLcomments">! File: example2.f90</span>
+<span class="HLcomments">!</span>
+<span class="HLcomments">! This file is part of the SpanLib library.</span>
+<span class="HLcomments">! Copyright (C) 2006  Stephane Raynaud</span>
+<span class="HLcomments">! Contact: stephane dot raynaud at gmail dot com</span>
+<span class="HLcomments">!</span>
+<span class="HLcomments">! This library is free software; you can redistribute it and/or</span>
+<span class="HLcomments">! modify it under the terms of the GNU Lesser General Public</span>
+<span class="HLcomments">! License as published by the Free Software Foundation; either</span>
+<span class="HLcomments">! version 2.1 of the License, or (at your option) any later version.</span>
+<span class="HLcomments">!</span>
+<span class="HLcomments">! This library is distributed in the hope that it will be useful,</span>
+<span class="HLcomments">! but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="HLcomments">! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU</span>
+<span class="HLcomments">! Lesser General Public License for more details.</span>
+<span class="HLcomments">!</span>
+<span class="HLcomments">! You should have received a copy of the GNU Lesser General Public</span>
+<span class="HLcomments">! License along with this library; if not, write to the Free Software</span>
+<span class="HLcomments">! Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA</span>
+
+<span class="HLroutines">program</span> example2
+
+	<span class="HLcomments">! This simple example shows how to use PCA and SVD from this package.</span>
+	<span class="HLcomments">! Warning: it requires netcdf for in/outputs.</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! This example works in a very similar way to the first fortran example,</span>
+	<span class="HLcomments">! with the same initial dataset.</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! To mimics the use of two different datasets, two geographical</span>
+	<span class="HLcomments">! regions are decomposed using SVD. As for MSSA, a pre-PCA is</span>
+	<span class="HLcomments">! performed (independantly for the two regions).</span>
+	<span class="HLcomments">! The dominant EOFs from the SVD decomposition are reconstructed</span>
+	<span class="HLcomments">! back to the physical space and stored in the output netcdf file</span>
+	<span class="HLcomments">! along with their PCs.</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! Note:</span>
+	<span class="HLcomments">!	This example should run only a few seconds.</span>
+	<span class="HLcomments">!	If it is not the case, you BLAS/LAPACK librairy is not optimized.</span>
+
+
+	<span class="HLroutines">use</span> spanlib
+	<span class="HLroutines">use</span> netcdf
+
+	<span class="HLroutines">implicit</span> <span class="HLattributes">none</span>
+
+	<span class="HLcomments">! Parameters</span>
+	<span class="HLcomments">! ----------</span>
+	<span class="HLroutines">integer</span>,<span class="HLattributes">parameter</span> :: pcaNkeep=<span class="HLdigits">10</span>, svdNkeep=<span class="HLdigits">5</span>,&amp;
+		&amp; lons1(<span class="HLdigits">2</span>)=(/<span class="HLdigits">10</span>,<span class="HLdigits">40</span>/),lats1(<span class="HLdigits">2</span>)=(/<span class="HLdigits">12</span>,<span class="HLdigits">49</span>/),&amp;
+		&amp; lons2(<span class="HLdigits">2</span>)=(/<span class="HLdigits">70</span>,<span class="HLdigits">150</span>/),lats2(<span class="HLdigits">2</span>)=(/<span class="HLdigits">16</span>,<span class="HLdigits">45</span>/)
+	<span class="HLroutines">real</span>, <span class="HLattributes">parameter</span> ::new_missing_value=-<span class="HLdigits">999</span>.
+	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">&quot;data2.cdf&quot;</span>, &amp;
+		&amp; output_nc_file=<span class="HLstrings">&quot;output2.nc&quot;</span>, var_name=<span class="HLstrings">'ssta'</span>
+
+	<span class="HLcomments">! Other declarations</span>
+	<span class="HLcomments">! ------------------</span>
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: lon1(:), lat1(:), &amp;
+		&amp; lon2(:), lat2(:), time(:), &amp;
+		&amp; sst1(:,:,:), sst2(:,:,:), sst(:,:,:)
+	<span class="HLroutines">logical</span>, <span class="HLattributes">allocatable</span> :: mask(:,:),mask1(:,:),mask2(:,:)
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: packed_sst1(:,:),packed_sst2(:,:)
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: svdEv(:), &amp;
+		&amp; pcaEofs1(:,:),pcaEofs2(:,:),pcaPcs1(:,:),pcaPcs2(:,:), &amp;
+		&amp; svdEofs1(:,:),svdEofs2(:,:),svdPcs1(:,:),svdPcs2(:,:), &amp;
+		&amp; svdEofsRec1(:,:,:), svdEofsRec2(:,:,:), &amp;
+		&amp; packed_svdEofsRec1(:,:), packed_svdEofsRec2(:,:)
+	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>) :: dim_names(<span class="HLdigits">3</span>), dim_name, &amp;
+		&amp; lon_units, lat_units, var_units, &amp;
+		&amp;	lon_name, lat_name, time_name, time_units
+	<span class="HLroutines">integer</span> :: ncid, dimid, dimids(<span class="HLdigits">6</span>), varids(<span class="HLdigits">6</span>), sstids(<span class="HLdigits">7</span>), &amp;
+		&amp; dims(<span class="HLdigits">3</span>), thisdim, &amp;
+		&amp; lonid, latid, phaseid, timeid, phcoid, recoid, origid
+	<span class="HLroutines">integer</span>(kind=<span class="HLdigits">4</span>) :: i,nspace,nlon1,nlat1,nlon2,nlat2,ntime,ns1,ns2
+	<span class="HLroutines">real</span> :: missing_value
+
+	<span class="HLcomments">! Get the initial sst field from the netcdf file</span>
+	<span class="HLcomments">! ----------------------------------------------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'Reading inputs...'</span>
+	<span class="HLroutines">call</span> err(nf90_open(input_nc_file, nf90_nowrite, ncid))
+	<span class="HLroutines">call</span> err(nf90_inq_varid(ncid, var_name, sstids(<span class="HLdigits">1</span>)))
+	<span class="HLcomments">! Dimensions</span>
+	nlon1 = lons1(<span class="HLdigits">2</span>)-lons1(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span> ;	nlat1 = lats1(<span class="HLdigits">2</span>)-lats1(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span>
+	nlon2 = lons2(<span class="HLdigits">2</span>)-lons2(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span> ; nlat2 = lats2(<span class="HLdigits">2</span>)-lats2(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span>
+	<span class="HLroutines">call</span> err(nf90_inquire_variable(ncid, sstids(<span class="HLdigits">1</span>), dimids=dimids(<span class="HLdigits">1</span>:<span class="HLdigits">3</span>)))
+	<span class="HLroutines">call</span> err(nf90_inquire_dimension(ncid,dimids(<span class="HLdigits">1</span>),name=lon_name))
+	<span class="HLroutines">call</span> err(nf90_inquire_dimension(ncid,dimids(<span class="HLdigits">2</span>),name=lat_name))
+	<span class="HLroutines">call</span> err(nf90_inquire_dimension(ncid, dimids(<span class="HLdigits">3</span>), &amp;
+		&amp;	name=time_name, len=ntime))
+	<span class="HLcomments">! Allocations</span>
+	<span class="HLfunctions">allocate</span>(sst1(nlon1,nlat1,ntime),sst2(nlon2,nlat2,ntime))
+	<span class="HLfunctions">allocate</span>(mask1(nlon1,nlat1),mask2(nlon2,nlat2))
+	<span class="HLfunctions">allocate</span>(lon1(nlon1),lat1(nlat1))
+	<span class="HLfunctions">allocate</span>(lon2(nlon2),lat2(nlat2))
+	<span class="HLfunctions">allocate</span>(time(ntime))
+	<span class="HLcomments">! SST boxes and attributes</span>
+	<span class="HLroutines">call</span> err(nf90_get_var(ncid, sstids(<span class="HLdigits">1</span>), sst1,&amp;
+		&amp; start=(/lons1(<span class="HLdigits">1</span>),lats1(<span class="HLdigits">1</span>),<span class="HLdigits">1</span>/), &amp;
+		&amp; count=(/lons1(<span class="HLdigits">2</span>)-lons1(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span>,lats1(<span class="HLdigits">2</span>)-lats1(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span>,ntime/)))
+	<span class="HLroutines">call</span> err(nf90_get_var(ncid, sstids(<span class="HLdigits">1</span>), sst2,&amp;
+		&amp; start=(/lons2(<span class="HLdigits">1</span>),lats2(<span class="HLdigits">1</span>),<span class="HLdigits">1</span>/), &amp;
+		&amp; count=(/lons2(<span class="HLdigits">2</span>)-lons2(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span>,lats2(<span class="HLdigits">2</span>)-lats2(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span>,ntime/)))
+	<span class="HLroutines">call</span> err(nf90_get_att(ncid,sstids(<span class="HLdigits">1</span>),<span class="HLstrings">'missing_value'</span>,missing_value))
+	<span class="HLroutines">call</span> err(nf90_get_att(ncid,sstids(<span class="HLdigits">1</span>),<span class="HLstrings">'units'</span>,var_units))
+	<span class="HLcomments">! Longitudes</span>
+	<span class="HLroutines">call</span> err(nf90_inq_varid(ncid, lon_name, varids(<span class="HLdigits">1</span>)))
+	<span class="HLroutines">call</span> err(nf90_get_var(ncid, varids(<span class="HLdigits">1</span>), lon1, &amp;
+		&amp; start=(/lons1(<span class="HLdigits">1</span>)/), count=(/lons1(<span class="HLdigits">2</span>)-lons1(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span>/)))
+	<span class="HLroutines">call</span> err(nf90_get_att(ncid, varids(<span class="HLdigits">1</span>), <span class="HLstrings">'units'</span>, lon_units))
+	<span class="HLroutines">call</span> err(nf90_get_var(ncid, varids(<span class="HLdigits">1</span>), lon2, &amp;
+		&amp; start=(/lons2(<span class="HLdigits">1</span>)/), count=(/lons2(<span class="HLdigits">2</span>)-lons2(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span>/)))
+	<span class="HLcomments">! Latitudes</span>
+	<span class="HLroutines">call</span> err(nf90_inq_varid(ncid, lat_name, varids(<span class="HLdigits">1</span>)))
+	<span class="HLroutines">call</span> err(nf90_get_var(ncid, varids(<span class="HLdigits">1</span>), lat1, &amp;
+		&amp; start=(/lats1(<span class="HLdigits">1</span>)/), count=(/lats1(<span class="HLdigits">2</span>)-lats1(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span>/)))
+	<span class="HLroutines">call</span> err(nf90_get_att(ncid, varids(<span class="HLdigits">1</span>), <span class="HLstrings">'units'</span>, lat_units))
+	<span class="HLroutines">call</span> err(nf90_get_var(ncid, varids(<span class="HLdigits">1</span>), lat2, &amp;
+		&amp; start=(/lats2(<span class="HLdigits">1</span>)/), count=(/lats2(<span class="HLdigits">2</span>)-lats2(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span>/)))
+	<span class="HLcomments">! Time</span>
+	<span class="HLroutines">call</span> err(nf90_inq_varid(ncid, time_name, varids(<span class="HLdigits">1</span>)))
+	<span class="HLroutines">call</span> err(nf90_get_var(ncid, varids(<span class="HLdigits">1</span>), time))
+	<span class="HLroutines">call</span> err(nf90_get_att(ncid, varids(<span class="HLdigits">1</span>), <span class="HLstrings">'units'</span>, time_units))
+	<span class="HLroutines">call</span> err(nf90_close(ncid))
+
+
+	<span class="HLcomments">! Format (pack) data to have only one space dimension</span>
+	<span class="HLcomments">! ---------------------------------------------------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'Packing...'</span>
+
+	<span class="HLcomments">! Now pack</span>
+	mask1 = (sst1(:,:,<span class="HLdigits">1</span>) /= missing_value)
+	mask2 = (sst2(:,:,<span class="HLdigits">1</span>) /= missing_value)
+	ns1 = count(mask1) ; ns2 = count(mask2)
+	<span class="HLfunctions">allocate</span>(packed_sst1(ns1, ntime))
+	<span class="HLfunctions">allocate</span>(packed_sst2(ns2, ntime))
+	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, ntime
+		packed_sst1(:,i) = <span class="HLfunctions">pack</span>(sst1(:,:,i), mask1)
+		packed_sst2(:,i) = <span class="HLfunctions">pack</span>(sst2(:,:,i), mask2)
+	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+	where(sst1==missing_value)sst1 = new_missing_value
+	where(sst2==missing_value)sst2 = new_missing_value
+
+	<span class="HLcomments">! Perform a PCA to reduce the d.o.f</span>
+	<span class="HLcomments">! ---------------------------------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_pca</span>] Pre-PCA ...'</span>
+	<span class="HLfunctions">allocate</span>(pcaEofs1(ns1, pcaNkeep))
+	<span class="HLfunctions">allocate</span>(pcaPcs1(ntime,pcaNkeep))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca</span>(packed_sst1, pcaNkeep, xeof=pcaEofs1, pc=pcaPcs1)
+	<span class="HLfunctions">allocate</span>(pcaEofs2(ns2, pcaNkeep))
+	<span class="HLfunctions">allocate</span>(pcaPcs2(ntime,pcaNkeep))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca</span>(packed_sst2, pcaNkeep, xeof=pcaEofs2, pc=pcaPcs2)
+	<span class="HLfunctions">deallocate</span>(packed_sst1,packed_sst2)
+
+
+	<span class="HLcomments">! Perform a SVD on previous PCs</span>
+	<span class="HLcomments">! -----------------------------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_svd</span>] SVD...'</span>
+	<span class="HLfunctions">allocate</span>(svdEofs1(pcaNkeep,svdNkeep),svdPcs1(ntime,svdNkeep))
+	<span class="HLfunctions">allocate</span>(svdEofs2(pcaNkeep,svdNkeep),svdPcs2(ntime,svdNkeep))
+	<span class="HLfunctions">allocate</span>(svdEv(svdNkeep))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_svd</span>(<span class="HLfunctions">transpose</span>(pcaPcs1),<span class="HLfunctions">transpose</span>(pcaPcs2),&amp;
+		&amp; svdNkeep,leof=svdEofs1,reof=svdEofs2,&amp;
+		&amp; lpc=svdPcs1,rpc=svdPcs2,ev=svdEv)
+	<span class="HLfunctions">deallocate</span>(pcaPcs1,pcaPcs2)
+
+	<span class="HLcomments">! Swicth SVD EOFs to the physical space (!)</span>
+	<span class="HLcomments">! -----------------------------------------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_pcarec</span>] Back to the physical space ...'</span>
+	<span class="HLfunctions">allocate</span>(packed_svdEofsRec1(ns1,svdNkeep))
+	<span class="HLfunctions">allocate</span>(packed_svdEofsRec2(ns2,svdNkeep))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pcarec</span>(pcaEofs1, <span class="HLfunctions">transpose</span>(svdEofs1), packed_svdEofsRec1)
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pcarec</span>(pcaEofs2, <span class="HLfunctions">transpose</span>(svdEofs2), packed_svdEofsRec2)
+	<span class="HLfunctions">deallocate</span>(pcaEofs1,svdEofs1,pcaEofs2,svdEofs2)
+
+	<span class="HLcomments">! Unpacking</span>
+	<span class="HLcomments">! ---------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'Unpacking...'</span>
+	<span class="HLfunctions">allocate</span>(svdEofsRec1(nlon1,nlat1,svdNkeep))
+	<span class="HLfunctions">allocate</span>(svdEofsRec2(nlon2,nlat2,svdNkeep))
+	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, svdNkeep
+		svdEofsRec1(:,:,i) = <span class="HLfunctions">unpack</span>(packed_svdEofsRec1(:,i), &amp;
+			&amp; mask1, new_missing_value)
+		svdEofsRec2(:,:,i) = <span class="HLfunctions">unpack</span>(packed_svdEofsRec2(:,i), &amp;
+			&amp; mask2, new_missing_value)
+		where(mask1 .eq. .false.)svdEofsRec1(:,:,i) = new_missing_value
+		where(mask2 .eq. .false.)svdEofsRec2(:,:,i) = new_missing_value
+	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+
+
+	<span class="HLcomments">! Write out the phase composites of the first oscillation</span>
+	<span class="HLcomments">! -------------------------------------------------------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'Writing out...'</span>
+	<span class="HLcomments">! File</span>
+	<span class="HLroutines">call</span> err(nf90_create(output_nc_file, nf90_write, ncid))
+	<span class="HLcomments">! Dimensions</span>
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'lon1'</span>, nlon1, dimids(<span class="HLdigits">1</span>)))
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'lat1'</span>, nlat1, dimids(<span class="HLdigits">2</span>)))
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'lon2'</span>, nlon2, dimids(<span class="HLdigits">3</span>)))
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'lat2'</span>, nlat2, dimids(<span class="HLdigits">4</span>)))
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'time'</span>, ntime, dimids(<span class="HLdigits">5</span>)))
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'mode'</span>, svdNkeep, dimids(<span class="HLdigits">6</span>)))
+
+	<span class="HLcomments">! Box 1</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lon1'</span>, nf90_float, dimids(<span class="HLdigits">1</span>), &amp;
+		&amp; varids(<span class="HLdigits">1</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">1</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'Longitude'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">1</span>), <span class="HLstrings">'units'</span>, lon_units))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lat1'</span>, nf90_float, dimids(<span class="HLdigits">2</span>), &amp;
+		&amp; varids(<span class="HLdigits">2</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">2</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'Latitude'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">2</span>), <span class="HLstrings">'units'</span>, lat_units))
+	<span class="HLcomments">! Box 2</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lon2'</span>, nf90_float, dimids(<span class="HLdigits">3</span>), &amp;
+		&amp; varids(<span class="HLdigits">3</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">3</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'Longitude'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">3</span>), <span class="HLstrings">'units'</span>, lon_units))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lat2'</span>, nf90_float, dimids(<span class="HLdigits">4</span>), &amp;
+		&amp; varids(<span class="HLdigits">4</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">4</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'Latitude'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">4</span>), <span class="HLstrings">'units'</span>, lat_units))
+	<span class="HLcomments">! Time</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'time'</span>, nf90_float, dimids(<span class="HLdigits">5</span>), &amp;
+		&amp; varids(<span class="HLdigits">5</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">5</span>), <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'Time'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">5</span>), <span class="HLstrings">'units'</span>, time_units))
+	<span class="HLcomments">! Mode</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'mode'</span>, nf90_float, dimids(<span class="HLdigits">6</span>), &amp;
+		&amp; varids(<span class="HLdigits">6</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">6</span>), <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'Mode'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">6</span>), <span class="HLstrings">'units'</span>, <span class="HLstrings">'level'</span>))
+	<span class="HLcomments">! Original fields</span>
+	<span class="HLcomments">! * box1</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'sst1'</span>, nf90_float, &amp;
+		&amp; (/dimids(<span class="HLdigits">1</span>),dimids(<span class="HLdigits">2</span>),dimids(<span class="HLdigits">5</span>)/), sstids(<span class="HLdigits">1</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">1</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'SST anomaly / original field / box <span class="HLdigits">1</span>'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">1</span>), <span class="HLstrings">'units'</span>, var_units))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">1</span>), <span class="HLstrings">'missing_value'</span>, &amp;
+		&amp; new_missing_value))
+	<span class="HLcomments">! * box2</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'sst2'</span>, nf90_float, &amp;
+	 &amp; (/dimids(<span class="HLdigits">3</span>),dimids(<span class="HLdigits">4</span>),dimids(<span class="HLdigits">5</span>)/), sstids(<span class="HLdigits">2</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">2</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'SST anomaly / original field / box <span class="HLdigits">2</span>'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">2</span>), <span class="HLstrings">'units'</span>, var_units))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">2</span>), <span class="HLstrings">'missing_value'</span>, &amp;
+		&amp; new_missing_value))
+	<span class="HLcomments">! SVD EOFs</span>
+	<span class="HLcomments">! * box1</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'eofs1'</span>, nf90_float, &amp;
+	 &amp; (/dimids(<span class="HLdigits">1</span>),dimids(<span class="HLdigits">2</span>),dimids(<span class="HLdigits">6</span>)/),sstids(<span class="HLdigits">3</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">3</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'SVD EOFs of SST anomaly / box <span class="HLdigits">1</span>'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">3</span>), <span class="HLstrings">'missing_value'</span>, &amp;
+		&amp; new_missing_value))
+	<span class="HLcomments">! * box2</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'eofs2'</span>, nf90_float, &amp;
+	 &amp; (/dimids(<span class="HLdigits">3</span>),dimids(<span class="HLdigits">4</span>),dimids(<span class="HLdigits">6</span>)/),sstids(<span class="HLdigits">4</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">4</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'SVD EOFs of SST anomaly / box <span class="HLdigits">2</span>'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">4</span>), <span class="HLstrings">'missing_value'</span>, &amp;
+		&amp; new_missing_value))
+	<span class="HLcomments">! SVD PCs</span>
+	<span class="HLcomments">! * Box 1</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'pcs1'</span>, nf90_float, &amp;
+		&amp; (/dimids(<span class="HLdigits">5</span>),dimids(<span class="HLdigits">6</span>)/),sstids(<span class="HLdigits">5</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">5</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'SVD EOFs of SST anomaly / box <span class="HLdigits">1</span>'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">5</span>), <span class="HLstrings">'units'</span>, var_units))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">5</span>), <span class="HLstrings">'missing_value'</span>, &amp;
+		&amp; new_missing_value))
+	<span class="HLcomments">! * Box 2</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'pcs2'</span>, nf90_float, &amp;
+		&amp; (/dimids(<span class="HLdigits">5</span>),dimids(<span class="HLdigits">6</span>)/),sstids(<span class="HLdigits">6</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">6</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'SVD EOFs of SST anomaly / box <span class="HLdigits">2</span>'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">6</span>), <span class="HLstrings">'units'</span>, var_units))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">6</span>), <span class="HLstrings">'missing_value'</span>, &amp;
+		&amp; new_missing_value))
+	<span class="HLcomments">! SVD eigen values</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'ev'</span>, nf90_float, &amp;
+		&amp; dimids(<span class="HLdigits">6</span>),sstids(<span class="HLdigits">7</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">7</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'Eigen values'</span>))
+
+
+	<span class="HLcomments">! Values</span>
+	<span class="HLroutines">call</span> err(nf90_enddef(ncid))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, varids(<span class="HLdigits">1</span>), lon1))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, varids(<span class="HLdigits">2</span>), lat1))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, varids(<span class="HLdigits">3</span>), lon2))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, varids(<span class="HLdigits">4</span>), lat2))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, varids(<span class="HLdigits">5</span>), time))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, varids(<span class="HLdigits">6</span>), &amp;
+		&amp; float((/(i,i=<span class="HLdigits">1</span>,svdNkeep)/))))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, sstids(<span class="HLdigits">1</span>), sst1))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, sstids(<span class="HLdigits">2</span>), sst2))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, sstids(<span class="HLdigits">3</span>), svdEofsRec1))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, sstids(<span class="HLdigits">4</span>), svdEofsRec2))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, sstids(<span class="HLdigits">5</span>), svdPcs1))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, sstids(<span class="HLdigits">6</span>), svdPcs2))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, sstids(<span class="HLdigits">7</span>), svdEv))
+
+	<span class="HLroutines">call</span> err(nf90_close(ncid))
+
+<span class="HLroutines">end</span> <span class="HLroutines">program</span> example2
+
+<span class="HLroutines">subroutine</span> err(jstatus)
+
+	<span class="HLroutines">use</span> netcdf
+
+	<span class="HLroutines">integer</span> :: jstatus
+
+	<span class="HLroutines">if</span> (jstatus .ne. nf90_noerr) <span class="HLroutines">then</span>
+		<span class="HLroutines">print</span> *, <span class="HLfunctions">trim</span>(nf90_strerror(jstatus))
+		stop
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+
+<span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> err
+
+</pre>
+              <p>
+					</p>
+            </div>
           </div>
         </div>
       </div>
@@ -1582,7 +2086,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3117271"></a>Usage</h5>
+                    <h5 class="title"><a id="id2985477"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1593,7 +2097,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3117324"></a>Description</h5>
+                    <h5 class="title"><a id="id2985528"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1608,7 +2112,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3117340"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2985544"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1626,7 +2130,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3117378"></a>Outputs</h5>
+                    <h5 class="title"><a id="id2985582"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1662,7 +2166,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3106454"></a>Usage</h5>
+                    <h5 class="title"><a id="id2985707"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1673,7 +2177,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3106507"></a>Description</h5>
+                    <h5 class="title"><a id="id2985760"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1686,7 +2190,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3106522"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2985774"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1712,7 +2216,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3106630"></a>Outputs</h5>
+                    <h5 class="title"><a id="id2994980"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1739,7 +2243,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3106682"></a>Usage</h5>
+                    <h5 class="title"><a id="id2995033"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1750,7 +2254,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3106742"></a>Description</h5>
+                    <h5 class="title"><a id="id2995093"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1766,7 +2270,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3117486"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2995110"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1784,7 +2288,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3117524"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2995148"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1801,7 +2305,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3117568"></a>Outputs</h5>
+                    <h5 class="title"><a id="id2995192"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1834,7 +2338,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3117670"></a>Usage</h5>
+                    <h5 class="title"><a id="id2995294"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1845,7 +2349,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3117744"></a>Description</h5>
+                    <h5 class="title"><a id="id2995368"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1862,7 +2366,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3117763"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2995387"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1879,7 +2383,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3117801"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2995425"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1902,7 +2406,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3117907"></a>Outputs</h5>
+                    <h5 class="title"><a id="id2995531"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1929,7 +2433,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3117960"></a>Usage</h5>
+                    <h5 class="title"><a id="id2995584"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1940,7 +2444,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3118048"></a>Description</h5>
+                    <h5 class="title"><a id="id2995672"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1953,7 +2457,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3118062"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2995687"></a>Necessary arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -1972,7 +2476,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3118102"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2995726"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2004,7 +2508,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3118244"></a>Outputs</h5>
+                    <h5 class="title"><a id="id2995869"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2030,7 +2534,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3118298"></a>Usage</h5>
+                    <h5 class="title"><a id="id2995923"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2041,7 +2545,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3118351"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2995976"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2058,7 +2562,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3118396"></a>Outputs</h5>
+                    <h5 class="title"><a id="id2996020"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2091,7 +2595,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3118497"></a>Usage</h5>
+                    <h5 class="title"><a id="id2996121"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2102,7 +2606,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3118577"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3006925"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2126,7 +2630,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3118683"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3007031"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2159,7 +2663,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3107518"></a>Usage</h5>
+                    <h5 class="title"><a id="id3007132"></a>Usage</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2170,7 +2674,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3107655"></a>Description</h5>
+                    <h5 class="title"><a id="id3007268"></a>Description</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2189,7 +2693,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3107676"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id3007290"></a>Optional arguments</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2224,7 +2728,7 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3107931"></a>Outputs</h5>
+                    <h5 class="title"><a id="id3007544"></a>Outputs</h5>
                   </div>
                 </div>
                 <div></div>
@@ -2251,27 +2755,38 @@ A simple interface to the ssyev diagonalisation subroutine from LAPACK.
           <p>
 				These examples show how to use some of the available
 				components of the python module.
-				They uses the same dataset as for <a href="#doc_f90_exa" title="3.3.&#xA0;A Fortran 90 example">Section 3.3, “A Fortran 90 example”</a>.
-				If you configurations allows it, you can run theses examples typing
-				for example this from the installation package directory:
-				</p>
-          <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>cd example &amp;&amp; make python1</tt></b></pre>
-          <p>
+				They uses the same dataset as for <a href="#doc_f90_exa" title="3.3.&#xA0;Fortran 90 examples">Section 3.3, “Fortran 90 examples”</a>.
 			</p>
           <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3>
-				You must have previously performed a <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make install</tt></b></pre></div>
-          <p>
-				This first example is similar to <a href="#doc_f90_exa" title="3.3.&#xA0;A Fortran 90 example">Section 3.3, “A Fortran 90 example”</a>:
-				a PCA/MSSA is performed on the whole dataset,
-				and the first oscillation (pair of MSSA modes) is
+				You can run depending on your configuration, and
+				you must have previously performed a <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make install</tt></b></pre></div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <div>
+                  <h4 class="title"><a id="doc_pyt_ex1"></a>4.3.1. Python example 1</h4>
+                </div>
+              </div>
+              <div></div>
+            </div>
+            <p>
+					This first example is similar to <a href="#doc_f90_exa" title="3.3.&#xA0;Fortran 90 examples">Section 3.3, “Fortran 90 examples”</a>:
+					a PCA/MSSA is performed on the whole dataset,
+					and the first oscillation (pair of MSSA modes) is
 				reconstructed using phases composites (16 phases).
-			</p>
-          <div class="example">
-            <a id="id3037256"></a>
-            <p class="title">
-              <b>Example 2. Python example</b>
-            </p>
-            <pre class="programlisting"><span class="HLcomments"># File: example1.py</span>
+				</p>
+            <div class="example">
+              <a id="id2916840"></a>
+              <p class="title">
+                <b>Example 3. Python example 1</b>
+              </p>
+              <p>
+						Run this example using:
+						</p>
+              <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make python1</tt></b></pre>
+              <p>
+							</p>
+              <pre class="programlisting"><span class="HLcomments"># File: example1.py</span>
 <span class="HLcomments">#</span>
 <span class="HLcomments"># This file is part of the SpanLib library.</span>
 <span class="HLcomments"># Copyright (C) 2006  Charles Doutiraux, Stephane Raynaud</span>
@@ -2356,21 +2871,38 @@ x.plot(out[:,<span class="HLdigits">30</span>,<span class="HLdigits">80</span>],
 <span class="HLfunctions">raw_input</span>(<span class="HLstrings">'Time series at center of bassin ok?'</span>)
 x.clear()
 </pre>
+            </div>
           </div>
-          <p>
-				In this second example, two different areas are analysed at
-				the same time.
-				This is intented to mimics the used of two different datasets
-				that are stacked, before being analysed.
-				Such approach (see for example <a href="#raynal06">Raynaud et al (2006)</a>) allows
-				to find modes of variability in a arbitrary number of variables,
-				provided you are careful with units (performing appropriate normalisations).
-			</p>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <div>
+                  <h4 class="title"><a id="doc_pyt_ex2"></a>4.3.2. Python example 2</h4>
+                </div>
+              </div>
+              <div></div>
+            </div>
+            <p>
+					In this second example, two different areas are analysed at
+					the same time.
+					This is intented to mimics the used of two different datasets
+					that are stacked, before being analysed.
+					Such approach (see for example <a href="#raynal06">Raynaud et al (2006)</a>) allows
+					to find modes of variability in a arbitrary number of variables,
+					provided you are careful with units (performing appropriate normalisations).
+				</p>
+          </div>
           <div class="example">
-            <a id="id3037288"></a>
+            <a id="id2971857"></a>
             <p class="title">
-              <b>Example 3. Python example</b>
+              <b>Example 4. Python example 2</b>
             </p>
+            <p>
+					Run this example using:
+					</p>
+            <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make python2</tt></b></pre>
+            <p>
+				</p>
             <pre class="programlisting"><span class="HLcomments"># File: example2.py</span>
 <span class="HLcomments">#</span>
 <span class="HLcomments"># This file is part of the SpanLib library.</span>

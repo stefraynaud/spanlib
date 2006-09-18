@@ -28,7 +28,7 @@ use File::Basename;
 
 # Inputs
 #my ($xmldir, $f90_library, $f90_example, $python_module) = @ARGV;
-my ($f90_library, $f90_example, $python_module, $python_example1, $python_example2) = @ARGV;
+my ($f90_library, $f90_example1, $f90_example2, $python_module, $python_example1, $python_example2) = @ARGV;
 
 # Basic declarations
 my (@partNames, $partName, %parts, $line, $subroutineName, $arguments, $inside, $html);
@@ -60,7 +60,8 @@ my %xmlFiles = (
 	'f90_subroutines'		=> "doc_f90_sub_inc.xml",
 	'python_subroutines'	=> "doc_pyt_sub_inc.xml",
 	'f90_library'			=> "src_f90_lib_inc.xml",
-	'f90_example'			=> "src_f90_exa_inc.xml",
+	'f90_example1'			=> "src_f90_ex1_inc.xml",
+	'f90_example2'			=> "src_f90_ex2_inc.xml",
 	'python_module'		=> "src_pyt_mod_inc.xml",
 	'python_example1'		=> "src_pyt_ex1_inc.xml",
 	'python_example2'		=> "src_pyt_ex2_inc.xml"
@@ -612,8 +613,18 @@ close(XML_PYTHON_SUBROUTINES);
 
 ####################################################################
 # Fortran
-open(XML_EXAMPLE,"> $xmlFiles{'f90_example'}");
-open(F90_EXAMPLE,$f90_example);
+# 1)
+open(XML_EXAMPLE,"> $xmlFiles{'f90_example1'}");
+open(F90_EXAMPLE,$f90_example1);
+print XML_EXAMPLE gen_xml_header('programlisting');
+print XML_EXAMPLE "<programlisting>";
+while(<F90_EXAMPLE>){print XML_EXAMPLE f90toxml($_);}
+print XML_EXAMPLE "</programlisting>\n";
+close(XML_EXAMPLE);
+close(F90_EXAMPLE);
+# 2)
+open(XML_EXAMPLE,"> $xmlFiles{'f90_example2'}");
+open(F90_EXAMPLE,$f90_example2);
 print XML_EXAMPLE gen_xml_header('programlisting');
 print XML_EXAMPLE "<programlisting>";
 while(<F90_EXAMPLE>){print XML_EXAMPLE f90toxml($_);}

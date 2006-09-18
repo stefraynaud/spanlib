@@ -4,7 +4,7 @@
     <title>SpanLib - Spectral Analysis Library</title>
     <link rel="stylesheet" href="spanlib.css" type="text/css"/>
     <meta name="generator" content="DocBook XSL Stylesheets V1.61.2"/>
-    <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, PCA, EOF, POP"/>
+    <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, Multichannel singular spectrum analysis, PCA, Principal component analysis, EOF, Empirical othogonal funtion, PC, Principal component, SVD, Singular value decomposition, POP, Principal oscillation patterns"/>
     <link rel="home" href="index.html" title="SpanLib - Spectral Analysis Library"/>
     <link rel="next" href="doc_ins.html" title="2. Installation"/>
   </head>
@@ -26,7 +26,7 @@
       <div class="titlepage">
         <div>
           <div>
-            <h1 class="title"><a id="id3429836"/>SpanLib - Spectral Analysis Library</h1>
+            <h1 class="title"><a id="id3458823"/>SpanLib - Spectral Analysis Library</h1>
           </div>
           <div>
             <div class="authorgroup">
@@ -47,7 +47,7 @@
           <div>
             <p class="releaseinfo">
 			</p>
-            <p>Version 1.1</p>
+            <p>Version 1.2</p>
             <p class="releaseinfo">
 			</p>
             <p>
@@ -60,7 +60,7 @@
 		</p>
           </div>
           <div>
-            <fo:block xmlns:fo="http://www.w3.org/1999/XSL/Format">This documentation was generated on 13 September 2006</fo:block>
+            <fo:block xmlns:fo="http://www.w3.org/1999/XSL/Format">This documentation was generated on 18 September 2006</fo:block>
           </div>
         </div>
         <div/>
@@ -94,7 +94,7 @@
             <dl>
               <dt>3.1. <a href="doc_f90.html#doc_f90_int">Introduction</a></dt>
               <dt>3.2. <a href="doc_f90_sub.html">F90 subroutines</a></dt>
-              <dt>3.3. <a href="doc_f90_exa.html">A Fortran 90 example</a></dt>
+              <dt>3.3. <a href="doc_f90_exa.html">Fortran 90 examples</a></dt>
             </dl>
           </dd>
           <dt>4. <a href="doc_pyt.html">The python module</a></dt>
@@ -134,25 +134,27 @@
 				a sum of different signals that can be hardly distinguished one another,
 				even if their respective origin is fundamentally different.
 				Analysis methods that are able to extract the most coherent modes
-				of variability generally helps to identify signals of interests.
+				of variability generally help to identify signals of interests.
 			</p>
           <p>
 				SpanLib currently focuses on the use of linear analysis methods
-				that rely on eign solutions of covariance or correlations matrices
+				that rely on eign solutions of covariance or correlation matrices
 			</p>
           <p>
 				This package provides a <a href="doc_f90.html" title="3. The Fortran 90 library">F90 library</a> (as a module)
 				containing a minimal collection of subroutines to perform
 				<span class="bold"><b>Principal Componant Analysis</b></span> (PCA),
-				<span class="bold"><b>Multi-channel Singular Spectrum Analysis</b></span> (MSSA), reconstruction
-				of components and phase composites.
+				<span class="bold"><b>Multi-channel Singular Spectrum Analysis</b></span> (MSSA),
+				<span class="bold"><b>Singular Value Decomposition</b></span> (SVD),
+				reconstruction of components and phase composites.
 				The package also provide a <a href="doc_pyt.html" title="4. The python module">python module</a>
 				that calls the F90 library and gives the user a set of useful functions
 				to perform analyses.
 			</p>
           <p>
-				In its future version, SpanLib will also include others methods, such
-				Singular Value Decomposition or Principal Oscillation Pattern analysis.
+				In its future version, SpanLib will also include others methods
+				(such as Principal Oscillation Pattern analysis) and languages
+				(C, Java).
 			</p>
         </div>
         <div class="sect2" lang="en">
@@ -228,6 +230,15 @@
 				noisy signal.</em></span>
 			</p>
           <p>
+				<span class="bold"><b><a href="index.html#svd">SVD</a></b></span>
+				works in a similar way to PCA, except that two different dataset are
+				decomposed at the same time.
+				Therefore, the diagonalyzed matrix is a cross-covariance matrix and
+				may not be symetric and positive.
+				Dominant EOFs and PCs can be used for example to build a statiscal
+				model linking the second variable to the first one.
+			</p>
+          <p>
 				All these analysis methods act as a linear filter.
 				For each of them, it is possible to reconstruct part of the filtered signal.
 				A reconstructed mode is the &quot;multiplication&quot; of its EOF by its PC, and
@@ -236,9 +247,9 @@
 			</p>
           <p><a id="pg:dof"/>
 				Finally, PCA may be used also to simply reduce the number of degree-of-freedom (d-o-f) of a dataset.
-				For example, you can keep the first PC that explain a 80% of the variance.
+				For example, you can keep the first PC that explain a 70% of the variance.
 				These PCs are then used as an input dataset for other analysis.
-				This methodology is useful for MSSA since the eigen problem solving
+				This methodology is useful for MSSA and SVD since the eigen problem solving
 				may be very time consuming: we are now able, for example, to potentially reduce the
 				number of channels from several hundred or thounsand, to less than 20.
 			</p>
@@ -265,7 +276,7 @@
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3361282"/>CPU: space versus time</h5>
+                    <h5 class="title"><a id="id3443818"/>CPU: space versus time</h5>
                   </div>
                 </div>
                 <div/>
@@ -277,7 +288,7 @@
 						It is possible to partly avoid this problem when the time dimension is lower
 						than the spatial dimension, using a correlation matrix
 						in time instead of in space.
-						F90 subroutine <tt class="varname"><a href="doc_f90_sub.html#sl_pca" title="3.2.1. Principal Component Analysis: sl_pca">sl_pca</a></tt> of SpanLib
+						F90 subroutine <tt class="varname"><a href="doc_f90_sub.html#sl_pca" title="3.2.1. : sl_pca">sl_pca</a></tt> of SpanLib
 						provides the ability
 						to choose which of theses approaches to use for PCA.
 					</p>
@@ -286,7 +297,7 @@
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3414789"/>Weights</h5>
+                    <h5 class="title"><a id="id3443850"/>Weights</h5>
                   </div>
                 </div>
                 <div/>
@@ -297,7 +308,7 @@
 						to the grid cell area.
 						Whereas common PCA analysis does not take these weights into account
 						it is possible to give optional weights to
-						<tt class="varname"><a href="doc_f90_sub.html#sl_pca" title="3.2.1. Principal Component Analysis: sl_pca">sl_pca</a></tt>.
+						<tt class="varname"><a href="doc_f90_sub.html#sl_pca" title="3.2.1. : sl_pca">sl_pca</a></tt>.
 						Using the <a href="doc_pyt.html" title="4. The python module">python module</a>,
 						it is easy to &quot;attach&quot; weights to a variable for use by
 						<tt class="varname"><a href="doc_pyt_sub.html#&lt;SpAn_object&gt;.pca" title="4.2.6.  Principal Components Analysis (PCA): &lt;SpAn_object&gt;.pca">pca</a></tt>.
@@ -307,7 +318,7 @@
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3414836"/>Mask</h5>
+                    <h5 class="title"><a id="id3443898"/>Mask</h5>
                   </div>
                 </div>
                 <div/>
@@ -315,7 +326,7 @@
               <p>
 						Similarly, it is not useful to analyse masked points
 						(for example, gridded points situated on land when use analyse oceanic data).
-						The F90 subroutine <tt class="varname"><a href="doc_f90_sub.html#sl_pca" title="3.2.1. Principal Component Analysis: sl_pca">sl_pca</a></tt>
+						The F90 subroutine <tt class="varname"><a href="doc_f90_sub.html#sl_pca" title="3.2.1. : sl_pca">sl_pca</a></tt>
 						makes the supposition that none of the masked (all channels are analysed).
 						However, as well as for the weights, it is possible to associate
 						an spatial mask to a dataset in order to remove masked points when
@@ -328,7 +339,7 @@
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3414878"/>Analysing several variables at the same time</h5>
+                    <h5 class="title"><a id="id3443939"/>Analysing several variables at the same time</h5>
                   </div>
                 </div>
                 <div/>
@@ -354,7 +365,7 @@
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3414934"/>Reconstructions</h5>
+                    <h5 class="title"><a id="id3443995"/>Reconstructions</h5>
                   </div>
                 </div>
                 <div/>
@@ -398,11 +409,16 @@
 						A standard value is one third of the time dimension.
 					</p>
             </div>
+            <div class="simplesect" lang="en"><div class="titlepage"><div><div><h5 class="title"><a id="prepcamssa"/>Pre-PCA</h5></div></div><div/></div>
+					Since the covariance matrix may quickly huge depending on
+					parameters (number of channels and window size), is more appropriate
+					to perform a pre-PCA to reduce the number of channels.
+				</div>
             <div class="simplesect" lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3365351"/>Phase composites</h5>
+                    <h5 class="title"><a id="id3444110"/>Phase composites</h5>
                   </div>
                 </div>
                 <div/>
@@ -411,13 +427,29 @@
 						One of the most important interests of MSSA is to be able to
 						extract intermittent space-time oscillations from the signal.
 						At the first order, an oscillation is its &quot;typical&quot; cycle.
-						<tt class="varname"><a href="doc_f90_sub.html#sl_phasecomp" title="3.2.5. Phase composites: sl_phasecomp">sl_phasecomp</a></tt> (F90)
+						<tt class="varname"><a href="doc_f90_sub.html#sl_phasecomp" title="3.2.6. Phase composites: sl_phasecomp">sl_phasecomp</a></tt> (F90)
 						and
 						<tt class="varname"><a href="doc_pyt_sub.html#spanlib.computePhases" title="4.2.4.  Phase composites for oscillatory fields: spanlib.computePhases">spanlib.computePhases</a></tt> (Python)
 						perfom phases composites: it computes an averaged cycle and cut it an
 						homegeneous parts (as one can do for the annual cycle in 12 months).
 					</p>
             </div>
+          </div>
+          <div class="sect3" lang="en">
+            <div class="titlepage">
+              <div>
+                <div>
+                  <h4 class="title"><a id="doc_pre_tec_svd"/>1.3.3. ...about SVD</h4>
+                </div>
+              </div>
+              <div/>
+            </div>
+            <div class="simplesect" lang="en"><div class="titlepage"><div><div><h5 class="title"><a id="prepcasvd"/>Pre-PCA</h5></div></div><div/></div>
+					Unlike PCA, is not possible to switch channel and time
+					dimension to computes EOFs.
+					Therefore, it is common to perform a pre-PCA, like with
+					MSSA, to reduce the number of channels.
+				</div>
           </div>
         </div>
         <div class="sect2" lang="en">
@@ -430,7 +462,7 @@
             <div/>
           </div>
           <p>
-				For more information about PCA and MSSA may be found in papers and on the web.
+				For more information about PCA, MSSA and SVD may be found in papers and on the web.
 				See for example:
 				</p>
           <div class="itemizedlist">
@@ -444,6 +476,8 @@
               <li><span class="bold"><a id="mssa"/><b>MSSA: </b></span><a href="doc_bib.html#plva94">Plaut and Vautard (1994)</a>,
 						<a href="doc_bib.html#raynal05">Raynaud et al (2005)</a>,
 						<a href="doc_bib.html#raynal06">Raynaud et al (2006)</a>.
+					</li>
+              <li><span class="bold"><a id="svd"/><b>SVD: </b></span>,
 					</li>
             </ul>
           </div>
