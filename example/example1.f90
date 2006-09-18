@@ -25,7 +25,7 @@ program example
 	!
 	! We start from longitude/latitude/time value of Pacific Sea Surface Temperature
 	! that include the El Nino Southern Oscillation signal.
-	! Input is the netcdf file data.cdf.
+	! Input is the netcdf file data2.cdf.
 	! We remove land points from the initial array according
 	! to the netcdf missing_value attribute of the analysed variable (data are "packed").
 	! A PCA is used to reduce the degrees of freedoom before MSSA analysis.
@@ -35,6 +35,8 @@ program example
 	! reconstructed from the MSSA and PCA spaces.
 	! Finally, phase composites are computed from this reconstructed oscillation.
 	! The oscillation is outputed in a netcdf file (pair_1.cdf).
+	! MSSA eigenvalue are stored in the output netcdf file. This shows
+	! you pairs due to oscillatory modes.
 	!
 	! Initial data set (data2.cdf):
 	! - origin: updated Reynolds and Smith (1996) SST (netcdf file)
@@ -49,7 +51,10 @@ program example
 	! - Phase composites use 8 phases
 	! - An offset of 0.4 and is used for composites
 	! - The first phase of composites is set at 180 degrees (minimal value)
-
+	!
+	! Note:
+	!	This example should run only a few seconds.
+	!	If it is not the case, you BLAS/LAPACK librairy is not optimized.
 
 	use spanlib
 	use netcdf
@@ -58,8 +63,8 @@ program example
 
 	! Parameters
 	! ----------
-	integer,parameter :: nkeep_pca=5, nwindow=84, first_mode=1, &
-		& nphases=8
+	integer,parameter :: nkeep_pca=10, nkeep_mssa=10, nwindow=84, &
+		& first_mode=1, nphases=8
 	real, parameter :: offset=0., first_phase=180., &
 		& new_missing_value=-999.
 	character(len=20), parameter :: input_nc_file="data2.cdf", &
@@ -79,8 +84,9 @@ program example
 	character(len=20) :: dim_names(3), dim_name, &
 		& lon_units, lat_units, var_units, &
 		&	lon_name, lat_name, time_name, time_units
-	integer :: ncid, dimid, dimids(4), varid, dims(3), thisdim, &
-		& lonid, latid, phaseid, timeid, phcoid, recoid, origid
+	integer :: ncid, dimid, dimids(5), varid, dims(3), thisdim, &
+		& lonid, latid, phaseid, timeid, phcoid, recoid, origid, &
+		modeid, evid
 	integer(kind=4) :: i, nspace, nlon, nlat, ntime
 	real :: pi, missing_value
 
@@ -141,7 +147,7 @@ program example
 
 	! Perform a PCA to reduce the d.o.f
 	! ---------------------------------
-	print*,'Pre-PCA (sl_pca)...'
+	print*,'[sl_pca] Pre-PCA...'
 	allocate(eof(nspace, nkeep_pca))
 	allocate(pc(ntime,   nkeep_pca))
 	call sl_pca(packed_field, nkeep_pca, xeof=eof, &
@@ -150,25 +156,25 @@ program example
 
 	! We send results from PCA to MSSA
 	! --------------------------------
-	print*,'MSSA (sl_mssa)...'
-	allocate(steof(nkeep_pca*nwindow, first_mode+1))
-	allocate(stpc(ntime-nwindow+1,    first_mode+1))
-	allocate(stev(                    first_mode+1))
-	call sl_mssa(transpose(pc), nwindow, first_mode+1, &
+	print*,'[sl_mssa] MSSA...'
+	allocate(steof(nkeep_pca*nwindow, nkeep_mssa))
+	allocate(stpc(ntime-nwindow+1,    nkeep_mssa))
+	allocate(stev(                    nkeep_mssa))
+	call sl_mssa(transpose(pc), nwindow, nkeep_mssa, &
 		&	steof=steof, stpc=stpc, ev=stev)
 
 	! We reconstruct modes [first_mode + first_mode+1] of MSSA
 	! --------------------------------------------------------
 
-	print*,'MSSA reconstruction (sl_mssarec)...'
+	print*,'[sl_mssarec] MSSA reconstruction...'
 	allocate(stpair(nkeep_pca, ntime))
-	call sl_mssarec(steof, stpc, nwindow, stpair, &
-		&	istart=first_mode, iend=first_mode+1)
+	call sl_mssarec(steof(:,first_mode:first_mode+1), &
+		& stpc(:,first_mode:first_mode+1), nwindow, stpair)
 	deallocate(steof, stpc)
 
 	! We compute phases composites for the reconstructed oscillation
 	! ---------------------------------------------------------------
-	print*,'Phase composites (sl_phasecomp)...'
+	print*,'[sl_phasecomp] Phase composites...'
 	allocate(stphasecomps(nkeep_pca, nphases))
 	call sl_phasecomp(stpair, nphases, stphasecomps, &
 		&	weights=packed_weights, &
@@ -177,13 +183,12 @@ program example
 	! We go back to the physical space for
 	! the full oscillation AND its composites
 	! ---------------------------------------
-	print*,'Back to the physical space (sl_pcarec)...'
+	print*,'[sl_pcarec] Back to the physical space...'
 	allocate(pair(nspace, ntime))
 	call sl_pcarec(eof, transpose(stpair), pair)
 	allocate(packed_phasecomps(nspace, nphases))
 	call sl_pcarec(eof, transpose(stphasecomps), packed_phasecomps)
 	deallocate(stpair, eof, stphasecomps)
-
 
 	! Unpacking
 	! ---------
@@ -201,7 +206,6 @@ program example
 		 & new_missing_value)
 	end do
 
-
 	! Write out the phase composites of the first oscillation
 	! -------------------------------------------------------
 	print*,'Writing out...'
@@ -212,6 +216,7 @@ program example
 	call err(nf90_def_dim(ncid, 'lat', nlat, dimids(2)))
 	call err(nf90_def_dim(ncid, 'time', ntime, dimids(3)))
 	call err(nf90_def_dim(ncid, 'phase', nphases, dimids(4)))
+	call err(nf90_def_dim(ncid, 'mode', nkeep_mssa, dimids(5)))
 	! Variables
 	call err(nf90_def_var(ncid, 'lon', nf90_float, dimids(1), lonid))
 	call err(nf90_put_att(ncid, lonid, 'long_name', 'Longitude'))
@@ -227,6 +232,10 @@ program example
 		& phaseid))
 	call err(nf90_put_att(ncid, phaseid, 'long_name', 'Phase'))
 	call err(nf90_put_att(ncid, phaseid, 'units', 'level'))
+	call err(nf90_def_var(ncid, 'mode', nf90_float, dimids(5), &
+		& modeid))
+	call err(nf90_put_att(ncid, modeid, 'long_name', 'Mode'))
+	call err(nf90_put_att(ncid, modeid, 'units', 'level'))
 	call err(nf90_def_var(ncid, 'orig', nf90_float, dimids(1:3), &
 	 & origid))
 	call err(nf90_put_att(ncid, origid, 'long_name', &
@@ -248,15 +257,21 @@ program example
 	call err(nf90_put_att(ncid, phcoid, 'units', var_units))
 	call err(nf90_put_att(ncid, phcoid, 'missing_value', &
 		& new_missing_value))
+	call err(nf90_def_var(ncid, 'ev', nf90_float, dimids(5), evid))
+	call err(nf90_put_att(ncid, evid, 'long_name', &
+		&'MSSA eigen values'))
 	! Values
 	call err(nf90_enddef(ncid))
 	call err(nf90_put_var(ncid, lonid, lon))
 	call err(nf90_put_var(ncid, latid, lat))
 	call err(nf90_put_var(ncid, timeid, time))
 	call err(nf90_put_var(ncid, phaseid, float((/(i,i=1,nphases)/))))
+	call err(nf90_put_var(ncid, modeid, &
+		& float((/(i,i=1,nkeep_mssa)/))))
 	call err(nf90_put_var(ncid, origid, field))
 	call err(nf90_put_var(ncid, recoid, reco))
 	call err(nf90_put_var(ncid, phcoid, phasecomps))
+	call err(nf90_put_var(ncid, evid, stev))
 	call err(nf90_close(ncid))
 
 end program example

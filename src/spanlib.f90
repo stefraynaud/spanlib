@@ -332,7 +332,6 @@ contains
 	ns = size(xeof,1)
 	nt = size(pc,1)
 
-
 	! Computation
 	! ===========
 	ffrec = 0.
@@ -659,7 +658,7 @@ contains
 	!	- reof:  Right EOFs
 	!	- lpc:   Left PCs
 	!	- rpc:   Right PCs
-	!	- bLargeMatrix: Use la_sgesdd instead of la_sgesvd (faster for large matrices, but uses more workspace) [default:.true.]
+	!	- bLargeMatrix: Use la_sgesdd instead of la_sgesvd (faster for large matrices, but uses more workspace) [default:.false.]
 
 
 	! Declarations
@@ -675,7 +674,7 @@ contains
 	integer, intent(in)	         :: nkeep
 	real,    intent(out),optional :: lpc(size(ll,2),nkeep), &
 	&                                leof(size(ll,1),nkeep), &
-	&                                rpc(size(ll,2),nkeep), &
+	&                                rpc(size(rr,2),nkeep), &
 	&                                reof(size(rr,1),nkeep), &
 	&                                ev(nkeep)
 	logical, intent(in), optional :: bLargeMatrix
@@ -723,11 +722,10 @@ contains
 	! Use ssyevd?
 	! -----------
 	if(.not.present(bLargeMatrix))then
-		zbLargeMatrix = .true.
+		zbLargeMatrix = .false.
 	else
 		zbLargeMatrix = bLargeMatrix
 	end if
-
 
 	! Computations
 	! ============
@@ -751,12 +749,11 @@ contains
 	! SVD
 	! ---
 	allocate(zleof(nsr,ns), zev(ns))
-	if(bLargeMatrix)then
+	if(zbLargeMatrix)then
 		call la_gesdd(cov, zev, u=zleof, job='V')
 	else
 		call la_gesvd(cov, zev, u=zleof, job='V')
 	end if
-	if(.not.present(reof).and..not.present(rpc)) deallocate(cov)
 
 
 	! Get output arrays
@@ -765,7 +762,6 @@ contains
 	! Eigen values
 	! ------------
 	if(present(ev)) ev = zev(1:nkeep)
-	print*,'svd ev:',zev(1:nkeep)
 	deallocate(zev)
 
 	! EOFs
@@ -788,6 +784,7 @@ contains
 		do i = 1, nkeep
 			lpc(:,i) = lpc(:,i) / sum(leof(:,i)**2)
 		end do
+		deallocate(zll)
 	end if
 	if(present(rpc))then
 		rpc = matmul(transpose(zrr), reof)
