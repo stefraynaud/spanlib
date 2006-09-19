@@ -81,7 +81,7 @@ contains
 	real, allocatable :: wff(:,:), ww(:), zeof(:,:), zff(:,:)
 	real, allocatable :: zev(:)
 	integer           :: zuseteof, znkeepmax, i,j
-	logical           :: zbLargeMatrix
+	logical           :: zbLargeMatrix,zzuseteof
 
 	! Setups
 	! ======
@@ -117,7 +117,8 @@ contains
 		endif
 	endif
 	znkeepmax=100
-	if(zuseteof)then
+	zzuseteof=zuseteof
+	if(zzuseteof)then
 		if(nkeep>nt)then
 			print*,'[pca] You want to keep a number of PCs '//&
 				&'greater than the number of EOF:',nt
