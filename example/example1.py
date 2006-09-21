@@ -75,10 +75,26 @@ out = SP.reconstruct(phases=True,nphases=16,end=2)
 # Plot 1 phase over two, then a time series
 print "Now, plot!"
 x=vcs.init()
-for i in range(0,out.shape[0],2):
-    x.plot(out[i],title="Phase composites of the first MSSA oscillation")
-    raw_input('map out %i/%i ok?' % ( i+1 , out.shape[0]))
-    x.clear()
+slices = range(0,out.shape[0],2)
+nslices = len(slices)
+import EzTemplate
+T=EzTemplate.Multi(rows=nslices+1/2+1,columns=2) # Nrow added 1 for original data row
+templ = T.get(legend='local')
+mn,mx=vcs.minmax(s,out)
+levels = vcs.mkscale(mn,mx)
+colors = vcs.getcolors(levels)
+iso = x.createisofill('spanlib')
+iso.levels = levels
+iso.fillareacolors = colors
+x.plot(s,templ,iso)
+templ=T.get() # dummy space
+for i in slices:
+    templ = T.get()
+    x.plot(out[i],templ,iso,title="Phase composites of the first MSSA oscillation")
+##     raw_input('map out %i/%i ok?' % ( i+1 , out.shape[0]))
+##     x.clear()
+raw_input('map out ok?')
+x.clear()
 x.plot(out[:,30,80],title="Cycle of the ocillation")
 raw_input('Time series at center of bassin ok?')
 x.clear()
