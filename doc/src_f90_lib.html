@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 library source</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3120283"></a>SpanLib - Fortran 90 library source</h1></div></div><div></div><hr /></div><pre class="programlisting"><span class="HLcomments">! File: spanlib.f90</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 library source</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id2950850"></a>SpanLib - Fortran 90 library source</h1></div></div><div></div><hr /></div><pre class="programlisting"><span class="HLcomments">! File: spanlib.f90</span>
 <span class="HLcomments">!</span>
 <span class="HLcomments">! This file is part of the SpanLib library.</span>
 <span class="HLcomments">! Copyright (C) 2006  Stephane Raynaud</span>
@@ -78,11 +78,11 @@
 
 	<span class="HLcomments">! Internal</span>
 	<span class="HLcomments">! --------</span>
-	<span class="HLroutines">integer</span>           :: ii,ij,nn,ns,nt
-	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: cov(:,:)
+	<span class="HLroutines">integer</span>           :: ns,nt
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: cov(:,:), subcov(:,:)
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: wff(:,:), ww(:), zeof(:,:), zff(:,:)
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: zev(:)
-	<span class="HLroutines">integer</span>           :: zuseteof, znkeepmax, i,j
+	<span class="HLroutines">integer</span>           :: zuseteof, znkeepmax, i
 	<span class="HLroutines">logical</span>           :: zbLargeMatrix
 
 	<span class="HLcomments">! Setups</span>
@@ -119,7 +119,7 @@
 		<span class="HLroutines">endif</span>
 	<span class="HLroutines">endif</span>
 	znkeepmax=<span class="HLdigits">100</span>
-	<span class="HLroutines">if</span>(zuseteof)<span class="HLroutines">then</span>
+	<span class="HLroutines">if</span>(zuseteof==<span class="HLdigits">1</span>)<span class="HLroutines">then</span>
 		<span class="HLroutines">if</span>(nkeep&gt;nt)<span class="HLroutines">then</span>
 			<span class="HLroutines">print</span>*,<span class="HLstrings">'[pca] You want to keep a number of PCs '</span>//&amp;
 				&amp;<span class="HLstrings">'greater than the number of EOF:'</span>,nt
@@ -146,6 +146,7 @@
 	<span class="HLfunctions">allocate</span>(zff(ns,nt))
 	zff = ff - <span class="HLfunctions">spread</span>(<span class="HLfunctions">sum</span>(ff,dim=<span class="HLdigits">2</span>)/<span class="HLroutines">real</span>(nt), ncopies=nt, dim=<span class="HLdigits">2</span>)
 
+
 	<span class="HLcomments">! Default weights = 1.</span>
 	<span class="HLcomments">! --------------------</span>
 	<span class="HLfunctions">allocate</span>(ww(ns))
@@ -153,9 +154,7 @@
 	ww = <span class="HLdigits">1</span>.
 	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(weights))<span class="HLroutines">then</span>
 		ww(:) = weights * <span class="HLroutines">real</span>(ns) / <span class="HLfunctions">sum</span>(weights)
-		where(ww==<span class="HLdigits">0</span>.)
-			ww = <span class="HLdigits">1</span>.
-		<span class="HLroutines">end</span> where
+		where(ww==<span class="HLdigits">0</span>.)ww = <span class="HLdigits">1</span>.
 		<span class="HLroutines">do</span> i = <span class="HLdigits">1</span>, nt
 			wff(:,i) = zff(:,i) * <span class="HLfunctions">sqrt</span>(ww)
 		<span class="HLroutines">end</span> <span class="HLroutines">do</span>
@@ -191,9 +190,12 @@
 		<span class="HLcomments">! Back to S-EOFs</span>
 		<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(pc).or.<span class="HLfunctions">present</span>(xeof))<span class="HLroutines">then</span>
 			<span class="HLfunctions">allocate</span>(zeof(ns,nkeep))
-			<span class="HLroutines">call</span> sgemm(<span class="HLstrings">'N'</span>,<span class="HLstrings">'N'</span>,ns,nkeep,nt,<span class="HLdigits">1</span>.,zff,ns, &amp;
-				&amp; cov(:,nt:nt-nkeep+<span class="HLdigits">1</span>:-<span class="HLdigits">1</span>),nt,<span class="HLdigits">0</span>.,zeof,ns)
+			<span class="HLfunctions">allocate</span>(subcov(nt,nkeep))
+			subcov = cov(:,nt:nt-nkeep+<span class="HLdigits">1</span>:-<span class="HLdigits">1</span>)
 			<span class="HLfunctions">deallocate</span>(cov)
+			<span class="HLroutines">call</span> sgemm(<span class="HLstrings">'N'</span>,<span class="HLstrings">'N'</span>,ns,nkeep,nt,<span class="HLdigits">1</span>.,zff,ns, &amp;
+				&amp; subcov,nt,<span class="HLdigits">0</span>.,zeof,ns)
+			<span class="HLfunctions">deallocate</span>(subcov)
 			<span class="HLroutines">do</span> i = <span class="HLdigits">1</span>, nkeep
 				zeof(:,i) = zeof(:,i) / &amp;
 				 &amp;          <span class="HLfunctions">sqrt</span>(<span class="HLfunctions">dot_product</span>(ww(:), zeof(:,i)**<span class="HLdigits">2</span>))
@@ -253,22 +255,94 @@
 	<span class="HLcomments">! ===============</span>
 	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(pc))<span class="HLroutines">then</span>
 		<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(weights))<span class="HLroutines">then</span>
-			<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, nt
-				zff(:,i) = zff(:,i) * ww(:)
-			<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+			<span class="HLroutines">call</span> sl_pca_getec(zff,zeof,pc,weights=ww)
+		<span class="HLroutines">else</span>
+			<span class="HLroutines">call</span> sl_pca_getec(zff,zeof,pc)
 		<span class="HLroutines">end</span> <span class="HLroutines">if</span>
-		<span class="HLcomments">! pc = matmul( transpose(zff), zeof)</span>
-		<span class="HLroutines">call</span> sgemm(<span class="HLstrings">'T'</span>,<span class="HLstrings">'N'</span>,nt,nkeep,ns,<span class="HLdigits">1</span>.,zff,ns, &amp;
-			&amp; zeof,ns,<span class="HLdigits">0</span>.,pc,nt)
-		<span class="HLroutines">do</span> i = <span class="HLdigits">1</span>, nkeep
-			pc(:,i) = pc(:,i) / <span class="HLfunctions">dot_product</span>(zeof(:,i)**<span class="HLdigits">2</span>, ww(:))
-		<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 
 	<span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_pca</span>
 
 
-	<span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_pcarec</span>(xeof, pc, ffrec, istart, iend)
+	<span class="HLcomments">!############################################################</span>
+	<span class="HLcomments">!############################################################</span>
+	<span class="HLcomments">!############################################################</span>
+
+
+	<span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_pca_getec</span>(ff, xeof, ec, weights)
+
+	<span class="HLcomments">! Title:</span>
+	<span class="HLcomments">!	Compute PCA expansion coefficients</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! Description</span>
+	<span class="HLcomments">!	Get an expansion coefficients from a space-time field</span>
+	<span class="HLcomments">!	and a set of EOFs computed by PCA. If the input</span>
+	<span class="HLcomments">!	space-time field is the same as the one used to computes</span>
+	<span class="HLcomments">!	input ST-EOFs, these expansion coincide with the</span>
+	<span class="HLcomments">! associated principal components.</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! Necessary arguments:</span>
+	<span class="HLcomments">!	- ff:   Space-time field</span>
+	<span class="HLcomments">!	- xeof: Spatial EOFs</span>
+	<span class="HLcomments">!	- ec:   Time-mode array of expansion coefficients</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! Optional arguments:</span>
+	<span class="HLcomments">!	- weights: Space array of weights</span>
+
+	<span class="HLroutines">implicit</span> <span class="HLattributes">none</span>
+
+	<span class="HLcomments">! Declarations</span>
+	<span class="HLcomments">! ============</span>
+
+	<span class="HLcomments">! External</span>
+	<span class="HLcomments">! --------</span>
+	<span class="HLroutines">real</span>, <span class="HLattributes">intent</span>(in)           :: ff(:,:), xeof(:,:)
+	<span class="HLroutines">real</span>, <span class="HLattributes">intent</span>(out)          :: ec(size(ff,<span class="HLdigits">2</span>),size(xeof,<span class="HLdigits">2</span>))
+	<span class="HLroutines">real</span>, <span class="HLattributes">intent</span>(in), <span class="HLattributes">optional</span> :: weights(:)
+
+	<span class="HLcomments">! Internal</span>
+	<span class="HLcomments">! --------</span>
+	<span class="HLroutines">real</span> :: zweights(size(ff,<span class="HLdigits">1</span>)), zff(size(ff,<span class="HLdigits">1</span>),size(ff,<span class="HLdigits">2</span>))
+	<span class="HLroutines">integer</span> :: ns,nt,nkeep,i
+
+	<span class="HLcomments">! Computations</span>
+	<span class="HLcomments">! ============</span>
+
+	<span class="HLcomments">! Initialisations</span>
+	<span class="HLcomments">! ---------------</span>
+
+	ns = size(ff,<span class="HLdigits">1</span>)
+	nt = size(ff,<span class="HLdigits">2</span>)
+	nkeep = size(xeof,<span class="HLdigits">2</span>)
+
+	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(weights))<span class="HLroutines">then</span>
+		zweights = weights
+		<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, nt
+			zff(:,i) = ff(:,i) * zweights
+		<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+	<span class="HLroutines">else</span>
+		zweights = <span class="HLdigits">1</span>.
+		zff = ff
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+
+	<span class="HLcomments">! Main stuff</span>
+	<span class="HLcomments">! ----------</span>
+	<span class="HLcomments">! ec = matmul( transpose(ff), xeof)</span>
+	<span class="HLroutines">call</span> sgemm(<span class="HLstrings">'T'</span>,<span class="HLstrings">'N'</span>,nt,nkeep,ns,<span class="HLdigits">1</span>.,zff,ns, &amp;
+		&amp; xeof,ns,<span class="HLdigits">0</span>.,ec,nt)
+	<span class="HLroutines">do</span> i = <span class="HLdigits">1</span>, nkeep
+		ec(:,i) = ec(:,i) / <span class="HLfunctions">dot_product</span>(xeof(:,i)**<span class="HLdigits">2</span>, zweights)
+	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+
+	<span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_pca_getec</span>
+
+
+	<span class="HLcomments">!############################################################</span>
+	<span class="HLcomments">!############################################################</span>
+	<span class="HLcomments">!############################################################</span>
+
+
+	<span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_pca_rec</span>(xeof, pc, ffrec, istart, iend)
 
 	<span class="HLcomments">! Title:</span>
 	<span class="HLcomments">!	Reconstruction of a set of PCA components</span>
@@ -288,11 +362,11 @@
 	<span class="HLcomments">!	- istart:	Index of the first component to use</span>
 	<span class="HLcomments">!	- iend:		Index of the last component to use</span>
 
-	<span class="HLroutines">implicit</span> <span class="HLattributes">none</span>
-
 
 	<span class="HLcomments">! Declarations</span>
 	<span class="HLcomments">! ============</span>
+
+	<span class="HLroutines">implicit</span> <span class="HLattributes">none</span>
 
 	<span class="HLcomments">! External</span>
 	<span class="HLcomments">! --------</span>
@@ -318,18 +392,18 @@
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 	<span class="HLroutines">if</span>(zistart.lt.<span class="HLdigits">1</span>.or.zistart.gt.nkept)<span class="HLroutines">then</span>
 		zistart=<span class="HLdigits">1</span>
-		<span class="HLroutines">print</span>*,<span class="HLstrings">'[pcarec] istart lower than <span class="HLdigits">1</span> =&gt; set to <span class="HLdigits">1</span>'</span>
+		<span class="HLroutines">print</span>*,<span class="HLstrings">'[pca_rec] istart lower than <span class="HLdigits">1</span> =&gt; set to <span class="HLdigits">1</span>'</span>
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 	<span class="HLroutines">if</span>(ziend.lt.<span class="HLdigits">1</span>.or.ziend.gt.nkept)<span class="HLroutines">then</span>
 		ziend=nkept
-		<span class="HLroutines">print</span>*,<span class="HLstrings">'[pcarec] iend greater than the number '</span>//&amp;
+		<span class="HLroutines">print</span>*,<span class="HLstrings">'[pca_rec] iend greater than the number '</span>//&amp;
 			&amp;<span class="HLstrings">'of avalaible modes =&gt; reduced to '</span>,ziend
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 	<span class="HLroutines">if</span>(zistart&gt;ziend)<span class="HLroutines">then</span>
 		itmp=ziend
 		ziend=zistart
 		zistart=itmp
-		<span class="HLroutines">print</span>*,<span class="HLstrings">'[pcarec] istart &gt; iend =&gt; inversion'</span>
+		<span class="HLroutines">print</span>*,<span class="HLstrings">'[pca_rec] istart &gt; iend =&gt; inversion'</span>
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 	ns = size(xeof,<span class="HLdigits">1</span>)
 	nt = size(pc,<span class="HLdigits">1</span>)
@@ -351,7 +425,7 @@
 		<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 
-	<span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_pcarec</span>
+	<span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_pca_rec</span>
 
 
 
@@ -379,7 +453,7 @@
 	<span class="HLcomments">!	- nkeep:   Maximum number of modes to keep in outputs</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Optional arguments:</span>
-	<span class="HLcomments">!	- steof: SpaceXwindow-mode array of EOFs</span>
+	<span class="HLcomments">!	- steof: Space-window-mode array of EOFs</span>
 	<span class="HLcomments">!	- stpc:  Time-mode array of PCs</span>
 	<span class="HLcomments">!	- ev:    Mode array of eigen values (variances)</span>
 	<span class="HLcomments">!	- bLargeMatrix: Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) [default:.true.]</span>
@@ -406,11 +480,10 @@
 
 	<span class="HLcomments">! Internal</span>
 	<span class="HLcomments">! --------</span>
-	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: cov(:,:), zev(:), zff(:,:), zsteof(:,:), wpc(:)
-	<span class="HLroutines">real</span> :: wsteof
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: cov(:,:), zev(:), zff(:,:), zsteof(:,:)
 	<span class="HLroutines">integer</span> :: nchan, nsteof, nt, znkeepmax
-	<span class="HLroutines">integer</span> :: iw, iw1, iw2, i1, i2, im, ic1, ic2
- 	<span class="HLroutines">logical</span> :: zbLargeMatrix
+	<span class="HLroutines">integer</span> :: iw, iw1, iw2, i1, i2, ic1, ic2
+	<span class="HLroutines">logical</span> :: zbLargeMatrix
 
 
 	<span class="HLcomments">! Setup</span>
@@ -498,26 +571,81 @@
 
 	<span class="HLcomments">! Get ST-PCs</span>
 	<span class="HLcomments">! ==========</span>
-	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(stpc))<span class="HLroutines">then</span>
-		<span class="HLfunctions">allocate</span>(wpc(nt-nwindow+<span class="HLdigits">1</span>))
-		stpc = <span class="HLdigits">0</span>.
-		<span class="HLroutines">do</span> im = <span class="HLdigits">1</span>, nkeep
-			<span class="HLroutines">do</span> iw = <span class="HLdigits">1</span>, nwindow
-				<span class="HLroutines">call</span> sgemm(<span class="HLstrings">'T'</span>,<span class="HLstrings">'N'</span>, nt-nwindow+<span class="HLdigits">1</span>, <span class="HLdigits">1</span>, nchan, <span class="HLdigits">1</span>.,&amp;
-					&amp; zff(:,iw:iw+nt-nwindow), nchan, &amp;
-					&amp; steof(iw:iw+(nchan-<span class="HLdigits">1</span>)*nwindow:nwindow, im),nchan,&amp;
-					&amp; <span class="HLdigits">0</span>., wpc, nt-nwindow+<span class="HLdigits">1</span>)
-					stpc(:, im)  =  stpc(:, im) + wpc
-			<span class="HLroutines">end</span> <span class="HLroutines">do</span>
-			stpc(:, im) = stpc(:, im) / <span class="HLfunctions">sum</span>(steof(:,im)**<span class="HLdigits">2</span>)
+	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(stpc)) <span class="HLroutines">call</span> sl_mssa_getec(zff,steof,nwindow,stpc)
+	<span class="HLfunctions">deallocate</span>(zff)
+
+	<span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_mssa</span>
+
+
+	<span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_mssa_getec</span>(ff, steof, nwindow, stec)
+
+	<span class="HLcomments">! Title:</span>
+	<span class="HLcomments">!	Computes MSSA expansion coefficients</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! Description</span>
+	<span class="HLcomments">!	Get an expansion coefficients from a space-time field</span>
+	<span class="HLcomments">!	and a set of ST-EOFs computed by MSSA. If the input</span>
+	<span class="HLcomments">!	space-time field is the same as the one used to computes</span>
+	<span class="HLcomments">!	input ST-EOFs, these expansion coincide with the</span>
+	<span class="HLcomments">! associated principal components.</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! Necessary arguments:</span>
+	<span class="HLcomments">!	- ff:   Space-time field</span>
+	<span class="HLcomments">!	- steof: Space-window-mode EOFs</span>
+	<span class="HLcomments">!	- stec:  Time-mode array of expansion coefficients</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! Dependencies:</span>
+	<span class="HLcomments">!	sgemm(BLAS)</span>
+
+	<span class="HLroutines">implicit</span> <span class="HLattributes">none</span>
+
+	<span class="HLcomments">! Declarations</span>
+	<span class="HLcomments">! ============</span>
+
+	<span class="HLcomments">! External</span>
+	<span class="HLcomments">! --------</span>
+	<span class="HLroutines">real</span>, <span class="HLattributes">intent</span>(in)    :: ff(:,:), steof(:,:)
+	<span class="HLroutines">real</span>, <span class="HLattributes">intent</span>(out)   :: stec(size(ff,<span class="HLdigits">2</span>)-nwindow+<span class="HLdigits">1</span>,size(steof,<span class="HLdigits">2</span>))
+	<span class="HLroutines">integer</span>, <span class="HLattributes">intent</span>(in) :: nwindow
+
+	<span class="HLcomments">! Internal</span>
+	<span class="HLcomments">! --------</span>
+	<span class="HLroutines">integer</span> :: nt,nkeep,im,iw,nchan
+	<span class="HLroutines">real</span> :: wpc(size(ff,<span class="HLdigits">2</span>)-nwindow+<span class="HLdigits">1</span>), substeof(size(ff,<span class="HLdigits">1</span>)), &amp;
+		&amp; subff(size(ff,<span class="HLdigits">1</span>),size(ff,<span class="HLdigits">2</span>)-nwindow+<span class="HLdigits">1</span>)
+
+	<span class="HLcomments">! Computations</span>
+	<span class="HLcomments">! ------------</span>
+
+	<span class="HLcomments">! Initialisations</span>
+	<span class="HLcomments">! ---------------</span>
+	stec = <span class="HLdigits">0</span>.
+	nchan = size(ff,<span class="HLdigits">1</span>)
+	nt = size(ff,<span class="HLdigits">2</span>)
+	nkeep = size(steof,<span class="HLdigits">2</span>)
+
+	<span class="HLcomments">! Main stuff</span>
+	<span class="HLcomments">! ----------</span>
+	<span class="HLroutines">do</span> im = <span class="HLdigits">1</span>, nkeep
+		<span class="HLroutines">do</span> iw = <span class="HLdigits">1</span>, nwindow
+			subff = ff(:,iw:iw+nt-nwindow)
+			substeof = steof(iw:iw+(nchan-<span class="HLdigits">1</span>)*nwindow:nwindow, im)
+			<span class="HLroutines">call</span> sgemm(<span class="HLstrings">'T'</span>,<span class="HLstrings">'N'</span>, nt-nwindow+<span class="HLdigits">1</span>, <span class="HLdigits">1</span>, nchan, <span class="HLdigits">1</span>.,&amp;
+				&amp; subff, nchan, substeof, nchan, <span class="HLdigits">0</span>., wpc, nt-nwindow+<span class="HLdigits">1</span>)
+				stec(:, im)  =  stec(:, im) + wpc
 		<span class="HLroutines">end</span> <span class="HLroutines">do</span>
-	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+		stec(:, im) = stec(:, im) / <span class="HLfunctions">sum</span>(steof(:,im)**<span class="HLdigits">2</span>)
+	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 
-  <span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_mssa</span>
+	<span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_mssa_getec</span>
 
 
+	<span class="HLcomments">!############################################################</span>
+	<span class="HLcomments">!############################################################</span>
+	<span class="HLcomments">!############################################################</span>
 
-	<span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_mssarec</span>(steof, stpc, nwindow, ffrec, istart, iend)
+
+	<span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_mssa_rec</span>(steof, stpc, nwindow, ffrec, istart, iend)
 
 	<span class="HLcomments">! Title:</span>
 	<span class="HLcomments">!	Reconstruction of a set of MSSA components</span>
@@ -580,19 +708,20 @@
 	zistart = <span class="HLdigits">1</span>
 	<span class="HLroutines">if</span>(zistart.lt.<span class="HLdigits">1</span>.or.zistart.gt.nkept)<span class="HLroutines">then</span>
 		zistart = <span class="HLdigits">1</span>
-		<span class="HLroutines">print</span>*,<span class="HLstrings">'[mssarec] istart lower than <span class="HLdigits">1</span> =&gt; set to <span class="HLdigits">1</span>'</span>
+		<span class="HLroutines">print</span>*,<span class="HLstrings">'[mssa_rec] istart lower than <span class="HLdigits">1</span> =&gt; set to <span class="HLdigits">1</span>'</span>
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 	<span class="HLroutines">if</span>(ziend.lt.<span class="HLdigits">1</span>.or.ziend.gt.nkept)<span class="HLroutines">then</span>
 		ziend = nkept
-		<span class="HLroutines">print</span>*,<span class="HLstrings">'[mssarec] iend greater than the number of '</span>// &amp;
+		<span class="HLroutines">print</span>*,<span class="HLstrings">'[mssa_rec] iend greater than the number of '</span>// &amp;
 		 &amp;     <span class="HLstrings">'avalaible modes =&gt; reduced to'</span>,iend
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 	<span class="HLroutines">if</span>(zistart&gt;ziend)<span class="HLroutines">then</span>
 		itmp    = ziend
 		ziend   = zistart
 		zistart = itmp
-		<span class="HLroutines">print</span>*,<span class="HLstrings">'[mssarec] istart &gt; iend =&gt; inversion'</span>
+		<span class="HLroutines">print</span>*,<span class="HLstrings">'[mssa_rec] istart &gt; iend =&gt; inversion'</span>
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+
 
 	<span class="HLcomments">! Computation</span>
 	<span class="HLcomments">! ===========</span>
@@ -613,7 +742,7 @@
 			ffrec(ic, nwindow : ntpc) =  ffrec(ic, nwindow : ntpc) + &amp;
 				&amp; <span class="HLfunctions">matmul</span>(reof, epc) / <span class="HLroutines">real</span>(nwindow)
 
-		  <span class="HLroutines">do</span> iw = <span class="HLdigits">1</span>, nwindow-<span class="HLdigits">1</span>
+			<span class="HLroutines">do</span> iw = <span class="HLdigits">1</span>, nwindow-<span class="HLdigits">1</span>
 
 			 <span class="HLcomments">! * beginning * [iw length projections]</span>
 			 ffrec(ic, iw) = ffrec(ic, iw) + &amp;
@@ -631,7 +760,9 @@
 
 	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 
-	<span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_mssarec</span>
+	<span class="HLfunctions">deallocate</span>(reof,epc)
+
+	<span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_mssa_rec</span>
 
 
 
@@ -641,7 +772,8 @@
   <span class="HLcomments">!############################################################</span>
   <span class="HLcomments">!############################################################</span>
 
-	<span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_svd</span>(ll,rr,nkeep,leof,reof,lpc,rpc,ev,bLargeMatrix)
+	<span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_svd</span>(ll,rr,nkeep,leof,reof,lpc,rpc,ev,lw,rw,&amp;
+		&amp; bLargeMatrix)
 
 	<span class="HLcomments">! Title:</span>
 	<span class="HLcomments">!	Singular Value Decomposition</span>
@@ -660,6 +792,9 @@
 	<span class="HLcomments">!	- reof:  Right EOFs</span>
 	<span class="HLcomments">!	- lpc:   Left PCs</span>
 	<span class="HLcomments">!	- rpc:   Right PCs</span>
+	<span class="HLcomments">!	- ev:    Eigen values</span>
+	<span class="HLcomments">!	- lw:    Left weights</span>
+	<span class="HLcomments">!	- rw:    Right weights</span>
 	<span class="HLcomments">!	- bLargeMatrix: Use la_sgesdd instead of la_sgesvd (faster for large matrices, but uses more workspace) [default:.false.]</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Dependencies:</span>
@@ -677,6 +812,7 @@
 	<span class="HLcomments">! --------</span>
 	<span class="HLroutines">real</span>,    <span class="HLattributes">intent</span>(in)           :: ll(:,:),rr(:,:)
 	<span class="HLroutines">integer</span>, <span class="HLattributes">intent</span>(in)	         :: nkeep
+	<span class="HLroutines">real</span>,    <span class="HLattributes">intent</span>(in), <span class="HLattributes">optional</span> :: lw(:), rw(:)
 	<span class="HLroutines">real</span>,    <span class="HLattributes">intent</span>(out),<span class="HLattributes">optional</span> :: lpc(size(ll,<span class="HLdigits">2</span>),nkeep), &amp;
 	&amp;                                leof(size(ll,<span class="HLdigits">1</span>),nkeep), &amp;
 	&amp;                                rpc(size(rr,<span class="HLdigits">2</span>),nkeep), &amp;
@@ -686,10 +822,10 @@
 
 	<span class="HLcomments">! Internal</span>
 	<span class="HLcomments">! --------</span>
-	<span class="HLroutines">integer</span>           :: ii,ij,nn,ns,nsl,nsr,nt
-	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: zll(:,:), zrr(:,:), cov(:,:)
+	<span class="HLroutines">integer</span>           :: ns,nsl,nsr,nt
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: zll(:,:), zrr(:,:), cov(:,:), zlw(:), zrw(:)
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: zev(:), zleof(:,:)
-	<span class="HLroutines">integer</span>           :: znkeepmax, i,j
+	<span class="HLroutines">integer</span>           :: znkeepmax, i
 	<span class="HLroutines">logical</span>           :: zbLargeMatrix
 
 
@@ -732,6 +868,24 @@
 		zbLargeMatrix = bLargeMatrix
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 
+	<span class="HLcomments">! Weights</span>
+	<span class="HLcomments">! -------</span>
+	<span class="HLfunctions">allocate</span>(zlw(nsl))
+	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(lw))<span class="HLroutines">then</span>
+		zlw = lw * <span class="HLroutines">real</span>(nsl) / <span class="HLfunctions">sum</span>(lw)
+		where(zlw==<span class="HLdigits">0</span>.) zlw = <span class="HLdigits">1</span>.
+	<span class="HLroutines">else</span>
+		zlw = <span class="HLdigits">1</span>.
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+	<span class="HLfunctions">allocate</span>(zrw(nsl))
+	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(rw))<span class="HLroutines">then</span>
+		zrw = rw * <span class="HLroutines">real</span>(nsr) / <span class="HLfunctions">sum</span>(rw)
+		where(zrw==<span class="HLdigits">0</span>.) zrw = <span class="HLdigits">1</span>.
+	<span class="HLroutines">else</span>
+		zrw = <span class="HLdigits">1</span>.
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+
+
 	<span class="HLcomments">! Computations</span>
 	<span class="HLcomments">! ============</span>
 
@@ -742,14 +896,21 @@
 	<span class="HLfunctions">allocate</span>(zrr(nsr,nt))
 	zrr = rr - <span class="HLfunctions">spread</span>(<span class="HLfunctions">sum</span>(rr,dim=<span class="HLdigits">2</span>)/<span class="HLroutines">real</span>(nt), ncopies=nt, dim=<span class="HLdigits">2</span>)
 
+	<span class="HLcomments">! Weighting</span>
+	<span class="HLcomments">! ---------</span>
+	<span class="HLroutines">do</span> i = <span class="HLdigits">1</span>, nt
+		zll(:,i) = zll(:,i) * <span class="HLfunctions">sqrt</span>(zlw)
+		zrr(:,i) = zrr(:,i) * <span class="HLfunctions">sqrt</span>(zrw)
+	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+
 	<span class="HLcomments">! Cross-covariances</span>
 	<span class="HLcomments">! -----------------</span>
 	<span class="HLfunctions">allocate</span>(cov(nsl,nsr))
 	<span class="HLroutines">call</span> sgemm(<span class="HLstrings">'N'</span>,<span class="HLstrings">'T'</span>,nsl,nsr,nt,<span class="HLdigits">1</span>.,zll,nsl, &amp;
 				&amp; zrr,nsr,<span class="HLdigits">0</span>.,cov,nsl)
 	cov = cov / float(nt)
-	<span class="HLroutines">if</span>(.<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(leof).and..<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(lpc)) <span class="HLfunctions">deallocate</span>(zll)
-	<span class="HLroutines">if</span>(.<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(reof).and..<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(rpc)) <span class="HLfunctions">deallocate</span>(zrr)
+	<span class="HLroutines">if</span>(.<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(lpc)) <span class="HLfunctions">deallocate</span>(zll)
+	<span class="HLroutines">if</span>(.<span class="HLfunctions">not</span>.<span class="HLfunctions">present</span>(rpc)) <span class="HLfunctions">deallocate</span>(zrr)
 
 	<span class="HLcomments">! SVD</span>
 	<span class="HLcomments">! ---</span>
@@ -785,22 +946,190 @@
 	<span class="HLcomments">! PCs</span>
 	<span class="HLcomments">! ---</span>
 	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(lpc))<span class="HLroutines">then</span>
-		lpc = <span class="HLfunctions">matmul</span>(<span class="HLfunctions">transpose</span>(zll), leof)
-		<span class="HLroutines">do</span> i = <span class="HLdigits">1</span>, nkeep
-			lpc(:,i) = lpc(:,i) / <span class="HLfunctions">sum</span>(leof(:,i)**<span class="HLdigits">2</span>)
-		<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+		<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca_getec</span>(zll,leof,lpc,weights=zlw)
+<span class="HLcomments">! 		if(present(lw))then</span>
+<span class="HLcomments">! 			do i=1, nt</span>
+<span class="HLcomments">! 				zll(:,i) = zll(:,i) * zlw</span>
+<span class="HLcomments">! 			end do</span>
+<span class="HLcomments">! 		end if</span>
+<span class="HLcomments">! 		lpc = matmul(transpose(zll), leof)</span>
+<span class="HLcomments">! 		do i = 1, nkeep</span>
+<span class="HLcomments">! 			lpc(:,i) = lpc(:,i) / sum(leof(:,i)**2 * zlw)</span>
+<span class="HLcomments">! 		end do</span>
 		<span class="HLfunctions">deallocate</span>(zll)
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(rpc))<span class="HLroutines">then</span>
-		rpc = <span class="HLfunctions">matmul</span>(<span class="HLfunctions">transpose</span>(zrr), reof)
-		<span class="HLroutines">do</span> i = <span class="HLdigits">1</span>, nkeep
-			rpc(:,i) = rpc(:,i) / <span class="HLfunctions">sum</span>(reof(:,i)**<span class="HLdigits">2</span>)
-		<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+		<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca_getec</span>(zrr,reof,rpc,weights=zrw)
+<span class="HLcomments">! 		if(present(rw))then</span>
+<span class="HLcomments">! 			do i=1, nt</span>
+<span class="HLcomments">! 				zrr(:,i) = zrr(:,i) * zlw</span>
+<span class="HLcomments">! 			end do</span>
+<span class="HLcomments">! 		end if</span>
+<span class="HLcomments">! 		rpc = matmul(transpose(zrr), reof)</span>
+<span class="HLcomments">! 		do i = 1, nkeep</span>
+<span class="HLcomments">! 			rpc(:,i) = rpc(:,i) / sum(reof(:,i)**2 * zrw)</span>
+<span class="HLcomments">! 		end do</span>
+		<span class="HLfunctions">deallocate</span>(zrr)
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 
 	<span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_svd</span>
 
 
+	<span class="HLcomments">!############################################################</span>
+	<span class="HLcomments">!############################################################</span>
+	<span class="HLcomments">!############################################################</span>
+
+
+	<span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_svd_model_build</span>(ll,rr,&amp;
+		&amp; lPcaEof,rPcaEof,lSvdEof,rSvdEof,l2r,lPcaPc,rPcaPc)
+
+	<span class="HLcomments">! Title:</span>
+	<span class="HLcomments">!	SVD statistical model - Build part</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! Description:</span>
+	<span class="HLcomments">!	Build a SVD-based statistical model to deduce right field</span>
+	<span class="HLcomments">!	from left field. First, it performs pre-PCA on both dataset,</span>
+	<span class="HLcomments">!	then it decomposes resulting PCs using a SVD.</span>
+	<span class="HLcomments">!	Outputs EOFs and PCs from PCA and SVD can further be used</span>
+	<span class="HLcomments">!	by the model part.</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! Necessary arguments:</span>
+	<span class="HLcomments">!	- ll:    Left space-time array</span>
+	<span class="HLcomments">!	- rr:    Right space-time array</span>
+	<span class="HLcomments">!	- nkeepPca: Maximum number pre-PCA of modes to retain</span>
+	<span class="HLcomments">!	- nkeepSvd: Maximum number SVD of modes to retain</span>
+	<span class="HLcomments">!	- lPcaEof:  Left pre-PCA EOFs</span>
+	<span class="HLcomments">!	- rPcaEof:  Right pre-PCA EOFs</span>
+	<span class="HLcomments">!	- lSvdEof:  Left pre-SVD EOFs</span>
+	<span class="HLcomments">!	- rSvdEof:  Right pre-SVD EOFs</span>
+	<span class="HLcomments">!	- l2r:      Scale factors to convert from left to right</span>
+
+
+	<span class="HLcomments">! Declarations</span>
+	<span class="HLcomments">! ============</span>
+
+	<span class="HLroutines">implicit</span> <span class="HLattributes">none</span>
+
+	<span class="HLcomments">! External</span>
+	<span class="HLroutines">real</span>, <span class="HLattributes">intent</span>(in) :: ll(:,:), rr(:,:)
+	<span class="HLroutines">real</span>, <span class="HLattributes">intent</span>(out) ::lPcaEof(:,:), rPcaEof(:,:),&amp;
+	 &amp; lsvdEof(:,:), rSvdEof(:,:), l2r(:)
+	<span class="HLroutines">real</span>, <span class="HLattributes">intent</span>(out), <span class="HLattributes">optional</span> :: &amp;
+	 &amp; lPcaPc(size(ll,<span class="HLdigits">2</span>),size(lPcaEof,<span class="HLdigits">2</span>)), &amp;
+	 &amp; rPcaPc(size(ll,<span class="HLdigits">2</span>),size(rPcaEof,<span class="HLdigits">2</span>))
+
+	<span class="HLcomments">! Internal</span>
+	<span class="HLcomments">! --------</span>
+	<span class="HLroutines">integer</span> :: i,nt,nkeepPca, nkeepSvd
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: zlSvdPc(:,:), zrSvdPc(:,:)
+
+	<span class="HLcomments">! Sizes</span>
+	<span class="HLcomments">! -----</span>
+	nt = size(ll,<span class="HLdigits">2</span>)
+	nkeepPca = size(lPcaEof,<span class="HLdigits">2</span>)
+	nkeepSvd = size(lSvdEof,<span class="HLdigits">2</span>)
+
+
+	<span class="HLcomments">! Computations</span>
+	<span class="HLcomments">! ============</span>
+
+	<span class="HLcomments">! Pre-PCA</span>
+	<span class="HLcomments">! -------</span>
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca</span>(ll, nkeepPca, xeof=lPcaEof, pc=lPcaPc)
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca</span>(rr, nkeepPca, xeof=rPcaEof, pc=rPcaPc)
+
+	<span class="HLcomments">! SVD</span>
+	<span class="HLcomments">! ---</span>
+	<span class="HLfunctions">allocate</span>(zlSvdPc(nkeepSvd,nt),zrSvdPc(nkeepSvd,nt))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_svd</span>(<span class="HLfunctions">transpose</span>(lPcaPc),<span class="HLfunctions">transpose</span>(rPcaPc),nkeepSvd, &amp;
+		&amp; leof=lSvdEof, reof=rSvdEof, lpc=zlSvdPc, rpc=zrSvdPc)
+
+	<span class="HLcomments">! Scale factors</span>
+	<span class="HLcomments">! -------------</span>
+	<span class="HLroutines">do</span> i = <span class="HLdigits">1</span>, nkeepSVD
+		l2r(i) = <span class="HLfunctions">sqrt</span>(<span class="HLfunctions">sum</span>(zrSvdPc(:,i)**<span class="HLdigits">2</span>)/<span class="HLfunctions">sum</span>(zlSvdPc(:,i)**<span class="HLdigits">2</span>))
+	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+
+	<span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_svd_model_build</span>
+
+
+	<span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_svd_model_use</span>(ll,rr,&amp;
+		&amp; lPcaEof,rPcaEof,lSvdEof,rSvdEof,l2r)
+
+ 	<span class="HLcomments">! Title:</span>
+	<span class="HLcomments">!	SVD statistical model - Use part</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! Description:</span>
+	<span class="HLcomments">!	SVD-based statistical model to deduce right field</span>
+	<span class="HLcomments">!	from left field. It uses results from pre-PCA</span>
+	<span class="HLcomments">!	and SVD decompositions performed by sl_svdmodel_build.</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! Necessary arguments:</span>
+	<span class="HLcomments">!	- ll:    Left space array</span>
+	<span class="HLcomments">!	- rr:    Right space array</span>
+	<span class="HLcomments">!	- lPcaEof:  Left pre-PCA EOFs</span>
+	<span class="HLcomments">!	- rPcaEof:  Right pre-PCA EOFs</span>
+	<span class="HLcomments">!	- lSvdEof:  Left pre-SVD EOFs</span>
+	<span class="HLcomments">!	- rSvdEof:  Right pre-SVD EOFs</span>
+	<span class="HLcomments">!	- l2r:      Scale factors to convert from left to right</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! Dependencies:</span>
+	<span class="HLcomments">!	sl_pca_getec sl_pca_rec</span>
+
+
+	<span class="HLcomments">! Declarations</span>
+	<span class="HLcomments">! ============</span>
+
+	<span class="HLroutines">implicit</span> <span class="HLattributes">none</span>
+
+	<span class="HLcomments">! External</span>
+	<span class="HLcomments">! --------</span>
+	<span class="HLroutines">real</span>, <span class="HLattributes">intent</span>(in) :: ll(:), lPcaEof(:,:), rPcaEof(:,:),&amp;
+	 &amp; lSvdEof(:,:), rSvdEof(:,:), l2r(:)
+	<span class="HLroutines">real</span>, <span class="HLattributes">intent</span>(out) :: rr(:)
+
+	<span class="HLcomments">! Internal</span>
+	<span class="HLcomments">! --------</span>
+	<span class="HLroutines">integer</span> :: i,nt,nkeepPca, nkeepSvd
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: zlPcaEc(:,:),zlSvdEc(:,:),zrSvdEc(:,:),&amp;
+		&amp; zrPcaPc(:,:),zll(:,:),zrr(:,:)
+
+	<span class="HLcomments">! Computations</span>
+	<span class="HLcomments">! ============</span>
+
+	<span class="HLcomments">! Size</span>
+	<span class="HLcomments">! ----</span>
+	nt = <span class="HLdigits">1</span>
+	nkeepPca = size(lPcaEof,<span class="HLdigits">2</span>)
+	nkeepSvd = size(rSvdEof,<span class="HLdigits">2</span>)
+
+	<span class="HLcomments">! Get expansion coefficients from re-PCA</span>
+	<span class="HLcomments">! --------------------------------------</span>
+	<span class="HLfunctions">allocate</span>(zll(size(ll,<span class="HLdigits">1</span>),<span class="HLdigits">1</span>),zlPcaEc(nt,nkeepPca))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca_getec</span>(zll,lPcaEof,zlPcaEc)
+	<span class="HLfunctions">allocate</span>(zlSvdEc(nt,nkeepSvd))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca_getec</span>(lSvdEof,<span class="HLfunctions">transpose</span>(zlPcaEc),zlSvdEc)
+	<span class="HLfunctions">deallocate</span>(zll,zlPcaEc)
+
+	<span class="HLcomments">! Scale factorisation from left to right</span>
+	<span class="HLcomments">! --------------------------------------</span>
+	<span class="HLfunctions">allocate</span>(zrSvdEc(nt,nkeepSvd))
+	<span class="HLroutines">do</span> i = <span class="HLdigits">1</span>, nkeepSvd
+		zrSvdEc(:,i) = l2r(i) * zlSvdEc(:,i)
+	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+	<span class="HLfunctions">deallocate</span>(zlSvdEc)
+
+	<span class="HLcomments">! Reconstructions</span>
+	<span class="HLcomments">! ---------------</span>
+	<span class="HLfunctions">allocate</span>(zrPcaPc(nkeepPca,nt))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca_rec</span>(rSvdEof,zrSvdEc,zrPcaPc)
+	<span class="HLfunctions">deallocate</span>(zrSvdEc)
+	<span class="HLfunctions">allocate</span>(zrr(size(rr,<span class="HLdigits">1</span>),<span class="HLdigits">1</span>))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca_rec</span>(rPcaEof,<span class="HLfunctions">transpose</span>(zrPcaPc),zrr)
+	rr = zrr(:,<span class="HLdigits">1</span>)
+	<span class="HLfunctions">deallocate</span>(zrr,zrPcaPc)
+
+	<span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_svd_model_use</span>
 
 
   <span class="HLcomments">! ############################################################</span>
@@ -855,7 +1184,7 @@
 
 	<span class="HLcomments">! Internal</span>
 	<span class="HLcomments">! --------</span>
-	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: xeof(:,:), pc(:,:)
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: pc(:,:)
 	<span class="HLroutines">real</span> :: dpc(size(ffrec,<span class="HLdigits">2</span>)), amp(size(ffrec,<span class="HLdigits">2</span>))
 	<span class="HLroutines">integer</span> :: nt, iphase
 	<span class="HLroutines">real</span> :: angles(np), projection(size(ffrec,<span class="HLdigits">2</span>))

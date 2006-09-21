@@ -48,7 +48,7 @@ $(PACKAGE).pfp:
 	sources=['$(WRAPPER)'],\
 	libraries='$(PACKAGE) $(PYFORT_LIBS)',\
 	library_directories='. $(PYFORT_LIBDIRS)',\
-	compiler_options='-I../.. -I$(PYFORT_INCDIRS)',\
+	compiler_options='-I../.. $(PYFORT_INCDIRS)',\
 	python_directory='$(top_srcdir)/lib',\
 	package_name='$(PACKAGE)',\
 	generate_as='$(PYTHON_PACKAGE)',\

@@ -57,7 +57,7 @@
 				reconstructed using phases composites (16 phases).
 				</p>
         <div class="example">
-          <a id="id3394624"/>
+          <a id="id3351931"/>
           <p class="title">
             <b>Example 3. Python example 1</b>
           </p>
@@ -67,124 +67,7 @@
           <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make python1</tt></b></pre>
           <p>
 							</p>
-          <pre class="programlisting"><span class="HLcomments"># File: example1.py</span>
-<span class="HLcomments">#</span>
-<span class="HLcomments"># This file is part of the SpanLib library.</span>
-<span class="HLcomments"># Copyright (C) 2006  Charles Doutiraux, Stephane Raynaud</span>
-<span class="HLcomments"># Contact: stephane dot raynaud at gmail dot com</span>
-<span class="HLcomments">#</span>
-<span class="HLcomments"># This library is free software; you can redistribute it and/or</span>
-<span class="HLcomments"># modify it under the terms of the GNU Lesser General Public</span>
-<span class="HLcomments"># License as published by the Free Software Foundation; either</span>
-<span class="HLcomments"># version 2.1 of the License, or (at your option) any later version.</span>
-<span class="HLcomments">#</span>
-<span class="HLcomments"># This library is distributed in the hope that it will be useful,</span>
-<span class="HLcomments"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="HLcomments"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU</span>
-<span class="HLcomments"># Lesser General Public License for more details.</span>
-<span class="HLcomments">#</span>
-<span class="HLcomments"># You should have received a copy of the GNU Lesser General Public</span>
-<span class="HLcomments"># License along with this library; if not, write to the Free Software</span>
-<span class="HLcomments"># Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA</span>
-
-<span class="HLcomments">###################################################################</span>
-<span class="HLcomments"># In this example, we perform a pre-PCA to reduce the number of</span>
-<span class="HLcomments"># d-o-f, then we perform an MSSA to extract the first oscillation</span>
-<span class="HLcomments"># (first par of modes). Finally, we compute phase composites</span>
-<span class="HLcomments"># to represent the oscillation over its cycle.</span>
-<span class="HLcomments">###################################################################</span>
-<span class="HLcommands">print</span> &quot;<span class="HLcomments">#################################################&quot;</span>
-<span class="HLcommands">print</span> &quot;<span class="HLcomments"># PCA+MSSA+Phase_composites of 1st oscillation. #&quot;</span>
-<span class="HLcommands">print</span> &quot;<span class="HLcomments"># Then reconstructions, and plots:              #&quot;</span>
-<span class="HLcommands">print</span> &quot;<span class="HLcomments"># - 1 phase over 2                              #&quot;</span>
-<span class="HLcommands">print</span> &quot;<span class="HLcomments"># - 1 time series                               #&quot;</span>
-<span class="HLcommands">print</span> &quot;<span class="HLcomments">#################################################&quot;</span>
-
-
-<span class="HLcomments"># Needed modules</span>
-<span class="HLcommands">import</span> sys
-<span class="HLcommands">import</span> cdms
-<span class="HLcommands">import</span> spanlib
-<span class="HLcommands">import</span> vcs
-<span class="HLcommands">import</span> MV
-<span class="HLcommands">import</span> Numeric
-<span class="HLcommands">import</span> cdutil
-<span class="HLcommands">import</span> genutil
-
-<span class="HLcomments"># We tell cdms that we have longitude, latitude and time</span>
-cdms.axis.latitude_aliases.append(<span class="HLstrings">'Y'</span>)
-cdms.axis.longitude_aliases.append(<span class="HLstrings">'X'</span>)
-cdms.axis.time_aliases.append(<span class="HLstrings">'T'</span>)
-
-<span class="HLcomments"># Simply open the netcdf file</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;<span class="HLfunctions">Open</span> file&quot;</span>
-f=cdms.<span class="HLfunctions">open</span>(<span class="HLstrings">'../example/data2.cdf'</span>)
-
-<span class="HLcomments"># Retrieve data</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;Read the whole dataset&quot;</span>
-s=f(<span class="HLstrings">'ssta'</span>)
-
-<span class="HLcomments"># Create the analysis object</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;Creating <span class="HLpersonalised">SpAn</span> object&quot;</span>
-SP=spanlib.<span class="HLpersonalised">SpAn</span>(s)
-
-<span class="HLcomments"># Perform a preliminary PCA+MSSA</span>
-<span class="HLcomments"># (equivalent to simple use SP.mssa(pca=True) later)</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;<span class="HLpersonalised">PCA</span>...&quot;</span>
-eof,pc,ev = SP.<span class="HLpersonalised">pca</span>()
-
-<span class="HLcomments"># MSSA on PCA results</span>
-<span class="HLcommands">print</span> <span class="HLstrings">'<span class="HLpersonalised">MSSA</span>...'</span>
-steof,stpc,stev = SP.<span class="HLpersonalised">mssa</span>()
-
-<span class="HLcomments"># Phase composites of first two MSSA modes</span>
-<span class="HLcommands">print</span> <span class="HLstrings">'Phase composites...'</span>
-out = SP.<span class="HLpersonalised">reconstruct</span>(phases=<span class="HLspecial">True</span>,nphases=<span class="HLdigits">16</span>,end=<span class="HLdigits">2</span>)
-
-<span class="HLcomments"># Plot 1 phase over two, then a time series</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;Now, plot!&quot;</span>
-x=vcs.init()
-<span class="HLcommands">for</span> i <span class="HLcommands">in</span> range(<span class="HLdigits">0</span>,out.shape[<span class="HLdigits">0</span>],<span class="HLdigits">2</span>):
-    x.plot(out[i],title=<span class="HLstrings">&quot;Phase composites of the first <span class="HLpersonalised">MSSA</span> oscillation&quot;</span>)
-    <span class="HLfunctions">raw_input</span>(<span class="HLstrings">'map out %i/%i ok?'</span> % ( i+<span class="HLdigits">1</span> , out.shape[<span class="HLdigits">0</span>]))
-    x.clear()
-x.plot(out[:,<span class="HLdigits">30</span>,<span class="HLdigits">80</span>],title=<span class="HLstrings">&quot;Cycle of the ocillation&quot;</span>)
-<span class="HLfunctions">raw_input</span>(<span class="HLstrings">'Time series at center of bassin ok?'</span>)
-x.clear()
-</pre>
-        </div>
-      </div>
-      <div class="sect3" lang="en">
-        <div class="titlepage">
-          <div>
-            <div>
-              <h4 class="title"><a id="doc_pyt_ex2"/>4.3.2. Python example 2</h4>
-            </div>
-          </div>
-          <div/>
-        </div>
-        <p>
-					In this second example, two different areas are analysed at
-					the same time.
-					This is intented to mimics the used of two different datasets
-					that are stacked, before being analysed.
-					Such approach (see for example <a href="doc_bib.html#raynal06">Raynaud et al (2006)</a>) allows
-					to find modes of variability in a arbitrary number of variables,
-					provided you are careful with units (performing appropriate normalisations).
-				</p>
-      </div>
-      <div class="example">
-        <a id="id3449644"/>
-        <p class="title">
-          <b>Example 4. Python example 2</b>
-        </p>
-        <p>
-					Run this example using:
-					</p>
-        <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make python2</tt></b></pre>
-        <p>
-				</p>
-        <pre class="programlisting"><span class="HLcomments"># File: example2.py</span>
+          <pre class="programlisting"><span class="HLcomments"># File: example2.py</span>
 <span class="HLcomments">#</span>
 <span class="HLcomments"># This file is part of the SpanLib library.</span>
 <span class="HLcomments"># Copyright (C) 2006  Charles Doutiraux, Stephane Raynaud</span>
@@ -264,6 +147,39 @@ x.plot(out[<span class="HLdigits">1</span>][:,<span class="HLdigits">5</span>,<s
 x.plot(out[<span class="HLdigits">0</span>][:,<span class="HLdigits">5</span>,<span class="HLdigits">5</span>])
 <span class="HLfunctions">raw_input</span>(<span class="HLstrings">'ok?'</span>)
 </pre>
+        </div>
+      </div>
+      <div class="sect3" lang="en">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="doc_pyt_ex2"/>4.3.2. Python example 2</h4>
+            </div>
+          </div>
+          <div/>
+        </div>
+        <p>
+					In this second example, two different areas are analysed at
+					the same time.
+					This is intented to mimics the used of two different datasets
+					that are stacked, before being analysed.
+					Such approach (see for example <a href="doc_bib.html#raynal06">Raynaud et al (2006)</a>) allows
+					to find modes of variability in a arbitrary number of variables,
+					provided you are careful with units (performing appropriate normalisations).
+				</p>
+      </div>
+      <div class="example">
+        <a id="id3406952"/>
+        <p class="title">
+          <b>Example 4. Python example 2</b>
+        </p>
+        <p>
+					Run this example using:
+					</p>
+        <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make python2</tt></b></pre>
+        <p>
+				</p>
+        <pre class="programlisting"/>
       </div>
     </div>
     <div class="navfooter">

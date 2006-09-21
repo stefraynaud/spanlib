@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 example 2</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3055141"></a>SpanLib - Fortran 90 example 2</h1></div></div><div></div><hr /></div><pre class="programlisting"><span class="HLcomments">! File: example2.f90</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 example 2</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id2956207"></a>SpanLib - Fortran 90 example 2</h1></div></div><div></div><hr /></div><pre class="programlisting"><span class="HLcomments">! File: example2.f90</span>
 <span class="HLcomments">!</span>
 <span class="HLcomments">! This file is part of the SpanLib library.</span>
 <span class="HLcomments">! Copyright (C) 2006  Stephane Raynaud</span>
@@ -31,13 +31,15 @@
 	<span class="HLcomments">! To mimics the use of two different datasets, two geographical</span>
 	<span class="HLcomments">! regions are decomposed using SVD. As for MSSA, a pre-PCA is</span>
 	<span class="HLcomments">! performed (independantly for the two regions).</span>
+	<span class="HLcomments">! One region is situated in the east of the basin, the other</span>
+	<span class="HLcomments">! one is on the west.</span>
 	<span class="HLcomments">! The dominant EOFs from the SVD decomposition are reconstructed</span>
 	<span class="HLcomments">! back to the physical space and stored in the output netcdf file</span>
 	<span class="HLcomments">! along with their PCs.</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Note:</span>
 	<span class="HLcomments">!	This example should run only a few seconds.</span>
-	<span class="HLcomments">!	If it is not the case, you BLAS/LAPACK librairy is not optimized.</span>
+	<span class="HLcomments">!	If it is not the case, your BLAS/LAPACK librairy is not optimized.</span>
 
 
 	<span class="HLroutines">use</span> spanlib
@@ -48,8 +50,8 @@
 	<span class="HLcomments">! Parameters</span>
 	<span class="HLcomments">! ----------</span>
 	<span class="HLroutines">integer</span>,<span class="HLattributes">parameter</span> :: pcaNkeep=<span class="HLdigits">10</span>, svdNkeep=<span class="HLdigits">5</span>,&amp;
-		&amp; lons1(<span class="HLdigits">2</span>)=(/<span class="HLdigits">10</span>,<span class="HLdigits">40</span>/),lats1(<span class="HLdigits">2</span>)=(/<span class="HLdigits">12</span>,<span class="HLdigits">49</span>/),&amp;
-		&amp; lons2(<span class="HLdigits">2</span>)=(/<span class="HLdigits">70</span>,<span class="HLdigits">150</span>/),lats2(<span class="HLdigits">2</span>)=(/<span class="HLdigits">16</span>,<span class="HLdigits">45</span>/)
+		&amp; lons1(<span class="HLdigits">2</span>)=(/<span class="HLdigits">70</span>,<span class="HLdigits">150</span>/),lats1(<span class="HLdigits">2</span>)=(/<span class="HLdigits">16</span>,<span class="HLdigits">45</span>/),&amp; <span class="HLcomments">! East</span>
+		&amp; lons2(<span class="HLdigits">2</span>)=(/<span class="HLdigits">10</span>,<span class="HLdigits">40</span>/),lats2(<span class="HLdigits">2</span>)=(/<span class="HLdigits">12</span>,<span class="HLdigits">49</span>/)    <span class="HLcomments">! West</span>
 	<span class="HLroutines">real</span>, <span class="HLattributes">parameter</span> ::new_missing_value=-<span class="HLdigits">999</span>.
 	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">&quot;data2.cdf&quot;</span>, &amp;
 		&amp; output_nc_file=<span class="HLstrings">&quot;output2.nc&quot;</span>, var_name=<span class="HLstrings">'ssta'</span>
@@ -166,11 +168,11 @@
 
 	<span class="HLcomments">! Swicth SVD EOFs to the physical space (!)</span>
 	<span class="HLcomments">! -----------------------------------------</span>
-	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_pcarec</span>] Back to the physical space ...'</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[sl_pcarec] Back to the physical space ...'</span>
 	<span class="HLfunctions">allocate</span>(packed_svdEofsRec1(ns1,svdNkeep))
 	<span class="HLfunctions">allocate</span>(packed_svdEofsRec2(ns2,svdNkeep))
-	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pcarec</span>(pcaEofs1, <span class="HLfunctions">transpose</span>(svdEofs1), packed_svdEofsRec1)
-	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pcarec</span>(pcaEofs2, <span class="HLfunctions">transpose</span>(svdEofs2), packed_svdEofsRec2)
+	<span class="HLroutines">call</span> sl_pcarec(pcaEofs1, <span class="HLfunctions">transpose</span>(svdEofs1), packed_svdEofsRec1)
+	<span class="HLroutines">call</span> sl_pcarec(pcaEofs2, <span class="HLfunctions">transpose</span>(svdEofs2), packed_svdEofsRec2)
 	<span class="HLfunctions">deallocate</span>(pcaEofs1,svdEofs1,pcaEofs2,svdEofs2)
 
 	<span class="HLcomments">! Unpacking</span>
@@ -183,8 +185,8 @@
 			&amp; mask1, new_missing_value)
 		svdEofsRec2(:,:,i) = <span class="HLfunctions">unpack</span>(packed_svdEofsRec2(:,i), &amp;
 			&amp; mask2, new_missing_value)
-		where(mask1 .eq. .false.)svdEofsRec1(:,:,i) = new_missing_value
-		where(mask2 .eq. .false.)svdEofsRec2(:,:,i) = new_missing_value
+		where(.<span class="HLfunctions">not</span>.mask1)svdEofsRec1(:,:,i) = new_missing_value
+		where(.<span class="HLfunctions">not</span>.mask2)svdEofsRec2(:,:,i) = new_missing_value
 	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 
 

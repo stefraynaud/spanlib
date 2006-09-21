@@ -40,10 +40,29 @@ subroutine pca(ff, ns, nt, nkeep, xeof, pc, ev, weights, useteof)
 
 end subroutine pca
 
+subroutine pca_getec(ff, xeof, ns, nt, nkept, ec, weights)
 
-subroutine pcarec(xeof, pc, ns, nt, nkept, ffrec, istart, iend)
+	use spanlib, only: sl_pca_getec
 
-	use spanlib, only: sl_pcarec
+	implicit none
+
+	! External
+	! --------
+	integer, intent(in)  :: ns,nt,nkept
+	real,    intent(in)  :: ff(ns,nt), xeof(ns,nkept),weights(ns)
+	real,    intent(out) :: ec(nt,nkept)
+
+
+	! Call to original subroutine
+	! ---------------------------
+	call sl_pca_getec(ff, xeof, ec, weights=weights)
+
+end subroutine pca_getec
+
+
+subroutine pca_rec(xeof, pc, ns, nt, nkept, ffrec, istart, iend)
+
+	use spanlib, only: sl_pca_rec
 
 	implicit none
 
@@ -55,9 +74,9 @@ subroutine pcarec(xeof, pc, ns, nt, nkept, ffrec, istart, iend)
 
 	! Call to original subroutine
 	! ---------------------------
-	call sl_pcarec(xeof, pc, ffrec=ffrec, istart=istart, iend=iend)
+	call sl_pca_rec(xeof, pc, ffrec=ffrec, istart=istart, iend=iend)
 
-end subroutine pcarec
+end subroutine pca_rec
 
 
 
@@ -80,13 +99,29 @@ subroutine mssa(ff, nchan, nt, nwindow, nkeep, steof, stpc, ev)
 
 end subroutine mssa
 
+subroutine mssa_getec(ff, steof, nchan, nt, nkept, nwindow, stec)
 
+	use spanlib, only: sl_mssa_getec
 
+	implicit none
 
-subroutine mssarec(steof, stpc, nchan, nt, nkeep, nwindow, &
+	! External
+	! --------
+	integer,intent(in) :: nchan, nt, nwindow, nkept
+	real,	  intent(in) :: ff(nchan,nt), &
+	 & steof(nchan*nwindow,nkept)
+	real, intent(out)  :: stec(nt-nwindow+1, nkept)
+
+	! Call to original subroutine
+	! ---------------------------
+	call sl_mssa_getec(ff, steof, nwindow, stec)
+
+end subroutine mssa_getec
+
+subroutine mssa_rec(steof, stpc, nchan, nt, nkeep, nwindow, &
   & ffrec, istart, iend)
 
-	use spanlib, only: sl_mssarec
+	use spanlib, only: sl_mssa_rec
 
 	implicit none
 
@@ -100,10 +135,10 @@ subroutine mssarec(steof, stpc, nchan, nt, nkeep, nwindow, &
 
 	! Call to original subroutine
 	! ---------------------------
-	call sl_mssarec(steof, stpc, nwindow, ffrec=ffrec, &
+	call sl_mssa_rec(steof, stpc, nwindow, ffrec=ffrec, &
 	 & istart=istart, iend=iend)
 
-end subroutine mssarec
+end subroutine mssa_rec
 
 
 

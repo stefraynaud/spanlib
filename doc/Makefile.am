@@ -3,7 +3,14 @@
 ######################################################################
 
 ## Source files
-SOURCES = $(top_srcdir)/src/spanlib.f90 $(top_srcdir)/example/example1.f90 $(top_srcdir)/example/example2.f90 $(top_srcdir)/lib/spanlib_python.py $(top_srcdir)/example/example1.py $(top_srcdir)/example/example2.py
+SOURCES = $(SOURCES_CORE) $(SOURCES_EXA_F90) $(SOURCES_EXA_PYT)
+SOURCES_CORE = $(top_srcdir)/src/spanlib.f90 $(top_srcdir)/lib/spanlib_python.py
+SOURCES_EXA_F90 = \
+	$(top_srcdir)/example/example1.f90 \
+	$(top_srcdir)/example/example2.f90
+SOURCES_EXA_PYT = \
+	$(top_srcdir)/example/example1.py \
+	$(top_srcdir)/example/example2.py
 
 ## XML translation of source files
 XML_SRC = src_f90_lib.xml src_f90_ex1.xml src_f90_ex2.xml src_pyt_mod.xml src_pyt_ex1.xml src_pyt_ex2.xml
@@ -20,9 +27,6 @@ XML_DOC_SUB = doc_f90_sub_inc.xml doc_pyt_sub_inc.xml
 ## Vurrent version
 XML_DOC_VER_INC = doc_ver_inc.xml
 
-## Source parsing command
-PARSE = $(top_srcdir)/scripts/gendoc.pl $(SOURCES)
-
 ## For the distro
 EXTRA_DIST = spanlib.xml spanlib.xsl spanlib_single.xsl src.xsl common.xsl $(XML_SRC)
 
@@ -34,6 +38,12 @@ dist_doc_DATA = \
 	doc_ins_dow.html doc_ins_ins.html \
 	doc_f90_sub.html doc_f90_exa.html \
 	doc_pyt_sub.html doc_pyt_exa.html
+
+## Source parsing command
+PARSE = $(top_srcdir)/scripts/gendoc.pl \
+	$(shell echo $(SOURCES_EXA_F90) | wc -w) \
+	$(shell echo $(SOURCES_EXA_PYT) | wc -w) \
+	$(SOURCES)
 
 if HAS_DOC_SUPPORT
 CLEANFILES = *_inc.xml
@@ -55,9 +65,12 @@ src_%.html: src_%.xml src_%_inc.xml src.xsl common.xsl
 	@echo "Generating $@..."
 	@$(XSLTPROC) $(XSLTPROC_FLAGS) -o $@ src.xsl $<
 
-$(XML_SRC_INC) $(XML_DOC_SUB): $(PARSE)
+xx:
+	@echo $(PARSE)
+
+$(XML_SRC_INC) $(XML_DOC_SUB): $(SOURCES)
 	@echo "Generating xml documentations from code sources..."
-	@$^
+	@$(PARSE)
 
 $(XML_DOC_VER_INC): $(top_srcdir)/configure.in
 	@echo "Checking package version..."

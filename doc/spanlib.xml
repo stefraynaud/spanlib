@@ -434,7 +434,7 @@
 			<para>
 				You can list all <command>configure</command> options using:
 				<programlisting><prompt>&lt;user&gt;</prompt> <userinput>./configure --help</userinput></programlisting>
-				You can also list usefull<command>make</command> targets with:
+				You can also list usefull <command>make</command> targets with:
 				<programlisting><prompt>&lt;user&gt;</prompt> <userinput>.make  help</userinput></programlisting>
 			</para>
 		</sect2>

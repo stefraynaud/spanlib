@@ -185,7 +185,7 @@ fi
 	FCFLAGS="-g"
         ;;
 ##    GNU FORTRAN 90/95 COMPILER (Tested on Intel-PC and Mac OS X)
-      g95)
+      g95|gfortran)
 	case "$enable_optimization" in
 	  debug)
             AC_MSG_NOTICE([**** DEBUGGING OPTIONS are SELECTED *****])

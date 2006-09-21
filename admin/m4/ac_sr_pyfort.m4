@@ -6,7 +6,8 @@
 # Remove -L and -l
 AC_DEFUN([AC_SR_PYFORT_STRIPFLAGS],
 [
-	AS_VAR_SET($2,`echo $1 | sed -r 's/(^| )-(L|l)/\1/g'`)
+dnl AS_VAR_SET($2,`echo $1 | sed -r 's/(^| )-(L|l)/\1/g'`)
+	AS_VAR_SET($2,`echo $1 | sed -e 's/^-[[[lL]]]//' -e 's/ -[[[lL]]]/ /g'`)
 ])
 # Setup library dir and name variables PYFORT_DIRS and PYFORT_LIBS
 AC_DEFUN([AC_SR_PYFORT],
@@ -27,12 +28,18 @@ You wont be able to build the python package.])
 	]))
 
 	# Blas and Lapack libraries and directories
-	AC_SR_PYFORT_STRIPFLAGS("AS_VAR_GET(LAPACK) AS_VAR_GET(BLAS)",PYFORT_LIBS)
-	AC_SUBST(PYFORT_LIBS)
-	AC_SR_PYFORT_STRIPFLAGS("AS_VAR_GET(LAPACK_LIB) AS_VAR_GET(BLAS_LIB)",PYFORT_LIBDIRS)
-	AC_SUBST(PYFORT_LIBDIRS)
-	AC_SR_PYFORT_STRIPFLAGS("AS_VAR_GET(LAPACK_INC)",PYFORT_INCDIRS)
-	AC_SUBST(PYFORT_INCDIRS)
+	AC_MSG_CHECKING([for fortran libraries for pyfort])
+		AC_SR_PYFORT_STRIPFLAGS("AS_VAR_GET(LAPACK95) AS_VAR_GET(LAPACK) AS_VAR_GET(BLAS)",PYFORT_LIBS)
+		AC_SUBST(PYFORT_LIBS)
+	AC_MSG_RESULT(AS_VAR_GET(PYFORT_LIBS))
+	AC_MSG_CHECKING([for fortran library directories for pyfort])
+		AC_SR_PYFORT_STRIPFLAGS("AS_VAR_GET(LAPACK_LIB) AS_VAR_GET(BLAS_LIB)",PYFORT_LIBDIRS)
+		AC_SUBST(PYFORT_LIBDIRS)
+	AC_MSG_RESULT(AS_VAR_GET(PYFORT_LIBDIRS))
+	AC_MSG_CHECKING([for fortran include directories for pyfort])
+		AC_SR_PYFORT_STRIPFLAGS("AS_VAR_GET(LAPACK_INC)",PYFORT_INCDIRS)
+		AC_SUBST(PYFORT_INCDIRS)
+	AC_MSG_RESULT(AS_VAR_GET(PYFORT_INCDIRS))
 
 	# Set manual path to install the python module
 	AC_ARG_VAR(PYTHONDIR,[Directory where to install the spanlib python module])

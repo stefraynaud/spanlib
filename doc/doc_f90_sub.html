@@ -46,7 +46,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3450301"/>Usage</h5>
+                <h5 class="title"><a id="id3407608"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -57,7 +57,7 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3450372"/>Description</h5>
+                <h5 class="title"><a id="id3407679"/>Description</h5>
               </div>
             </div>
             <div/>
@@ -75,7 +75,7 @@ than the time dimension. This default behavior can be overridden.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3450392"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3407699"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -93,7 +93,7 @@ than the time dimension. This default behavior can be overridden.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3450452"/>Optional arguments</h5>
+                <h5 class="title"><a id="id3407759"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -117,7 +117,7 @@ than the time dimension. This default behavior can be overridden.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3388577"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3345884"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -133,7 +133,7 @@ than the time dimension. This default behavior can be overridden.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3388615"/>Dependencies</h5>
+                <h5 class="title"><a id="id3345922"/>Dependencies</h5>
               </div>
             </div>
             <div/>
@@ -147,7 +147,11 @@ than the time dimension. This default behavior can be overridden.
         <div class="titlepage">
           <div>
             <div>
-              <h4 class="title"><a id="sl_pcarec"/>3.2.2. Reconstruction of a set of PCA components: <tt class="literal">sl_pcarec</tt></h4>
+              <h4 class="title"><a id="sl_pca_getec"/>3.2.2. Compute PCA expansion coefficients
+Get an expansion coefficients from a space-time field
+and a set of EOFs computed by PCA. If the input
+space-time field is the same as the one used to computes
+input ST-EOFs, these expansion coincide with the: <tt class="literal">sl_pca_getec</tt></h4>
             </div>
           </div>
           <div/>
@@ -156,18 +160,39 @@ than the time dimension. This default behavior can be overridden.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3388647"/>Usage</h5>
+                <h5 class="title"><a id="id3345958"/>Usage</h5>
               </div>
             </div>
             <div/>
           </div>
-          <pre class="programlisting">call <span class="HLpersonalised">sl_pcarec</span>(<span class="HLpersonalised">xeof</span>, <span class="HLpersonalised">pc</span>, <span class="HLpersonalised">ffrec</span>, istart=<span class="HLpersonalised">istart</span>, iend=<span class="HLpersonalised">iend</span>)</pre>
+          <pre class="programlisting">call <span class="HLpersonalised">sl_pca_getec</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">xeof</span>, <span class="HLpersonalised">ec</span>, weights=<span class="HLpersonalised">weights</span>)</pre>
+        </div>
+      </div>
+      <div class="sect3" lang="en">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="sl_pca_rec"/>3.2.3. Reconstruction of a set of PCA components: <tt class="literal">sl_pca_rec</tt></h4>
+            </div>
+          </div>
+          <div/>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3388701"/>Description</h5>
+                <h5 class="title"><a id="id3346020"/>Usage</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <pre class="programlisting">call <span class="HLpersonalised">sl_pca_rec</span>(<span class="HLpersonalised">xeof</span>, <span class="HLpersonalised">pc</span>, <span class="HLpersonalised">ffrec</span>, istart=<span class="HLpersonalised">istart</span>, iend=<span class="HLpersonalised">iend</span>)</pre>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id3346074"/>Description</h5>
               </div>
             </div>
             <div/>
@@ -183,7 +208,7 @@ by its PC. The sum of all reconstructed component is the original field.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3388718"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3346091"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -203,7 +228,7 @@ by its PC. The sum of all reconstructed component is the original field.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3388803"/>Optional arguments</h5>
+                <h5 class="title"><a id="id3416834"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -222,7 +247,7 @@ by its PC. The sum of all reconstructed component is the original field.
         <div class="titlepage">
           <div>
             <div>
-              <h4 class="title"><a id="sl_mssa"/>3.2.3. Multi-channel Singular Spectrum Analysis: <tt class="literal">sl_mssa</tt></h4>
+              <h4 class="title"><a id="sl_mssa"/>3.2.4. Multi-channel Singular Spectrum Analysis: <tt class="literal">sl_mssa</tt></h4>
             </div>
           </div>
           <div/>
@@ -231,7 +256,7 @@ by its PC. The sum of all reconstructed component is the original field.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3459563"/>Usage</h5>
+                <h5 class="title"><a id="id3416910"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -242,7 +267,7 @@ by its PC. The sum of all reconstructed component is the original field.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3459631"/>Description</h5>
+                <h5 class="title"><a id="id3416978"/>Description</h5>
               </div>
             </div>
             <div/>
@@ -258,7 +283,7 @@ parameter.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3459647"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3416994"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -278,7 +303,7 @@ parameter.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3459732"/>Optional arguments</h5>
+                <h5 class="title"><a id="id3417079"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -286,7 +311,7 @@ parameter.
           <div class="itemizedlist">
             <ul type="disc">
               <li><tt class="varname">steof    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
-				 :: <span class="emphasis"><em> SpaceXwindow-mode array of EOFs</em></span></li>
+				 :: <span class="emphasis"><em> Space-window-mode array of EOFs</em></span></li>
               <li><tt class="varname">stpc    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
 				 :: <span class="emphasis"><em>  Time-mode array of PCs</em></span></li>
               <li><tt class="varname">ev    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
@@ -298,7 +323,7 @@ parameter.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3459817"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3417164"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -314,7 +339,7 @@ parameter.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3459855"/>Dependencies</h5>
+                <h5 class="title"><a id="id3417201"/>Dependencies</h5>
               </div>
             </div>
             <div/>
@@ -328,7 +353,11 @@ parameter.
         <div class="titlepage">
           <div>
             <div>
-              <h4 class="title"><a id="sl_mssarec"/>3.2.4. Reconstruction of a set of MSSA components: <tt class="literal">sl_mssarec</tt></h4>
+              <h4 class="title"><a id="sl_mssa_getec"/>3.2.5. Computes MSSA expansion coefficients
+Get an expansion coefficients from a space-time field
+and a set of ST-EOFs computed by MSSA. If the input
+space-time field is the same as the one used to computes
+input ST-EOFs, these expansion coincide with the: <tt class="literal">sl_mssa_getec</tt></h4>
             </div>
           </div>
           <div/>
@@ -337,18 +366,52 @@ parameter.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3459887"/>Usage</h5>
+                <h5 class="title"><a id="id3417237"/>Usage</h5>
               </div>
             </div>
             <div/>
           </div>
-          <pre class="programlisting">call <span class="HLpersonalised">sl_mssarec</span>(<span class="HLpersonalised">steof</span>, <span class="HLpersonalised">stpc</span>, <span class="HLpersonalised">nwindow</span>, <span class="HLpersonalised">ffrec</span>, istart=<span class="HLpersonalised">istart</span>, iend=<span class="HLpersonalised">iend</span>)</pre>
+          <pre class="programlisting">call <span class="HLpersonalised">sl_mssa_getec</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">steof</span>, <span class="HLpersonalised">nwindow</span>, <span class="HLpersonalised">stec</span>)</pre>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3459948"/>Description</h5>
+                <h5 class="title"><a id="id3417285"/>Dependencies</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <p>
+<tt class="literal">sgemm(BLAS)</tt>
+		</p>
+        </div>
+      </div>
+      <div class="sect3" lang="en">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="sl_mssa_rec"/>3.2.6. Reconstruction of a set of MSSA components: <tt class="literal">sl_mssa_rec</tt></h4>
+            </div>
+          </div>
+          <div/>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id3417316"/>Usage</h5>
+              </div>
+            </div>
+            <div/>
+          </div>
+          <pre class="programlisting">call <span class="HLpersonalised">sl_mssa_rec</span>(<span class="HLpersonalised">steof</span>, <span class="HLpersonalised">stpc</span>, <span class="HLpersonalised">nwindow</span>, <span class="HLpersonalised">ffrec</span>, istart=<span class="HLpersonalised">istart</span>, iend=<span class="HLpersonalised">iend</span>)</pre>
+        </div>
+        <div class="simplesect" lang="en">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="id3417377"/>Description</h5>
               </div>
             </div>
             <div/>
@@ -361,7 +424,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3459961"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3417391"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -383,7 +446,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3460071"/>Optional arguments</h5>
+                <h5 class="title"><a id="id3346902"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -402,7 +465,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
         <div class="titlepage">
           <div>
             <div>
-              <h4 class="title"><a id="sl_svd"/>3.2.5. Singular Value Decomposition: <tt class="literal">sl_svd</tt></h4>
+              <h4 class="title"><a id="sl_phasecomp"/>3.2.7. Phase composites: <tt class="literal">sl_phasecomp</tt></h4>
             </div>
           </div>
           <div/>
@@ -411,115 +474,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3389522"/>Usage</h5>
-              </div>
-            </div>
-            <div/>
-          </div>
-          <pre class="programlisting">call <span class="HLpersonalised">sl_svd</span>(<span class="HLpersonalised">ll</span>, <span class="HLpersonalised">rr</span>, <span class="HLpersonalised">nkeep</span>, leof=<span class="HLpersonalised">leof</span>, reof=<span class="HLpersonalised">reof</span>, lpc=<span class="HLpersonalised">lpc</span>, rpc=<span class="HLpersonalised">rpc</span>, ev=<span class="HLpersonalised">ev</span>, <span class="HLpersonalised">bLargeMatrix</span>)</pre>
-        </div>
-        <div class="simplesect" lang="en">
-          <div class="titlepage">
-            <div>
-              <div>
-                <h5 class="title"><a id="id3389604"/>Description</h5>
-              </div>
-            </div>
-            <div/>
-          </div>
-          <p>
-Singular value decomposition between two datasets having
-the same length in time.
-		</p>
-        </div>
-        <div class="simplesect" lang="en">
-          <div class="titlepage">
-            <div>
-              <div>
-                <h5 class="title"><a id="id3389618"/>Necessary arguments</h5>
-              </div>
-            </div>
-            <div/>
-          </div>
-          <div class="itemizedlist">
-            <ul type="disc">
-              <li><tt class="varname">ll    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]    </span></tt> 
-				 :: <span class="emphasis"><em>    Left space-time array</em></span></li>
-              <li><tt class="varname">rr    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]    </span></tt> 
-				 :: <span class="emphasis"><em>    Right space-time array</em></span></li>
-              <li><tt class="varname">nkeep    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
-				 :: <span class="emphasis"><em> Maximum number of modes to keep in outputs</em></span></li>
-            </ul>
-          </div>
-        </div>
-        <div class="simplesect" lang="en">
-          <div class="titlepage">
-            <div>
-              <div>
-                <h5 class="title"><a id="id3389703"/>Optional arguments</h5>
-              </div>
-            </div>
-            <div/>
-          </div>
-          <div class="itemizedlist">
-            <ul type="disc">
-              <li><tt class="varname">leof    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
-				 :: <span class="emphasis"><em>  Left EOFs</em></span></li>
-              <li><tt class="varname">reof    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
-				 :: <span class="emphasis"><em>  Right EOFs</em></span></li>
-              <li><tt class="varname">lpc    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
-				 :: <span class="emphasis"><em>   Left PCs</em></span></li>
-              <li><tt class="varname">rpc    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
-				 :: <span class="emphasis"><em>   Right PCs</em></span></li>
-              <li><tt class="varname">ev    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
-            </ul>
-          </div>
-        </div>
-        <div class="simplesect" lang="en">
-          <div class="titlepage">
-            <div>
-              <div>
-                <h5 class="title"><a id="id3389833"/>Necessary arguments</h5>
-              </div>
-            </div>
-            <div/>
-          </div>
-          <div class="itemizedlist">
-            <ul type="disc">
-              <li><tt class="varname">bLargeMatrix    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
-				 :: <span class="emphasis"><em> Use la_sgesdd instead of la_sgesvd (faster for large matrices, but uses more workspace) </em></span></li>
-            </ul>
-          </div>
-        </div>
-        <div class="simplesect" lang="en">
-          <div class="titlepage">
-            <div>
-              <div>
-                <h5 class="title"><a id="id3389870"/>Dependencies</h5>
-              </div>
-            </div>
-            <div/>
-          </div>
-          <p>
-<tt class="literal">sgemm(BLAS) la_gesvd(LAPACK95) la_gesdd(LAPACK95)</tt>
-		</p>
-        </div>
-      </div>
-      <div class="sect3" lang="en">
-        <div class="titlepage">
-          <div>
-            <div>
-              <h4 class="title"><a id="sl_phasecomp"/>3.2.6. Phase composites: <tt class="literal">sl_phasecomp</tt></h4>
-            </div>
-          </div>
-          <div/>
-        </div>
-        <div class="simplesect" lang="en">
-          <div class="titlepage">
-            <div>
-              <div>
-                <h5 class="title"><a id="id3389902"/>Usage</h5>
+                <h5 class="title"><a id="id3346978"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -530,7 +485,7 @@ the same length in time.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3389964"/>Description</h5>
+                <h5 class="title"><a id="id3347039"/>Description</h5>
               </div>
             </div>
             <div/>
@@ -552,7 +507,7 @@ the first phase conincides with the maximmum.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3389986"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3347061"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -572,7 +527,7 @@ the first phase conincides with the maximmum.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3390076"/>Optional arguments</h5>
+                <h5 class="title"><a id="id3347151"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -592,7 +547,7 @@ the first phase conincides with the maximmum.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3460416"/>Dependencies</h5>
+                <h5 class="title"><a id="id3347251"/>Dependencies</h5>
               </div>
             </div>
             <div/>

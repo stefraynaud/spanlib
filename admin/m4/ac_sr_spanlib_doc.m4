@@ -6,11 +6,11 @@ AC_DEFUN([AC_SR_SPANLIB_DOC],[
 
 	AC_ARG_ENABLE(
 		doc-update,
-		[  --disable-doc-update - Forcibly disable documentation update],
-		,[AS_VAR_SET(enableval,"yes")]
+		[  --enable-doc-update - Enable documentation update],
+		,[AS_VAR_SET(enableval,"no")]
 	)
 
-	AS_IF([test "AS_VAR_GET(enableval)" != "no"],
+	AS_IF([test "AS_VAR_GET(enableval)" == "yes"],
 		[
 			#docbook (xslt) processor support
 			AC_SR_DOCBOOK(:,:)

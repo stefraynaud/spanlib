@@ -76,12 +76,12 @@ contains
 
 	! Internal
 	! --------
-	integer           :: ii,ij,nn,ns,nt
-	real, allocatable :: cov(:,:)
+	integer           :: ns,nt
+	real, allocatable :: cov(:,:), subcov(:,:)
 	real, allocatable :: wff(:,:), ww(:), zeof(:,:), zff(:,:)
 	real, allocatable :: zev(:)
-	integer           :: zuseteof, znkeepmax, i,j
-	logical           :: zbLargeMatrix,zzuseteof
+	integer           :: zuseteof, znkeepmax, i
+	logical           :: zbLargeMatrix
 
 	! Setups
 	! ======
@@ -117,8 +117,7 @@ contains
 		endif
 	endif
 	znkeepmax=100
-	zzuseteof=zuseteof
-	if(zzuseteof)then
+	if(zuseteof==1)then
 		if(nkeep>nt)then
 			print*,'[pca] You want to keep a number of PCs '//&
 				&'greater than the number of EOF:',nt
@@ -145,6 +144,7 @@ contains
 	allocate(zff(ns,nt))
 	zff = ff - spread(sum(ff,dim=2)/real(nt), ncopies=nt, dim=2)
 
+
 	! Default weights = 1.
 	! --------------------
 	allocate(ww(ns))
@@ -152,9 +152,7 @@ contains
 	ww = 1.
 	if(present(weights))then
 		ww(:) = weights * real(ns) / sum(weights)
-		where(ww==0.)
-			ww = 1.
-		end where
+		where(ww==0.)ww = 1.
 		do i = 1, nt
 			wff(:,i) = zff(:,i) * sqrt(ww)
 		end do
@@ -190,9 +188,12 @@ contains
 		! Back to S-EOFs
 		if(present(pc).or.present(xeof))then
 			allocate(zeof(ns,nkeep))
-			call sgemm('N','N',ns,nkeep,nt,1.,zff,ns, &
-				& cov(:,nt:nt-nkeep+1:-1),nt,0.,zeof,ns)
+			allocate(subcov(nt,nkeep))
+			subcov = cov(:,nt:nt-nkeep+1:-1)
 			deallocate(cov)
+			call sgemm('N','N',ns,nkeep,nt,1.,zff,ns, &
+				& subcov,nt,0.,zeof,ns)
+			deallocate(subcov)
 			do i = 1, nkeep
 				zeof(:,i) = zeof(:,i) / &
 				 &          sqrt(dot_product(ww(:), zeof(:,i)**2))
@@ -252,22 +253,94 @@ contains
 	! ===============
 	if(present(pc))then
 		if(present(weights))then
-			do i=1, nt
-				zff(:,i) = zff(:,i) * ww(:)
-			end do
+			call sl_pca_getec(zff,zeof,pc,weights=ww)
+		else
+			call sl_pca_getec(zff,zeof,pc)
 		end if
-		! pc = matmul( transpose(zff), zeof)
-		call sgemm('T','N',nt,nkeep,ns,1.,zff,ns, &
-			& zeof,ns,0.,pc,nt)
-		do i = 1, nkeep
-			pc(:,i) = pc(:,i) / dot_product(zeof(:,i)**2, ww(:))
-		end do
 	end if
 
 	end subroutine sl_pca
 
 
-	subroutine sl_pcarec(xeof, pc, ffrec, istart, iend)
+	!############################################################
+	!############################################################
+	!############################################################
+
+
+	subroutine sl_pca_getec(ff, xeof, ec, weights)
+
+	! Title:
+	!	Compute PCA expansion coefficients
+	!
+	! Description
+	!	Get an expansion coefficients from a space-time field
+	!	and a set of EOFs computed by PCA. If the input
+	!	space-time field is the same as the one used to computes
+	!	input ST-EOFs, these expansion coincide with the
+	! associated principal components.
+	!
+	! Necessary arguments:
+	!	- ff:   Space-time field
+	!	- xeof: Spatial EOFs
+	!	- ec:   Time-mode array of expansion coefficients
+	!
+	! Optional arguments:
+	!	- weights: Space array of weights
+
+	implicit none
+
+	! Declarations
+	! ============
+
+	! External
+	! --------
+	real, intent(in)           :: ff(:,:), xeof(:,:)
+	real, intent(out)          :: ec(size(ff,2),size(xeof,2))
+	real, intent(in), optional :: weights(:)
+
+	! Internal
+	! --------
+	real :: zweights(size(ff,1)), zff(size(ff,1),size(ff,2))
+	integer :: ns,nt,nkeep,i
+
+	! Computations
+	! ============
+
+	! Initialisations
+	! ---------------
+
+	ns = size(ff,1)
+	nt = size(ff,2)
+	nkeep = size(xeof,2)
+
+	if(present(weights))then
+		zweights = weights
+		do i=1, nt
+			zff(:,i) = ff(:,i) * zweights
+		end do
+	else
+		zweights = 1.
+		zff = ff
+	end if
+
+	! Main stuff
+	! ----------
+	! ec = matmul( transpose(ff), xeof)
+	call sgemm('T','N',nt,nkeep,ns,1.,zff,ns, &
+		& xeof,ns,0.,ec,nt)
+	do i = 1, nkeep
+		ec(:,i) = ec(:,i) / dot_product(xeof(:,i)**2, zweights)
+	end do
+
+	end subroutine sl_pca_getec
+
+
+	!############################################################
+	!############################################################
+	!############################################################
+
+
+	subroutine sl_pca_rec(xeof, pc, ffrec, istart, iend)
 
 	! Title:
 	!	Reconstruction of a set of PCA components
@@ -287,11 +360,11 @@ contains
 	!	- istart:	Index of the first component to use
 	!	- iend:		Index of the last component to use
 
-	implicit none
-
 
 	! Declarations
 	! ============
+
+	implicit none
 
 	! External
 	! --------
@@ -317,18 +390,18 @@ contains
 	end if
 	if(zistart.lt.1.or.zistart.gt.nkept)then
 		zistart=1
-		print*,'[pcarec] istart lower than 1 => set to 1'
+		print*,'[pca_rec] istart lower than 1 => set to 1'
 	end if
 	if(ziend.lt.1.or.ziend.gt.nkept)then
 		ziend=nkept
-		print*,'[pcarec] iend greater than the number '//&
+		print*,'[pca_rec] iend greater than the number '//&
 			&'of avalaible modes => reduced to ',ziend
 	end if
 	if(zistart>ziend)then
 		itmp=ziend
 		ziend=zistart
 		zistart=itmp
-		print*,'[pcarec] istart > iend => inversion'
+		print*,'[pca_rec] istart > iend => inversion'
 	end if
 	ns = size(xeof,1)
 	nt = size(pc,1)
@@ -350,7 +423,7 @@ contains
 		end do
 	end if
 
-	end subroutine sl_pcarec
+	end subroutine sl_pca_rec
 
 
 
@@ -378,7 +451,7 @@ contains
 	!	- nkeep:   Maximum number of modes to keep in outputs
 	!
 	! Optional arguments:
-	!	- steof: SpaceXwindow-mode array of EOFs
+	!	- steof: Space-window-mode array of EOFs
 	!	- stpc:  Time-mode array of PCs
 	!	- ev:    Mode array of eigen values (variances)
 	!	- bLargeMatrix: Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) [default:.true.]
@@ -405,11 +478,10 @@ contains
 
 	! Internal
 	! --------
-	real, allocatable :: cov(:,:), zev(:), zff(:,:), zsteof(:,:), wpc(:)
-	real :: wsteof
+	real, allocatable :: cov(:,:), zev(:), zff(:,:), zsteof(:,:)
 	integer :: nchan, nsteof, nt, znkeepmax
-	integer :: iw, iw1, iw2, i1, i2, im, ic1, ic2
- 	logical :: zbLargeMatrix
+	integer :: iw, iw1, iw2, i1, i2, ic1, ic2
+	logical :: zbLargeMatrix
 
 
 	! Setup
@@ -497,26 +569,81 @@ contains
 
 	! Get ST-PCs
 	! ==========
-	if(present(stpc))then
-		allocate(wpc(nt-nwindow+1))
-		stpc = 0.
-		do im = 1, nkeep
-			do iw = 1, nwindow
-				call sgemm('T','N', nt-nwindow+1, 1, nchan, 1.,&
-					& zff(:,iw:iw+nt-nwindow), nchan, &
-					& steof(iw:iw+(nchan-1)*nwindow:nwindow, im),nchan,&
-					& 0., wpc, nt-nwindow+1)
-					stpc(:, im)  =  stpc(:, im) + wpc
-			end do
-			stpc(:, im) = stpc(:, im) / sum(steof(:,im)**2)
+	if(present(stpc)) call sl_mssa_getec(zff,steof,nwindow,stpc)
+	deallocate(zff)
+
+	end subroutine sl_mssa
+
+
+	subroutine sl_mssa_getec(ff, steof, nwindow, stec)
+
+	! Title:
+	!	Computes MSSA expansion coefficients
+	!
+	! Description
+	!	Get an expansion coefficients from a space-time field
+	!	and a set of ST-EOFs computed by MSSA. If the input
+	!	space-time field is the same as the one used to computes
+	!	input ST-EOFs, these expansion coincide with the
+	! associated principal components.
+	!
+	! Necessary arguments:
+	!	- ff:   Space-time field
+	!	- steof: Space-window-mode EOFs
+	!	- stec:  Time-mode array of expansion coefficients
+	!
+	! Dependencies:
+	!	sgemm(BLAS)
+
+	implicit none
+
+	! Declarations
+	! ============
+
+	! External
+	! --------
+	real, intent(in)    :: ff(:,:), steof(:,:)
+	real, intent(out)   :: stec(size(ff,2)-nwindow+1,size(steof,2))
+	integer, intent(in) :: nwindow
+
+	! Internal
+	! --------
+	integer :: nt,nkeep,im,iw,nchan
+	real :: wpc(size(ff,2)-nwindow+1), substeof(size(ff,1)), &
+		& subff(size(ff,1),size(ff,2)-nwindow+1)
+
+	! Computations
+	! ------------
+
+	! Initialisations
+	! ---------------
+	stec = 0.
+	nchan = size(ff,1)
+	nt = size(ff,2)
+	nkeep = size(steof,2)
+
+	! Main stuff
+	! ----------
+	do im = 1, nkeep
+		do iw = 1, nwindow
+			subff = ff(:,iw:iw+nt-nwindow)
+			substeof = steof(iw:iw+(nchan-1)*nwindow:nwindow, im)
+			call sgemm('T','N', nt-nwindow+1, 1, nchan, 1.,&
+				& subff, nchan, substeof, nchan, 0., wpc, nt-nwindow+1)
+				stec(:, im)  =  stec(:, im) + wpc
 		end do
-	end if
+		stec(:, im) = stec(:, im) / sum(steof(:,im)**2)
+	end do
 
-  end subroutine sl_mssa
+	end subroutine sl_mssa_getec
 
 
+	!############################################################
+	!############################################################
+	!############################################################
 
-	subroutine sl_mssarec(steof, stpc, nwindow, ffrec, istart, iend)
+
+	subroutine sl_mssa_rec(steof, stpc, nwindow, ffrec, istart, iend)
 
 	! Title:
 	!	Reconstruction of a set of MSSA components
@@ -579,19 +706,20 @@ contains
 	zistart = 1
 	if(zistart.lt.1.or.zistart.gt.nkept)then
 		zistart = 1
-		print*,'[mssarec] istart lower than 1 => set to 1'
+		print*,'[mssa_rec] istart lower than 1 => set to 1'
 	end if
 	if(ziend.lt.1.or.ziend.gt.nkept)then
 		ziend = nkept
-		print*,'[mssarec] iend greater than the number of '// &
+		print*,'[mssa_rec] iend greater than the number of '// &
 		 &     'avalaible modes => reduced to',iend
 	end if
 	if(zistart>ziend)then
 		itmp    = ziend
 		ziend   = zistart
 		zistart = itmp
-		print*,'[mssarec] istart > iend => inversion'
+		print*,'[mssa_rec] istart > iend => inversion'
 	end if
+
 
 	! Computation
 	! ===========
@@ -612,7 +740,7 @@ contains
 			ffrec(ic, nwindow : ntpc) =  ffrec(ic, nwindow : ntpc) + &
 				& matmul(reof, epc) / real(nwindow)
 
-		  do iw = 1, nwindow-1
+			do iw = 1, nwindow-1
 
 			 ! * beginning * [iw length projections]
 			 ffrec(ic, iw) = ffrec(ic, iw) + &
@@ -630,7 +758,9 @@ contains
 
 	end do
 
-	end subroutine sl_mssarec
+	deallocate(reof,epc)
+
+	end subroutine sl_mssa_rec
 
 
 
@@ -640,7 +770,8 @@ contains
   !############################################################
   !############################################################
 
-	subroutine sl_svd(ll,rr,nkeep,leof,reof,lpc,rpc,ev,bLargeMatrix)
+	subroutine sl_svd(ll,rr,nkeep,leof,reof,lpc,rpc,ev,lw,rw,&
+		& bLargeMatrix)
 
 	! Title:
 	!	Singular Value Decomposition
@@ -659,6 +790,9 @@ contains
 	!	- reof:  Right EOFs
 	!	- lpc:   Left PCs
 	!	- rpc:   Right PCs
+	!	- ev:    Eigen values
+	!	- lw:    Left weights
+	!	- rw:    Right weights
 	!	- bLargeMatrix: Use la_sgesdd instead of la_sgesvd (faster for large matrices, but uses more workspace) [default:.false.]
 	!
 	! Dependencies:
@@ -676,6 +810,7 @@ contains
 	! --------
 	real,    intent(in)           :: ll(:,:),rr(:,:)
 	integer, intent(in)	         :: nkeep
+	real,    intent(in), optional :: lw(:), rw(:)
 	real,    intent(out),optional :: lpc(size(ll,2),nkeep), &
 	&                                leof(size(ll,1),nkeep), &
 	&                                rpc(size(rr,2),nkeep), &
@@ -685,10 +820,10 @@ contains
 
 	! Internal
 	! --------
-	integer           :: ii,ij,nn,ns,nsl,nsr,nt
-	real, allocatable :: zll(:,:), zrr(:,:), cov(:,:)
+	integer           :: ns,nsl,nsr,nt
+	real, allocatable :: zll(:,:), zrr(:,:), cov(:,:), zlw(:), zrw(:)
 	real, allocatable :: zev(:), zleof(:,:)
-	integer           :: znkeepmax, i,j
+	integer           :: znkeepmax, i
 	logical           :: zbLargeMatrix
 
 
@@ -731,6 +866,24 @@ contains
 		zbLargeMatrix = bLargeMatrix
 	end if
 
+	! Weights
+	! -------
+	allocate(zlw(nsl))
+	if(present(lw))then
+		zlw = lw * real(nsl) / sum(lw)
+		where(zlw==0.) zlw = 1.
+	else
+		zlw = 1.
+	end if
+	allocate(zrw(nsl))
+	if(present(rw))then
+		zrw = rw * real(nsr) / sum(rw)
+		where(zrw==0.) zrw = 1.
+	else
+		zrw = 1.
+	end if
+
+
 	! Computations
 	! ============
 
@@ -741,14 +894,21 @@ contains
 	allocate(zrr(nsr,nt))
 	zrr = rr - spread(sum(rr,dim=2)/real(nt), ncopies=nt, dim=2)
 
+	! Weighting
+	! ---------
+	do i = 1, nt
+		zll(:,i) = zll(:,i) * sqrt(zlw)
+		zrr(:,i) = zrr(:,i) * sqrt(zrw)
+	end do
+
 	! Cross-covariances
 	! -----------------
 	allocate(cov(nsl,nsr))
 	call sgemm('N','T',nsl,nsr,nt,1.,zll,nsl, &
 				& zrr,nsr,0.,cov,nsl)
 	cov = cov / float(nt)
-	if(.not.present(leof).and..not.present(lpc)) deallocate(zll)
-	if(.not.present(reof).and..not.present(rpc)) deallocate(zrr)
+	if(.not.present(lpc)) deallocate(zll)
+	if(.not.present(rpc)) deallocate(zrr)
 
 	! SVD
 	! ---
@@ -784,22 +944,190 @@ contains
 	! PCs
 	! ---
 	if(present(lpc))then
-		lpc = matmul(transpose(zll), leof)
-		do i = 1, nkeep
-			lpc(:,i) = lpc(:,i) / sum(leof(:,i)**2)
-		end do
+		call sl_pca_getec(zll,leof,lpc,weights=zlw)
+! 		if(present(lw))then
+! 			do i=1, nt
+! 				zll(:,i) = zll(:,i) * zlw
+! 			end do
+! 		end if
+! 		lpc = matmul(transpose(zll), leof)
+! 		do i = 1, nkeep
+! 			lpc(:,i) = lpc(:,i) / sum(leof(:,i)**2 * zlw)
+! 		end do
 		deallocate(zll)
 	end if
 	if(present(rpc))then
-		rpc = matmul(transpose(zrr), reof)
-		do i = 1, nkeep
-			rpc(:,i) = rpc(:,i) / sum(reof(:,i)**2)
-		end do
+		call sl_pca_getec(zrr,reof,rpc,weights=zrw)
+! 		if(present(rw))then
+! 			do i=1, nt
+! 				zrr(:,i) = zrr(:,i) * zlw
+! 			end do
+! 		end if
+! 		rpc = matmul(transpose(zrr), reof)
+! 		do i = 1, nkeep
+! 			rpc(:,i) = rpc(:,i) / sum(reof(:,i)**2 * zrw)
+! 		end do
+		deallocate(zrr)
 	end if
 
 	end subroutine sl_svd
 
 
+	!############################################################
+	!############################################################
+	!############################################################
+
+
+	subroutine sl_svd_model_build(ll,rr,&
+		& lPcaEof,rPcaEof,lSvdEof,rSvdEof,l2r,lPcaPc,rPcaPc)
+
+	! Title:
+	!	SVD statistical model - Build part
+	!
+	! Description:
+	!	Build a SVD-based statistical model to deduce right field
+	!	from left field. First, it performs pre-PCA on both dataset,
+	!	then it decomposes resulting PCs using a SVD.
+	!	Outputs EOFs and PCs from PCA and SVD can further be used
+	!	by the model part.
+	!
+	! Necessary arguments:
+	!	- ll:    Left space-time array
+	!	- rr:    Right space-time array
+	!	- nkeepPca: Maximum number pre-PCA of modes to retain
+	!	- nkeepSvd: Maximum number SVD of modes to retain
+	!	- lPcaEof:  Left pre-PCA EOFs
+	!	- rPcaEof:  Right pre-PCA EOFs
+	!	- lSvdEof:  Left pre-SVD EOFs
+	!	- rSvdEof:  Right pre-SVD EOFs
+	!	- l2r:      Scale factors to convert from left to right
+
+
+	! Declarations
+	! ============
+
+	implicit none
+
+	! External
+	real, intent(in) :: ll(:,:), rr(:,:)
+	real, intent(out) ::lPcaEof(:,:), rPcaEof(:,:),&
+	 & lsvdEof(:,:), rSvdEof(:,:), l2r(:)
+	real, intent(out), optional :: &
+	 & lPcaPc(size(ll,2),size(lPcaEof,2)), &
+	 & rPcaPc(size(ll,2),size(rPcaEof,2))
+
+	! Internal
+	! --------
+	integer :: i,nt,nkeepPca, nkeepSvd
+	real, allocatable :: zlSvdPc(:,:), zrSvdPc(:,:)
+
+	! Sizes
+	! -----
+	nt = size(ll,2)
+	nkeepPca = size(lPcaEof,2)
+	nkeepSvd = size(lSvdEof,2)
+
+
+	! Computations
+	! ============
+
+	! Pre-PCA
+	! -------
+	call sl_pca(ll, nkeepPca, xeof=lPcaEof, pc=lPcaPc)
+	call sl_pca(rr, nkeepPca, xeof=rPcaEof, pc=rPcaPc)
+
+	! SVD
+	! ---
+	allocate(zlSvdPc(nkeepSvd,nt),zrSvdPc(nkeepSvd,nt))
+	call sl_svd(transpose(lPcaPc),transpose(rPcaPc),nkeepSvd, &
+		& leof=lSvdEof, reof=rSvdEof, lpc=zlSvdPc, rpc=zrSvdPc)
+
+	! Scale factors
+	! -------------
+	do i = 1, nkeepSVD
+		l2r(i) = sqrt(sum(zrSvdPc(:,i)**2)/sum(zlSvdPc(:,i)**2))
+	end do
+
+	end subroutine sl_svd_model_build
+
+
+	subroutine sl_svd_model_use(ll,rr,&
+		& lPcaEof,rPcaEof,lSvdEof,rSvdEof,l2r)
+
+ 	! Title:
+	!	SVD statistical model - Use part
+	!
+	! Description:
+	!	SVD-based statistical model to deduce right field
+	!	from left field. It uses results from pre-PCA
+	!	and SVD decompositions performed by sl_svdmodel_build.
+	!
+	! Necessary arguments:
+	!	- ll:    Left space array
+	!	- rr:    Right space array
+	!	- lPcaEof:  Left pre-PCA EOFs
+	!	- rPcaEof:  Right pre-PCA EOFs
+	!	- lSvdEof:  Left pre-SVD EOFs
+	!	- rSvdEof:  Right pre-SVD EOFs
+	!	- l2r:      Scale factors to convert from left to right
+	!
+	! Dependencies:
+	!	sl_pca_getec sl_pca_rec
+
+
+	! Declarations
+	! ============
+
+	implicit none
+
+	! External
+	! --------
+	real, intent(in) :: ll(:), lPcaEof(:,:), rPcaEof(:,:),&
+	 & lSvdEof(:,:), rSvdEof(:,:), l2r(:)
+	real, intent(out) :: rr(:)
+
+	! Internal
+	! --------
+	integer :: i,nt,nkeepPca, nkeepSvd
+	real, allocatable :: zlPcaEc(:,:),zlSvdEc(:,:),zrSvdEc(:,:),&
+		& zrPcaPc(:,:),zll(:,:),zrr(:,:)
+
+	! Computations
+	! ============
+
+	! Size
+	! ----
+	nt = 1
+	nkeepPca = size(lPcaEof,2)
+	nkeepSvd = size(rSvdEof,2)
+
+	! Get expansion coefficients from re-PCA
+	! --------------------------------------
+	allocate(zll(size(ll,1),1),zlPcaEc(nt,nkeepPca))
+	call sl_pca_getec(zll,lPcaEof,zlPcaEc)
+	allocate(zlSvdEc(nt,nkeepSvd))
+	call sl_pca_getec(lSvdEof,transpose(zlPcaEc),zlSvdEc)
+	deallocate(zll,zlPcaEc)
+
+	! Scale factorisation from left to right
+	! --------------------------------------
+	allocate(zrSvdEc(nt,nkeepSvd))
+	do i = 1, nkeepSvd
+		zrSvdEc(:,i) = l2r(i) * zlSvdEc(:,i)
+	end do
+	deallocate(zlSvdEc)
+
+	! Reconstructions
+	! ---------------
+	allocate(zrPcaPc(nkeepPca,nt))
+	call sl_pca_rec(rSvdEof,zrSvdEc,zrPcaPc)
+	deallocate(zrSvdEc)
+	allocate(zrr(size(rr,1),1))
+	call sl_pca_rec(rPcaEof,transpose(zrPcaPc),zrr)
+	rr = zrr(:,1)
+	deallocate(zrr,zrPcaPc)
+
+	end subroutine sl_svd_model_use
 
 
   ! ############################################################
@@ -854,7 +1182,7 @@ contains
 
 	! Internal
 	! --------
-	real, allocatable :: xeof(:,:), pc(:,:)
+	real, allocatable :: pc(:,:)
 	real :: dpc(size(ffrec,2)), amp(size(ffrec,2))
 	integer :: nt, iphase
 	real :: angles(np), projection(size(ffrec,2))

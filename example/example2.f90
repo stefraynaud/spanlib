@@ -29,13 +29,15 @@ program example2
 	! To mimics the use of two different datasets, two geographical
 	! regions are decomposed using SVD. As for MSSA, a pre-PCA is
 	! performed (independantly for the two regions).
+	! One region is situated in the east of the basin, the other
+	! one is on the west.
 	! The dominant EOFs from the SVD decomposition are reconstructed
 	! back to the physical space and stored in the output netcdf file
 	! along with their PCs.
 	!
 	! Note:
 	!	This example should run only a few seconds.
-	!	If it is not the case, you BLAS/LAPACK librairy is not optimized.
+	!	If it is not the case, your BLAS/LAPACK librairy is not optimized.
 
 
 	use spanlib
@@ -46,8 +48,8 @@ program example2
 	! Parameters
 	! ----------
 	integer,parameter :: pcaNkeep=10, svdNkeep=5,&
-		& lons1(2)=(/10,40/),lats1(2)=(/12,49/),&
-		& lons2(2)=(/70,150/),lats2(2)=(/16,45/)
+		& lons1(2)=(/70,150/),lats1(2)=(/16,45/),& ! East
+		& lons2(2)=(/10,40/),lats2(2)=(/12,49/)    ! West
 	real, parameter ::new_missing_value=-999.
 	character(len=20), parameter :: input_nc_file="data2.cdf", &
 		& output_nc_file="output2.nc", var_name='ssta'
@@ -164,11 +166,11 @@ program example2
 
 	! Swicth SVD EOFs to the physical space (!)
 	! -----------------------------------------
-	print*,'[sl_pcarec] Back to the physical space ...'
+	print*,'[sl_pca_rec] Back to the physical space ...'
 	allocate(packed_svdEofsRec1(ns1,svdNkeep))
 	allocate(packed_svdEofsRec2(ns2,svdNkeep))
-	call sl_pcarec(pcaEofs1, transpose(svdEofs1), packed_svdEofsRec1)
-	call sl_pcarec(pcaEofs2, transpose(svdEofs2), packed_svdEofsRec2)
+	call sl_pca_rec(pcaEofs1, transpose(svdEofs1), packed_svdEofsRec1)
+	call sl_pca_rec(pcaEofs2, transpose(svdEofs2), packed_svdEofsRec2)
 	deallocate(pcaEofs1,svdEofs1,pcaEofs2,svdEofs2)
 
 	! Unpacking
@@ -181,8 +183,8 @@ program example2
 			& mask1, new_missing_value)
 		svdEofsRec2(:,:,i) = unpack(packed_svdEofsRec2(:,i), &
 			& mask2, new_missing_value)
-		where(mask1 .eq. .false.)svdEofsRec1(:,:,i) = new_missing_value
-		where(mask2 .eq. .false.)svdEofsRec2(:,:,i) = new_missing_value
+		where(.not.mask1)svdEofsRec1(:,:,i) = new_missing_value
+		where(.not.mask2)svdEofsRec2(:,:,i) = new_missing_value
 	end do
 
 

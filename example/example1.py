@@ -49,7 +49,7 @@ cdms.axis.time_aliases.append('T')
 
 # Simply open the netcdf file
 print "Open file"
-f=cdms.open('../example/data2.cdf')
+f=cdms.open('data2.cdf')
 
 # Retrieve data
 print "Read the whole dataset"
@@ -70,29 +70,45 @@ steof,stpc,stev = SP.mssa()
 
 # Phase composites of first two MSSA modes
 print 'Phase composites...'
-out = SP.reconstruct(phases=True,nphases=16,end=2)
+out = SP.reconstruct(phases=True,nphases=6,end=2)
 
 # Plot 1 phase over two, then a time series
 print "Now, plot!"
 x=vcs.init()
-slices = range(0,out.shape[0],2)
+#x.open()
+slices = range(0,out.shape[0])
 nslices = len(slices)
 import EzTemplate
-T=EzTemplate.Multi(rows=nslices+1/2+1,columns=2) # Nrow added 1 for original data row
-templ = T.get(legend='local')
-mn,mx=vcs.minmax(s,out)
+columns = 3
+rows = (nslices-1)/columns+1
+print 'R,C',rows,columns
+T=EzTemplate.Multi(rows=rows,columns=columns) # Nrow added 1 for original data row
+#templ = T.get()
+mn,mx=-1,1
+print 'Min, max:',mn,mx,vcs.minmax(out)
 levels = vcs.mkscale(mn,mx)
+levels.insert(0,-1.e20) # extension left side
+levels.append(1.e20) # extension right side
 colors = vcs.getcolors(levels)
 iso = x.createisofill('spanlib')
 iso.levels = levels
 iso.fillareacolors = colors
-x.plot(s,templ,iso)
-templ=T.get() # dummy space
+iso.list()
+#x.plot(s,templ,iso,ratio='autot')
+#templ=T.get() # dummy space
+#templ=T.get() # dummy space
+f=cdms.open('tmp.nc','w')
+f.write(out,id='out',typecode='f')
+f.close()
 for i in slices:
-    templ = T.get()
-    x.plot(out[i],templ,iso,title="Phase composites of the first MSSA oscillation")
+    print i
+    templ = T.get(font=0)
+    templ.data.list()
+    x.plot(out[i],templ,iso,ratio='autot',bg=1,title="Phase composites of the first MSSA oscillation")
 ##     raw_input('map out %i/%i ok?' % ( i+1 , out.shape[0]))
 ##     x.clear()
+x.postscript('crap')
+x.showbg()
 raw_input('map out ok?')
 x.clear()
 x.plot(out[:,30,80],title="Cycle of the ocillation")

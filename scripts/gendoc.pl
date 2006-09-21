@@ -27,8 +27,19 @@ use File::Basename;
 ####################################################################
 
 # Inputs
-#my ($xmldir, $f90_library, $f90_example, $python_module) = @ARGV;
-my ($f90_library, $f90_example1, $f90_example2, $python_module, $python_example1, $python_example2) = @ARGV;
+my $f90_nExamples = shift;
+my $python_nExamples = shift;
+my $f90_library = shift;
+my $python_module = shift;
+my @f90_examples;
+for my $iExample (1 .. $f90_nExamples) {
+	$f90_examples[$iExample] = shift;
+}
+my $python_nPythons = shift;
+my @python_examples;
+for my $iExample (1 .. $python_nExamples) {
+	$python_examples[$iExample] = shift;
+}
 
 # Basic declarations
 my (@partNames, $partName, %parts, $line, $subroutineName, $arguments, $inside, $html);
@@ -56,18 +67,17 @@ my %p2xTags = (
 my $p2xInsideComment = 0;
 
 # Files
-my %xmlFiles = (
-	'f90_subroutines'		=> "doc_f90_sub_inc.xml",
-	'python_subroutines'	=> "doc_pyt_sub_inc.xml",
-	'f90_library'			=> "src_f90_lib_inc.xml",
-	'f90_example1'			=> "src_f90_ex1_inc.xml",
-	'f90_example2'			=> "src_f90_ex2_inc.xml",
-	'python_module'		=> "src_pyt_mod_inc.xml",
-	'python_example1'		=> "src_pyt_ex1_inc.xml",
-	'python_example2'		=> "src_pyt_ex2_inc.xml"
-);
-
-
+my %xmlFiles;
+$xmlFiles{'f90_subroutines'}    = "doc_f90_sub_inc.xml";
+$xmlFiles{'python_subroutines'} = "doc_pyt_sub_inc.xml";
+$xmlFiles{'f90_library'} =        "src_f90_lib_inc.xml";
+$xmlFiles{'python_module'} =      "src_pyt_mod_inc.xml";
+for my $iExample (1 .. $f90_nExamples) {
+	$xmlFiles{'f90_examples'}[$iExample] = "src_f90_ex".$iExample."_inc.xml";
+}
+for my $iExample (1 .. $python_nExamples) {
+	$xmlFiles{'python_examples'}[$iExample] = "src_pyt_ex".$iExample."_inc.xml";
+}
 
 
 ####################################################################
@@ -608,48 +618,32 @@ close(XML_PYTHON_SUBROUTINES);
 
 
 ####################################################################
-# Example source codes
+# Source code of examples
 ####################################################################
 
 ####################################################################
 # Fortran
-# 1)
-open(XML_EXAMPLE,"> $xmlFiles{'f90_example1'}");
-open(F90_EXAMPLE,$f90_example1);
-print XML_EXAMPLE gen_xml_header('programlisting');
-print XML_EXAMPLE "<programlisting>";
-while(<F90_EXAMPLE>){print XML_EXAMPLE f90toxml($_);}
-print XML_EXAMPLE "</programlisting>\n";
-close(XML_EXAMPLE);
-close(F90_EXAMPLE);
-# 2)
-open(XML_EXAMPLE,"> $xmlFiles{'f90_example2'}");
-open(F90_EXAMPLE,$f90_example2);
-print XML_EXAMPLE gen_xml_header('programlisting');
-print XML_EXAMPLE "<programlisting>";
-while(<F90_EXAMPLE>){print XML_EXAMPLE f90toxml($_);}
-print XML_EXAMPLE "</programlisting>\n";
-close(XML_EXAMPLE);
-close(F90_EXAMPLE);
+for my $iExample (1 .. $f90_nExamples) {
+	open(XML_EXAMPLE,"> $xmlFiles{'f90_examples'}[$iExample]");
+	open(F90_EXAMPLE,$f90_examples[$iExample]);
+	print XML_EXAMPLE gen_xml_header('programlisting');
+	print XML_EXAMPLE "<programlisting>";
+	while(<F90_EXAMPLE>){print XML_EXAMPLE f90toxml($_);}
+	print XML_EXAMPLE "</programlisting>\n";
+	close(XML_EXAMPLE);
+	close(F90_EXAMPLE);
+}
 
 ####################################################################
 # Python
-# 1)
-open(XML_EXAMPLE,"> $xmlFiles{'python_example1'}");
-open(PYTHON_EXAMPLE,$python_example1);
-print XML_EXAMPLE gen_xml_header('programlisting');
-print XML_EXAMPLE "<programlisting>";
-while(<PYTHON_EXAMPLE>){print XML_EXAMPLE pytoxml($_);}
-print XML_EXAMPLE "</programlisting>\n";
-close(XML_EXAMPLE);
-close(PYTHON_EXAMPLE);
-# 2)
-open(XML_EXAMPLE,"> $xmlFiles{'python_example2'}");
-open(PYTHON_EXAMPLE,$python_example2);
-print XML_EXAMPLE gen_xml_header('programlisting');
-print XML_EXAMPLE "<programlisting>";
-while(<PYTHON_EXAMPLE>){print XML_EXAMPLE pytoxml($_);}
-print XML_EXAMPLE "</programlisting>\n";
-close(XML_EXAMPLE);
-close(PYTHON_EXAMPLE);
+for my $iExample (1 .. $python_nExamples) {
+	open(XML_EXAMPLE,"> $xmlFiles{'python_examples'}[$iExample]");
+	open(PYTHON_EXAMPLE,$python_examples[$iExample]);
+	print XML_EXAMPLE gen_xml_header('programlisting');
+	print XML_EXAMPLE "<programlisting>";
+	while(<PYTHON_EXAMPLE>){print XML_EXAMPLE pytoxml($_);}
+	print XML_EXAMPLE "</programlisting>\n";
+	close(XML_EXAMPLE);
+	close(PYTHON_EXAMPLE);
+}
 

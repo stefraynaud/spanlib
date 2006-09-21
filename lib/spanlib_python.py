@@ -514,7 +514,7 @@ class SpAn(object):
             if n2 is None:
                 n2=self.nmssa
 
-            ffrec = spanlib_fort.mssarec(self.steof, self.stpc, nspace, self.nt, self.nmssa, self.window, n1, n2)
+            ffrec = spanlib_fort.mssa_rec(self.steof, self.stpc, nspace, self.nt, self.nmssa, self.window, n1, n2)
 ##             print 'Ok did mssa',ffrec.shape
             comments+=' MSSA '
 
@@ -550,7 +550,7 @@ class SpAn(object):
 
 
 ##             print pcreconstruct.shape,self.ns,ntimes
-            ffrec = spanlib_fort.pcarec(self.eof, pcreconstruct, self.ns, ntimes, self.npca, n1, n2)
+            ffrec = spanlib_fort.pca_rec(self.eof, pcreconstruct, self.ns, ntimes, self.npca, n1, n2)
 
 ##         print 'SEF.mask is:',self.mask
         if self.mask is not None:

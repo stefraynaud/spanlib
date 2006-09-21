@@ -54,7 +54,7 @@ program example
 	!
 	! Note:
 	!	This example should run only a few seconds.
-	!	If it is not the case, you BLAS/LAPACK librairy is not optimized.
+	!	If it is not the case, your BLAS/LAPACK librairy is not optimized.
 
 	use spanlib
 	use netcdf
@@ -63,7 +63,7 @@ program example
 
 	! Parameters
 	! ----------
-	integer,parameter :: nkeep_pca=10, nkeep_mssa=10, nwindow=84, &
+	integer,parameter :: nkeep_pca=10, nkeep_mssa=6, nwindow=84, &
 		& first_mode=1, nphases=8
 	real, parameter :: offset=0., first_phase=180., &
 		& new_missing_value=-999.
@@ -78,15 +78,13 @@ program example
 	logical, allocatable :: mask(:,:)
 	real, allocatable :: packed_field(:,:), packed_weights(:), &
 		& packed_phasecomps(:,:), stphasecomps(:,:)
-	real, allocatable :: eof(:,:), ev(:), pc(:,:), &
+	real, allocatable :: eof(:,:), pc(:,:), &
 		& stpair(:,:), pair(:,:)
 	real, allocatable :: steof(:,:),stpc(:,:),stev(:)
-	character(len=20) :: dim_names(3), dim_name, &
-		& lon_units, lat_units, var_units, &
+	character(len=20) :: lon_units, lat_units, var_units, &
 		&	lon_name, lat_name, time_name, time_units
-	integer :: ncid, dimid, dimids(5), varid, dims(3), thisdim, &
-		& lonid, latid, phaseid, timeid, phcoid, recoid, origid, &
-		modeid, evid
+	integer :: ncid, dimids(5), varid, lonid, latid, phaseid, &
+		& timeid, phcoid, recoid, origid, modeid, evid
 	integer(kind=4) :: i, nspace, nlon, nlat, ntime
 	real :: pi, missing_value
 
@@ -165,10 +163,9 @@ program example
 
 	! We reconstruct modes [first_mode + first_mode+1] of MSSA
 	! --------------------------------------------------------
-
-	print*,'[sl_mssarec] MSSA reconstruction...'
+	print*,'[sl_mssa_rec] MSSA reconstruction...'
 	allocate(stpair(nkeep_pca, ntime))
-	call sl_mssarec(steof(:,first_mode:first_mode+1), &
+	call sl_mssa_rec(steof(:,first_mode:first_mode+1), &
 		& stpc(:,first_mode:first_mode+1), nwindow, stpair)
 	deallocate(steof, stpc)
 
@@ -183,11 +180,11 @@ program example
 	! We go back to the physical space for
 	! the full oscillation AND its composites
 	! ---------------------------------------
-	print*,'[sl_pcarec] Back to the physical space...'
+	print*,'[sl_pca_rec] Back to the physical space...'
 	allocate(pair(nspace, ntime))
-	call sl_pcarec(eof, transpose(stpair), pair)
+	call sl_pca_rec(eof, transpose(stpair), pair)
 	allocate(packed_phasecomps(nspace, nphases))
-	call sl_pcarec(eof, transpose(stphasecomps), packed_phasecomps)
+	call sl_pca_rec(eof, transpose(stphasecomps), packed_phasecomps)
 	deallocate(stpair, eof, stphasecomps)
 
 	! Unpacking
@@ -196,9 +193,7 @@ program example
 	allocate(reco(nlon,nlat,ntime))
 	do i=1, ntime
 		reco(:,:,i) = unpack(pair(:,i), mask, new_missing_value)
-		where(mask .eqv. .false.)
-			field(:,:,i) = new_missing_value
-		end where
+		where(.not.mask)field(:,:,i) = new_missing_value
 	end do
 	allocate(phasecomps(nlon,nlat,nphases))
 	do i=1, nphases

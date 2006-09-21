@@ -20,6 +20,7 @@ LIBS=$FLIBS
 #################################
 
 # Library name or LIBS
+AC_MSG_CHECKING([for blas library flag])
 AC_ARG_VAR(BLAS,[Library name or LIBS flag(s)])
 AC_ARG_WITH(blas,
  	AC_HELP_STRING([--with-blas=LIBNAME],
@@ -36,8 +37,10 @@ case AS_VAR_GET(BLAS) in
 	*)AS_VAR_SET(BLAS,"-l$BLAS");;
 esac
 AS_VAR_SET(LIBS,"$BLAS $LIBS")
+AC_MSG_RESULT(AS_VAR_GET(BLAS))
 
 # Directory where to find the library
+AC_MSG_CHECKING([for blas library location flag])
 AC_ARG_VAR(BLAS_LIB,[Location of the BLAS library (compile-time)])
 AC_ARG_WITH(blas-lib,
 	AC_HELP_STRING([--with-blas-lib=DIR],
@@ -52,6 +55,7 @@ AS_VAR_SET_IF([BLAS_LIB],[
 	esac
 	AS_VAR_SET(FCFLAGS,"$BLAS_LIB $FCFLAGS")
 ])
+AC_MSG_RESULT(AS_VAR_GET(BLAS_LIB))
 
 # Try sgemm with blas
 AC_CACHE_CHECK([for sgemm of the blas library],ac_cv_blasok,
@@ -60,16 +64,13 @@ AC_CACHE_CHECK([for sgemm of the blas library],ac_cv_blasok,
                  [AS_VAR_SET(ac_cv_blasok,no)])
 ])
 
-# Error
-#AS_IF([test AS_VAR_GET(ac_cv_blasok) = yes],,
-#		[AC_SR_ERROR([Impossible to find blas library. Try with --with-blas and --with-blas-lib])])
-
 
 #################################
 # LAPACK
 #################################
 
 # F77 library name or LIBS
+AC_MSG_CHECKING([for lapack f77 library flag])
 AC_ARG_VAR(LAPACK,F77 library name or LIBS flag(s))
 AC_ARG_WITH(lapack,
 	AC_HELP_STRING([--with-lapack=LIBNAME],
@@ -86,30 +87,37 @@ case AS_VAR_GET(LAPACK) in
 	*)AS_VAR_SET(LAPACK,"-l$LAPACK");;
 esac
 AS_VAR_SET(LIBS,"$LAPACK $LIBS")
+AC_MSG_RESULT(AS_VAR_GET(LAPACK))
 
 # F95 library name or LIBS
+AC_MSG_CHECKING([for lapack f95 library flag])
 AC_ARG_VAR(LAPACK95,F95 library name or LIBS flag(s))
 AC_ARG_WITH(lapack95,
 	AC_HELP_STRING([--with-lapack95=LIBNAME],
 		[F95 ibrary name or LIBS flag(s)]),
-		[case AS_VAR_GET(with_lapack95) in
-			no)AC_SR_ERROR([You cant disable lapack95]);;
+	[
+		case AS_VAR_GET(with_lapack95) in
+			no):;;
 			yes)AS_VAR_SET(LAPACK,-llapack95);;
 			*)AS_VAR_SET(LAPACK,$with_lapack95);;
-		esac]
+		esac
+		AS_VAR_SET_IF([LAPACK95],[
+			case AS_VAR_GET(LAPACK95) in
+				-l* | */* | *.a | *.so | *.so.* | *.o):;;
+				*)AS_VAR_SET(LAPACK95,"-l$LAPACK95");;
+			esac
+		])
+	],[AS_VAR_SET(LAPACK95,[-llapack95])]
 )
-AS_VAR_SET_IF([LAPACK95],,[AS_VAR_SET(LAPACK95,-llapack95)])
-case AS_VAR_GET(LAPACK95) in
-	-l* | */* | *.a | *.so | *.so.* | *.o):;;
-	*)AS_VAR_SET(LAPACK95,"-l$LAPACK95");;
-esac
-AS_VAR_SET(LIBS,"$LAPACK95 $LIBS")
+AS_VAR_SET_IF([LAPACK95],[AS_VAR_SET(LIBS,"$LAPACK95 $LIBS")])
+AC_MSG_RESULT(AS_VAR_GET(LAPACK95))
 
 # Library dir name or FCFLAGS
-AC_ARG_VAR(LAPACK_LIB,Location of the LAPACK library (compile-time))
+AC_MSG_CHECKING([for lapack/lapack95 library location flag])
+AC_ARG_VAR(LAPACK_LIB,Location of the LAPACK/LAPACK95 library (compile-time))
 AC_ARG_WITH(lapack-lib,
 	AC_HELP_STRING([--with-lapack-lib=DIR],
-		[Location of the LAPACK library (compile-time)]),
+		[Location of the LAPACK/LAPACK95 library (compile-time)]),
 		AS_IF([test "$with_lapack_lib" != "yes" -a "$with_lapack_lib" != "no"],
 			AS_VAR_SET(LAPACK_LIB,$with_lapack_lib))
 )
@@ -120,8 +128,10 @@ AS_VAR_SET_IF([LAPACK_LIB],[
 	esac
 	AS_VAR_SET(FCFLAGS,"$LAPACK_LIB $FCFLAGS")
 ])
+AC_MSG_RESULT(AS_VAR_GET(LAPACK_LIB))
 
 # Directory where to find the lapack f95 modules or include flag
+AC_MSG_CHECKING([for lapack95 include flag])
 AC_ARG_VAR(LAPACK_INC,[Location of the LAPACK f95 modules (compile-time)])
 AC_ARG_WITH(lapack-inc,
 	AC_HELP_STRING([--with-lapack-inc=DIR],
@@ -136,9 +146,10 @@ AS_VAR_SET_IF([LAPACK_INC],[
 	esac
 	AS_VAR_SET(FCFLAGS,"$LAPACK_INC $FCFLAGS")
 ])
+AC_MSG_RESULT(AS_VAR_GET(LAPACK_INC))
 
 # Try ssyev with lapack
-AC_CACHE_CHECK([for ssyev of the lapack incrary],ac_cv_lapackok,
+AC_CACHE_CHECK([for ssyev of the lapack library],ac_cv_lapackok,
 [AC_TRY_LINK_FUNC([ssyev],
                  [AS_VAR_SET(ac_cv_lapackok,yes)],
                  [AS_VAR_SET(ac_cv_lapackok,no)])

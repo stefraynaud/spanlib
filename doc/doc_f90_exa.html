@@ -67,7 +67,7 @@
 					Phase composites are also computed to represent the oscillation over its cycle.
 				</p>
         <div class="example">
-          <a id="id3391580"/>
+          <a id="id3348887"/>
           <p class="title">
             <b>Example 1. F90 example 1</b>
           </p>
@@ -143,7 +143,7 @@
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Note:</span>
 	<span class="HLcomments">!	This example should run only a few seconds.</span>
-	<span class="HLcomments">!	If it is not the case, you BLAS/LAPACK librairy is not optimized.</span>
+	<span class="HLcomments">!	If it is not the case, your BLAS/LAPACK librairy is not optimized.</span>
 
 	<span class="HLroutines">use</span> spanlib
 	<span class="HLroutines">use</span> netcdf
@@ -152,7 +152,7 @@
 
 	<span class="HLcomments">! Parameters</span>
 	<span class="HLcomments">! ----------</span>
-	<span class="HLroutines">integer</span>,<span class="HLattributes">parameter</span> :: nkeep_pca=<span class="HLdigits">10</span>, nkeep_mssa=<span class="HLdigits">10</span>, nwindow=<span class="HLdigits">84</span>, &amp;
+	<span class="HLroutines">integer</span>,<span class="HLattributes">parameter</span> :: nkeep_pca=<span class="HLdigits">10</span>, nkeep_mssa=<span class="HLdigits">6</span>, nwindow=<span class="HLdigits">84</span>, &amp;
 		&amp; first_mode=<span class="HLdigits">1</span>, nphases=<span class="HLdigits">8</span>
 	<span class="HLroutines">real</span>, <span class="HLattributes">parameter</span> :: offset=<span class="HLdigits">0</span>., first_phase=<span class="HLdigits">180</span>., &amp;
 		&amp; new_missing_value=-<span class="HLdigits">999</span>.
@@ -167,15 +167,13 @@
 	<span class="HLroutines">logical</span>, <span class="HLattributes">allocatable</span> :: mask(:,:)
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: packed_field(:,:), packed_weights(:), &amp;
 		&amp; packed_phasecomps(:,:), stphasecomps(:,:)
-	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: eof(:,:), ev(:), pc(:,:), &amp;
+	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: eof(:,:), pc(:,:), &amp;
 		&amp; stpair(:,:), pair(:,:)
 	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: steof(:,:),stpc(:,:),stev(:)
-	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>) :: dim_names(<span class="HLdigits">3</span>), dim_name, &amp;
-		&amp; lon_units, lat_units, var_units, &amp;
+	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>) :: lon_units, lat_units, var_units, &amp;
 		&amp;	lon_name, lat_name, time_name, time_units
-	<span class="HLroutines">integer</span> :: ncid, dimid, dimids(<span class="HLdigits">5</span>), varid, dims(<span class="HLdigits">3</span>), thisdim, &amp;
-		&amp; lonid, latid, phaseid, timeid, phcoid, recoid, origid, &amp;
-		modeid, evid
+	<span class="HLroutines">integer</span> :: ncid, dimids(<span class="HLdigits">5</span>), varid, lonid, latid, phaseid, &amp;
+		&amp; timeid, phcoid, recoid, origid, modeid, evid
 	<span class="HLroutines">integer</span>(kind=<span class="HLdigits">4</span>) :: i, nspace, nlon, nlat, ntime
 	<span class="HLroutines">real</span> :: pi, missing_value
 
@@ -254,10 +252,9 @@
 
 	<span class="HLcomments">! We reconstruct modes [first_mode + first_mode+1] of MSSA</span>
 	<span class="HLcomments">! --------------------------------------------------------</span>
-
-	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_mssarec</span>] MSSA reconstruction...'</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_mssa_rec</span>] MSSA reconstruction...'</span>
 	<span class="HLfunctions">allocate</span>(stpair(nkeep_pca, ntime))
-	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_mssarec</span>(steof(:,first_mode:first_mode+<span class="HLdigits">1</span>), &amp;
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_mssa_rec</span>(steof(:,first_mode:first_mode+<span class="HLdigits">1</span>), &amp;
 		&amp; stpc(:,first_mode:first_mode+<span class="HLdigits">1</span>), nwindow, stpair)
 	<span class="HLfunctions">deallocate</span>(steof, stpc)
 
@@ -272,11 +269,11 @@
 	<span class="HLcomments">! We go back to the physical space for</span>
 	<span class="HLcomments">! the full oscillation AND its composites</span>
 	<span class="HLcomments">! ---------------------------------------</span>
-	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_pcarec</span>] Back to the physical space...'</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_pca_rec</span>] Back to the physical space...'</span>
 	<span class="HLfunctions">allocate</span>(pair(nspace, ntime))
-	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pcarec</span>(eof, <span class="HLfunctions">transpose</span>(stpair), pair)
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca_rec</span>(eof, <span class="HLfunctions">transpose</span>(stpair), pair)
 	<span class="HLfunctions">allocate</span>(packed_phasecomps(nspace, nphases))
-	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pcarec</span>(eof, <span class="HLfunctions">transpose</span>(stphasecomps), packed_phasecomps)
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca_rec</span>(eof, <span class="HLfunctions">transpose</span>(stphasecomps), packed_phasecomps)
 	<span class="HLfunctions">deallocate</span>(stpair, eof, stphasecomps)
 
 	<span class="HLcomments">! Unpacking</span>
@@ -285,9 +282,7 @@
 	<span class="HLfunctions">allocate</span>(reco(nlon,nlat,ntime))
 	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, ntime
 		reco(:,:,i) = <span class="HLfunctions">unpack</span>(pair(:,i), mask, new_missing_value)
-		where(mask .eq. .false.)
-			field(:,:,i) = new_missing_value
-		<span class="HLroutines">end</span> where
+		where(.<span class="HLfunctions">not</span>.mask)field(:,:,i) = new_missing_value
 	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 	<span class="HLfunctions">allocate</span>(phasecomps(nlon,nlat,nphases))
 	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, nphases
@@ -402,7 +397,7 @@
 					and joint eigen values are stored to the netcdf file.
 				</p>
         <div class="example">
-          <a id="id3394426"/>
+          <a id="id3351733"/>
           <p class="title">
             <b>Example 2. F90 example 2</b>
           </p>
@@ -446,13 +441,15 @@
 	<span class="HLcomments">! To mimics the use of two different datasets, two geographical</span>
 	<span class="HLcomments">! regions are decomposed using SVD. As for MSSA, a pre-PCA is</span>
 	<span class="HLcomments">! performed (independantly for the two regions).</span>
+	<span class="HLcomments">! One region is situated in the east of the basin, the other</span>
+	<span class="HLcomments">! one is on the west.</span>
 	<span class="HLcomments">! The dominant EOFs from the SVD decomposition are reconstructed</span>
 	<span class="HLcomments">! back to the physical space and stored in the output netcdf file</span>
 	<span class="HLcomments">! along with their PCs.</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Note:</span>
 	<span class="HLcomments">!	This example should run only a few seconds.</span>
-	<span class="HLcomments">!	If it is not the case, you BLAS/LAPACK librairy is not optimized.</span>
+	<span class="HLcomments">!	If it is not the case, your BLAS/LAPACK librairy is not optimized.</span>
 
 
 	<span class="HLroutines">use</span> spanlib
@@ -463,8 +460,8 @@
 	<span class="HLcomments">! Parameters</span>
 	<span class="HLcomments">! ----------</span>
 	<span class="HLroutines">integer</span>,<span class="HLattributes">parameter</span> :: pcaNkeep=<span class="HLdigits">10</span>, svdNkeep=<span class="HLdigits">5</span>,&amp;
-		&amp; lons1(<span class="HLdigits">2</span>)=(/<span class="HLdigits">10</span>,<span class="HLdigits">40</span>/),lats1(<span class="HLdigits">2</span>)=(/<span class="HLdigits">12</span>,<span class="HLdigits">49</span>/),&amp;
-		&amp; lons2(<span class="HLdigits">2</span>)=(/<span class="HLdigits">70</span>,<span class="HLdigits">150</span>/),lats2(<span class="HLdigits">2</span>)=(/<span class="HLdigits">16</span>,<span class="HLdigits">45</span>/)
+		&amp; lons1(<span class="HLdigits">2</span>)=(/<span class="HLdigits">70</span>,<span class="HLdigits">150</span>/),lats1(<span class="HLdigits">2</span>)=(/<span class="HLdigits">16</span>,<span class="HLdigits">45</span>/),&amp; <span class="HLcomments">! East</span>
+		&amp; lons2(<span class="HLdigits">2</span>)=(/<span class="HLdigits">10</span>,<span class="HLdigits">40</span>/),lats2(<span class="HLdigits">2</span>)=(/<span class="HLdigits">12</span>,<span class="HLdigits">49</span>/)    <span class="HLcomments">! West</span>
 	<span class="HLroutines">real</span>, <span class="HLattributes">parameter</span> ::new_missing_value=-<span class="HLdigits">999</span>.
 	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">&quot;data2.cdf&quot;</span>, &amp;
 		&amp; output_nc_file=<span class="HLstrings">&quot;output2.nc&quot;</span>, var_name=<span class="HLstrings">'ssta'</span>
@@ -581,11 +578,11 @@
 
 	<span class="HLcomments">! Swicth SVD EOFs to the physical space (!)</span>
 	<span class="HLcomments">! -----------------------------------------</span>
-	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_pcarec</span>] Back to the physical space ...'</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[sl_pcarec] Back to the physical space ...'</span>
 	<span class="HLfunctions">allocate</span>(packed_svdEofsRec1(ns1,svdNkeep))
 	<span class="HLfunctions">allocate</span>(packed_svdEofsRec2(ns2,svdNkeep))
-	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pcarec</span>(pcaEofs1, <span class="HLfunctions">transpose</span>(svdEofs1), packed_svdEofsRec1)
-	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pcarec</span>(pcaEofs2, <span class="HLfunctions">transpose</span>(svdEofs2), packed_svdEofsRec2)
+	<span class="HLroutines">call</span> sl_pcarec(pcaEofs1, <span class="HLfunctions">transpose</span>(svdEofs1), packed_svdEofsRec1)
+	<span class="HLroutines">call</span> sl_pcarec(pcaEofs2, <span class="HLfunctions">transpose</span>(svdEofs2), packed_svdEofsRec2)
 	<span class="HLfunctions">deallocate</span>(pcaEofs1,svdEofs1,pcaEofs2,svdEofs2)
 
 	<span class="HLcomments">! Unpacking</span>
@@ -598,8 +595,8 @@
 			&amp; mask1, new_missing_value)
 		svdEofsRec2(:,:,i) = <span class="HLfunctions">unpack</span>(packed_svdEofsRec2(:,i), &amp;
 			&amp; mask2, new_missing_value)
-		where(mask1 .eq. .false.)svdEofsRec1(:,:,i) = new_missing_value
-		where(mask2 .eq. .false.)svdEofsRec2(:,:,i) = new_missing_value
+		where(.<span class="HLfunctions">not</span>.mask1)svdEofsRec1(:,:,i) = new_missing_value
+		where(.<span class="HLfunctions">not</span>.mask2)svdEofsRec2(:,:,i) = new_missing_value
 	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
 
 
