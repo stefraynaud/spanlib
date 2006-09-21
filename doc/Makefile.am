@@ -7,13 +7,14 @@ SOURCES = $(SOURCES_CORE) $(SOURCES_EXA_F90) $(SOURCES_EXA_PYT)
 SOURCES_CORE = $(top_srcdir)/src/spanlib.f90 $(top_srcdir)/lib/spanlib_python.py
 SOURCES_EXA_F90 = \
 	$(top_srcdir)/example/example1.f90 \
-	$(top_srcdir)/example/example2.f90
+	$(top_srcdir)/example/example2.f90 \
+	$(top_srcdir)/example/example3.f90
 SOURCES_EXA_PYT = \
 	$(top_srcdir)/example/example1.py \
 	$(top_srcdir)/example/example2.py
 
 ## XML translation of source files
-XML_SRC = src_f90_lib.xml src_f90_ex1.xml src_f90_ex2.xml src_pyt_mod.xml src_pyt_ex1.xml src_pyt_ex2.xml
+XML_SRC = src_f90_lib.xml src_f90_ex1.xml src_f90_ex2.xml src_f90_ex3.xml src_pyt_mod.xml src_pyt_ex1.xml src_pyt_ex2.xml
 
 ## XML translation of source files to be included
 XML_SRC_INC = $(XML_SRC:.xml=_inc.xml)

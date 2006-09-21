@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 example 2</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id2956207"></a>SpanLib - Fortran 90 example 2</h1></div></div><div></div><hr /></div><pre class="programlisting"><span class="HLcomments">! File: example2.f90</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 example 2</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3083183"></a>SpanLib - Fortran 90 example 2</h1></div></div><div></div><hr /></div><pre class="programlisting"><span class="HLcomments">! File: example2.f90</span>
 <span class="HLcomments">!</span>
 <span class="HLcomments">! This file is part of the SpanLib library.</span>
 <span class="HLcomments">! Copyright (C) 2006  Stephane Raynaud</span>
@@ -168,11 +168,11 @@
 
 	<span class="HLcomments">! Swicth SVD EOFs to the physical space (!)</span>
 	<span class="HLcomments">! -----------------------------------------</span>
-	<span class="HLroutines">print</span>*,<span class="HLstrings">'[sl_pcarec] Back to the physical space ...'</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_pca_rec</span>] Back to the physical space ...'</span>
 	<span class="HLfunctions">allocate</span>(packed_svdEofsRec1(ns1,svdNkeep))
 	<span class="HLfunctions">allocate</span>(packed_svdEofsRec2(ns2,svdNkeep))
-	<span class="HLroutines">call</span> sl_pcarec(pcaEofs1, <span class="HLfunctions">transpose</span>(svdEofs1), packed_svdEofsRec1)
-	<span class="HLroutines">call</span> sl_pcarec(pcaEofs2, <span class="HLfunctions">transpose</span>(svdEofs2), packed_svdEofsRec2)
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca_rec</span>(pcaEofs1, <span class="HLfunctions">transpose</span>(svdEofs1), packed_svdEofsRec1)
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca_rec</span>(pcaEofs2, <span class="HLfunctions">transpose</span>(svdEofs2), packed_svdEofsRec2)
 	<span class="HLfunctions">deallocate</span>(pcaEofs1,svdEofs1,pcaEofs2,svdEofs2)
 
 	<span class="HLcomments">! Unpacking</span>
@@ -196,31 +196,31 @@
 	<span class="HLcomments">! File</span>
 	<span class="HLroutines">call</span> err(nf90_create(output_nc_file, nf90_write, ncid))
 	<span class="HLcomments">! Dimensions</span>
-	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'lon1'</span>, nlon1, dimids(<span class="HLdigits">1</span>)))
-	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'lat1'</span>, nlat1, dimids(<span class="HLdigits">2</span>)))
-	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'lon2'</span>, nlon2, dimids(<span class="HLdigits">3</span>)))
-	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'lat2'</span>, nlat2, dimids(<span class="HLdigits">4</span>)))
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'lon_box1'</span>, nlon1, dimids(<span class="HLdigits">1</span>)))
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'lat_box1'</span>, nlat1, dimids(<span class="HLdigits">2</span>)))
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'lon_box2'</span>, nlon2, dimids(<span class="HLdigits">3</span>)))
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'lat_box2'</span>, nlat2, dimids(<span class="HLdigits">4</span>)))
 	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'time'</span>, ntime, dimids(<span class="HLdigits">5</span>)))
 	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'mode'</span>, svdNkeep, dimids(<span class="HLdigits">6</span>)))
 
 	<span class="HLcomments">! Box 1</span>
-	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lon1'</span>, nf90_float, dimids(<span class="HLdigits">1</span>), &amp;
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lon_box1'</span>, nf90_float, dimids(<span class="HLdigits">1</span>), &amp;
 		&amp; varids(<span class="HLdigits">1</span>)))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">1</span>), <span class="HLstrings">'long_name'</span>, &amp;
 		&amp; <span class="HLstrings">'Longitude'</span>))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">1</span>), <span class="HLstrings">'units'</span>, lon_units))
-	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lat1'</span>, nf90_float, dimids(<span class="HLdigits">2</span>), &amp;
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lat_box1'</span>, nf90_float, dimids(<span class="HLdigits">2</span>), &amp;
 		&amp; varids(<span class="HLdigits">2</span>)))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">2</span>), <span class="HLstrings">'long_name'</span>, &amp;
 		&amp; <span class="HLstrings">'Latitude'</span>))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">2</span>), <span class="HLstrings">'units'</span>, lat_units))
 	<span class="HLcomments">! Box 2</span>
-	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lon2'</span>, nf90_float, dimids(<span class="HLdigits">3</span>), &amp;
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lon_box2'</span>, nf90_float, dimids(<span class="HLdigits">3</span>), &amp;
 		&amp; varids(<span class="HLdigits">3</span>)))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">3</span>), <span class="HLstrings">'long_name'</span>, &amp;
 		&amp; <span class="HLstrings">'Longitude'</span>))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">3</span>), <span class="HLstrings">'units'</span>, lon_units))
-	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lat2'</span>, nf90_float, dimids(<span class="HLdigits">4</span>), &amp;
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lat_box2'</span>, nf90_float, dimids(<span class="HLdigits">4</span>), &amp;
 		&amp; varids(<span class="HLdigits">4</span>)))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">4</span>), <span class="HLstrings">'long_name'</span>, &amp;
 		&amp; <span class="HLstrings">'Latitude'</span>))
@@ -237,7 +237,7 @@
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">6</span>), <span class="HLstrings">'units'</span>, <span class="HLstrings">'level'</span>))
 	<span class="HLcomments">! Original fields</span>
 	<span class="HLcomments">! * box1</span>
-	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'sst1'</span>, nf90_float, &amp;
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'sst_box1'</span>, nf90_float, &amp;
 		&amp; (/dimids(<span class="HLdigits">1</span>),dimids(<span class="HLdigits">2</span>),dimids(<span class="HLdigits">5</span>)/), sstids(<span class="HLdigits">1</span>)))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">1</span>), <span class="HLstrings">'long_name'</span>, &amp;
 		&amp; <span class="HLstrings">'SST anomaly / original field / box <span class="HLdigits">1</span>'</span>))
@@ -245,7 +245,7 @@
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">1</span>), <span class="HLstrings">'missing_value'</span>, &amp;
 		&amp; new_missing_value))
 	<span class="HLcomments">! * box2</span>
-	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'sst2'</span>, nf90_float, &amp;
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'sst_box2'</span>, nf90_float, &amp;
 	 &amp; (/dimids(<span class="HLdigits">3</span>),dimids(<span class="HLdigits">4</span>),dimids(<span class="HLdigits">5</span>)/), sstids(<span class="HLdigits">2</span>)))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">2</span>), <span class="HLstrings">'long_name'</span>, &amp;
 		&amp; <span class="HLstrings">'SST anomaly / original field / box <span class="HLdigits">2</span>'</span>))
@@ -254,14 +254,14 @@
 		&amp; new_missing_value))
 	<span class="HLcomments">! SVD EOFs</span>
 	<span class="HLcomments">! * box1</span>
-	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'eofs1'</span>, nf90_float, &amp;
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'eofs_box1'</span>, nf90_float, &amp;
 	 &amp; (/dimids(<span class="HLdigits">1</span>),dimids(<span class="HLdigits">2</span>),dimids(<span class="HLdigits">6</span>)/),sstids(<span class="HLdigits">3</span>)))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">3</span>), <span class="HLstrings">'long_name'</span>, &amp;
 		&amp; <span class="HLstrings">'SVD EOFs of SST anomaly / box <span class="HLdigits">1</span>'</span>))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">3</span>), <span class="HLstrings">'missing_value'</span>, &amp;
 		&amp; new_missing_value))
 	<span class="HLcomments">! * box2</span>
-	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'eofs2'</span>, nf90_float, &amp;
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'eofs_box2'</span>, nf90_float, &amp;
 	 &amp; (/dimids(<span class="HLdigits">3</span>),dimids(<span class="HLdigits">4</span>),dimids(<span class="HLdigits">6</span>)/),sstids(<span class="HLdigits">4</span>)))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">4</span>), <span class="HLstrings">'long_name'</span>, &amp;
 		&amp; <span class="HLstrings">'SVD EOFs of SST anomaly / box <span class="HLdigits">2</span>'</span>))
@@ -269,7 +269,7 @@
 		&amp; new_missing_value))
 	<span class="HLcomments">! SVD PCs</span>
 	<span class="HLcomments">! * Box 1</span>
-	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'pcs1'</span>, nf90_float, &amp;
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'pcs_box1'</span>, nf90_float, &amp;
 		&amp; (/dimids(<span class="HLdigits">5</span>),dimids(<span class="HLdigits">6</span>)/),sstids(<span class="HLdigits">5</span>)))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">5</span>), <span class="HLstrings">'long_name'</span>, &amp;
 		&amp; <span class="HLstrings">'SVD EOFs of SST anomaly / box <span class="HLdigits">1</span>'</span>))
@@ -277,7 +277,7 @@
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">5</span>), <span class="HLstrings">'missing_value'</span>, &amp;
 		&amp; new_missing_value))
 	<span class="HLcomments">! * Box 2</span>
-	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'pcs2'</span>, nf90_float, &amp;
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'pcs_box2'</span>, nf90_float, &amp;
 		&amp; (/dimids(<span class="HLdigits">5</span>),dimids(<span class="HLdigits">6</span>)/),sstids(<span class="HLdigits">6</span>)))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">6</span>), <span class="HLstrings">'long_name'</span>, &amp;
 		&amp; <span class="HLstrings">'SVD EOFs of SST anomaly / box <span class="HLdigits">2</span>'</span>))

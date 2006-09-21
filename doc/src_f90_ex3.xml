@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN" "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+
+<article id="src_f90_ex3">
+
+	<artheader>
+		<title>SpanLib - Fortran 90 example 3</title>
+	</artheader>
+
+	<xi:include href="src_f90_ex3_inc.xml"  xmlns:xi="http://www.w3.org/2001/XInclude" />
+
+</article>

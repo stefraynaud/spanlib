@@ -194,31 +194,31 @@ program example2
 	! File
 	call err(nf90_create(output_nc_file, nf90_write, ncid))
 	! Dimensions
-	call err(nf90_def_dim(ncid, 'lon1', nlon1, dimids(1)))
-	call err(nf90_def_dim(ncid, 'lat1', nlat1, dimids(2)))
-	call err(nf90_def_dim(ncid, 'lon2', nlon2, dimids(3)))
-	call err(nf90_def_dim(ncid, 'lat2', nlat2, dimids(4)))
+	call err(nf90_def_dim(ncid, 'lon_box1', nlon1, dimids(1)))
+	call err(nf90_def_dim(ncid, 'lat_box1', nlat1, dimids(2)))
+	call err(nf90_def_dim(ncid, 'lon_box2', nlon2, dimids(3)))
+	call err(nf90_def_dim(ncid, 'lat_box2', nlat2, dimids(4)))
 	call err(nf90_def_dim(ncid, 'time', ntime, dimids(5)))
 	call err(nf90_def_dim(ncid, 'mode', svdNkeep, dimids(6)))
 
 	! Box 1
-	call err(nf90_def_var(ncid, 'lon1', nf90_float, dimids(1), &
+	call err(nf90_def_var(ncid, 'lon_box1', nf90_float, dimids(1), &
 		& varids(1)))
 	call err(nf90_put_att(ncid, varids(1), 'long_name', &
 		& 'Longitude'))
 	call err(nf90_put_att(ncid, varids(1), 'units', lon_units))
-	call err(nf90_def_var(ncid, 'lat1', nf90_float, dimids(2), &
+	call err(nf90_def_var(ncid, 'lat_box1', nf90_float, dimids(2), &
 		& varids(2)))
 	call err(nf90_put_att(ncid, varids(2), 'long_name', &
 		& 'Latitude'))
 	call err(nf90_put_att(ncid, varids(2), 'units', lat_units))
 	! Box 2
-	call err(nf90_def_var(ncid, 'lon2', nf90_float, dimids(3), &
+	call err(nf90_def_var(ncid, 'lon_box2', nf90_float, dimids(3), &
 		& varids(3)))
 	call err(nf90_put_att(ncid, varids(3), 'long_name', &
 		& 'Longitude'))
 	call err(nf90_put_att(ncid, varids(3), 'units', lon_units))
-	call err(nf90_def_var(ncid, 'lat2', nf90_float, dimids(4), &
+	call err(nf90_def_var(ncid, 'lat_box2', nf90_float, dimids(4), &
 		& varids(4)))
 	call err(nf90_put_att(ncid, varids(4), 'long_name', &
 		& 'Latitude'))
@@ -235,7 +235,7 @@ program example2
 	call err(nf90_put_att(ncid, varids(6), 'units', 'level'))
 	! Original fields
 	! * box1
-	call err(nf90_def_var(ncid, 'sst1', nf90_float, &
+	call err(nf90_def_var(ncid, 'sst_box1', nf90_float, &
 		& (/dimids(1),dimids(2),dimids(5)/), sstids(1)))
 	call err(nf90_put_att(ncid, sstids(1), 'long_name', &
 		& 'SST anomaly / original field / box 1'))
@@ -243,7 +243,7 @@ program example2
 	call err(nf90_put_att(ncid, sstids(1), 'missing_value', &
 		& new_missing_value))
 	! * box2
-	call err(nf90_def_var(ncid, 'sst2', nf90_float, &
+	call err(nf90_def_var(ncid, 'sst_box2', nf90_float, &
 	 & (/dimids(3),dimids(4),dimids(5)/), sstids(2)))
 	call err(nf90_put_att(ncid, sstids(2), 'long_name', &
 		& 'SST anomaly / original field / box 2'))
@@ -252,14 +252,14 @@ program example2
 		& new_missing_value))
 	! SVD EOFs
 	! * box1
-	call err(nf90_def_var(ncid, 'eofs1', nf90_float, &
+	call err(nf90_def_var(ncid, 'eofs_box1', nf90_float, &
 	 & (/dimids(1),dimids(2),dimids(6)/),sstids(3)))
 	call err(nf90_put_att(ncid, sstids(3), 'long_name', &
 		& 'SVD EOFs of SST anomaly / box 1'))
 	call err(nf90_put_att(ncid, sstids(3), 'missing_value', &
 		& new_missing_value))
 	! * box2
-	call err(nf90_def_var(ncid, 'eofs2', nf90_float, &
+	call err(nf90_def_var(ncid, 'eofs_box2', nf90_float, &
 	 & (/dimids(3),dimids(4),dimids(6)/),sstids(4)))
 	call err(nf90_put_att(ncid, sstids(4), 'long_name', &
 		& 'SVD EOFs of SST anomaly / box 2'))
@@ -267,7 +267,7 @@ program example2
 		& new_missing_value))
 	! SVD PCs
 	! * Box 1
-	call err(nf90_def_var(ncid, 'pcs1', nf90_float, &
+	call err(nf90_def_var(ncid, 'pcs_box1', nf90_float, &
 		& (/dimids(5),dimids(6)/),sstids(5)))
 	call err(nf90_put_att(ncid, sstids(5), 'long_name', &
 		& 'SVD EOFs of SST anomaly / box 1'))
@@ -275,7 +275,7 @@ program example2
 	call err(nf90_put_att(ncid, sstids(5), 'missing_value', &
 		& new_missing_value))
 	! * Box 2
-	call err(nf90_def_var(ncid, 'pcs2', nf90_float, &
+	call err(nf90_def_var(ncid, 'pcs_box2', nf90_float, &
 		& (/dimids(5),dimids(6)/),sstids(6)))
 	call err(nf90_put_att(ncid, sstids(6), 'long_name', &
 		& 'SVD EOFs of SST anomaly / box 2'))

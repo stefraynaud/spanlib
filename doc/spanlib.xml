@@ -253,7 +253,7 @@
 				<simplesect>
 					<title>Reconstructions</title>
 					<para>
-						Reconstructions (F90:<varname><link linkend="sl_pcarec">sl_pcarec</link></varname>,
+						Reconstructions (F90:<varname><link linkend="sl_pca_rec">sl_pca_rec</link></varname>,
 						Python:<varname><link linkend="&lt;SpAn_object&gt;.reconstruct">&lt;SpAn_object&gt;.reconstruct</link></varname>)
 						may not be necessary the multiplication of an EOF by its associated PC.
 						When PCA is used for a reduction of d-o-f (see <xref linkend="pg:dof"/>),
@@ -269,7 +269,7 @@
 					<title>The window parameter</title>
 					<para>
 						This is the only and essential parameter of SSA and MSSA
-						(F90:<varname><link linkend="sl_pcarec">sl_mssa</link></varname>,
+						(F90:<varname><link linkend="sl_pca_rec">sl_mssa</link></varname>,
 						Python:<varname><link linkend="&lt;SpAn_object&gt;.mssa">&lt;SpAn_object&gt;.mssa</link></varname>).
 						It defines the maximal value of the lags use when building
 						the covariance matrix.
