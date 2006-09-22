@@ -77,8 +77,8 @@ $(XML_DOC_VER_INC): $(top_srcdir)/configure.in
 	@echo "Checking package version..."
 	@test -f $@ || echo "" > $@
 	@version=`grep "AM_INIT_AUTOMAKE" $^ | cut -d"," -f2 | cut -d")" -f1` ; \
-	test "x$$version" = "x`grep Version $@ | cut -d\  -f2 | cut -d'<' -f1`" ;\
-	rm -f $@ && echo '<para>Version '$$version'</para>' > $@ ; \
+	test "x$$version" = "x`grep Version $@ | cut -d\  -f2 | cut -d'<' -f1`" || \
+	rm -f $@ && echo '<para>Version '$$version'</para>' > $@  && \
 	echo "Version updated"
 
 else

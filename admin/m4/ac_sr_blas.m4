@@ -25,11 +25,11 @@ AC_ARG_VAR(BLAS,[Library name or LIBS flag(s)])
 AC_ARG_WITH(blas,
  	AC_HELP_STRING([--with-blas=LIBNAME],
  		[Library name or LIBS flag(s)]),
- 		[case AS_VAR_GET(with_blas) in
-			no)AC_SR_ERROR([You cant disable blas]);;
-			yes)AS_VAR_SET(BLAS,-lblas);;
-			*)AS_VAR_SET(BLAS,$with_blas);;
-		esac]
+ 	[case AS_VAR_GET(with_blas) in
+		no)AC_SR_ERROR([You cant disable blas]);;
+		yes)AS_VAR_SET(BLAS,-lblas);;
+		*)AS_VAR_SET(BLAS,$with_blas);;
+	esac]
 )
 AS_VAR_SET_IF([BLAS],,[AS_VAR_SET(BLAS,-lblas)])
 case AS_VAR_GET(BLAS) in
@@ -45,8 +45,8 @@ AC_ARG_VAR(BLAS_LIB,[Location of the BLAS library (compile-time)])
 AC_ARG_WITH(blas-lib,
 	AC_HELP_STRING([--with-blas-lib=DIR],
 		[Location of the BLAS library (compile-time)]), dnl
-		AS_IF([test "$with_blas_lib" != "yes" -a "$with_blas_lib" != "no"],
-				AS_VAR_SET(BLAS_LIB,$with_blas_lib))
+	AS_IF([test "$with_blas_lib" != "yes" -a "$with_blas_lib" != "no"],
+			AS_VAR_SET(BLAS_LIB,$with_blas_lib))
 )
 AS_VAR_SET_IF([BLAS_LIB],[
 	case AS_VAR_GET(BLAS_LIB) in
@@ -58,8 +58,8 @@ AS_VAR_SET_IF([BLAS_LIB],[
 AC_MSG_RESULT(AS_VAR_GET(BLAS_LIB))
 
 # Try sgemm with blas
-AC_CACHE_CHECK([for sgemm of the blas library],ac_cv_blasok,
-[AC_TRY_LINK_FUNC([sgemm],
+AC_CACHE_CHECK([for dgemm of the blas library],ac_cv_blasok,
+[AC_TRY_LINK_FUNC([dgemm],
                  [AS_VAR_SET(ac_cv_blasok,yes)],
                  [AS_VAR_SET(ac_cv_blasok,no)])
 ])
@@ -75,11 +75,11 @@ AC_ARG_VAR(LAPACK,F77 library name or LIBS flag(s))
 AC_ARG_WITH(lapack,
 	AC_HELP_STRING([--with-lapack=LIBNAME],
 		[F77 library name or LIBS flag(s)]),
-		[case AS_VAR_GET(with_lapack) in
-			no)AC_SR_ERROR([You cant disable lapack]);;
-			yes)AS_VAR_SET(LAPACK,-llapack);;
-			*)AS_VAR_SET(LAPACK,$with_lapack);;
-		esac]
+	[case AS_VAR_GET(with_lapack) in
+		no)AC_SR_ERROR([You cant disable lapack]);;
+		yes)AS_VAR_SET(LAPACK,-llapack);;
+		*)AS_VAR_SET(LAPACK,$with_lapack);;
+	esac]
 )
 AS_VAR_SET_IF([LAPACK],,[AS_VAR_SET(LAPACK,-llapack)])
 case AS_VAR_GET(LAPACK) in
@@ -118,8 +118,8 @@ AC_ARG_VAR(LAPACK_LIB,Location of the LAPACK/LAPACK95 library (compile-time))
 AC_ARG_WITH(lapack-lib,
 	AC_HELP_STRING([--with-lapack-lib=DIR],
 		[Location of the LAPACK/LAPACK95 library (compile-time)]),
-		AS_IF([test "$with_lapack_lib" != "yes" -a "$with_lapack_lib" != "no"],
-			AS_VAR_SET(LAPACK_LIB,$with_lapack_lib))
+	AS_IF([test "$with_lapack_lib" != "yes" -a "$with_lapack_lib" != "no"],
+		AS_VAR_SET(LAPACK_LIB,$with_lapack_lib))
 )
 AS_VAR_SET_IF([LAPACK_LIB],[
 	case AS_VAR_GET(LAPACK_LIB) in
@@ -136,8 +136,8 @@ AC_ARG_VAR(LAPACK_INC,[Location of the LAPACK f95 modules (compile-time)])
 AC_ARG_WITH(lapack-inc,
 	AC_HELP_STRING([--with-lapack-inc=DIR],
 		[Location of the LAPACK f95 modules (compile-time)]), dnl
-		AS_IF([test "$with_lapack_inc" != "yes" -a "$with_lapack_inc" != "no"],
-				AS_VAR_SET(LAPACK_INC,$with_lapack_inc))
+	AS_IF([test "$with_lapack_inc" != "yes" -a "$with_lapack_inc" != "no"],
+			AS_VAR_SET(LAPACK_INC,$with_lapack_inc))
 )
 AS_VAR_SET_IF([LAPACK_INC],[
 	case AS_VAR_GET(LAPACK_INC) in
@@ -149,8 +149,8 @@ AS_VAR_SET_IF([LAPACK_INC],[
 AC_MSG_RESULT(AS_VAR_GET(LAPACK_INC))
 
 # Try ssyev with lapack
-AC_CACHE_CHECK([for ssyev of the lapack library],ac_cv_lapackok,
-[AC_TRY_LINK_FUNC([ssyev],
+AC_CACHE_CHECK([for dsyev of the lapack library],ac_cv_lapackok,
+[AC_TRY_LINK_FUNC([dsyev],
                  [AS_VAR_SET(ac_cv_lapackok,yes)],
                  [AS_VAR_SET(ac_cv_lapackok,no)])
 ])

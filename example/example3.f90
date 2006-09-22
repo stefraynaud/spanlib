@@ -48,7 +48,7 @@ program example2
 		& lons2(2)=(/10,40/),lats2(2)=(/12,49/)    ! West = predictand
 	real, parameter ::new_missing_value=-999.
 	character(len=20), parameter :: input_nc_file="data2.cdf", &
-		& output_nc_file="output3.nc", var_name='ssta'
+		& output_nc_file="output_fortran3.nc", var_name='ssta'
 
 	! Other declarations
 	! ------------------

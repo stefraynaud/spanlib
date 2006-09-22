@@ -6,7 +6,7 @@ AC_DEFUN([AC_SR_SPANLIB_DOC],[
 
 	AC_ARG_ENABLE(
 		doc-update,
-		[  --enable-doc-update - Enable documentation update],
+		AS_HELP_STRING([--enable-doc-update],[Enable documentation update]),
 		,[AS_VAR_SET(enableval,"no")]
 	)
 

@@ -21,16 +21,17 @@
 subroutine pca(ff, ns, nt, nkeep, xeof, pc, ev, weights, useteof)
 
 	use spanlib, only: sl_pca
+	use spanlib_precision
 
 	implicit none
 
 	! External
 	! --------
 	integer, intent(in)  :: ns,nt
-	real,    intent(in)  :: ff(ns,nt)
+	real(wp),intent(in)  :: ff(ns,nt)
 	integer, intent(in)  :: nkeep
-	real,    intent(out) :: pc(nt,nkeep), xeof(ns,nkeep), ev(nkeep)
-	real,    intent(in)  :: weights(ns)
+	real(wp),intent(out) :: pc(nt,nkeep), xeof(ns,nkeep), ev(nkeep)
+	real(wp),intent(in)  :: weights(ns)
 	integer, intent(in)  :: useteof
 
 	! Call to original subroutine
@@ -43,14 +44,15 @@ end subroutine pca
 subroutine pca_getec(ff, xeof, ns, nt, nkept, ec, weights)
 
 	use spanlib, only: sl_pca_getec
+	use spanlib_precision
 
 	implicit none
 
 	! External
 	! --------
 	integer, intent(in)  :: ns,nt,nkept
-	real,    intent(in)  :: ff(ns,nt), xeof(ns,nkept),weights(ns)
-	real,    intent(out) :: ec(nt,nkept)
+	real(wp),intent(in)  :: ff(ns,nt), xeof(ns,nkept),weights(ns)
+	real(wp),intent(out) :: ec(nt,nkept)
 
 
 	! Call to original subroutine
@@ -63,14 +65,15 @@ end subroutine pca_getec
 subroutine pca_rec(xeof, pc, ns, nt, nkept, ffrec, istart, iend)
 
 	use spanlib, only: sl_pca_rec
+	use spanlib_precision
 
 	implicit none
 
 	! External
 	! --------
 	integer, intent(in)  :: ns, nt, nkept, istart, iend
-	real,    intent(in)  :: xeof(ns,nkept), pc(nt,nkept)
-	real,    intent(out) :: ffrec(ns,nt)
+	real(wp),intent(in)  :: xeof(ns,nkept), pc(nt,nkept)
+	real(wp),intent(out) :: ffrec(ns,nt)
 
 	! Call to original subroutine
 	! ---------------------------
@@ -83,14 +86,15 @@ end subroutine pca_rec
 subroutine mssa(ff, nchan, nt, nwindow, nkeep, steof, stpc, ev)
 
 	use spanlib, only: sl_mssa
+	use spanlib_precision
 
 	implicit none
 
 	! External
 	! --------
-	integer,intent(in)  :: nchan, nt, nwindow, nkeep
-	real,   intent(in)  :: ff(nchan,nt)
-	real,	  intent(out) :: steof(nchan*nwindow,nkeep), &
+	integer, intent(in)  :: nchan, nt, nwindow, nkeep
+	real(wp),intent(in)  :: ff(nchan,nt)
+	real(wp),intent(out) :: steof(nchan*nwindow,nkeep), &
 	 & stpc(nt-nwindow+1,nkeep), ev(nkeep)
 
 	! Call to original subroutine
@@ -102,15 +106,16 @@ end subroutine mssa
 subroutine mssa_getec(ff, steof, nchan, nt, nkept, nwindow, stec)
 
 	use spanlib, only: sl_mssa_getec
+	use spanlib_precision
 
 	implicit none
 
 	! External
 	! --------
-	integer,intent(in) :: nchan, nt, nwindow, nkept
-	real,	  intent(in) :: ff(nchan,nt), &
+	integer, intent(in) :: nchan, nt, nwindow, nkept
+	real(wp),intent(in) :: ff(nchan,nt), &
 	 & steof(nchan*nwindow,nkept)
-	real, intent(out)  :: stec(nt-nwindow+1, nkept)
+	real(wp),intent(out)  :: stec(nt-nwindow+1, nkept)
 
 	! Call to original subroutine
 	! ---------------------------
@@ -122,16 +127,17 @@ subroutine mssa_rec(steof, stpc, nchan, nt, nkeep, nwindow, &
   & ffrec, istart, iend)
 
 	use spanlib, only: sl_mssa_rec
+	use spanlib_precision
 
 	implicit none
 
 	! External
 	! --------
-	integer,intent(in)  :: nchan, nt, nwindow, nkeep
-	integer,intent(in)  :: istart, iend
-	real,	  intent(in)  :: steof(nchan*nwindow,nkeep), &
+	integer, intent(in)  :: nchan, nt, nwindow, nkeep
+	integer, intent(in)  :: istart, iend
+	real(wp),intent(in)  :: steof(nchan*nwindow,nkeep), &
 	 & stpc(nt-nwindow+1,nkeep)
-	real,   intent(out) :: ffrec(nchan,nt)
+	real(wp),intent(out) :: ffrec(nchan,nt)
 
 	! Call to original subroutine
 	! ---------------------------
@@ -146,16 +152,17 @@ subroutine phasecomp(ffrec, ns, nt, np,  phases, weights, &
   & offset, firstphase)
 
 	use spanlib, only: sl_phasecomp
+	use spanlib_precision
 
 	implicit none
 
 	! External
 	! --------
 	integer, intent(in)  :: ns, nt, np
-	real,    intent(in)  :: ffrec(ns,nt)
-	real,    intent(in)  :: weights(ns)
-	real,    intent(in)  :: offset, firstphase
-	real,    intent(out) :: phases(ns, np)
+	real(wp),intent(in)  :: ffrec(ns,nt)
+	real(wp),intent(in)  :: weights(ns)
+	real(wp),intent(in)  :: offset, firstphase
+	real(wp),intent(out) :: phases(ns, np)
 
 	! Call to original subroutine
 	! ---------------------------
@@ -168,14 +175,16 @@ end subroutine phasecomp
 
 subroutine pack3d(ff3d, mask, ns1, ns2, nt, ff2d, ns)
 
+	use spanlib_precision
+
 	implicit none
 
 	! External
 	! --------
 	integer, intent(in)  :: ns1, ns2, nt, ns
-	real,    intent(in)  :: ff3d(ns1,ns2,nt)
+	real(wp),intent(in)  :: ff3d(ns1,ns2,nt)
 	integer, intent(in)  :: mask(ns1,ns2)
-	real,    intent(out) :: ff2d(ns,nt)
+	real(wp),intent(out) :: ff2d(ns,nt)
 
 	! Internal
 	! --------
@@ -193,15 +202,16 @@ end subroutine pack3d
 subroutine unpack3d(ff3d, mask, ns1, ns2, nt, ff2d, ns, &
   & missing_value)
 
+	use spanlib_precision
+
 	implicit none
 
 	! External
 	! --------
 	integer, intent(in)  :: ns1, ns2, nt, ns
-	real,    intent(out) :: ff3d(ns1,ns2,nt)
+	real(wp),intent(out) :: ff3d(ns1,ns2,nt)
 	integer, intent(in)  :: mask(ns1,ns2)
-	real,    intent(in)  :: ff2d(ns,nt)
-	real                 :: missing_value
+	real(wp),intent(in)  :: ff2d(ns,nt),missing_value
 
 	! Internal
 	! --------

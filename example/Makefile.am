@@ -18,9 +18,9 @@ LDADD = -lnetcdf $(LOCAL_LIB) $(LAPACK95) $(LAPACK) $(BLAS)
 
 URL = http://stefdeperou.free.fr/pub
 NCINPUT = data2.cdf
-F90NCOUTPUT1 = output1.nc
-F90NCOUTPUT2 = output2.nc
-F90NCOUTPUT3 = output3.nc
+F90NCOUTPUT1 = output_fortran1.nc
+F90NCOUTPUT2 = output_fortran2.nc
+F90NCOUTPUT3 = output_fortran3.nc
 if WITH_PYTHON_EXAMPLE
 VARIABLE1 = pair1
 VARIABLE2 = eof_box1
@@ -30,6 +30,14 @@ endif
 
 EXTRA_DIST = example1.py example2.py
 
+VIEW_HEADER=echo "###########################################################" ; \
+	echo "# Visualisation of output netcdf file $^"; \
+	echo "# This file contains the following variables of interest:"
+VIEW_FOOTER=echo "###########################################################"
+VIEW_MISSING=echo "###########################################################" ; \
+echo "# Results are stored in the following netcdf file:" ;\
+echo "# $^" ;\
+echo "###########################################################"
 ######################################################################
 ######################################################################
 
@@ -59,7 +67,7 @@ endif
 ## F90 example ##
 #################
 if WITH_EXAMPLE
-all-local: $(NCINPUT) fortran1
+all-local: fortran1
 else
 all-local:
 	@echo "###########################################################"
@@ -73,82 +81,50 @@ endif
 fortran1: $(NCINPUT) $(LOCAL_LIB) $(F90NCOUTPUT1)
 if HAS_NCVIEWER
 	@test -f $^ &&  ( \
-	echo "###########################################################" ; \
-	echo "# Visualisation of output netcdf file $^"; \
-	echo "# This file contains the following variables of interest:"; \
+	$(VIEW_HEADER) ; \
 	echo "# - orig:  original field (before its analysis)"; \
 	echo "# - reco1: reconstruction of the first pair of mssa modes"; \
 	echo "# - pair1: phases composites of the first pair"; \
-	echo "###########################################################" )
+	$(VIEW_FOOTER) )
 	test -f $^ && $(NCVIEWER) $(NCVIEWER_ARGS1)
 else
-	@echo "###########################################################"
-	@echo "# Results are stored in the following netcdf file:"
-	@echo "# $^"
-	@echo "###########################################################"
+	@$(VIEW_MISSING)
 endif
 
 fortran2: $(NCINPUT) $(LOCAL_LIB) $(F90NCOUTPUT2)
 if HAS_NCVIEWER
 	@test -f $^ &&  ( \
-	echo "###########################################################" ; \
-	echo "# Visualisation of output netcdf file $^"; \
-	echo "# This contains the following variables of interest:"; \
+	$(VIEW_HEADER) ; \
 	echo "# - sst_box1/2: left/right original fields"; \
 	echo "# - eof_box1/2: left/right SVD EOFs"; \
 	echo "# - pc_box1/2:  left/right SVD PCs"; \
 	echo "# - ev: eigen values"; \
-	echo "###########################################################" )
+	$(VIEW_FOOTER) )
 	test -f $^ && $(NCVIEWER) $(NCVIEWER_ARGS2)
 else
-	@echo "###########################################################"
-	@echo "# Results are stored in the following netcdf file:"
-	@echo "# $^"
-	@echo "###########################################################"
+	@$(VIEW_MISSING)
 endif
 
 fortran3: $(NCINPUT) $(LOCAL_LIB) $(F90NCOUTPUT3)
 if HAS_NCVIEWER
 	@test -f $^ &&  ( \
-	echo "###########################################################" ; \
-	echo "# Visualisation of output netcdf file $^"; \
-	echo "# This contains the following variables of interest:"; \
+	$(VIEW_HEADER) ; \
 	echo "# - sst_box1/2:        left/right original fields"; \
 	echo "# - sst_pca_box1/2:    left/right SST from pre-PCA"; \
 	echo "# - sst_model_box1/2:  right SST from SVD model"; \
-	echo "###########################################################" )
+	$(VIEW_FOOTER) )
 	test -f $^ && $(NCVIEWER) $(NCVIEWER_ARGS3)
 else
-	@echo "###########################################################"
-	@echo "# Results are stored in the following netcdf file:"
-	@echo "# $^"
-	@echo "###########################################################"
+	@$(VIEW_MISSING)
 endif
 
-$(F90NCOUTPUT1): example1
-	@rm -f $^
+output_fortran%.nc: example%
+	@rm -f $@
 	@echo "###########################################################"
-	@echo "# Running the F90 $@ program..."
+	@echo "# Running the F90 $^ program..."
 	@echo "###########################################################"
-	./$@
-	@test -f $^ || echo "No netcdf file created"
-
-$(F90NCOUTPUT2): example2
-	@rm -f $^
-	@echo "###########################################################"
-	@echo "# Running the F90 $@ program..."
-	@echo "###########################################################"
-	./$@
-	@test -f $^ || echo "No netcdf file created"
-
-$(F90NCOUTPUT3): example3
-	@rm -f $^
-	@echo "###########################################################"
-	@echo "# Running the F90 $@ program..."
-	@echo "###########################################################"
-	./$@
-	@test -f $^ || echo "No netcdf file created"
-
+	./$^
+	@test -f $@ || echo "No netcdf file created"
 
 $(LOCAL_LIB):
 	cd ../src && make

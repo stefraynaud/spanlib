@@ -22,9 +22,9 @@
 use strict;
 
 # Inputs
-my ($wrapper, $pyf) = @ARGV;
-if($pyf eq "") {
-	print "Usage: genpyf.pl <f90_wrapper_file_name> <pyf_file_name>\n";
+my ($wrapper, $pyf, $precision, $simple, $double) = @ARGV;
+if($double eq "") {
+	print "Usage: genpyf.pl <f90_wrapper_file_name> <pyf_file_name> {simple|double} <uint:simple> <uit:double>\n";
 	exit;
 }
 
@@ -34,6 +34,7 @@ open(PYF, "> $pyf");
 print PYF "! -*- Mode: f90 -*-\n\n";
 my $inside = 0;
 my $line;
+my $iPrecision = ($precision eq "double")?$double:$simple;
 
 # Loop
 while(<WRAPPER>){
@@ -51,6 +52,7 @@ while(<WRAPPER>){
 				$inside = 1;
 			} elsif($inside==1){
 				if(/(real|integer)/i) {
+					$_ =~ s/\(wp\)/($iPrecision)/;
 					if($_ =~ /(.*)&[ \t]*$/) {
 						print PYF $1;
 						$line = <WRAPPER>;

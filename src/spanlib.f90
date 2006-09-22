@@ -20,6 +20,10 @@
 
 module spanlib
 
+	use spanlib_precision
+
+	implicit none
+
 contains
 
 	! ############################################################
@@ -53,33 +57,32 @@ contains
 	!	- bLargeMatrix: Use la_syevd instead of la_syev (faster for large matrices, but uses more workspace) [default:.true.]
 	!
 	! Dependencies:
-	!	sgemm(BLAS) ssyrk(BLAS) la_syev(LAPACK95) la_syevd(LAPACK95)
+	!	[sd]gemm(BLAS) [sd]syrk(BLAS) la_syev(LAPACK95) la_syevd(LAPACK95)
 
 
 	! Declarations
 	! ============
 
-	use la_precision, only: wp => sp
 	use f95_lapack, only: la_syevd, la_syev
 
 	implicit none
 
 	! External
 	! --------
-	real,    intent(in)           :: ff(:,:)
+	real(wp),    intent(in)           :: ff(:,:)
 	integer, intent(in)	         :: nkeep
-	real,    intent(out),optional :: pc(size(ff,2),nkeep), &
+	real(wp),    intent(out),optional :: pc(size(ff,2),nkeep), &
 	&                                xeof(size(ff,1),nkeep), ev(nkeep)
-	real,    intent(in), optional :: weights(:)
+	real(wp),    intent(in), optional :: weights(:)
 	integer, intent(in), optional :: useteof
 	logical, intent(in), optional :: bLargeMatrix
 
 	! Internal
 	! --------
 	integer           :: ns,nt
-	real, allocatable :: cov(:,:), subcov(:,:)
-	real, allocatable :: wff(:,:), ww(:), zeof(:,:), zff(:,:)
-	real, allocatable :: zev(:)
+	real(wp), allocatable :: cov(:,:), subcov(:,:)
+	real(wp), allocatable :: wff(:,:), ww(:), zeof(:,:), zff(:,:)
+	real(wp), allocatable :: zev(:)
 	integer           :: zuseteof, znkeepmax, i
 	logical           :: zbLargeMatrix
 
@@ -142,7 +145,7 @@ contains
 	! Remove the mean
 	! ---------------
 	allocate(zff(ns,nt))
-	zff = ff - spread(sum(ff,dim=2)/real(nt), ncopies=nt, dim=2)
+	zff = ff - spread(sum(ff,dim=2)/real(nt,kind=wp), ncopies=nt, dim=2)
 
 
 	! Default weights = 1.
@@ -151,7 +154,7 @@ contains
 	allocate(wff(ns,nt))
 	ww = 1.
 	if(present(weights))then
-		ww(:) = weights * real(ns) / sum(weights)
+		ww(:) = weights * real(ns,kind=wp) / sum(weights)
 		where(ww==0.)ww = 1.
 		do i = 1, nt
 			wff(:,i) = zff(:,i) * sqrt(ww)
@@ -174,7 +177,11 @@ contains
 		allocate(cov(nt,nt))
 		allocate(zev(nt))
 		cov=0.
-		call ssyrk('U','T',nt,ns,1.,wff,ns, 0.,cov,nt)
+		if(wp==dp)then
+			call dsyrk('U','T',nt,ns,1.,wff,ns, 0.,cov,nt)
+		else
+			call ssyrk('U','T',nt,ns,1.,wff,ns, 0.,cov,nt)
+		end if
 		cov = cov / float(ns)
 		deallocate(wff)
 
@@ -191,8 +198,13 @@ contains
 			allocate(subcov(nt,nkeep))
 			subcov = cov(:,nt:nt-nkeep+1:-1)
 			deallocate(cov)
-			call sgemm('N','N',ns,nkeep,nt,1.,zff,ns, &
+			if(wp==dp)then
+				call dgemm('N','N',ns,nkeep,nt,1.,zff,ns, &
 				& subcov,nt,0.,zeof,ns)
+			else
+				call sgemm('N','N',ns,nkeep,nt,1.,zff,ns, &
+					& subcov,nt,0.,zeof,ns)
+			end if
 			deallocate(subcov)
 			do i = 1, nkeep
 				zeof(:,i) = zeof(:,i) / &
@@ -216,7 +228,11 @@ contains
 		allocate(cov(ns,ns))
 		allocate(zev(ns))
 		cov = 0.
-		call ssyrk('U','N',ns,nt,1.,wff,ns, 0.,cov,ns)
+		if(wp==dp)then
+			call dsyrk('U','N',ns,nt,1.,wff,ns, 0.,cov,ns)
+		else
+			call ssyrk('U','N',ns,nt,1.,wff,ns, 0.,cov,ns)
+		end if
 		cov = cov / float(nt)
 		deallocate(wff)
 
@@ -294,13 +310,13 @@ contains
 
 	! External
 	! --------
-	real, intent(in)           :: ff(:,:), xeof(:,:)
-	real, intent(out)          :: ec(size(ff,2),size(xeof,2))
-	real, intent(in), optional :: weights(:)
+	real(wp), intent(in)           :: ff(:,:), xeof(:,:)
+	real(wp), intent(out)          :: ec(size(ff,2),size(xeof,2))
+	real(wp), intent(in), optional :: weights(:)
 
 	! Internal
 	! --------
-	real :: zweights(size(ff,1)), zff(size(ff,1),size(ff,2))
+	real(wp) :: zweights(size(ff,1)), zff(size(ff,1),size(ff,2))
 	integer :: ns,nt,nkeep,i
 
 	! Computations
@@ -326,8 +342,11 @@ contains
 	! Main stuff
 	! ----------
 	! ec = matmul( transpose(ff), xeof)
-	call sgemm('T','N',nt,nkeep,ns,1.,zff,ns, &
-		& xeof,ns,0.,ec,nt)
+	if(wp==dp)then
+		call dgemm('T','N',nt,nkeep,ns,1.,zff,ns,xeof,ns,0.,ec,nt)
+	else
+		call sgemm('T','N',nt,nkeep,ns,1.,zff,ns,xeof,ns,0.,ec,nt)
+	end if
 	do i = 1, nkeep
 		ec(:,i) = ec(:,i) / dot_product(xeof(:,i)**2, zweights)
 	end do
@@ -368,14 +387,14 @@ contains
 
 	! External
 	! --------
-	real,	intent(in)              :: xeof(:,:), pc(:,:)
-	real,	intent(out)             :: ffrec(size(xeof,1),size(pc,1))
+	real(wp),	intent(in)     :: xeof(:,:), pc(:,:)
+	real(wp),	intent(out)    :: ffrec(size(xeof,1),size(pc,1))
 	integer,intent(in),	optional	:: istart, iend
 
 	! Internal
 	! --------
 	integer           :: nkept, itmp, zistart, ziend, nt, ns, i
-	real, allocatable	:: zpc(:,:)
+	real(wp), allocatable	:: zpc(:,:)
 
 
 	! Setup
@@ -463,22 +482,23 @@ contains
 	! Declarations
 	! ============
 
-	use la_precision, only: wp => sp
 	use f95_lapack, only: la_syevd, la_syev
 
 	implicit none
 
 	! External
 	! --------
-	real,   intent(in)            :: ff(:,:)
-	integer,intent(in)            :: nwindow, nkeep
-	real,   intent(out), optional :: steof(size(ff,1)*nwindow, nkeep), &
+	real(wp), intent(in)            :: ff(:,:)
+	integer,       intent(in)            :: nwindow, nkeep
+	real(wp), intent(out), optional :: &
+		& steof(size(ff,1)*nwindow, nkeep), &
 		& stpc(size(ff,2)-nwindow+1, nkeep), ev(nkeep)
-	logical, intent(in), optional :: bLargeMatrix
+	logical,       intent(in),  optional :: bLargeMatrix
 
 	! Internal
 	! --------
-	real, allocatable :: cov(:,:), zev(:), zff(:,:), zsteof(:,:)
+	real(wp), allocatable :: cov(:,:), zev(:), &
+		& zff(:,:), zsteof(:,:)
 	integer :: nchan, nsteof, nt, znkeepmax
 	integer :: iw, iw1, iw2, i1, i2, ic1, ic2
 	logical :: zbLargeMatrix
@@ -514,7 +534,7 @@ contains
 	! Remove the mean
 	! ---------------
 	allocate(zff(nchan, nt))
-	zff = ff - spread(sum(ff,dim=2)/real(nt), ncopies=nt, dim=2)
+	zff = ff - spread(sum(ff,dim=2)/real(nt,kind=wp), ncopies=nt, dim=2)
 
 	! Set the block-Toeplitz covariance matrix
 	! ========================================
@@ -529,7 +549,7 @@ contains
 					cov(i1,i2) = &
 						& dot_product(zff(ic1, 1  : nt-iw+1),  &
 						&             zff(ic2, iw : nt	 )) / &
-						& real(nt-iw+1)
+						& real(nt-iw+1,kind=wp)
 					cov(i2,i1) = cov(i1,i2)
 				end do
 			end do
@@ -593,7 +613,7 @@ contains
 	!	- stec:  Time-mode array of expansion coefficients
 	!
 	! Dependencies:
-	!	sgemm(BLAS)
+	!	[sd]gemm(BLAS)
 
 	implicit none
 
@@ -602,14 +622,15 @@ contains
 
 	! External
 	! --------
-	real, intent(in)    :: ff(:,:), steof(:,:)
-	real, intent(out)   :: stec(size(ff,2)-nwindow+1,size(steof,2))
-	integer, intent(in) :: nwindow
+	real(wp), intent(in)  :: ff(:,:), steof(:,:)
+	real(wp), intent(out) :: stec(size(ff,2)-nwindow+1,&
+		& size(steof,2))
+	integer,       intent(in)  :: nwindow
 
 	! Internal
 	! --------
 	integer :: nt,nkeep,im,iw,nchan
-	real :: wpc(size(ff,2)-nwindow+1), substeof(size(ff,1)), &
+	real(wp) :: wpc(size(ff,2)-nwindow+1),substeof(size(ff,1)),&
 		& subff(size(ff,1),size(ff,2)-nwindow+1)
 
 	! Computations
@@ -625,13 +646,23 @@ contains
 	! Main stuff
 	! ----------
 	do im = 1, nkeep
-		do iw = 1, nwindow
-			subff = ff(:,iw:iw+nt-nwindow)
-			substeof = steof(iw:iw+(nchan-1)*nwindow:nwindow, im)
-			call sgemm('T','N', nt-nwindow+1, 1, nchan, 1.,&
-				& subff, nchan, substeof, nchan, 0., wpc, nt-nwindow+1)
-				stec(:, im)  =  stec(:, im) + wpc
-		end do
+		if(wp==dp)then
+			do iw = 1, nwindow
+				subff = ff(:,iw:iw+nt-nwindow)
+				substeof = steof(iw:iw+(nchan-1)*nwindow:nwindow, im)
+				call dgemm('T','N', nt-nwindow+1, 1, nchan, 1.,&
+					& subff, nchan, substeof, nchan, 0., wpc, nt-nwindow+1)
+					stec(:, im)  =  stec(:, im) + wpc
+			end do
+		else
+			do iw = 1, nwindow
+				subff = ff(:,iw:iw+nt-nwindow)
+				substeof = steof(iw:iw+(nchan-1)*nwindow:nwindow, im)
+				call sgemm('T','N', nt-nwindow+1, 1, nchan, 1.,&
+					& subff, nchan, substeof, nchan, 0., wpc, nt-nwindow+1)
+					stec(:, im)  =  stec(:, im) + wpc
+			end do
+		end if
 		stec(:, im) = stec(:, im) / sum(steof(:,im)**2)
 	end do
 
@@ -669,8 +700,8 @@ contains
 
 	! External
 	! --------
-	real,   intent(in)           :: steof(:,:), stpc(:,:)
-	real,   intent(out)          :: ffrec(size(steof, 1)/nwindow,&
+	real(wp),   intent(in)  :: steof(:,:), stpc(:,:)
+	real(wp),   intent(out) :: ffrec(size(steof, 1)/nwindow,&
 	 &                                    size(stpc, 1)+nwindow-1)
 	integer,intent(in)           :: nwindow
 	integer,intent(in), optional :: istart, iend
@@ -679,7 +710,7 @@ contains
 	! --------
 	integer :: ntpc, nchan, nt, ic, im, iw, nkept, &
 	 &         itmp, zistart, ziend
-	real, allocatable :: reof(:), epc(:,:)
+	real(wp), allocatable :: reof(:), epc(:,:)
 
 
 	! Setup
@@ -738,7 +769,7 @@ contains
 
 			! * middle * [nwindow length projections]
 			ffrec(ic, nwindow : ntpc) =  ffrec(ic, nwindow : ntpc) + &
-				& matmul(reof, epc) / real(nwindow)
+				& matmul(reof, epc) / real(nwindow,kind=wp)
 
 			do iw = 1, nwindow-1
 
@@ -796,33 +827,32 @@ contains
 	!	- bLargeMatrix: Use la_sgesdd instead of la_sgesvd (faster for large matrices, but uses more workspace) [default:.false.]
 	!
 	! Dependencies:
-	!	sgemm(BLAS) la_gesvd(LAPACK95) la_gesdd(LAPACK95)
+	!	[sd]gemm(BLAS) la_gesvd(LAPACK95) la_gesdd(LAPACK95)
 
 
 	! Declarations
 	! ============
 
-	use la_precision, only: wp => sp
 	use f95_lapack, only: la_gesdd, la_gesvd
+
 	implicit none
 
 	! External
 	! --------
-	real,    intent(in)           :: ll(:,:),rr(:,:)
-	integer, intent(in)	         :: nkeep
-	real,    intent(in), optional :: lw(:), rw(:)
-	real,    intent(out),optional :: lpc(size(ll,2),nkeep), &
-	&                                leof(size(ll,1),nkeep), &
-	&                                rpc(size(rr,2),nkeep), &
-	&                                reof(size(rr,1),nkeep), &
-	&                                ev(nkeep)
+	real(wp), intent(in)           :: ll(:,:),rr(:,:)
+	integer,       intent(in)	         :: nkeep
+	real(wp), intent(in), optional :: lw(:), rw(:)
+	real(wp), intent(out),optional :: lpc(size(ll,2),nkeep), &
+		& leof(size(ll,1),nkeep), rpc(size(rr,2),nkeep), &
+		&  reof(size(rr,1),nkeep),ev(nkeep)
 	logical, intent(in), optional :: bLargeMatrix
 
 	! Internal
 	! --------
 	integer           :: ns,nsl,nsr,nt
-	real, allocatable :: zll(:,:), zrr(:,:), cov(:,:), zlw(:), zrw(:)
-	real, allocatable :: zev(:), zleof(:,:)
+	real(wp), allocatable :: zll(:,:), zrr(:,:), cov(:,:), &
+		& zlw(:), zrw(:)
+	real(wp), allocatable :: zev(:), zleof(:,:)
 	integer           :: znkeepmax, i
 	logical           :: zbLargeMatrix
 
@@ -870,14 +900,14 @@ contains
 	! -------
 	allocate(zlw(nsl))
 	if(present(lw))then
-		zlw = lw * real(nsl) / sum(lw)
+		zlw = lw * real(nsl,kind=wp) / sum(lw)
 		where(zlw==0.) zlw = 1.
 	else
 		zlw = 1.
 	end if
 	allocate(zrw(nsl))
 	if(present(rw))then
-		zrw = rw * real(nsr) / sum(rw)
+		zrw = rw * real(nsr,kind=wp) / sum(rw)
 		where(zrw==0.) zrw = 1.
 	else
 		zrw = 1.
@@ -890,9 +920,9 @@ contains
 	! Remove the mean
 	! ---------------
 	allocate(zll(nsl,nt))
-	zll = ll - spread(sum(ll,dim=2)/real(nt), ncopies=nt, dim=2)
+	zll = ll - spread(sum(ll,dim=2)/real(nt,kind=wp), ncopies=nt, dim=2)
 	allocate(zrr(nsr,nt))
-	zrr = rr - spread(sum(rr,dim=2)/real(nt), ncopies=nt, dim=2)
+	zrr = rr - spread(sum(rr,dim=2)/real(nt,kind=wp), ncopies=nt, dim=2)
 
 	! Weighting
 	! ---------
@@ -904,8 +934,11 @@ contains
 	! Cross-covariances
 	! -----------------
 	allocate(cov(nsl,nsr))
-	call sgemm('N','T',nsl,nsr,nt,1.,zll,nsl, &
-				& zrr,nsr,0.,cov,nsl)
+	if(wp==dp)then
+		call dgemm('N','T',nsl,nsr,nt,1.,zll,nsl,zrr,nsr,0.,cov,nsl)
+	else
+		call sgemm('N','T',nsl,nsr,nt,1.,zll,nsl,zrr,nsr,0.,cov,nsl)
+	end if
 	cov = cov / float(nt)
 	if(.not.present(lpc)) deallocate(zll)
 	if(.not.present(rpc)) deallocate(zrr)
@@ -1009,17 +1042,17 @@ contains
 	implicit none
 
 	! External
-	real, intent(in) :: ll(:,:), rr(:,:)
-	real, intent(out) ::lPcaEof(:,:), rPcaEof(:,:),&
+	real(wp), intent(in) :: ll(:,:), rr(:,:)
+	real(wp), intent(out) ::lPcaEof(:,:), rPcaEof(:,:),&
 	 & lsvdEof(:,:), rSvdEof(:,:), l2r(:)
-	real, intent(out), optional :: &
+	real(wp), intent(out), optional :: &
 	 & lPcaPc(size(ll,2),size(lPcaEof,2)), &
 	 & rPcaPc(size(ll,2),size(rPcaEof,2))
 
 	! Internal
 	! --------
 	integer :: i,nt,nkeepPca, nkeepSvd
-	real, allocatable :: zlSvdPc(:,:), zrSvdPc(:,:)
+	real(wp), allocatable :: zlSvdPc(:,:), zrSvdPc(:,:)
 
 	! Sizes
 	! -----
@@ -1082,15 +1115,15 @@ contains
 
 	! External
 	! --------
-	real, intent(in) :: ll(:), lPcaEof(:,:), rPcaEof(:,:),&
+	real(wp), intent(in) :: ll(:), lPcaEof(:,:), rPcaEof(:,:),&
 	 & lSvdEof(:,:), rSvdEof(:,:), l2r(:)
-	real, intent(out) :: rr(:)
+	real(wp), intent(out) :: rr(:)
 
 	! Internal
 	! --------
 	integer :: i,nt,nkeepPca, nkeepSvd
-	real, allocatable :: zlPcaEc(:,:),zlSvdEc(:,:),zrSvdEc(:,:),&
-		& zrPcaPc(:,:),zll(:,:),zrr(:,:)
+	real(wp), allocatable :: zlPcaEc(:,:),zlSvdEc(:,:),&
+		& zrSvdEc(:,:),zrPcaPc(:,:),zll(:,:),zrr(:,:)
 
 	! Computations
 	! ============
@@ -1174,19 +1207,19 @@ contains
 
 	! External
 	! --------
-	integer, intent(in)           :: np
-	real,    intent(in)           :: ffrec(:,:)
-	real,    intent(in), optional :: weights(:)
-	real,    intent(in), optional :: offset, firstphase
-	real,    intent(out)          :: phases(size(ffrec, 1),np)
+	integer,       intent(in)           :: np
+	real(wp), intent(in)           :: ffrec(:,:)
+	real(wp), intent(in), optional :: weights(:)
+	real(wp), intent(in), optional :: offset, firstphase
+	real(wp), intent(out)          :: phases(size(ffrec, 1),np)
 
 	! Internal
 	! --------
-	real, allocatable :: pc(:,:)
-	real :: dpc(size(ffrec,2)), amp(size(ffrec,2))
+	real(wp), allocatable :: pc(:,:)
+	real(wp) :: dpc(size(ffrec,2)), amp(size(ffrec,2))
 	integer :: nt, iphase
-	real :: angles(np), projection(size(ffrec,2))
-	real :: pi, deltarad, pcos, psin, zoffset, zfirstphase
+	real(wp) :: angles(np), projection(size(ffrec,2))
+	real(wp) :: pi, deltarad, pcos, psin, zoffset, zfirstphase
 	logical :: select_amplitude(size(ffrec,2)), &
 	 &         select_phase(size(ffrec,2))
 	integer :: itime(size(ffrec,2)), nsel, i, ns
@@ -1209,11 +1242,11 @@ contains
 	! ====================================
 	allocate(pc(nt,1))
 	call sl_pca(ffrec, 1, pc=pc, weights=weights)
-	pc = pc * sqrt(real(nt)/sum(pc**2))
+	pc = pc * sqrt(real(nt,kind=wp)/sum(pc**2))
 	dpc = 0.5 * (eoshift(pc(:,1),  1, pc(nt,1)) - &
 	 &           eoshift(pc(:,1), -1, pc(1,1)))
 	dpc((/1,nt/)) = dpc((/1,nt/)) * 2.
-	dpc = dpc * sqrt(real(nt)/sum(dpc**2))
+	dpc = dpc * sqrt(real(nt,kind=wp)/sum(dpc**2))
 	amp = sqrt(pc(:,1)**2 + dpc**2)
 
 
@@ -1222,7 +1255,7 @@ contains
 
 	! Define the marks
 	! ----------------
-	deltarad = 2 * pi / real(np)
+	deltarad = 2 * pi / real(np,kind=wp)
 	if(present(firstphase))then
 		zfirstphase = modulo(firstphase * 2 * pi / 360., 2 * pi)
 	else
@@ -1245,7 +1278,8 @@ contains
 			nsel = count(select_phase)
 			allocate(isel(nsel))
 			isel = pack(itime, select_phase)
-			phases(:,iphase) = sum(ffrec(:,isel), dim=2) / real(nsel)
+			phases(:,iphase) = sum(ffrec(:,isel), dim=2) / &
+				& real(nsel,kind=wp)
 			deallocate(isel)
 		end if
 	end do
