@@ -54,28 +54,32 @@ you will have to download yourself the input data file to run the example]))
 	# A viewver may be useful to visualise the output netcdf file
 	#################################################################
 
+	# Fortran examples
+	AS_VAR_SET(f90exlist,"1 2 3 4 5 5 6 7 8 9")
+
 	# Ncview
 	AC_CHECK_PROG(NCVIEW,ncview,ncview,no)
 	AS_IF([test "AS_VAR_GET(NCVIEW)" != "no"],[
 		AS_VAR_SET(NCVIEWER,AS_VAR_GET(NCVIEW))
-		AS_VAR_SET(NCVIEWER_ARGS1,['$(F90NCOUTPUT1)'])
-		AS_VAR_SET(NCVIEWER_ARGS2,['$(F90NCOUTPUT2)'])
-		AS_VAR_SET(NCVIEWER_ARGS3,['$(F90NCOUTPUT3)'])
+		for id in AS_VAR_GET(f90exlist) ; do
+			AS_VAR_SET(NCVIEWER_ARGS_fortran$id,output_fortran$id.nc)
+		done
 	])
 
 	# VCDAT
 	AS_VAR_SET_IF(NCVIEWER,,[
 		AS_IF([test "AS_VAR_GET(VCDAT)" != "no"],[
 			AS_VAR_SET(NCVIEWER,AS_VAR_GET(VCDAT))
-		])])
+		])
+	])
 
 	# Quick python viewer
 	AS_VAR_SET_IF(NCVIEWER,,[
 		AS_IF(AS_VAR_GET(WITH_PYTHON_EXAMPLE),[
 			AS_VAR_SET(NCVIEWER,[AS_VAR_GET(PYTHON) ../scripts/quickplot.py])
-			AS_VAR_SET(NCVIEWER_ARGS1,['$(F90NCOUTPUT1) $(VARIABLE1)'])
-			AS_VAR_SET(NCVIEWER_ARGS2,['$(F90NCOUTPUT2) $(VARIABLE2)'])
-			AS_VAR_SET(NCVIEWER_ARGS2,['$(F90NCOUTPUT3) $(VARIABLE3)'])
+			for id in AS_VAR_GET(f90exlist) ; do
+				AS_VAR_SET(NCVIEWER_ARGS_fortran$id,[["]output_fortran$id.nc ['\$(VARIABLE_python]AS_VAR_GET(id)[)']["]])
+			done
 		])])
 
 	# So...
@@ -83,9 +87,18 @@ you will have to download yourself the input data file to run the example]))
 		AC_SR_WARNING([No netcdf viewer available:
 you will have to visualise the output netcdf file by your own]))
 	AC_SUBST(NCVIEWER)
-	AC_SUBST(NCVIEWER_ARGS1)
-	AC_SUBST(NCVIEWER_ARGS2)
-	AC_SUBST(NCVIEWER_ARGS3)
+	# Shit
+	# somebody able to make a loop that works here?
+	AC_SUBST(NCVIEWER_ARGS_fortran1)
+	AC_SUBST(NCVIEWER_ARGS_fortran2)
+	AC_SUBST(NCVIEWER_ARGS_fortran3)
+	AC_SUBST(NCVIEWER_ARGS_fortran4)
+	AC_SUBST(NCVIEWER_ARGS_fortran5)
+	AC_SUBST(NCVIEWER_ARGS_fortran6)
+	AC_SUBST(NCVIEWER_ARGS_fortran7)
+	AC_SUBST(NCVIEWER_ARGS_fortran8)
+	AC_SUBST(NCVIEWER_ARGS_fortran8)
+	AC_SUBST(NCVIEWER_ARGS_fortran9)
 	AM_CONDITIONAL(HAS_NCVIEWER,AS_VAR_TEST_SET(NCVIEWER))
 
 ])

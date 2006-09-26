@@ -216,20 +216,21 @@ install a Fortran 90 compiler.])
 	AC_MSG_CHECKING([for the precision])
 	AC_ARG_ENABLE(
 		double-precision,
-		AS_HELP_STRING([--disable-double-precision],[Disable double precision (use single precision)]),
+		AS_HELP_STRING([--enable-double-precision],[Enable double precision]),
 		[
-			AS_IF([test "xAS_VAR_GET(enableval)" = "xyes"],
+			AS_IF([test "xAS_VAR_GET(enable_double_precision)" = "xyes"],
 				[
-					AS_VAR_SET(PRECISION,single)
-					AS_VAR_SET(WP,sp)
-				],[
 					AS_VAR_SET(PRECISION,double)
 					AS_VAR_SET(WP,dp)
+				],[
+					AS_VAR_SET(PRECISION,simple)
+					AS_VAR_SET(WP,sp)
 				]
 			)
-		],
-		AS_VAR_SET(PRECISION,double)
-		AS_VAR_SET(WP,dp)
+		],[
+			AS_VAR_SET(PRECISION,simple)
+			AS_VAR_SET(WP,sp)
+		]
 	)
 	AC_MSG_RESULT(AS_VAR_GET(PRECISION))
 	AC_SUBST(PRECISION)

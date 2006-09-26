@@ -50,30 +50,34 @@ program example2
 	integer,parameter :: pcaNkeep=10, svdNkeep=5,&
 		& lons1(2)=(/70,150/),lats1(2)=(/16,45/),& ! East
 		& lons2(2)=(/10,40/),lats2(2)=(/12,49/)    ! West
-	real, parameter ::new_missing_value=-999.
+	real(wp), parameter ::new_missing_value=-999.d0
 	character(len=20), parameter :: input_nc_file="data2.cdf", &
 		& output_nc_file="output_fortran2.nc", var_name='ssta'
 
 	! Other declarations
 	! ------------------
-	real, allocatable :: lon1(:), lat1(:), &
-		& lon2(:), lat2(:), time(:), &
-		& sst1(:,:,:), sst2(:,:,:), sst(:,:,:)
-	logical, allocatable :: mask(:,:),mask1(:,:),mask2(:,:)
-	real, allocatable :: packed_sst1(:,:),packed_sst2(:,:)
-	real, allocatable :: svdEv(:), &
+	real(wp), allocatable :: lon1(:), lat1(:), &
+		& lon2(:), lat2(:), time(:), sst1(:,:,:), sst2(:,:,:)
+	logical, allocatable :: mask1(:,:),mask2(:,:)
+	real(wp), allocatable :: packed_sst1(:,:),packed_sst2(:,:)
+	real(wp), allocatable :: svdEv(:), &
 		& pcaEofs1(:,:),pcaEofs2(:,:),pcaPcs1(:,:),pcaPcs2(:,:), &
 		& svdEofs1(:,:),svdEofs2(:,:),svdPcs1(:,:),svdPcs2(:,:), &
 		& svdEofsRec1(:,:,:), svdEofsRec2(:,:,:), &
 		& packed_svdEofsRec1(:,:), packed_svdEofsRec2(:,:)
-	character(len=20) :: dim_names(3), dim_name, &
-		& lon_units, lat_units, var_units, &
+	character(len=20) :: lon_units, lat_units, var_units, &
 		&	lon_name, lat_name, time_name, time_units
-	integer :: ncid, dimid, dimids(6), varids(6), sstids(7), &
-		& dims(3), thisdim, &
-		& lonid, latid, phaseid, timeid, phcoid, recoid, origid
-	integer(kind=4) :: i,nspace,nlon1,nlat1,nlon2,nlat2,ntime,ns1,ns2
-	real :: missing_value
+	integer :: ncid, dimids(6), varids(6), sstids(7)
+	integer(kind=4) :: i,nlon1,nlat1,nlon2,nlat2,ntime,ns1,ns2
+	real(wp) :: missing_value
+
+	! Precision
+	! ---------
+	if(wp==8)then
+		print*,'Using double precision'
+	else
+		print*,'Using simple precision'
+	end if
 
 	! Get the initial sst field from the netcdf file
 	! ----------------------------------------------

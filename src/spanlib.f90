@@ -69,11 +69,11 @@ contains
 
 	! External
 	! --------
-	real(wp),    intent(in)           :: ff(:,:)
+	real(wp),intent(in)           :: ff(:,:)
 	integer, intent(in)	         :: nkeep
-	real(wp),    intent(out),optional :: pc(size(ff,2),nkeep), &
+	real(wp),intent(out),optional :: pc(size(ff,2),nkeep), &
 	&                                xeof(size(ff,1),nkeep), ev(nkeep)
-	real(wp),    intent(in), optional :: weights(:)
+	real(wp),intent(in), optional :: weights(:)
 	integer, intent(in), optional :: useteof
 	logical, intent(in), optional :: bLargeMatrix
 

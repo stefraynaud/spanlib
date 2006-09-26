@@ -65,28 +65,36 @@ program example
 	! ----------
 	integer,parameter :: nkeep_pca=10, nkeep_mssa=6, nwindow=84, &
 		& first_mode=1, nphases=8
-	real(kind=rp), parameter :: offset=0.d, first_phase=180., &
-		& new_missing_value=-999.
+	real(wp), parameter :: offset=0.d0, first_phase=180.d0, &
+		& new_missing_value=-999.d0
 	character(len=20), parameter :: input_nc_file="data2.cdf", &
 		& output_nc_file="output_fortran1.nc", var_name='ssta'
 
 	! Other declarations
 	! ------------------
-	real(kind=rp), allocatable :: field(:,:,:), weights(:,:), &
+	real(wp), allocatable :: field(:,:,:), weights(:,:), &
 		& lat(:), lon(:), time(:)
-	real(kind=rp), allocatable :: reco(:,:,:), phasecomps(:,:,:)
+	real(wp), allocatable :: reco(:,:,:), phasecomps(:,:,:)
 	logical, allocatable :: mask(:,:)
-	real(kind=rp), allocatable :: packed_field(:,:), &
+	real(wp), allocatable :: packed_field(:,:), &
 		& packed_weights(:), packed_phasecomps(:,:), stphasecomps(:,:)
-	real(kind=rp), allocatable :: eof(:,:), pc(:,:), &
+	real(wp), allocatable :: eof(:,:), pc(:,:), &
 		& stpair(:,:), pair(:,:)
-	real(kind=rp), allocatable :: steof(:,:),stpc(:,:),stev(:)
+	real(wp), allocatable :: steof(:,:),stpc(:,:),stev(:)
 	character(len=20) :: lon_units, lat_units, var_units, &
 		&	lon_name, lat_name, time_name, time_units
 	integer :: ncid, dimids(5), varid, lonid, latid, phaseid, &
 		& timeid, phcoid, recoid, origid, modeid, evid
 	integer(kind=4) :: i, nspace, nlon, nlat, ntime
-	real(kind=rp) :: pi, missing_value
+	real(wp) :: pi, missing_value
+
+	! Precision
+	! ---------
+	if(wp==8)then
+		print*,'Using double precision'
+	else
+		print*,'Using simple precision'
+	end if
 
 	! Get the initial sst field from the netcdf file
 	! ----------------------------------------------

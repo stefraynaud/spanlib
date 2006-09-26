@@ -24,6 +24,7 @@ module spanlib_precision
 
 	implicit none
 
-	integer, parameter :: wp = dp
+	! Simple precision by default
+	integer, parameter :: wp = sp
 
 end module spanlib_precision

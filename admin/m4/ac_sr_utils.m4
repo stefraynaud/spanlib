@@ -6,17 +6,17 @@
 ################################################################################
 AC_DEFUN([AC_SR_SET_YELLOWINK],
 [
-	echo -en "\\033\\1331;33m"
+	echo -en "\\033\\1330;33m"
 ])
 
 AC_DEFUN([AC_SR_SET_REDINK],
 [
-	echo -en "\\033\\1331;31m"
+	echo -en "\\033\\1330;31m"
 ])
 
 AC_DEFUN([AC_SR_SET_GREENINK],
 [
-	AS_VAR_SET([GREEN],["\\033\\1331;32m"])
+	AS_VAR_SET([GREEN],["\\033\\1330;32m"])
 	echo -en AS_VAR_GET([GREEN])
 ])
 

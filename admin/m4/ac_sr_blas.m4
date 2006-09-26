@@ -58,8 +58,10 @@ AS_VAR_SET_IF([BLAS_LIB],[
 AC_MSG_RESULT(AS_VAR_GET(BLAS_LIB))
 
 # Try sgemm with blas
-AC_CACHE_CHECK([for dgemm of the blas library],ac_cv_blasok,
-[AC_TRY_LINK_FUNC([dgemm],
+AS_IF([test AS_VAR_GET(PRECISION) = simple],
+	AS_VAR_SET(subroutine,sgemm),AS_VAR_SET(subroutine,dgemm))
+AC_CACHE_CHECK([for AS_VAR_GET(subroutine) of the blas library],ac_cv_blasok,
+[AC_TRY_LINK_FUNC(AS_VAR_GET(subroutine),
                  [AS_VAR_SET(ac_cv_blasok,yes)],
                  [AS_VAR_SET(ac_cv_blasok,no)])
 ])

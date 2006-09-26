@@ -15,33 +15,67 @@ AM_FCFLAGS = -I$(top_srcdir)/src $(NETCDF_INC) $(LAPACK_INC)
 ##example2_LDFLAGS = $(example1_LDFLAGS)
 AM_LDFLAGS = -L$(top_srcdir)/src $(NETCDF_LIB) $(LAPACK_LIB) $(BLAS_LIB)
 LDADD = -lnetcdf $(LOCAL_LIB) $(LAPACK95) $(LAPACK) $(BLAS)
-
 URL = http://stefdeperou.free.fr/pub
 NCINPUT = data2.cdf
-F90NCOUTPUT1 = output_fortran1.nc
-F90NCOUTPUT2 = output_fortran2.nc
-F90NCOUTPUT3 = output_fortran3.nc
+
+######################################################################
+define variables_fortran1
+echo "# - orig:  original field (before its analysis)"; \
+echo "# - reco1: reconstruction of the first pair of mssa modes"; \
+echo "# - pair1: phases composites of the first pair"
+endef
+define variables_fortran2
+echo "# - sst_box1/2: left/right original fields"; \
+echo "# - eof_box1/2: left/right SVD EOFs"; \
+echo "# - pc_box1/2:  left/right SVD PCs"; \
+echo "# - ev: eigen values"
+endef
+define variables_fortran3
+echo "# - sst_box1/2:        left/right original fields"; \
+echo "# - sst_pca_box1/2:    left/right SST from pre-PCA"; \
+echo "# - sst_model_box1/2:  right SST from SVD model"
+endef
+
+######################################################################
 if WITH_PYTHON_EXAMPLE
-VARIABLE1 = pair1
-VARIABLE2 = eof_box1
-VARIABLE3 = sst_model_box2
+VARIABLE_python1 = pair1
+VARIABLE_python2 = eof_box1
+VARIABLE_python3 = sst_model_box2
 CLEANFILES = $(NCOUTPUT)
 endif
 
+######################################################################
 EXTRA_DIST = example1.py example2.py
 
-VIEW_HEADER=echo "###########################################################" ; \
-	echo "# Visualisation of output netcdf file $^"; \
-	echo "# This file contains the following variables of interest:"
-VIEW_FOOTER=echo "###########################################################"
-VIEW_MISSING=echo "###########################################################" ; \
-echo "# Results are stored in the following netcdf file:" ;\
-echo "# $^" ;\
-echo "###########################################################"
-######################################################################
-######################################################################
+FORTRANS=$(subst example,fortran,$(noinst_PROGRAMS) )
+PYTHONS=$(patsubst example%.py,python%,$(EXTRA_DIST) )
 
-###################
+######################################################################
+######################################################################
+if HAS_NCVIEWER
+define fortran_view
+@test -f $(word 3,$^) &&  ( \
+echo "###########################################################" ; \
+echo "# Visualisation of output file $(word 3,$^)"; \
+echo "# This file contains the following variables of interest:" ;\
+$(variables_$@) ;\
+echo "###########################################################" )
+test -f $(word 3,$^) && $(NCVIEWER) $(NCVIEWER_ARGS_$@)
+endef
+else
+define fortran_view
+@echo "###########################################################"
+@echo "# Results are stored in the following netcdf file:"
+@echo "# $(word 3,$^)"
+@echo "###########################################################"
+endef
+endif
+## gmake > 3.80
+##define fortran_view_rule
+##$(1) : $(NCINPUT) $(LOCAL_LIB) output_$(1).nc ; $$(call fortran_view,$(1),output_$(1).nc)
+##endef
+
+##################
 ## common config ##
 ###################
 
@@ -78,53 +112,19 @@ all-local:
 	@echo "###########################################################"
 endif
 
-fortran1: $(NCINPUT) $(LOCAL_LIB) $(F90NCOUTPUT1)
-if HAS_NCVIEWER
-	@test -f $^ &&  ( \
-	$(VIEW_HEADER) ; \
-	echo "# - orig:  original field (before its analysis)"; \
-	echo "# - reco1: reconstruction of the first pair of mssa modes"; \
-	echo "# - pair1: phases composites of the first pair"; \
-	$(VIEW_FOOTER) )
-	test -f $^ && $(NCVIEWER) $(NCVIEWER_ARGS1)
-else
-	@$(VIEW_MISSING)
-endif
-
-fortran2: $(NCINPUT) $(LOCAL_LIB) $(F90NCOUTPUT2)
-if HAS_NCVIEWER
-	@test -f $^ &&  ( \
-	$(VIEW_HEADER) ; \
-	echo "# - sst_box1/2: left/right original fields"; \
-	echo "# - eof_box1/2: left/right SVD EOFs"; \
-	echo "# - pc_box1/2:  left/right SVD PCs"; \
-	echo "# - ev: eigen values"; \
-	$(VIEW_FOOTER) )
-	test -f $^ && $(NCVIEWER) $(NCVIEWER_ARGS2)
-else
-	@$(VIEW_MISSING)
-endif
-
-fortran3: $(NCINPUT) $(LOCAL_LIB) $(F90NCOUTPUT3)
-if HAS_NCVIEWER
-	@test -f $^ &&  ( \
-	$(VIEW_HEADER) ; \
-	echo "# - sst_box1/2:        left/right original fields"; \
-	echo "# - sst_pca_box1/2:    left/right SST from pre-PCA"; \
-	echo "# - sst_model_box1/2:  right SST from SVD model"; \
-	$(VIEW_FOOTER) )
-	test -f $^ && $(NCVIEWER) $(NCVIEWER_ARGS3)
-else
-	@$(VIEW_MISSING)
-endif
+## gmake > 3.80
+##$(foreach fid,$(FORTRANS),$(eval $(call fortran_view_rule,$(fid))))
+fortran1: $(NCINPUT) $(LOCAL_LIB) output_fortran1.nc ; $(call fortran_view)
+fortran2: $(NCINPUT) $(LOCAL_LIB) output_fortran2.nc ; $(call fortran_view)
+fortran3: $(NCINPUT) $(LOCAL_LIB) output_fortran3.nc ; $(call fortran_view)
 
 output_fortran%.nc: example%
 	@rm -f $@
 	@echo "###########################################################"
 	@echo "# Running the F90 $^ program..."
 	@echo "###########################################################"
-	./$^
-	@test -f $@ || echo "No netcdf file created"
+	-./$^
+	-test -f $@ || echo "No netcdf file created"
 
 $(LOCAL_LIB):
 	cd ../src && make
@@ -135,15 +135,17 @@ $(LOCAL_LIB):
 ####################
 
 if WITH_PYTHON_EXAMPLE
-python1 python2: $(NCDATA)
+$(PYTHONS): $(NCDATA)
 	@echo "###########################################################"
 	@echo "# Running the python example `echo $@ |cut -c7` program..."
 	@echo "###########################################################"
 	$(PYTHON) example`echo $@ |cut -c7`.py
 else
-python1 python2:
+$(PYTHONS):
 	@echo "###########################################################"
 	@echo "# You can't run python examples with your configuration"
 	@echo "###########################################################"
 endif
+
+
 
