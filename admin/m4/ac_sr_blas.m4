@@ -151,12 +151,23 @@ AS_VAR_SET_IF([LAPACK_INC],[
 AC_MSG_RESULT(AS_VAR_GET(LAPACK_INC))
 
 # Try ssyev with lapack
-AC_CACHE_CHECK([for dsyev of the lapack library],ac_cv_lapackok,
-[AC_TRY_LINK_FUNC([dsyev],
-                 [AS_VAR_SET(ac_cv_lapackok,yes)],
-                 [AS_VAR_SET(ac_cv_lapackok,no)])
-])
-
+# AC_CACHE_CHECK([for dsyev of the lapack library],ac_cv_lapackok,
+# [AC_TRY_LINK_FUNC([dsyev],
+#                  [AS_VAR_SET(ac_cv_lapackok,yes)],
+#                  [AS_VAR_SET(ac_cv_lapackok,no)])
+# ])
+AC_CACHE_CHECK([for la_syev of the lapack95 library],ac_cv_lapackok,
+	[
+		AC_LINK_IFELSE(
+			[program conftest_routine
+	use f95_lapack, only: la_syev
+	use la_precision, only: wp => AS_VAR_GET(WP)
+	real :: c(1,1),e(1)
+	call la_syev(c,e)
+end program conftest_routine],
+			AS_VAR_SET(ac_cv_lapackok,yes),
+			AS_VAR_SET(ac_cv_lapackok,no))
+	])
 
 #################################
 # Ending
