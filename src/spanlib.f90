@@ -440,6 +440,7 @@ contains
 			ffrec(i, :) = ffrec(i, :) + &
 				&	matmul(xeof(i, zistart:ziend), zpc)
 		end do
+		deallocate(zpc)
 	end if
 
 	end subroutine sl_pca_rec
@@ -593,6 +594,11 @@ contains
 	deallocate(zff)
 
 	end subroutine sl_mssa
+
+
+	!############################################################
+	!############################################################
+	!############################################################
 
 
 	subroutine sl_mssa_getec(ff, steof, nwindow, stec)
@@ -1011,8 +1017,8 @@ contains
 	!############################################################
 
 
-	subroutine sl_svd_model_build(ll,rr,&
-		& lPcaEof,rPcaEof,lSvdEof,rSvdEof,l2r,lPcaPc,rPcaPc)
+	subroutine sl_svd_model_build(ll,rr,lPcaEof,rPcaEof,&
+		& lSvdEof,rSvdEof,l2r,lPcaPc,rPcaPc,lSvdPc,rSvdPc)
 
 	! Title:
 	!	SVD statistical model - Build part
@@ -1027,13 +1033,15 @@ contains
 	! Necessary arguments:
 	!	- ll:    Left space-time array
 	!	- rr:    Right space-time array
-	!	- nkeepPca: Maximum number pre-PCA of modes to retain
-	!	- nkeepSvd: Maximum number SVD of modes to retain
 	!	- lPcaEof:  Left pre-PCA EOFs
 	!	- rPcaEof:  Right pre-PCA EOFs
-	!	- lSvdEof:  Left pre-SVD EOFs
-	!	- rSvdEof:  Right pre-SVD EOFs
+	!	- lSvdEof:  Left SVD EOFs
+	!	- rSvdEof:  Right SVD EOFs
 	!	- l2r:      Scale factors to convert from left to right
+	!	- lPcsPc:   Left pre-PCA PCs
+	!	- rPcsPc:   Right pre-PCA PCs
+	!	- lPcsPc:   Left SVD PCs
+	!	- rPcsPc:   Right SVD PCs
 
 
 	! Declarations
@@ -1047,18 +1055,21 @@ contains
 	 & lsvdEof(:,:), rSvdEof(:,:), l2r(:)
 	real(wp), intent(out), optional :: &
 	 & lPcaPc(size(ll,2),size(lPcaEof,2)), &
-	 & rPcaPc(size(ll,2),size(rPcaEof,2))
+	 & rPcaPc(size(ll,2),size(rPcaEof,2)), &
+	 & lSvdPc(size(ll,2),size(lSvdEof,2)), &
+	 & rSvdPc(size(ll,2),size(rSvdEof,2))
 
 	! Internal
 	! --------
-	integer :: i,nt,nkeepPca, nkeepSvd
-	real(wp), allocatable :: zlSvdPc(:,:), zrSvdPc(:,:)
+	integer :: i,nt,nkeepPca, nkeepSvd, nsl, nsr
 
 	! Sizes
 	! -----
 	nt = size(ll,2)
 	nkeepPca = size(lPcaEof,2)
 	nkeepSvd = size(lSvdEof,2)
+	nsl = real(size(ll,1),kind=wp)
+	nsr = real(size(rr,1),kind=wp)
 
 
 	! Computations
@@ -1071,17 +1082,24 @@ contains
 
 	! SVD
 	! ---
-	allocate(zlSvdPc(nkeepSvd,nt),zrSvdPc(nkeepSvd,nt))
 	call sl_svd(transpose(lPcaPc),transpose(rPcaPc),nkeepSvd, &
-		& leof=lSvdEof, reof=rSvdEof, lpc=zlSvdPc, rpc=zrSvdPc)
+		& leof=lSvdEof, reof=rSvdEof, lpc=lSvdPc, rpc=rSvdPc)
 
-	! Scale factors
-	! -------------
+	! Scale factors based on standard deviations
+	! -----------------------------------------
 	do i = 1, nkeepSVD
-		l2r(i) = sqrt(sum(zrSvdPc(:,i)**2)/sum(zlSvdPc(:,i)**2))
+		l2r(i) = sqrt((sum(rSvdPc(:,i)**2)/nsr - &
+		 &             (sum(rSvdPc(:,i))/nsr)**2) / &
+		 &            (sum(lSvdPc(:,i)**2)/nsr - &
+		 &             (sum(lSvdPc(:,i))/nsl)**2))
 	end do
 
 	end subroutine sl_svd_model_build
+
+
+	!############################################################
+	!############################################################
+	!############################################################
 
 
 	subroutine sl_svd_model_use(ll,rr,&
@@ -1137,9 +1155,10 @@ contains
 	! Get expansion coefficients from re-PCA
 	! --------------------------------------
 	allocate(zll(size(ll,1),1),zlPcaEc(nt,nkeepPca))
+	zll(:,1) = ll
 	call sl_pca_getec(zll,lPcaEof,zlPcaEc)
 	allocate(zlSvdEc(nt,nkeepSvd))
-	call sl_pca_getec(lSvdEof,transpose(zlPcaEc),zlSvdEc)
+	call sl_pca_getec(transpose(zlPcaEc),lSvdEof,zlSvdEc)
 	deallocate(zll,zlPcaEc)
 
 	! Scale factorisation from left to right

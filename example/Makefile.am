@@ -11,8 +11,6 @@ endif
 
 LOCAL_LIB=$(top_srcdir)/src/libspanlib.a
 AM_FCFLAGS = -I$(top_srcdir)/src $(NETCDF_INC) $(LAPACK_INC)
-##example1_LDFLAGS = -L$(top_srcdir)/src $(NETCDF_LIB) $(LAPACK_LIB) $(BLAS_LIB)
-##example2_LDFLAGS = $(example1_LDFLAGS)
 AM_LDFLAGS = -L$(top_srcdir)/src $(NETCDF_LIB) $(LAPACK_LIB) $(BLAS_LIB)
 LDADD = -lnetcdf $(LOCAL_LIB) $(LAPACK95) $(LAPACK) $(BLAS)
 URL = http://stefdeperou.free.fr/pub
@@ -25,15 +23,16 @@ echo "# - reco1: reconstruction of the first pair of mssa modes"; \
 echo "# - pair1: phases composites of the first pair"
 endef
 define variables_fortran2
-echo "# - sst_box1/2: left/right original fields"; \
-echo "# - eof_box1/2: left/right SVD EOFs"; \
-echo "# - pc_box1/2:  left/right SVD PCs"; \
-echo "# - ev: eigen values"
+echo "# - sst_box1/2:    left/right original fields"; \
+echo "# - eof_box1/2:    left/right SVD EOFs"; \
+echo "# - pc_box1/2:     left/right SVD PCs"; \
+echo "# - sstrec_box1/2: left/right reconstructed fields"; \
+echo "# - ev:            eigen values"
 endef
 define variables_fortran3
-echo "# - sst_box1/2:        left/right original fields"; \
-echo "# - sst_pca_box1/2:    left/right SST from pre-PCA"; \
-echo "# - sst_model_box1/2:  right SST from SVD model"
+echo "# - sst_box1/2:      left/right original fields"; \
+echo "# - sst_pca_box1/2:  left/right SST from pre-PCA"; \
+echo "# - sst_model_box2:  right SST from SVD model"
 endef
 
 ######################################################################
@@ -41,11 +40,11 @@ if WITH_PYTHON_EXAMPLE
 VARIABLE_python1 = pair1
 VARIABLE_python2 = eof_box1
 VARIABLE_python3 = sst_model_box2
-CLEANFILES = $(NCOUTPUT)
 endif
 
 ######################################################################
 EXTRA_DIST = example1.py example2.py
+CLEANFILES = output_*.nc
 
 FORTRANS=$(subst example,fortran,$(noinst_PROGRAMS) )
 PYTHONS=$(patsubst example%.py,python%,$(EXTRA_DIST) )
@@ -124,7 +123,7 @@ output_fortran%.nc: example%
 	@echo "# Running the F90 $^ program..."
 	@echo "###########################################################"
 	-./$^
-	-test -f $@ || echo "No netcdf file created"
+	-@test -f $@ || echo "No netcdf file created"
 
 $(LOCAL_LIB):
 	cd ../src && make

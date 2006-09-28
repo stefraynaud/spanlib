@@ -67,7 +67,7 @@
 					Phase composites are also computed to represent the oscillation over its cycle.
 				</p>
         <div class="example">
-          <a id="id3289968"/>
+          <a id="id3014196"/>
           <p class="title">
             <b>Example 1. F90 example 1</b>
           </p>
@@ -154,28 +154,36 @@
 	<span class="HLcomments">! ----------</span>
 	<span class="HLroutines">integer</span>,<span class="HLattributes">parameter</span> :: nkeep_pca=<span class="HLdigits">10</span>, nkeep_mssa=<span class="HLdigits">6</span>, nwindow=<span class="HLdigits">84</span>, &amp;
 		&amp; first_mode=<span class="HLdigits">1</span>, nphases=<span class="HLdigits">8</span>
-	<span class="HLroutines">real</span>, <span class="HLattributes">parameter</span> :: offset=<span class="HLdigits">0</span>., first_phase=<span class="HLdigits">180</span>., &amp;
-		&amp; new_missing_value=-<span class="HLdigits">999</span>.
+	<span class="HLroutines">real</span>(wp), <span class="HLattributes">parameter</span> :: offset=<span class="HLdigits">0</span>.d0, first_phase=<span class="HLdigits">180</span>.d0, &amp;
+		&amp; new_missing_value=-<span class="HLdigits">999</span>.d0
 	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">&quot;data2.cdf&quot;</span>, &amp;
-		&amp; output_nc_file=<span class="HLstrings">&quot;output1.nc&quot;</span>, var_name=<span class="HLstrings">'ssta'</span>
+		&amp; output_nc_file=<span class="HLstrings">&quot;output_fortran1.nc&quot;</span>, var_name=<span class="HLstrings">'ssta'</span>
 
 	<span class="HLcomments">! Other declarations</span>
 	<span class="HLcomments">! ------------------</span>
-	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: field(:,:,:), weights(:,:), &amp;
+	<span class="HLroutines">real</span>(wp), <span class="HLattributes">allocatable</span> :: field(:,:,:), weights(:,:), &amp;
 		&amp; lat(:), lon(:), time(:)
-	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: reco(:,:,:), phasecomps(:,:,:)
+	<span class="HLroutines">real</span>(wp), <span class="HLattributes">allocatable</span> :: reco(:,:,:), phasecomps(:,:,:)
 	<span class="HLroutines">logical</span>, <span class="HLattributes">allocatable</span> :: mask(:,:)
-	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: packed_field(:,:), packed_weights(:), &amp;
-		&amp; packed_phasecomps(:,:), stphasecomps(:,:)
-	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: eof(:,:), pc(:,:), &amp;
+	<span class="HLroutines">real</span>(wp), <span class="HLattributes">allocatable</span> :: packed_field(:,:), &amp;
+		&amp; packed_weights(:), packed_phasecomps(:,:), stphasecomps(:,:)
+	<span class="HLroutines">real</span>(wp), <span class="HLattributes">allocatable</span> :: eof(:,:), pc(:,:), &amp;
 		&amp; stpair(:,:), pair(:,:)
-	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: steof(:,:),stpc(:,:),stev(:)
+	<span class="HLroutines">real</span>(wp), <span class="HLattributes">allocatable</span> :: steof(:,:),stpc(:,:),stev(:)
 	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>) :: lon_units, lat_units, var_units, &amp;
 		&amp;	lon_name, lat_name, time_name, time_units
 	<span class="HLroutines">integer</span> :: ncid, dimids(<span class="HLdigits">5</span>), varid, lonid, latid, phaseid, &amp;
 		&amp; timeid, phcoid, recoid, origid, modeid, evid
 	<span class="HLroutines">integer</span>(kind=<span class="HLdigits">4</span>) :: i, nspace, nlon, nlat, ntime
-	<span class="HLroutines">real</span> :: pi, missing_value
+	<span class="HLroutines">real</span>(wp) :: pi, missing_value
+
+	<span class="HLcomments">! Precision</span>
+	<span class="HLcomments">! ---------</span>
+	<span class="HLroutines">if</span>(wp==<span class="HLdigits">8</span>)<span class="HLroutines">then</span>
+		<span class="HLroutines">print</span>*,<span class="HLstrings">'Using double precision'</span>
+	<span class="HLroutines">else</span>
+		<span class="HLroutines">print</span>*,<span class="HLstrings">'Using simple precision'</span>
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 
 	<span class="HLcomments">! Get the initial sst field from the netcdf file</span>
 	<span class="HLcomments">! ----------------------------------------------</span>
@@ -397,7 +405,7 @@
 					and joint eigen values are stored to the netcdf file.
 				</p>
         <div class="example">
-          <a id="id3292813"/>
+          <a id="id3017042"/>
           <p class="title">
             <b>Example 2. F90 example 2</b>
           </p>
@@ -462,30 +470,38 @@
 	<span class="HLroutines">integer</span>,<span class="HLattributes">parameter</span> :: pcaNkeep=<span class="HLdigits">10</span>, svdNkeep=<span class="HLdigits">5</span>,&amp;
 		&amp; lons1(<span class="HLdigits">2</span>)=(/<span class="HLdigits">70</span>,<span class="HLdigits">150</span>/),lats1(<span class="HLdigits">2</span>)=(/<span class="HLdigits">16</span>,<span class="HLdigits">45</span>/),&amp; <span class="HLcomments">! East</span>
 		&amp; lons2(<span class="HLdigits">2</span>)=(/<span class="HLdigits">10</span>,<span class="HLdigits">40</span>/),lats2(<span class="HLdigits">2</span>)=(/<span class="HLdigits">12</span>,<span class="HLdigits">49</span>/)    <span class="HLcomments">! West</span>
-	<span class="HLroutines">real</span>, <span class="HLattributes">parameter</span> ::new_missing_value=-<span class="HLdigits">999</span>.
+	<span class="HLroutines">real</span>(wp), <span class="HLattributes">parameter</span> ::new_missing_value=-<span class="HLdigits">999</span>.d0
 	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">&quot;data2.cdf&quot;</span>, &amp;
-		&amp; output_nc_file=<span class="HLstrings">&quot;output2.nc&quot;</span>, var_name=<span class="HLstrings">'ssta'</span>
+		&amp; output_nc_file=<span class="HLstrings">&quot;output_fortran2.nc&quot;</span>, var_name=<span class="HLstrings">'ssta'</span>
 
 	<span class="HLcomments">! Other declarations</span>
 	<span class="HLcomments">! ------------------</span>
-	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: lon1(:), lat1(:), &amp;
-		&amp; lon2(:), lat2(:), time(:), &amp;
-		&amp; sst1(:,:,:), sst2(:,:,:), sst(:,:,:)
-	<span class="HLroutines">logical</span>, <span class="HLattributes">allocatable</span> :: mask(:,:),mask1(:,:),mask2(:,:)
-	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: packed_sst1(:,:),packed_sst2(:,:)
-	<span class="HLroutines">real</span>, <span class="HLattributes">allocatable</span> :: svdEv(:), &amp;
+	<span class="HLroutines">real</span>(wp), <span class="HLattributes">allocatable</span> :: lon1(:), lat1(:), &amp;
+		&amp; lon2(:), lat2(:), time(:), sst1(:,:,:), sst2(:,:,:)
+	<span class="HLroutines">logical</span>, <span class="HLattributes">allocatable</span> :: mask1(:,:),mask2(:,:)
+	<span class="HLroutines">real</span>(wp), <span class="HLattributes">allocatable</span> :: packed_sst1(:,:),packed_sst2(:,:),&amp;
+		&amp; pcaSstRec1(:,:,:),pcaSstRec2(:,:,:)
+	<span class="HLroutines">real</span>(wp), <span class="HLattributes">allocatable</span> :: svdEv(:), &amp;
 		&amp; pcaEofs1(:,:),pcaEofs2(:,:),pcaPcs1(:,:),pcaPcs2(:,:), &amp;
-		&amp; svdEofs1(:,:),svdEofs2(:,:),svdPcs1(:,:),svdPcs2(:,:), &amp;
+		&amp; svdEofs1(:,:),svdEofs2(:,:),svdPcs1(:,:),svdPcs2(:,:)
+	<span class="HLroutines">real</span>(wp), <span class="HLattributes">allocatable</span> :: &amp;
 		&amp; svdEofsRec1(:,:,:), svdEofsRec2(:,:,:), &amp;
-		&amp; packed_svdEofsRec1(:,:), packed_svdEofsRec2(:,:)
-	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>) :: dim_names(<span class="HLdigits">3</span>), dim_name, &amp;
-		&amp; lon_units, lat_units, var_units, &amp;
+		&amp; packed_svdEofsRec1(:,:), packed_svdEofsRec2(:,:), &amp;
+		&amp; packed_svdSstRec1(:,:), packed_svdSstRec2(:,:), &amp;
+		&amp; packed_pcaSstRec1(:,:), packed_pcaSstRec2(:,:)
+	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>) :: lon_units, lat_units, var_units, &amp;
 		&amp;	lon_name, lat_name, time_name, time_units
-	<span class="HLroutines">integer</span> :: ncid, dimid, dimids(<span class="HLdigits">6</span>), varids(<span class="HLdigits">6</span>), sstids(<span class="HLdigits">7</span>), &amp;
-		&amp; dims(<span class="HLdigits">3</span>), thisdim, &amp;
-		&amp; lonid, latid, phaseid, timeid, phcoid, recoid, origid
-	<span class="HLroutines">integer</span>(kind=<span class="HLdigits">4</span>) :: i,nspace,nlon1,nlat1,nlon2,nlat2,ntime,ns1,ns2
-	<span class="HLroutines">real</span> :: missing_value
+	<span class="HLroutines">integer</span> :: ncid, dimids(<span class="HLdigits">6</span>), varids(<span class="HLdigits">6</span>), sstids(<span class="HLdigits">9</span>)
+	<span class="HLroutines">integer</span>(kind=<span class="HLdigits">4</span>) :: i,nlon1,nlat1,nlon2,nlat2,ntime,ns1,ns2
+	<span class="HLroutines">real</span>(wp) :: missing_value
+
+	<span class="HLcomments">! Precision</span>
+	<span class="HLcomments">! ---------</span>
+	<span class="HLroutines">if</span>(wp==<span class="HLdigits">8</span>)<span class="HLroutines">then</span>
+		<span class="HLroutines">print</span>*,<span class="HLstrings">'Using double precision'</span>
+	<span class="HLroutines">else</span>
+		<span class="HLroutines">print</span>*,<span class="HLstrings">'Using simple precision'</span>
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
 
 	<span class="HLcomments">! Get the initial sst field from the netcdf file</span>
 	<span class="HLcomments">! ----------------------------------------------</span>
@@ -539,8 +555,6 @@
 	<span class="HLcomments">! Format (pack) data to have only one space dimension</span>
 	<span class="HLcomments">! ---------------------------------------------------</span>
 	<span class="HLroutines">print</span>*,<span class="HLstrings">'Packing...'</span>
-
-	<span class="HLcomments">! Now pack</span>
 	mask1 = (sst1(:,:,<span class="HLdigits">1</span>) /= missing_value)
 	mask2 = (sst2(:,:,<span class="HLdigits">1</span>) /= missing_value)
 	ns1 = count(mask1) ; ns2 = count(mask2)
@@ -578,18 +592,37 @@
 
 	<span class="HLcomments">! Swicth SVD EOFs to the physical space (!)</span>
 	<span class="HLcomments">! -----------------------------------------</span>
-	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_pca_rec</span>] Back to the physical space ...'</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_pca_rec</span>] Back EOF to the physical space ...'</span>
 	<span class="HLfunctions">allocate</span>(packed_svdEofsRec1(ns1,svdNkeep))
 	<span class="HLfunctions">allocate</span>(packed_svdEofsRec2(ns2,svdNkeep))
 	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca_rec</span>(pcaEofs1, <span class="HLfunctions">transpose</span>(svdEofs1), packed_svdEofsRec1)
 	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca_rec</span>(pcaEofs2, <span class="HLfunctions">transpose</span>(svdEofs2), packed_svdEofsRec2)
+
+	<span class="HLcomments">! Switch SST to the physical space</span>
+	<span class="HLcomments">! --------------------------------</span>
+	<span class="HLcomments">! SVD to pre-PCA</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_pca_rec</span>] Back SST to the physical space ...'</span>
+	<span class="HLfunctions">allocate</span>(packed_svdSstRec1(pcaNkeep,ntime))
+	<span class="HLfunctions">allocate</span>(packed_svdSstRec2(pcaNkeep,ntime))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca_rec</span>(svdEofs1,svdPcs1,packed_svdSstRec1)
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca_rec</span>(svdEofs2,svdPcs2,packed_svdSstRec2)
+	<span class="HLcomments">! Pre-PCA to physical</span>
+	<span class="HLfunctions">allocate</span>(packed_pcaSstRec1(ns1,ntime),packed_pcaSstRec2(ns2,ntime))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca_rec</span>(pcaEofs1,<span class="HLfunctions">transpose</span>(packed_svdSstRec1),&amp;
+		&amp; packed_pcaSstRec1)
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca_rec</span>(pcaEofs2,<span class="HLfunctions">transpose</span>(packed_svdSstRec2),&amp;
+		&amp; packed_pcaSstRec2)
 	<span class="HLfunctions">deallocate</span>(pcaEofs1,svdEofs1,pcaEofs2,svdEofs2)
+	<span class="HLfunctions">deallocate</span>(packed_svdSstRec1,packed_svdSstRec2)
 
 	<span class="HLcomments">! Unpacking</span>
 	<span class="HLcomments">! ---------</span>
 	<span class="HLroutines">print</span>*,<span class="HLstrings">'Unpacking...'</span>
 	<span class="HLfunctions">allocate</span>(svdEofsRec1(nlon1,nlat1,svdNkeep))
 	<span class="HLfunctions">allocate</span>(svdEofsRec2(nlon2,nlat2,svdNkeep))
+	<span class="HLfunctions">allocate</span>(pcaSstRec1(nlon1,nlat1,ntime))
+	<span class="HLfunctions">allocate</span>(pcaSstRec2(nlon2,nlat2,ntime))
+	<span class="HLcomments">! Eofs</span>
 	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, svdNkeep
 		svdEofsRec1(:,:,i) = <span class="HLfunctions">unpack</span>(packed_svdEofsRec1(:,i), &amp;
 			&amp; mask1, new_missing_value)
@@ -598,6 +631,16 @@
 		where(.<span class="HLfunctions">not</span>.mask1)svdEofsRec1(:,:,i) = new_missing_value
 		where(.<span class="HLfunctions">not</span>.mask2)svdEofsRec2(:,:,i) = new_missing_value
 	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+	<span class="HLcomments">! SST</span>
+	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, ntime
+		pcaSstRec1(:,:,i) = <span class="HLfunctions">unpack</span>(packed_pcaSstRec1(:,i), &amp;
+			&amp; mask1, new_missing_value)
+		pcaSstRec2(:,:,i) = <span class="HLfunctions">unpack</span>(packed_pcaSstRec2(:,i), &amp;
+			&amp; mask2, new_missing_value)
+		where(.<span class="HLfunctions">not</span>.mask1)pcaSstRec1(:,:,i) = new_missing_value
+		where(.<span class="HLfunctions">not</span>.mask2)pcaSstRec2(:,:,i) = new_missing_value
+	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+
 
 
 	<span class="HLcomments">! Write out the phase composites of the first oscillation</span>
@@ -699,6 +742,21 @@
 		&amp; dimids(<span class="HLdigits">6</span>),sstids(<span class="HLdigits">7</span>)))
 	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">7</span>), <span class="HLstrings">'long_name'</span>, &amp;
 		&amp; <span class="HLstrings">'Eigen values'</span>))
+	<span class="HLcomments">! Reconstructed SST</span>
+	<span class="HLcomments">! * box1</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'sstrec_box1'</span>, nf90_float, &amp;
+	 &amp; (/dimids(<span class="HLdigits">1</span>),dimids(<span class="HLdigits">2</span>),dimids(<span class="HLdigits">5</span>)/),sstids(<span class="HLdigits">8</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">8</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'Reconstructed SST anomaly / box <span class="HLdigits">1</span>'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">8</span>), <span class="HLstrings">'missing_value'</span>, &amp;
+		&amp; new_missing_value))
+	<span class="HLcomments">! * box2</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'sstrec_box2'</span>, nf90_float, &amp;
+	 &amp; (/dimids(<span class="HLdigits">3</span>),dimids(<span class="HLdigits">4</span>),dimids(<span class="HLdigits">5</span>)/),sstids(<span class="HLdigits">9</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">9</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'Reconstructed SST anomaly / box <span class="HLdigits">2</span>'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">9</span>), <span class="HLstrings">'missing_value'</span>, &amp;
+		&amp; new_missing_value))
 
 
 	<span class="HLcomments">! Values</span>
@@ -717,6 +775,8 @@
 	<span class="HLroutines">call</span> err(nf90_put_var(ncid, sstids(<span class="HLdigits">5</span>), svdPcs1))
 	<span class="HLroutines">call</span> err(nf90_put_var(ncid, sstids(<span class="HLdigits">6</span>), svdPcs2))
 	<span class="HLroutines">call</span> err(nf90_put_var(ncid, sstids(<span class="HLdigits">7</span>), svdEv))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, sstids(<span class="HLdigits">8</span>), pcaSstRec1))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, sstids(<span class="HLdigits">9</span>), pcaSstRec2))
 
 	<span class="HLroutines">call</span> err(nf90_close(ncid))
 

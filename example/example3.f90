@@ -1,4 +1,4 @@
-! File: example2.f90
+! File: example3.f90
 !
 ! This file is part of the SpanLib library.
 ! Copyright (C) 2006  Stephane Raynaud
@@ -18,7 +18,7 @@
 ! License along with this library; if not, write to the Free Software
 ! Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-program example2
+program example3
 
 	! This example shows how to use SVD statistical model.
 	!
@@ -56,10 +56,11 @@ program example2
 		& lon2(:), lat2(:), time(:), &
 		& sst1(:,:,:), sst2(:,:,:)
 	logical, allocatable :: mask1(:,:),mask2(:,:)
-	real(wp), allocatable :: packed_sst1(:,:),packed_sst2(:,:)
+	real(wp), allocatable :: packed_sst1(:,:),packed_sst2(:,:),&
+		& packed_sstNow1(:),packed_svdSstNow2(:)
 	real(wp), allocatable :: &
 		& pcaEofs1(:,:),pcaEofs2(:,:),pcaPcs1(:,:),pcaPcs2(:,:), &
-		& svdEofs1(:,:),svdEofs2(:,:)
+		& svdEofs1(:,:),svdEofs2(:,:),svdPcs1(:,:),svdPcs2(:,:)
 	real(wp), allocatable :: l2r(:), packed_svdSst2(:,:), &
 		& packed_pcaSst1(:,:), packed_pcaSst2(:,:), &
 		& pcaSst1(:,:,:), pcaSst2(:,:,:), svdSst2(:,:,:)
@@ -67,8 +68,7 @@ program example2
 		& lon_units, lat_units, var_units, &
 		&	lon_name, lat_name, time_name, time_units
 	integer :: ncid, dimids(6), varids(6), sstids(5)
-	integer(kind=4) :: i,nlon1,nlat1,nlon2,nlat2,ntime,&
-		& ns1,ns2,nt
+	integer(kind=4) :: i,nlon1,nlat1,nlon2,nlat2,ns1,ns2,nt
 	real(wp) :: missing_value
 
 	! Precision
@@ -91,20 +91,20 @@ program example2
 	call err(nf90_inquire_dimension(ncid,dimids(1),name=lon_name))
 	call err(nf90_inquire_dimension(ncid,dimids(2),name=lat_name))
 	call err(nf90_inquire_dimension(ncid, dimids(3), &
-		&	name=time_name, len=ntime))
+		&	name=time_name, len=nt))
 	! Allocations
-	allocate(sst1(nlon1,nlat1,ntime),sst2(nlon2,nlat2,ntime))
+	allocate(sst1(nlon1,nlat1,nt),sst2(nlon2,nlat2,nt))
 	allocate(mask1(nlon1,nlat1),mask2(nlon2,nlat2))
 	allocate(lon1(nlon1),lat1(nlat1))
 	allocate(lon2(nlon2),lat2(nlat2))
-	allocate(time(ntime))
+	allocate(time(nt))
 	! SST boxes and attributes
 	call err(nf90_get_var(ncid, sstids(1), sst1,&
 		& start=(/lons1(1),lats1(1),1/), &
-		& count=(/lons1(2)-lons1(1)+1,lats1(2)-lats1(1)+1,ntime/)))
+		& count=(/lons1(2)-lons1(1)+1,lats1(2)-lats1(1)+1,nt/)))
 	call err(nf90_get_var(ncid, sstids(1), sst2,&
 		& start=(/lons2(1),lats2(1),1/), &
-		& count=(/lons2(2)-lons2(1)+1,lats2(2)-lats2(1)+1,ntime/)))
+		& count=(/lons2(2)-lons2(1)+1,lats2(2)-lats2(1)+1,nt/)))
 	call err(nf90_get_att(ncid,sstids(1),'missing_value',missing_value))
 	call err(nf90_get_att(ncid,sstids(1),'units',var_units))
 	! Longitudes
@@ -131,14 +131,12 @@ program example2
 	! Format (pack) data to have only one space dimension
 	! ---------------------------------------------------
 	print*,'Packing...'
-
-	! Now pack
 	mask1 = (sst1(:,:,1) /= missing_value)
 	mask2 = (sst2(:,:,1) /= missing_value)
 	ns1 = count(mask1) ; ns2 = count(mask2)
-	allocate(packed_sst1(ns1, ntime))
-	allocate(packed_sst2(ns2, ntime))
-	do i=1, ntime
+	allocate(packed_sst1(ns1, nt))
+	allocate(packed_sst2(ns2, nt))
+	do i=1, nt
 		packed_sst1(:,i) = pack(sst1(:,:,i), mask1)
 		packed_sst2(:,i) = pack(sst2(:,:,i), mask2)
 	end do
@@ -148,24 +146,28 @@ program example2
 	! First, we build the model
 	! -------------------------
 	print*,'[sl_svd_model_build] Building the SVD model...'
-	allocate(pcaEofs1(ns1, pcaNkeep),pcaPcs1(ntime,pcaNkeep))
-	allocate(pcaEofs2(ns2, pcaNkeep),pcaPcs2(ntime,pcaNkeep))
+	allocate(pcaEofs1(ns1, pcaNkeep),pcaPcs1(nt,pcaNkeep))
+	allocate(pcaEofs2(ns2, pcaNkeep),pcaPcs2(nt,pcaNkeep))
 	allocate(svdEofs1(pcaNkeep,svdNkeep))
 	allocate(svdEofs2(pcaNkeep,svdNkeep))
+	allocate(svdPcs1(nt,svdNkeep),svdPcs2(nt,svdNkeep))
 	allocate(l2r(svdNkeep))
 	call sl_svd_model_build(packed_sst1,packed_sst2,&
-		& pcaEofs1,pcaEofs2,svdEofs1,svdEofs2,&
-		& l2r,pcaPcs1,pcaPcs2)
+		& pcaEofs1,pcaEofs2,svdEofs1,svdEofs2,l2r, &
+		& lPcaPc = pcaPcs1, rPcaPc = pcaPcs2,&
+		& lSvdPc = svdPcs1, rSvdPc = svdPcs2)
 
 	! Second, we loop on time to estimate sst2 from sst1
 	! --------------------------------------------------
 	print*,'[sl_svd_model_use] Using the SVD model at each time step...'
-	allocate(packed_svdSst2(ns2,nt))
+	allocate(packed_svdSst2(ns2,nt),packed_sstNow1(ns1),packed_svdSstNow2(ns2))
 	do i = 1, nt
-		call sl_svd_model_use(packed_sst1(:,i),packed_svdSst2(:,i),&
+		packed_sstNow1 = packed_sst1(:,i)
+		call sl_svd_model_use(packed_sstNow1,packed_svdSstNow2,&
 			& pcaEofs1,pcaEofs2,svdEofs1,svdEofs2,l2r)
+		packed_svdSst2(:,i) = packed_svdSstNow2
 	end do
-	deallocate(svdEofs1,svdEofs2,l2r)
+	deallocate(svdEofs1,svdEofs2,l2r,packed_sstNow1,packed_svdSstNow2)
 
 	! Rebuild the pre-PCA filtered field for comparisons
 	! --------------------------------------------------
@@ -179,14 +181,14 @@ program example2
 	! ---------
 	print*,'Unpacking...'
 	allocate(svdSst2(nlon2,nlat2,nt))
-	allocate(pcaSst1(nlon1,nlon2,nt),pcaSst2(nlon2,nlat2,nt))
+	allocate(pcaSst1(nlon1,nlat1,nt),pcaSst2(nlon2,nlat2,nt))
 	do i=1, nt
 		svdSst2(:,:,i) = unpack(packed_svdSst2(:,i), &
-			& mask1, new_missing_value)
+			& mask2, new_missing_value)
 		pcaSst1(:,:,i) = unpack(packed_pcaSst1(:,i), &
 			& mask1, new_missing_value)
 		pcaSst2(:,:,i) = unpack(packed_pcaSst2(:,i), &
-			& mask1, new_missing_value)
+			& mask2, new_missing_value)
 		where(.not.mask2)svdSst2(:,:,i) = new_missing_value
 		where(.not.mask1)pcaSst1(:,:,i) = new_missing_value
 		where(.not.mask2)pcaSst2(:,:,i) = new_missing_value
@@ -203,9 +205,8 @@ program example2
 	call err(nf90_def_dim(ncid, 'lat_box1', nlat1, dimids(2)))
 	call err(nf90_def_dim(ncid, 'lon_box2', nlon2, dimids(3)))
 	call err(nf90_def_dim(ncid, 'lat_box2', nlat2, dimids(4)))
-	call err(nf90_def_dim(ncid, 'time', ntime, dimids(5)))
+	call err(nf90_def_dim(ncid, 'time', nt, dimids(5)))
 	call err(nf90_def_dim(ncid, 'mode', svdNkeep, dimids(6)))
-
 	! Box 1
 	call err(nf90_def_var(ncid, 'lon_box1', nf90_float, dimids(1), &
 		& varids(1)))
@@ -258,14 +259,14 @@ program example2
 	! PCA SST
 	! * box1
 	call err(nf90_def_var(ncid, 'sst_pca_box1', nf90_float, &
-	 & (/dimids(1),dimids(2),dimids(6)/),sstids(3)))
+	 & (/dimids(1),dimids(2),dimids(5)/),sstids(3)))
 	call err(nf90_put_att(ncid, sstids(3), 'long_name', &
 		& 'SST anomaly rec. from PCA / box 1'))
 	call err(nf90_put_att(ncid, sstids(3), 'missing_value', &
 		& new_missing_value))
 	! * box2
 	call err(nf90_def_var(ncid, 'sst_pca_box2', nf90_float, &
-	 & (/dimids(3),dimids(4),dimids(6)/),sstids(4)))
+	 & (/dimids(3),dimids(4),dimids(5)/),sstids(4)))
 	call err(nf90_put_att(ncid, sstids(4), 'long_name', &
 		& 'SST anomaly rec. from PCA / box 2'))
 	call err(nf90_put_att(ncid, sstids(4), 'missing_value', &
@@ -273,13 +274,12 @@ program example2
 	! SST computed by model
 	! * Box 2
 	call err(nf90_def_var(ncid, 'sst_model_box2', nf90_float, &
-		& (/dimids(5),dimids(6)/),sstids(5)))
+		& (/dimids(3),dimids(4),dimids(5)/),sstids(5)))
 	call err(nf90_put_att(ncid, sstids(5), 'long_name', &
-		& 'SST anomaly computed by model / box 1'))
+		& 'SST anomaly computed from box1 by model / box 2'))
 	call err(nf90_put_att(ncid, sstids(5), 'units', var_units))
 	call err(nf90_put_att(ncid, sstids(5), 'missing_value', &
 		& new_missing_value))
-
 
 	! Values
 	call err(nf90_enddef(ncid))
@@ -298,7 +298,7 @@ program example2
 
 	call err(nf90_close(ncid))
 
-end program example2
+end program example3
 
 subroutine err(jstatus)
 

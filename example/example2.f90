@@ -59,15 +59,19 @@ program example2
 	real(wp), allocatable :: lon1(:), lat1(:), &
 		& lon2(:), lat2(:), time(:), sst1(:,:,:), sst2(:,:,:)
 	logical, allocatable :: mask1(:,:),mask2(:,:)
-	real(wp), allocatable :: packed_sst1(:,:),packed_sst2(:,:)
+	real(wp), allocatable :: packed_sst1(:,:),packed_sst2(:,:),&
+		& pcaSstRec1(:,:,:),pcaSstRec2(:,:,:)
 	real(wp), allocatable :: svdEv(:), &
 		& pcaEofs1(:,:),pcaEofs2(:,:),pcaPcs1(:,:),pcaPcs2(:,:), &
-		& svdEofs1(:,:),svdEofs2(:,:),svdPcs1(:,:),svdPcs2(:,:), &
+		& svdEofs1(:,:),svdEofs2(:,:),svdPcs1(:,:),svdPcs2(:,:)
+	real(wp), allocatable :: &
 		& svdEofsRec1(:,:,:), svdEofsRec2(:,:,:), &
-		& packed_svdEofsRec1(:,:), packed_svdEofsRec2(:,:)
+		& packed_svdEofsRec1(:,:), packed_svdEofsRec2(:,:), &
+		& packed_svdSstRec1(:,:), packed_svdSstRec2(:,:), &
+		& packed_pcaSstRec1(:,:), packed_pcaSstRec2(:,:)
 	character(len=20) :: lon_units, lat_units, var_units, &
 		&	lon_name, lat_name, time_name, time_units
-	integer :: ncid, dimids(6), varids(6), sstids(7)
+	integer :: ncid, dimids(6), varids(6), sstids(9)
 	integer(kind=4) :: i,nlon1,nlat1,nlon2,nlat2,ntime,ns1,ns2
 	real(wp) :: missing_value
 
@@ -131,8 +135,6 @@ program example2
 	! Format (pack) data to have only one space dimension
 	! ---------------------------------------------------
 	print*,'Packing...'
-
-	! Now pack
 	mask1 = (sst1(:,:,1) /= missing_value)
 	mask2 = (sst2(:,:,1) /= missing_value)
 	ns1 = count(mask1) ; ns2 = count(mask2)
@@ -170,18 +172,37 @@ program example2
 
 	! Swicth SVD EOFs to the physical space (!)
 	! -----------------------------------------
-	print*,'[sl_pca_rec] Back to the physical space ...'
+	print*,'[sl_pca_rec] Back EOF to the physical space ...'
 	allocate(packed_svdEofsRec1(ns1,svdNkeep))
 	allocate(packed_svdEofsRec2(ns2,svdNkeep))
 	call sl_pca_rec(pcaEofs1, transpose(svdEofs1), packed_svdEofsRec1)
 	call sl_pca_rec(pcaEofs2, transpose(svdEofs2), packed_svdEofsRec2)
+
+	! Switch SST to the physical space
+	! --------------------------------
+	! SVD to pre-PCA
+	print*,'[sl_pca_rec] Back SST to the physical space ...'
+	allocate(packed_svdSstRec1(pcaNkeep,ntime))
+	allocate(packed_svdSstRec2(pcaNkeep,ntime))
+	call sl_pca_rec(svdEofs1,svdPcs1,packed_svdSstRec1)
+	call sl_pca_rec(svdEofs2,svdPcs2,packed_svdSstRec2)
+	! Pre-PCA to physical
+	allocate(packed_pcaSstRec1(ns1,ntime),packed_pcaSstRec2(ns2,ntime))
+	call sl_pca_rec(pcaEofs1,transpose(packed_svdSstRec1),&
+		& packed_pcaSstRec1)
+	call sl_pca_rec(pcaEofs2,transpose(packed_svdSstRec2),&
+		& packed_pcaSstRec2)
 	deallocate(pcaEofs1,svdEofs1,pcaEofs2,svdEofs2)
+	deallocate(packed_svdSstRec1,packed_svdSstRec2)
 
 	! Unpacking
 	! ---------
 	print*,'Unpacking...'
 	allocate(svdEofsRec1(nlon1,nlat1,svdNkeep))
 	allocate(svdEofsRec2(nlon2,nlat2,svdNkeep))
+	allocate(pcaSstRec1(nlon1,nlat1,ntime))
+	allocate(pcaSstRec2(nlon2,nlat2,ntime))
+	! Eofs
 	do i=1, svdNkeep
 		svdEofsRec1(:,:,i) = unpack(packed_svdEofsRec1(:,i), &
 			& mask1, new_missing_value)
@@ -190,6 +211,16 @@ program example2
 		where(.not.mask1)svdEofsRec1(:,:,i) = new_missing_value
 		where(.not.mask2)svdEofsRec2(:,:,i) = new_missing_value
 	end do
+	! SST
+	do i=1, ntime
+		pcaSstRec1(:,:,i) = unpack(packed_pcaSstRec1(:,i), &
+			& mask1, new_missing_value)
+		pcaSstRec2(:,:,i) = unpack(packed_pcaSstRec2(:,i), &
+			& mask2, new_missing_value)
+		where(.not.mask1)pcaSstRec1(:,:,i) = new_missing_value
+		where(.not.mask2)pcaSstRec2(:,:,i) = new_missing_value
+	end do
+
 
 
 	! Write out the phase composites of the first oscillation
@@ -291,6 +322,21 @@ program example2
 		& dimids(6),sstids(7)))
 	call err(nf90_put_att(ncid, sstids(7), 'long_name', &
 		& 'Eigen values'))
+	! Reconstructed SST
+	! * box1
+	call err(nf90_def_var(ncid, 'sstrec_box1', nf90_float, &
+	 & (/dimids(1),dimids(2),dimids(5)/),sstids(8)))
+	call err(nf90_put_att(ncid, sstids(8), 'long_name', &
+		& 'Reconstructed SST anomaly / box 1'))
+	call err(nf90_put_att(ncid, sstids(8), 'missing_value', &
+		& new_missing_value))
+	! * box2
+	call err(nf90_def_var(ncid, 'sstrec_box2', nf90_float, &
+	 & (/dimids(3),dimids(4),dimids(5)/),sstids(9)))
+	call err(nf90_put_att(ncid, sstids(9), 'long_name', &
+		& 'Reconstructed SST anomaly / box 2'))
+	call err(nf90_put_att(ncid, sstids(9), 'missing_value', &
+		& new_missing_value))
 
 
 	! Values
@@ -309,6 +355,8 @@ program example2
 	call err(nf90_put_var(ncid, sstids(5), svdPcs1))
 	call err(nf90_put_var(ncid, sstids(6), svdPcs2))
 	call err(nf90_put_var(ncid, sstids(7), svdEv))
+	call err(nf90_put_var(ncid, sstids(8), pcaSstRec1))
+	call err(nf90_put_var(ncid, sstids(9), pcaSstRec2))
 
 	call err(nf90_close(ncid))
 

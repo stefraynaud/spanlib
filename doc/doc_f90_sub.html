@@ -46,18 +46,18 @@
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3348689"/>Usage</h5>
+                <h5 class="title"><a id="id3013792"/>Usage</h5>
               </div>
             </div>
             <div/>
           </div>
-          <pre class="programlisting">call <span class="HLpersonalised">sl_pca</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nkeep</span>, xeof=<span class="HLpersonalised">xeof</span>, pc=<span class="HLpersonalised">pc</span>, ev=<span class="HLpersonalised">ev</span>, weights=<span class="HLpersonalised">weights</span>, useteof=<span class="HLpersonalised">useteof</span>, <span class="HLpersonalised">bLargeMatrix</span>)</pre>
+          <pre class="programlisting">call <span class="HLpersonalised">sl_pca</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nkeep</span>, <span class="HLpersonalised">xeof</span>, <span class="HLpersonalised">pc</span>, <span class="HLpersonalised">ev</span>, <span class="HLpersonalised">weights</span>, useteof=<span class="HLpersonalised">useteof</span>, <span class="HLpersonalised">bLargeMatrix</span>)</pre>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3348760"/>Description</h5>
+                <h5 class="title"><a id="id3072929"/>Description</h5>
               </div>
             </div>
             <div/>
@@ -75,17 +75,25 @@ than the time dimension. This default behavior can be overridden.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3348779"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3072948"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt class="varname">ff    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]    </span></tt> 
+              <li><tt class="varname">ff    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
 				 :: <span class="emphasis"><em>			Space-time array</em></span></li>
               <li><tt class="varname">nkeep    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em>		Maximum number of modes to keep in outputs</em></span></li>
+              <li><tt class="varname">xeof    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+				 :: <span class="emphasis"><em>		Space-mode array of EOFs</em></span></li>
+              <li><tt class="varname">pc    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+				 :: <span class="emphasis"><em>			Time-mode array of PCs</em></span></li>
+              <li><tt class="varname">ev    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+				 :: <span class="emphasis"><em>			Mode array of eigen values (variances)</em></span></li>
+              <li><tt class="varname">weights    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+				 :: <span class="emphasis"><em>	Space array of weights</em></span></li>
             </ul>
           </div>
         </div>
@@ -93,21 +101,13 @@ than the time dimension. This default behavior can be overridden.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3348840"/>Optional arguments</h5>
+                <h5 class="title"><a id="id3073102"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt class="varname">xeof    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
-				 :: <span class="emphasis"><em>		Space-mode array of EOFs</em></span></li>
-              <li><tt class="varname">pc    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
-				 :: <span class="emphasis"><em>			Time-mode array of PCs</em></span></li>
-              <li><tt class="varname">ev    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
-				 :: <span class="emphasis"><em>			Mode array of eigen values (variances)</em></span></li>
-              <li><tt class="varname">weights    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]    </span></tt> 
-				 :: <span class="emphasis"><em>	Space array of weights</em></span></li>
               <li><tt class="varname">useteof    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em>	To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]</em></span></li>
             </ul>
@@ -117,7 +117,7 @@ than the time dimension. This default behavior can be overridden.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3286965"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3011133"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
@@ -133,13 +133,13 @@ than the time dimension. This default behavior can be overridden.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3287002"/>Dependencies</h5>
+                <h5 class="title"><a id="id3011171"/>Dependencies</h5>
               </div>
             </div>
             <div/>
           </div>
           <p>
-<tt class="literal">sgemm(BLAS) ssyrk(BLAS) la_syev(LAPACK95) la_syevd(LAPACK95)</tt>
+<tt class="literal">[sd]gemm(BLAS) [sd]syrk(BLAS) la_syev(LAPACK95) la_syevd(LAPACK95)</tt>
 		</p>
         </div>
       </div>
@@ -160,12 +160,12 @@ input ST-EOFs, these expansion coincide with the: <tt class="literal">sl_pca_get
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3287039"/>Usage</h5>
+                <h5 class="title"><a id="id3011207"/>Usage</h5>
               </div>
             </div>
             <div/>
           </div>
-          <pre class="programlisting">call <span class="HLpersonalised">sl_pca_getec</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">xeof</span>, <span class="HLpersonalised">ec</span>, weights=<span class="HLpersonalised">weights</span>)</pre>
+          <pre class="programlisting">call <span class="HLpersonalised">sl_pca_getec</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">xeof</span>, <span class="HLpersonalised">ec</span>, <span class="HLpersonalised">weights</span>)</pre>
         </div>
       </div>
       <div class="sect3" lang="en">
@@ -181,7 +181,7 @@ input ST-EOFs, these expansion coincide with the: <tt class="literal">sl_pca_get
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3287100"/>Usage</h5>
+                <h5 class="title"><a id="id3011269"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -192,7 +192,7 @@ input ST-EOFs, these expansion coincide with the: <tt class="literal">sl_pca_get
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3287155"/>Description</h5>
+                <h5 class="title"><a id="id3011323"/>Description</h5>
               </div>
             </div>
             <div/>
@@ -208,18 +208,18 @@ by its PC. The sum of all reconstructed component is the original field.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3287172"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3011340"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt class="varname">xeof    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]    </span></tt> 
+              <li><tt class="varname">xeof    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
 				 :: <span class="emphasis"><em>		Space-mode array of EOFs</em></span></li>
-              <li><tt class="varname">pc    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]    </span></tt> 
+              <li><tt class="varname">pc    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
 				 :: <span class="emphasis"><em>		Time-mode array of PCs</em></span></li>
-              <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
+              <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
 				 :: <span class="emphasis"><em>	Space-time array of the reconstructed field</em></span></li>
             </ul>
           </div>
@@ -228,7 +228,7 @@ by its PC. The sum of all reconstructed component is the original field.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3357915"/>Optional arguments</h5>
+                <h5 class="title"><a id="id3011423"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -256,18 +256,18 @@ by its PC. The sum of all reconstructed component is the original field.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3357990"/>Usage</h5>
+                <h5 class="title"><a id="id3012174"/>Usage</h5>
               </div>
             </div>
             <div/>
           </div>
-          <pre class="programlisting">call <span class="HLpersonalised">sl_mssa</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nwindow</span>, <span class="HLpersonalised">nkeep</span>, steof=<span class="HLpersonalised">steof</span>, stpc=<span class="HLpersonalised">stpc</span>, ev=<span class="HLpersonalised">ev</span>, <span class="HLpersonalised">bLargeMatrix</span>)</pre>
+          <pre class="programlisting">call <span class="HLpersonalised">sl_mssa</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nwindow</span>, <span class="HLpersonalised">nkeep</span>, <span class="HLpersonalised">steof</span>, <span class="HLpersonalised">stpc</span>, <span class="HLpersonalised">ev</span>, <span class="HLpersonalised">bLargeMatrix</span>)</pre>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3358058"/>Description</h5>
+                <h5 class="title"><a id="id3012242"/>Description</h5>
               </div>
             </div>
             <div/>
@@ -283,53 +283,25 @@ parameter.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3358074"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3012258"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt class="varname">ff    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]    </span></tt> 
+              <li><tt class="varname">ff    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
 				 :: <span class="emphasis"><em>      Space-time array</em></span></li>
               <li><tt class="varname">nwindow    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em> Window size</em></span></li>
               <li><tt class="varname">nkeep    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em>   Maximum number of modes to keep in outputs</em></span></li>
-            </ul>
-          </div>
-        </div>
-        <div class="simplesect" lang="en">
-          <div class="titlepage">
-            <div>
-              <div>
-                <h5 class="title"><a id="id3358159"/>Optional arguments</h5>
-              </div>
-            </div>
-            <div/>
-          </div>
-          <div class="itemizedlist">
-            <ul type="disc">
-              <li><tt class="varname">steof    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
+              <li><tt class="varname">steof    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
 				 :: <span class="emphasis"><em> Space-window-mode array of EOFs</em></span></li>
-              <li><tt class="varname">stpc    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
+              <li><tt class="varname">stpc    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
 				 :: <span class="emphasis"><em>  Time-mode array of PCs</em></span></li>
-              <li><tt class="varname">ev    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
+              <li><tt class="varname">ev    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
 				 :: <span class="emphasis"><em>    Mode array of eigen values (variances)</em></span></li>
-            </ul>
-          </div>
-        </div>
-        <div class="simplesect" lang="en">
-          <div class="titlepage">
-            <div>
-              <div>
-                <h5 class="title"><a id="id3358244"/>Necessary arguments</h5>
-              </div>
-            </div>
-            <div/>
-          </div>
-          <div class="itemizedlist">
-            <ul type="disc">
               <li><tt class="varname">bLargeMatrix    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
 				 :: <span class="emphasis"><em> Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) </em></span></li>
             </ul>
@@ -339,7 +311,7 @@ parameter.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3358282"/>Dependencies</h5>
+                <h5 class="title"><a id="id3012439"/>Dependencies</h5>
               </div>
             </div>
             <div/>
@@ -366,7 +338,7 @@ input ST-EOFs, these expansion coincide with the: <tt class="literal">sl_mssa_ge
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3358318"/>Usage</h5>
+                <h5 class="title"><a id="id3012475"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -377,13 +349,13 @@ input ST-EOFs, these expansion coincide with the: <tt class="literal">sl_mssa_ge
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3358365"/>Dependencies</h5>
+                <h5 class="title"><a id="id3012522"/>Dependencies</h5>
               </div>
             </div>
             <div/>
           </div>
           <p>
-<tt class="literal">sgemm(BLAS)</tt>
+<tt class="literal">[sd]gemm(BLAS)</tt>
 		</p>
         </div>
       </div>
@@ -400,7 +372,7 @@ input ST-EOFs, these expansion coincide with the: <tt class="literal">sl_mssa_ge
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3358397"/>Usage</h5>
+                <h5 class="title"><a id="id3012553"/>Usage</h5>
               </div>
             </div>
             <div/>
@@ -411,7 +383,7 @@ input ST-EOFs, these expansion coincide with the: <tt class="literal">sl_mssa_ge
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3358458"/>Description</h5>
+                <h5 class="title"><a id="id3012614"/>Description</h5>
               </div>
             </div>
             <div/>
@@ -424,20 +396,20 @@ Same as for the reconstruction of PCA components, but for MSSA.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3358471"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3012628"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt class="varname">steof    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]    </span></tt> 
+              <li><tt class="varname">steof    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
 				 :: <span class="emphasis"><em>   SpaceXwindow-mode array of EOFs</em></span></li>
-              <li><tt class="varname">stpc    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]    </span></tt> 
+              <li><tt class="varname">stpc    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
 				 :: <span class="emphasis"><em>    Time-mode array of PCs</em></span></li>
               <li><tt class="varname">nwindow    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
 				 :: <span class="emphasis"><em> Window size</em></span></li>
-              <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
+              <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
 				 :: <span class="emphasis"><em>   Space-time array of the reconstructed field</em></span></li>
             </ul>
           </div>
@@ -446,7 +418,7 @@ Same as for the reconstruction of PCA components, but for MSSA.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3287983"/>Optional arguments</h5>
+                <h5 class="title"><a id="id3012736"/>Optional arguments</h5>
               </div>
             </div>
             <div/>
@@ -474,18 +446,18 @@ Same as for the reconstruction of PCA components, but for MSSA.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3288058"/>Usage</h5>
+                <h5 class="title"><a id="id3082201"/>Usage</h5>
               </div>
             </div>
             <div/>
           </div>
-          <pre class="programlisting">call <span class="HLpersonalised">sl_phasecomp</span>(<span class="HLpersonalised">ffrec</span>, <span class="HLpersonalised">np</span>, <span class="HLpersonalised">phases</span>, weights=<span class="HLpersonalised">weights</span>, offset=<span class="HLpersonalised">offset</span>, firstphase=<span class="HLpersonalised">firstphase</span>)</pre>
+          <pre class="programlisting">call <span class="HLpersonalised">sl_phasecomp</span>(<span class="HLpersonalised">ffrec</span>, <span class="HLpersonalised">np</span>, <span class="HLpersonalised">phases</span>, <span class="HLpersonalised">weights</span>, <span class="HLpersonalised">offset</span>, <span class="HLpersonalised">firstphase</span>)</pre>
         </div>
         <div class="simplesect" lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3288120"/>Description</h5>
+                <h5 class="title"><a id="id3082263"/>Description</h5>
               </div>
             </div>
             <div/>
@@ -507,38 +479,24 @@ the first phase conincides with the maximmum.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3288142"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id3082285"/>Necessary arguments</h5>
               </div>
             </div>
             <div/>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]    </span></tt> 
+              <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
 				 :: <span class="emphasis"><em> Space-time array</em></span></li>
               <li><tt class="varname">np    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integerdefault:<span class="HLpersonalised">8</span>]    </span></tt> 
 				 :: <span class="emphasis"><em>    Number of requested phases over the 360 degrees cycle </em></span></li>
-              <li><tt class="varname">phases    </tt><tt class="option"><span class="ARGspec">[intent:output, type:real]    </span></tt> 
+              <li><tt class="varname">phases    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
 				 :: <span class="emphasis"><em/></span></li>
-            </ul>
-          </div>
-        </div>
-        <div class="simplesect" lang="en">
-          <div class="titlepage">
-            <div>
-              <div>
-                <h5 class="title"><a id="id3288232"/>Optional arguments</h5>
-              </div>
-            </div>
-            <div/>
-          </div>
-          <div class="itemizedlist">
-            <ul type="disc">
-              <li><tt class="varname">weights    </tt><tt class="option"><span class="ARGspec">[intent:input, type:real]    </span></tt> 
+              <li><tt class="varname">weights    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
 				 :: <span class="emphasis"><em>    Space array of weights</em></span></li>
-              <li><tt class="varname">offset    </tt><tt class="option"><span class="ARGspec">[intent:input, type:realdefault:<span class="HLpersonalised">0</span>.]    </span></tt> 
+              <li><tt class="varname">offset    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
 				 :: <span class="emphasis"><em>     Minimal normalized amplitude of the index </em></span></li>
-              <li><tt class="varname">firstphase    </tt><tt class="option"><span class="ARGspec">[intent:input, type:realdefault:<span class="HLpersonalised">0</span>.]    </span></tt> 
+              <li><tt class="varname">firstphase    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
 				 :: <span class="emphasis"><em> Value in degrees of the first phase </em></span></li>
             </ul>
           </div>
@@ -547,7 +505,7 @@ the first phase conincides with the maximmum.
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3288332"/>Dependencies</h5>
+                <h5 class="title"><a id="id3082446"/>Dependencies</h5>
               </div>
             </div>
             <div/>
