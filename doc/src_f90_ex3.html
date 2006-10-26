@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 example 3</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3496406"></a>SpanLib - Fortran 90 example 3</h1></div></div><div></div><hr /></div><pre class="programlisting"><span class="HLcomments">! File: example3.f90</span>
+<span class="HLcomments">!</span>
+<span class="HLcomments">! This file is part of the SpanLib library.</span>
+<span class="HLcomments">! Copyright (C) 2006  Stephane Raynaud</span>
+<span class="HLcomments">! Contact: stephane dot raynaud at gmail dot com</span>
+<span class="HLcomments">!</span>
+<span class="HLcomments">! This library is free software; you can redistribute it and/or</span>
+<span class="HLcomments">! modify it under the terms of the GNU Lesser General Public</span>
+<span class="HLcomments">! License as published by the Free Software Foundation; either</span>
+<span class="HLcomments">! version 2.1 of the License, or (at your option) any later version.</span>
+<span class="HLcomments">!</span>
+<span class="HLcomments">! This library is distributed in the hope that it will be useful,</span>
+<span class="HLcomments">! but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="HLcomments">! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU</span>
+<span class="HLcomments">! Lesser General Public License for more details.</span>
+<span class="HLcomments">!</span>
+<span class="HLcomments">! You should have received a copy of the GNU Lesser General Public</span>
+<span class="HLcomments">! License along with this library; if not, write to the Free Software</span>
+<span class="HLcomments">! Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA</span>
+
+<span class="HLroutines">program</span> example3
+
+	<span class="HLcomments">! This example shows how to use SVD statistical model.</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! The same dataset as in previous f90 example is used,</span>
+	<span class="HLcomments">! and the same geographical regions as in example2.f90</span>
+	<span class="HLcomments">! are analysed using SVD.</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! The goal is to build a SVD model based on the relationship</span>
+	<span class="HLcomments">! between these two regions. The eastern region is set as the</span>
+	<span class="HLcomments">! predictor, and will be used to estimate the values in these</span>
+	<span class="HLcomments">! western region (the predictand).</span>
+	<span class="HLcomments">!</span>
+	<span class="HLcomments">! Note:</span>
+	<span class="HLcomments">!	This example should run only a few seconds.</span>
+	<span class="HLcomments">!	If it is not the case, your BLAS/LAPACK librairy is not optimized.</span>
+
+
+	<span class="HLroutines">use</span> spanlib
+	<span class="HLroutines">use</span> netcdf
+
+	<span class="HLroutines">implicit</span> <span class="HLattributes">none</span>
+
+	<span class="HLcomments">! Parameters</span>
+	<span class="HLcomments">! ----------</span>
+	<span class="HLroutines">integer</span>,<span class="HLattributes">parameter</span> :: pcaNkeep=<span class="HLdigits">15</span>, svdNkeep=<span class="HLdigits">8</span>,&amp;
+		&amp; lons1(<span class="HLdigits">2</span>)=(/<span class="HLdigits">70</span>,<span class="HLdigits">150</span>/),lats1(<span class="HLdigits">2</span>)=(/<span class="HLdigits">16</span>,<span class="HLdigits">45</span>/),&amp; <span class="HLcomments">! East = predictor</span>
+		&amp; lons2(<span class="HLdigits">2</span>)=(/<span class="HLdigits">10</span>,<span class="HLdigits">40</span>/),lats2(<span class="HLdigits">2</span>)=(/<span class="HLdigits">12</span>,<span class="HLdigits">49</span>/)    <span class="HLcomments">! West = predictand</span>
+	<span class="HLroutines">real</span>(wp), <span class="HLattributes">parameter</span> ::new_missing_value=-<span class="HLdigits">999</span>.d0
+	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">&quot;data2.cdf&quot;</span>, &amp;
+		&amp; output_nc_file=<span class="HLstrings">&quot;output_fortran3.nc&quot;</span>, var_name=<span class="HLstrings">'ssta'</span>
+
+	<span class="HLcomments">! Other declarations</span>
+	<span class="HLcomments">! ------------------</span>
+	<span class="HLroutines">real</span>(wp), <span class="HLattributes">allocatable</span> :: lon1(:), lat1(:), &amp;
+		&amp; lon2(:), lat2(:), time(:), &amp;
+		&amp; sst1(:,:,:), sst2(:,:,:)
+	<span class="HLroutines">logical</span>, <span class="HLattributes">allocatable</span> :: mask1(:,:),mask2(:,:)
+	<span class="HLroutines">real</span>(wp), <span class="HLattributes">allocatable</span> :: packed_sst1(:,:),packed_sst2(:,:),&amp;
+		&amp; packed_sstNow1(:),packed_svdSstNow2(:)
+	<span class="HLroutines">real</span>(wp), <span class="HLattributes">allocatable</span> :: &amp;
+		&amp; pcaEofs1(:,:),pcaEofs2(:,:),pcaPcs1(:,:),pcaPcs2(:,:), &amp;
+		&amp; svdEofs1(:,:),svdEofs2(:,:),svdPcs1(:,:),svdPcs2(:,:)
+	<span class="HLroutines">real</span>(wp), <span class="HLattributes">allocatable</span> :: l2r(:), packed_svdSst2(:,:), &amp;
+		&amp; packed_pcaSst1(:,:), packed_pcaSst2(:,:), &amp;
+		&amp; pcaSst1(:,:,:), pcaSst2(:,:,:), svdSst2(:,:,:)
+	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>) :: &amp;
+		&amp; lon_units, lat_units, var_units, &amp;
+		&amp;	lon_name, lat_name, time_name, time_units
+	<span class="HLroutines">integer</span> :: ncid, dimids(<span class="HLdigits">6</span>), varids(<span class="HLdigits">6</span>), sstids(<span class="HLdigits">5</span>)
+	<span class="HLroutines">integer</span>(kind=<span class="HLdigits">4</span>) :: i,nlon1,nlat1,nlon2,nlat2,ns1,ns2,nt
+	<span class="HLroutines">real</span>(wp) :: missing_value
+
+	<span class="HLcomments">! Precision</span>
+	<span class="HLcomments">! ---------</span>
+	<span class="HLroutines">if</span>(wp==<span class="HLdigits">8</span>)<span class="HLroutines">then</span>
+		<span class="HLroutines">print</span>*,<span class="HLstrings">'Using double precision'</span>
+	<span class="HLroutines">else</span>
+		<span class="HLroutines">print</span>*,<span class="HLstrings">'Using simple precision'</span>
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+
+	<span class="HLcomments">! Get the initial sst field from the netcdf file</span>
+	<span class="HLcomments">! ----------------------------------------------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'Reading inputs...'</span>
+	<span class="HLroutines">call</span> err(nf90_open(input_nc_file, nf90_nowrite, ncid))
+	<span class="HLroutines">call</span> err(nf90_inq_varid(ncid, var_name, sstids(<span class="HLdigits">1</span>)))
+	<span class="HLcomments">! Dimensions</span>
+	nlon1 = lons1(<span class="HLdigits">2</span>)-lons1(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span> ;	nlat1 = lats1(<span class="HLdigits">2</span>)-lats1(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span>
+	nlon2 = lons2(<span class="HLdigits">2</span>)-lons2(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span> ; nlat2 = lats2(<span class="HLdigits">2</span>)-lats2(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span>
+	<span class="HLroutines">call</span> err(nf90_inquire_variable(ncid, sstids(<span class="HLdigits">1</span>), dimids=dimids(<span class="HLdigits">1</span>:<span class="HLdigits">3</span>)))
+	<span class="HLroutines">call</span> err(nf90_inquire_dimension(ncid,dimids(<span class="HLdigits">1</span>),name=lon_name))
+	<span class="HLroutines">call</span> err(nf90_inquire_dimension(ncid,dimids(<span class="HLdigits">2</span>),name=lat_name))
+	<span class="HLroutines">call</span> err(nf90_inquire_dimension(ncid, dimids(<span class="HLdigits">3</span>), &amp;
+		&amp;	name=time_name, len=nt))
+	<span class="HLcomments">! Allocations</span>
+	<span class="HLfunctions">allocate</span>(sst1(nlon1,nlat1,nt),sst2(nlon2,nlat2,nt))
+	<span class="HLfunctions">allocate</span>(mask1(nlon1,nlat1),mask2(nlon2,nlat2))
+	<span class="HLfunctions">allocate</span>(lon1(nlon1),lat1(nlat1))
+	<span class="HLfunctions">allocate</span>(lon2(nlon2),lat2(nlat2))
+	<span class="HLfunctions">allocate</span>(time(nt))
+	<span class="HLcomments">! SST boxes and attributes</span>
+	<span class="HLroutines">call</span> err(nf90_get_var(ncid, sstids(<span class="HLdigits">1</span>), sst1,&amp;
+		&amp; start=(/lons1(<span class="HLdigits">1</span>),lats1(<span class="HLdigits">1</span>),<span class="HLdigits">1</span>/), &amp;
+		&amp; count=(/lons1(<span class="HLdigits">2</span>)-lons1(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span>,lats1(<span class="HLdigits">2</span>)-lats1(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span>,nt/)))
+	<span class="HLroutines">call</span> err(nf90_get_var(ncid, sstids(<span class="HLdigits">1</span>), sst2,&amp;
+		&amp; start=(/lons2(<span class="HLdigits">1</span>),lats2(<span class="HLdigits">1</span>),<span class="HLdigits">1</span>/), &amp;
+		&amp; count=(/lons2(<span class="HLdigits">2</span>)-lons2(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span>,lats2(<span class="HLdigits">2</span>)-lats2(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span>,nt/)))
+	<span class="HLroutines">call</span> err(nf90_get_att(ncid,sstids(<span class="HLdigits">1</span>),<span class="HLstrings">'missing_value'</span>,missing_value))
+	<span class="HLroutines">call</span> err(nf90_get_att(ncid,sstids(<span class="HLdigits">1</span>),<span class="HLstrings">'units'</span>,var_units))
+	<span class="HLcomments">! Longitudes</span>
+	<span class="HLroutines">call</span> err(nf90_inq_varid(ncid, lon_name, varids(<span class="HLdigits">1</span>)))
+	<span class="HLroutines">call</span> err(nf90_get_var(ncid, varids(<span class="HLdigits">1</span>), lon1, &amp;
+		&amp; start=(/lons1(<span class="HLdigits">1</span>)/), count=(/lons1(<span class="HLdigits">2</span>)-lons1(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span>/)))
+	<span class="HLroutines">call</span> err(nf90_get_att(ncid, varids(<span class="HLdigits">1</span>), <span class="HLstrings">'units'</span>, lon_units))
+	<span class="HLroutines">call</span> err(nf90_get_var(ncid, varids(<span class="HLdigits">1</span>), lon2, &amp;
+		&amp; start=(/lons2(<span class="HLdigits">1</span>)/), count=(/lons2(<span class="HLdigits">2</span>)-lons2(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span>/)))
+	<span class="HLcomments">! Latitudes</span>
+	<span class="HLroutines">call</span> err(nf90_inq_varid(ncid, lat_name, varids(<span class="HLdigits">1</span>)))
+	<span class="HLroutines">call</span> err(nf90_get_var(ncid, varids(<span class="HLdigits">1</span>), lat1, &amp;
+		&amp; start=(/lats1(<span class="HLdigits">1</span>)/), count=(/lats1(<span class="HLdigits">2</span>)-lats1(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span>/)))
+	<span class="HLroutines">call</span> err(nf90_get_att(ncid, varids(<span class="HLdigits">1</span>), <span class="HLstrings">'units'</span>, lat_units))
+	<span class="HLroutines">call</span> err(nf90_get_var(ncid, varids(<span class="HLdigits">1</span>), lat2, &amp;
+		&amp; start=(/lats2(<span class="HLdigits">1</span>)/), count=(/lats2(<span class="HLdigits">2</span>)-lats2(<span class="HLdigits">1</span>)+<span class="HLdigits">1</span>/)))
+	<span class="HLcomments">! Time</span>
+	<span class="HLroutines">call</span> err(nf90_inq_varid(ncid, time_name, varids(<span class="HLdigits">1</span>)))
+	<span class="HLroutines">call</span> err(nf90_get_var(ncid, varids(<span class="HLdigits">1</span>), time))
+	<span class="HLroutines">call</span> err(nf90_get_att(ncid, varids(<span class="HLdigits">1</span>), <span class="HLstrings">'units'</span>, time_units))
+	<span class="HLroutines">call</span> err(nf90_close(ncid))
+
+
+	<span class="HLcomments">! Format (pack) data to have only one space dimension</span>
+	<span class="HLcomments">! ---------------------------------------------------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'Packing...'</span>
+	mask1 = (sst1(:,:,<span class="HLdigits">1</span>) /= missing_value)
+	mask2 = (sst2(:,:,<span class="HLdigits">1</span>) /= missing_value)
+	ns1 = count(mask1) ; ns2 = count(mask2)
+	<span class="HLfunctions">allocate</span>(packed_sst1(ns1, nt))
+	<span class="HLfunctions">allocate</span>(packed_sst2(ns2, nt))
+	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, nt
+		packed_sst1(:,i) = <span class="HLfunctions">pack</span>(sst1(:,:,i), mask1)
+		packed_sst2(:,i) = <span class="HLfunctions">pack</span>(sst2(:,:,i), mask2)
+	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+	where(sst1==missing_value)sst1 = new_missing_value
+	where(sst2==missing_value)sst2 = new_missing_value
+
+	<span class="HLcomments">! First, we build the model</span>
+	<span class="HLcomments">! -------------------------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_svd_model_build</span>] Building the SVD model...'</span>
+	<span class="HLfunctions">allocate</span>(pcaEofs1(ns1, pcaNkeep),pcaPcs1(nt,pcaNkeep))
+	<span class="HLfunctions">allocate</span>(pcaEofs2(ns2, pcaNkeep),pcaPcs2(nt,pcaNkeep))
+	<span class="HLfunctions">allocate</span>(svdEofs1(pcaNkeep,svdNkeep))
+	<span class="HLfunctions">allocate</span>(svdEofs2(pcaNkeep,svdNkeep))
+	<span class="HLfunctions">allocate</span>(svdPcs1(nt,svdNkeep),svdPcs2(nt,svdNkeep))
+	<span class="HLfunctions">allocate</span>(l2r(svdNkeep))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_svd_model_build</span>(packed_sst1,packed_sst2,&amp;
+		&amp; pcaEofs1,pcaEofs2,svdEofs1,svdEofs2,l2r, &amp;
+		&amp; lPcaPc = pcaPcs1, rPcaPc = pcaPcs2,&amp;
+		&amp; lSvdPc = svdPcs1, rSvdPc = svdPcs2)
+
+	<span class="HLcomments">! Second, we loop on time to estimate sst2 from sst1</span>
+	<span class="HLcomments">! --------------------------------------------------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_svd_model_use</span>] Using the SVD model at each time step...'</span>
+	<span class="HLfunctions">allocate</span>(packed_svdSst2(ns2,nt),packed_sstNow1(ns1),packed_svdSstNow2(ns2))
+	<span class="HLroutines">do</span> i = <span class="HLdigits">1</span>, nt
+		packed_sstNow1 = packed_sst1(:,i)
+		<span class="HLroutines">call</span> <span class="HLpersonalised">sl_svd_model_use</span>(packed_sstNow1,packed_svdSstNow2,&amp;
+			&amp; pcaEofs1,pcaEofs2,svdEofs1,svdEofs2,l2r)
+		packed_svdSst2(:,i) = packed_svdSstNow2
+	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+	<span class="HLfunctions">deallocate</span>(svdEofs1,svdEofs2,l2r,packed_sstNow1,packed_svdSstNow2)
+
+	<span class="HLcomments">! Rebuild the pre-PCA filtered field for comparisons</span>
+	<span class="HLcomments">! --------------------------------------------------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_pca_rec</span>] Rebuilding after pre-pca'</span>
+	<span class="HLfunctions">allocate</span>(packed_pcaSst1(ns1,nt),packed_pcaSst2(ns2,nt))
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca_rec</span>(pcaEofs1,pcaPcs1,packed_pcaSst1)
+	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_pca_rec</span>(pcaEofs2,pcaPcs2,packed_pcaSst2)
+	<span class="HLfunctions">deallocate</span>(pcaEofs1,pcaEofs2)
+
+	<span class="HLcomments">! Unpacking</span>
+	<span class="HLcomments">! ---------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'Unpacking...'</span>
+	<span class="HLfunctions">allocate</span>(svdSst2(nlon2,nlat2,nt))
+	<span class="HLfunctions">allocate</span>(pcaSst1(nlon1,nlat1,nt),pcaSst2(nlon2,nlat2,nt))
+	<span class="HLroutines">do</span> i=<span class="HLdigits">1</span>, nt
+		svdSst2(:,:,i) = <span class="HLfunctions">unpack</span>(packed_svdSst2(:,i), &amp;
+			&amp; mask2, new_missing_value)
+		pcaSst1(:,:,i) = <span class="HLfunctions">unpack</span>(packed_pcaSst1(:,i), &amp;
+			&amp; mask1, new_missing_value)
+		pcaSst2(:,:,i) = <span class="HLfunctions">unpack</span>(packed_pcaSst2(:,i), &amp;
+			&amp; mask2, new_missing_value)
+		where(.<span class="HLfunctions">not</span>.mask2)svdSst2(:,:,i) = new_missing_value
+		where(.<span class="HLfunctions">not</span>.mask1)pcaSst1(:,:,i) = new_missing_value
+		where(.<span class="HLfunctions">not</span>.mask2)pcaSst2(:,:,i) = new_missing_value
+	<span class="HLroutines">end</span> <span class="HLroutines">do</span>
+
+
+	<span class="HLcomments">! Write out the phase composites of the first oscillation</span>
+	<span class="HLcomments">! -------------------------------------------------------</span>
+	<span class="HLroutines">print</span>*,<span class="HLstrings">'Writing out...'</span>
+	<span class="HLcomments">! File</span>
+	<span class="HLroutines">call</span> err(nf90_create(output_nc_file, nf90_write, ncid))
+	<span class="HLcomments">! Dimensions</span>
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'lon_box1'</span>, nlon1, dimids(<span class="HLdigits">1</span>)))
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'lat_box1'</span>, nlat1, dimids(<span class="HLdigits">2</span>)))
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'lon_box2'</span>, nlon2, dimids(<span class="HLdigits">3</span>)))
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'lat_box2'</span>, nlat2, dimids(<span class="HLdigits">4</span>)))
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'time'</span>, nt, dimids(<span class="HLdigits">5</span>)))
+	<span class="HLroutines">call</span> err(nf90_def_dim(ncid, <span class="HLstrings">'mode'</span>, svdNkeep, dimids(<span class="HLdigits">6</span>)))
+	<span class="HLcomments">! Box 1</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lon_box1'</span>, nf90_float, dimids(<span class="HLdigits">1</span>), &amp;
+		&amp; varids(<span class="HLdigits">1</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">1</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'Longitude'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">1</span>), <span class="HLstrings">'units'</span>, lon_units))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lat_box1'</span>, nf90_float, dimids(<span class="HLdigits">2</span>), &amp;
+		&amp; varids(<span class="HLdigits">2</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">2</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'Latitude'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">2</span>), <span class="HLstrings">'units'</span>, lat_units))
+	<span class="HLcomments">! Box 2</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lon_box2'</span>, nf90_float, dimids(<span class="HLdigits">3</span>), &amp;
+		&amp; varids(<span class="HLdigits">3</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">3</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'Longitude'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">3</span>), <span class="HLstrings">'units'</span>, lon_units))
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'lat_box2'</span>, nf90_float, dimids(<span class="HLdigits">4</span>), &amp;
+		&amp; varids(<span class="HLdigits">4</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">4</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'Latitude'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">4</span>), <span class="HLstrings">'units'</span>, lat_units))
+	<span class="HLcomments">! Time</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'time'</span>, nf90_float, dimids(<span class="HLdigits">5</span>), &amp;
+		&amp; varids(<span class="HLdigits">5</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">5</span>), <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'Time'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">5</span>), <span class="HLstrings">'units'</span>, time_units))
+	<span class="HLcomments">! Mode</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'mode'</span>, nf90_float, dimids(<span class="HLdigits">6</span>), &amp;
+		&amp; varids(<span class="HLdigits">6</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">6</span>), <span class="HLstrings">'long_name'</span>, <span class="HLstrings">'Mode'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, varids(<span class="HLdigits">6</span>), <span class="HLstrings">'units'</span>, <span class="HLstrings">'level'</span>))
+	<span class="HLcomments">! Original fields</span>
+	<span class="HLcomments">! * box1</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'sst_box1'</span>, nf90_float, &amp;
+		&amp; (/dimids(<span class="HLdigits">1</span>),dimids(<span class="HLdigits">2</span>),dimids(<span class="HLdigits">5</span>)/), sstids(<span class="HLdigits">1</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">1</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'SST anomaly / original field / box <span class="HLdigits">1</span>'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">1</span>), <span class="HLstrings">'units'</span>, var_units))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">1</span>), <span class="HLstrings">'missing_value'</span>, &amp;
+		&amp; new_missing_value))
+	<span class="HLcomments">! * box2</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'sst_box2'</span>, nf90_float, &amp;
+	 &amp; (/dimids(<span class="HLdigits">3</span>),dimids(<span class="HLdigits">4</span>),dimids(<span class="HLdigits">5</span>)/), sstids(<span class="HLdigits">2</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">2</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'SST anomaly / original field / box <span class="HLdigits">2</span>'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">2</span>), <span class="HLstrings">'units'</span>, var_units))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">2</span>), <span class="HLstrings">'missing_value'</span>, &amp;
+		&amp; new_missing_value))
+	<span class="HLcomments">! PCA SST</span>
+	<span class="HLcomments">! * box1</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'sst_pca_box1'</span>, nf90_float, &amp;
+	 &amp; (/dimids(<span class="HLdigits">1</span>),dimids(<span class="HLdigits">2</span>),dimids(<span class="HLdigits">5</span>)/),sstids(<span class="HLdigits">3</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">3</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'SST anomaly rec. from PCA / box <span class="HLdigits">1</span>'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">3</span>), <span class="HLstrings">'missing_value'</span>, &amp;
+		&amp; new_missing_value))
+	<span class="HLcomments">! * box2</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'sst_pca_box2'</span>, nf90_float, &amp;
+	 &amp; (/dimids(<span class="HLdigits">3</span>),dimids(<span class="HLdigits">4</span>),dimids(<span class="HLdigits">5</span>)/),sstids(<span class="HLdigits">4</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">4</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'SST anomaly rec. from PCA / box <span class="HLdigits">2</span>'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">4</span>), <span class="HLstrings">'missing_value'</span>, &amp;
+		&amp; new_missing_value))
+	<span class="HLcomments">! SST computed by model</span>
+	<span class="HLcomments">! * Box 2</span>
+	<span class="HLroutines">call</span> err(nf90_def_var(ncid, <span class="HLstrings">'sst_model_box2'</span>, nf90_float, &amp;
+		&amp; (/dimids(<span class="HLdigits">3</span>),dimids(<span class="HLdigits">4</span>),dimids(<span class="HLdigits">5</span>)/),sstids(<span class="HLdigits">5</span>)))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">5</span>), <span class="HLstrings">'long_name'</span>, &amp;
+		&amp; <span class="HLstrings">'SST anomaly computed from box1 by model / box <span class="HLdigits">2</span>'</span>))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">5</span>), <span class="HLstrings">'units'</span>, var_units))
+	<span class="HLroutines">call</span> err(nf90_put_att(ncid, sstids(<span class="HLdigits">5</span>), <span class="HLstrings">'missing_value'</span>, &amp;
+		&amp; new_missing_value))
+
+	<span class="HLcomments">! Values</span>
+	<span class="HLroutines">call</span> err(nf90_enddef(ncid))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, varids(<span class="HLdigits">1</span>), lon1))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, varids(<span class="HLdigits">2</span>), lat1))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, varids(<span class="HLdigits">3</span>), lon2))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, varids(<span class="HLdigits">4</span>), lat2))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, varids(<span class="HLdigits">5</span>), time))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, varids(<span class="HLdigits">6</span>), &amp;
+		&amp; float((/(i,i=<span class="HLdigits">1</span>,svdNkeep)/))))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, sstids(<span class="HLdigits">1</span>), sst1))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, sstids(<span class="HLdigits">2</span>), sst2))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, sstids(<span class="HLdigits">3</span>), pcaSst1))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, sstids(<span class="HLdigits">4</span>), pcaSst2))
+	<span class="HLroutines">call</span> err(nf90_put_var(ncid, sstids(<span class="HLdigits">5</span>), svdSst2))
+
+	<span class="HLroutines">call</span> err(nf90_close(ncid))
+
+<span class="HLroutines">end</span> <span class="HLroutines">program</span> example3
+
+<span class="HLroutines">subroutine</span> err(jstatus)
+
+	<span class="HLroutines">use</span> netcdf
+
+	<span class="HLroutines">integer</span> :: jstatus
+
+	<span class="HLroutines">if</span> (jstatus .ne. nf90_noerr) <span class="HLroutines">then</span>
+		<span class="HLroutines">print</span> *, <span class="HLfunctions">trim</span>(nf90_strerror(jstatus))
+		stop
+	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+
+<span class="HLroutines">end</span> <span class="HLroutines">subroutine</span> err
+
+</pre></div></body></html>

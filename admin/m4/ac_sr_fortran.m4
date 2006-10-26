@@ -187,24 +187,21 @@ install a Fortran 90 compiler.])
 			case "$enable_optimization" in
 				debug)
 					AC_MSG_NOTICE([**** DEBUGGING OPTIONS are SELECTED *****])
-					FCFLAGS="-g -O0 -fno-second-underscore -Wall -Wunset-vars -Wunused-vars -fbounds-check "
-					LDFLAGS="-g -O0-fno-second-underscore"
+					FCFLAGS="-g -O0 -Wall -Wunset-vars -Wunused-vars -fbounds-check "
+					FCFLAGS="-g -Wall"
 					;;
 				aggressive)
 					AC_MSG_NOTICE([**** AGGRESSIVE COMPILER OPTIONS are SELECTED *****])
-	 				FCFLAGS="-g -O3 -fno-second-underscore"
-					LDFLAGS="-g -O3 -fno-second-underscore"
+	 				FCFLAGS="-g -O3"
 					;;
 				normal|*)
 					AC_MSG_NOTICE([**** NORMAL MODE *****])
-					FCFLAGS="-g -O -fno-second-underscore"
-					LDFLAGS="-g -O -fno-second-underscore"
+					FCFLAGS="-g -O"
 				;;
 			esac
 			if test "$enable_prof" = "yes" ; then
 				AC_MSG_NOTICE([**** PROFILING is SELECTED (gprof) *****])
 				FCFLAGS="-pg $FCFLAGS"
-				LDFLAGS="-pg $LDFLAGS"
 			fi
 			;;
 	esac

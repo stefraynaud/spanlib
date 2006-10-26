@@ -182,7 +182,6 @@ program example
 	print*,'[sl_phasecomp] Phase composites...'
 	allocate(stphasecomps(nkeep_pca, nphases))
 	call sl_phasecomp(stpair, nphases, stphasecomps, &
-		&	weights=packed_weights, &
 		&	offset=offset, firstphase=first_phase)
 
 	! We go back to the physical space for
