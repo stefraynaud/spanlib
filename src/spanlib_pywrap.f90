@@ -224,3 +224,26 @@ subroutine unpack3d(ff3d, mask, ns1, ns2, nt, ff2d, ns, &
 	end do
 
 end subroutine unpack3d
+
+
+subroutine svd(ll, nsl, rr, nsr, nt, nkeep, leof, reof, lpc, rpc, ev, lweights, rweights)
+
+	use spanlib, only: sl_svd
+	use spanlib_precision
+
+	implicit none
+
+	! External
+	! --------
+	integer, intent(in)  :: nsl,nsr,nt
+	real(wp),intent(in)  :: ll(nsl,nt),rr(nsr,nt)
+	integer, intent(in)  :: nkeep
+	real(wp),intent(out) :: lpc(nt,nkeep), leof(nsl,nkeep)
+	real(wp),intent(out) :: rpc(nt,nkeep), reof(nsr,nkeep), ev(nkeep)
+	real(wp),intent(in)  :: lweights(nsl),rweights(nsr)
+
+	! Call to original subroutine
+	! ---------------------------
+	call sl_svd(ll,rr,nkeep,leof,reof,lpc,rpc,ev,lweights,rweights)
+
+end subroutine svd

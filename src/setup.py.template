@@ -13,6 +13,8 @@ extra_link_args=[]
 ## Get package version info
 version='1.0'
 description='Python extension to spanlib fortran library'
+author = 'Stephane Raynaud and Charles Doutriaux'
+author_email = 'stephane.raynaud@gmail.com'
 ## scypy_distutils Script
 from scipy_distutils.core import setup, Extension
 
@@ -45,7 +47,7 @@ setup(name="spanlib",
       license="GNU GPL",
       
      ## Install these to their own directory
-     package_dir={'spanlib':'lib'},
+     package_dir={'spanlib':'../lib'},
      packages = ["spanlib"],
       
      )

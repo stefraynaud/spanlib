@@ -174,7 +174,7 @@ def pack(data,weights=None):
                 tmp=tmp[0]
             weights=cdutil.area_weights(tmp).raw_data()
             del(tmp)
-        except:
+        except Exception,err:
             weights=MV.ones((sh[-2],sh[-1]),typecode='f')
 
     ## Now masking part
@@ -208,7 +208,6 @@ def pack(data,weights=None):
     tweights=Numeric.transpose(weights.filled(0))
     tweights=Numeric.ones(tweights.shape,'f')
     packed_weights = spanlib_fort.pack3d(tweights,mask,ns)[:,0].astype('f')
-    
     return packed_data,packed_weights,mask
 
 
@@ -253,7 +252,7 @@ def computePhases(data,nphases=8,offset=.5,firstphase=0):
     return phases
 
 class SpAn(object):
-    def __init__(self,data,weights=None,npca=None,window=None,nmssa=None):
+    def __init__(self,data,weights=None,npca=None,window=None,nmssa=None,nsvd=None):
         """ Prepare the Spectral Analysis Object
 
         Description:::
@@ -264,7 +263,7 @@ class SpAn(object):
         Usage:::
         analysis_object = SpAn(data,weights=None,npca=None,window=None,nmssa=None)
 
-          data    :: Data on which to run the PC Analysis
+          data    :: List of data on which to run the PC Analysis
                      Last dimensions must represent the spatial dimensions.
                      Analysis will be run on the first dimension.
           weights :: If you which to apply weights on some points,
@@ -276,37 +275,64 @@ class SpAn(object):
                      [default: 1. everywhere]
           npca    :: Number of principal components to return [default: 10]
           nmssa   :: Number of MSSA modes retained [default: 4]
+          nsvd    :: Number of SVD modes retained [default: 10]
           window  :: MSSA window parameter [default: time_length/3.]
         :::
 
         Output:::
-          analysis_object :: Object created for further analysis
+          analysis_object :: SpAn object created for further analysis
         :::
         """
         ## Sets all values to None
         self.clean()
-        
+
+        ## Before all makes sure data is list of data
+        if not isinstance(data,(list,tuple)):
+            data=[data,]
+        if weights is None:
+            weights=[None,] * len(data)
+        elif not isinstance(weights,(list,tuple)):
+            weights = [weights,]
+            
         ## First pack our data, prepare the weights and mask for PCA
-        self.pdata,self.weights,self.mask = pack(data,weights)
+        self.pdata=[]
+        self.weights=[]
+        self.mask=[]
+        for i in range(len(data)):
+            d=data[i]
+            w=weights[i]
+            tmp = pack(d,w)
+            tmpdata,tmpweights,tmpmask = tmp
+            self.pdata.append(tmpdata)
+            self.weights.append(tmpweights)
+            self.mask.append(tmpmask)
 
         ## Store axes for later
-        self.axes=data.getAxisList()
-        self.varname=data.id
+        self.axes=[]
+        self.varname=[]
+        for d in data:
+            self.axes.append(d.getAxisList())
+            self.varname.append(d.id)
 
-        ## Figures out dimenssions
-        sh=list(data.shape)
-
-        self.ns1=sh[-1]
-        self.ns2=sh[-2]
-        self.nt=sh[0]
+        ## Figures out length of time dimension
+        self.nt = data[0].shape[0]
+        
+        for d in data:
+            if d.shape[0] != self.nt:
+                raise Exception, 'Error your dataset are not all consistent in time length'
 
         if npca is None:
             self.npca=10
 
-        self.ns = self.pdata.shape[0]
-
+        self.ns=[]
+        for p in self.pdata:
+            self.ns.append(p.shape[0])
+            
         if nmssa is None:
             self.nmssa = 4
+            
+        if nsvd is None:
+            self.nsvd = 10
 
         if window is None:
             self.window = int(self.nt/3.)
@@ -321,50 +347,68 @@ class SpAn(object):
         :::
 
         Usage:::
-        eof, pc, ev = pca(data,npca=None,weights=None)
+        eof, pc, ev = pca(npca=None,weights=None)
 
           npca    :: Number of principal components to return, default will be 10
         :::
 
         Output:::
-          eof :: EOF array
-          pc  :: Principal Components array
-          ev  :: Eigein Values array
+          eof :: List EOF array (one per data input when created SpAn object)
+          pc  :: List of Principal Components array
+          ev  :: List of Eigein Values array
         :::
         """
+        
 
         if npca is None:
             npca=self.npca
 
         ## Calls Fortran pca
-        self.eof,self.pc,self.ev = spanlib_fort.pca(self.pdata,self.npca,self.weights,1)
+        self.eof=[]
+        self.pc=[]
+        self.ev=[]
+        eof=[]
+        pc=[]
+        ev=[]
+        for i in range(len(self.pdata)):
+            pdat=self.pdata[i]
+            w=self.weights[i]
+            nteof,ntpc,ntev = spanlib_fort.pca(pdat,npca,w,1)
 
-        Axes=self.axes[1:]
+            Axes=list(self.axes[i][1:])
 
-##        print 'SEF.mask is:',self.mask
-        if self.mask is not None:
-            eof = MV.transpose(MV.array(spanlib_fort.unpack3d(self.mask,self.eof,1.e20)))
-            eof.id='EOF'
-            eof.standard_name='Empirical Orthogonal Function'
+    ##        print 'SEF.mask is:',self.mask
+            if self.mask[i] is not None:
+                teof = MV.transpose(MV.array(spanlib_fort.unpack3d(self.mask[i],nteof,1.e20)))
+                teof.id='EOF'
+                teof.standard_name='Empirical Orthogonal Function'
+            else:
+                teof = MV.transpose(nteof)
+                tpc  = MV.array(ntpc)
+
+            ax=teof.getAxis(0)
+            ax.id='pc'
+            ax.standard_name='Principal Components Axis'
+            Axes.insert(0,ax)
+            teof.setAxisList(Axes)
+
+            tpc=MV.transpose(MV.array(ntpc,axes=[self.axes[i][0],ax]))
+            tpc.id='PC'
+            tpc.standard_name='Principal Components'
+
+            tev=MV.array(ntev,id='EV',axes=[ax])
+            tev.standard_name='Eigen Values'
+            self.pc.append(ntpc)
+            self.eof.append(nteof)
+            eof.append(teof)
+            pc.append(tpc)
+            ev.append(tev)
+
+        if len(eof)==1:
+            return eof[0],pc[0],ev[0]
         else:
-            eof = MV.transpose(self.eof)
-            pc  = MV.array(self.pc)
+            return eof,pc,ev
 
-        ax=eof.getAxis(0)
-        ax.id='pc'
-        ax.standard_name='Principal Components Axis'
-        Axes.insert(0,ax)
-        eof.setAxisList(Axes)
-
-        pc=MV.transpose(MV.array(self.pc,axes=[self.axes[0],ax]))
-        pc.id='PC'
-        pc.standard_name='Principal Components'
-
-        ev=MV.array(self.ev,id='EV',axes=[ax])
-        ev.standard_name='Eigen Values'
-
-
-        return eof,pc,ev
 
 
     def mssa(self,nmssa=None,pca=None,window=None):
@@ -395,7 +439,7 @@ class SpAn(object):
 
         ## Check for default values for mssa and pca if not passed by user
         if pca is None:
-            if self.pc is None and self.ns > 30: # Pre-PCA needed
+            if self.pc ==[] and max(0,self.ns) > 30: # Pre-PCA needed
                 print '[mssa] The number of valid points is greater than',30,' so we perform a pre-PCA'
                 pca = True
             elif self.pc is not None:
@@ -404,8 +448,8 @@ class SpAn(object):
                 pca = False
 
         if pca is True: # From PCA to MSSA
-            nspace = self.npca
-            if self.pc is None: # Still no PCA done
+            nspace = [self.npca,]*len(self.pdata)
+            if self.pc ==[]: # Still no PCA done
                 self.pca()
         else:
             nspace = self.ns
@@ -416,41 +460,155 @@ class SpAn(object):
         if window is not None:
             self.window = window
 
-        if self.stpc is None: # Still no MSSA
+        self.steof = []
+        self.stpc  = []
+
+        eof=[]
+        ev=[]
+        pc=[]
+        
+        for i in range(len(self.pdata)):
             if pca is True: # Pre-PCA case
-                self.steof, self.stpc, self.stev = spanlib_fort.mssa(Numeric.transpose(self.pc), self.window, self.nmssa)
+                ntsteof, ntstpc, ntstev = spanlib_fort.mssa(Numeric.transpose(self.pc[i]), self.window, self.nmssa)
             else: # Direct MSSA case
-                self.steof, self.stpc, self.stev = spanlib_fort.mssa(self.pdata, self.window, self.nmssa)
+                ntsteof, ntstpc, ntstev = spanlib_fort.mssa(self.pdata[i], self.window, self.nmssa)
 
-        eof = MV.transpose(MV.reshape(self.steof,(self.window,nspace,self.nmssa)))
-        eof.id='EOF'
-        eof.standard_name='Empirical Orthogonal Function'
+            teof = MV.transpose(MV.reshape(ntsteof,(self.window,nspace[i],self.nmssa)))
+            teof.id='EOF'
+            teof.standard_name='Empirical Orthogonal Function'
 
-        ax0=eof.getAxis(0)
-        ax0.id='mssa'
-        ax0.standard_name='MSSA Axis'
+            ax0=teof.getAxis(0)
+            ax0.id='mssa'
+            ax0.standard_name='MSSA Axis'
 
-        ax1=eof.getAxis(1)
-        ax1.id='pc'
-        ax1.standard_name='Principal Components Axis'
+            ax1=teof.getAxis(1)
+            ax1.id='pc'
+            ax1.standard_name='Principal Components Axis'
 
-        ax2=eof.getAxis(2)
-        ax2.id='window'
-        ax2.standard_name='Window Axis'
+            ax2=teof.getAxis(2)
+            ax2.id='window'
+            ax2.standard_name='Window Axis'
 
-        pc=MV.transpose(MV.array(self.stpc))
-        pc.id='PC'
-        pc.standard_name='Principal Components'
-        pc.setAxis(0,ax0)
-        ax3 = pc.getAxis(1)
-        ax3.id='time'
+            tpc=MV.transpose(MV.array(ntstpc))
+            tpc.id='PC'
+            tpc.standard_name='Principal Components'
+            tpc.setAxis(0,ax0)
+            ax3 = tpc.getAxis(1)
+            ax3.id='time'
 
-        ev=MV.array(self.stev,id='EV',axes=[ax0])
-        ev.standard_name='Eigen Values'
-        return eof,pc,ev
+            tev=MV.array(ntstev,id='EV',axes=[ax0])
+            tev.standard_name='Eigen Values'
+
+            self.stpc.append(ntstpc)
+            self.steof.append(ntsteof)
+            eof.append(teof)
+            pc.append(tpc)
+            ev.append(tev)
+
+        if len(eof)==1:
+            return eof[0],pc[0],ev[0]
+        else:
+            return eof,pc,ev
 
 
-    def reconstruct(self,start=1,end=None,mssa=None,pca=None,phases=False,nphases=8,offset=.5,firstphase=0):
+    def svd(self,nsvd=None,pca=None):
+        """ Singular Value Decomposition (SVD)
+
+        Descriptions:::
+          This function performs a SVD
+          ---blabla---
+          and returns EOF, PC and eigen values.
+          Unless pca parameter is set to false, a pre
+          PCA is performed to reduced the number of d-o-f
+          if already done and if the number of channels is
+          greater than 30.
+        :::
+
+        Usage:::
+        eof, pc, ev = mssa(nmssa,pca)
+
+          nmssa  :: Number of MSSA modes retained
+          window :: MSSA window parameter
+          pca    :: If True, performs a preliminary PCA
+
+        Output:::
+          eof :: EOF array
+          pc  :: Principal Components array
+          ev  :: Eigen Values  array
+
+        ---blabla---
+        :::
+        """
+
+        ## Check we have at least 2 variables!!
+        ## At the moment we will not use any more variable
+        if len(self.pdata)<2:
+            raise Exception,'Error you need at least (most) 2 datasets to run svd, otherwise use pca and mssa'
+        
+        ## Check for default values for mssa and pca if not passed by user
+        if pca is None:
+            if self.pc ==[] and max(0,self.ns) > 30: # Pre-PCA needed
+                print '[svd] The number of valid points is greater than',30,' so we perform a pre-PCA'
+                pca = True
+            elif self.pc is not None:
+                pca = True
+            else:
+                pca = False
+
+        if pca is True: # From PCA to MSSA
+            nspace = [self.npca,]*len(self.pdata)
+            if self.pc ==[]: # Still no PCA done
+                self.pca()
+        else:
+            nspace = self.ns
+
+        if nsvd is not None:
+            self.nsvd = nsvd
+
+
+        if pca is True: # Pre-PCA case
+            lneof, rneof, lnpc, rnpc, nev = spanlib_fort.svd(Numeric.transpose(self.pc[0]), Numeric.transpose(self.pc[1]), self.nsvd)
+        else: # Direct SVD case
+            lneof, rneof, lnpc, rnpc, nev = spanlib_fort.svd(self.pdata[0], self.pdata[1], self.nsvd)
+
+        self.svdeof = [lneof,rneof]
+        self.svdpc = [lnpc,rnpc]
+
+        eof=[]
+        pc=[]
+
+        for i in range(2):
+            teof = MV.transpose(self.svdeof[i])
+            teof.id='EOF'
+            teof.standard_name='Empirical Orthogonal Function'
+
+            ax0=teof.getAxis(0)
+            ax0.id='svd'
+            ax0.standard_name='SVD Axis'
+
+            ax1=teof.getAxis(1)
+            ax1.id='pc'
+            ax1.standard_name='Principal Components Axis'
+
+
+            tpc=MV.transpose(MV.array(self.svdpc[i]))
+            tpc.id='PC'
+            tpc.standard_name='Principal Components'
+            tpc.setAxis(0,ax0)
+            
+            ax3 = tpc.getAxis(1)
+            ax3.id='time'
+
+            tev=MV.array(ntstev,id='EV',axes=[ax0])
+            tev.standard_name='Eigen Values'
+
+            eof.append(teof)
+            pc.append(tpc)
+
+        return eof[0],pc[0],eof[1],pc[1],ev
+
+
+    def reconstruct(self,start=1,end=None,mssa=None,pca=None,phases=False,nphases=8,offset=.5,firstphase=0,svd=None):
         """ Reconstruct results from mssa or pca
 
         Description:::
@@ -480,21 +638,34 @@ class SpAn(object):
         """
         n1=start
         n2=end
-        # FIXME: needs MSSA alone
-        axes=self.axes
         ntimes=self.nt
         comments = 'Reconstructed from'
+        axes=list(self.axes)
 
+        if mssa is True and self.steof == []: # Want MSSA and didn't run it!
+            raise Exception, 'Error you did not run MSSA yet'
 
+        if svd is True and self.svdeof == []:
+            raise Exception, 'Error you did not run SVD yet'
+            
+        ## Check fr svd
+        if svd is None:
+            if self.svdeof == []:
+                svd = False
+            elif self.steof==[]:
+                svd = True
+                
         ## Check for default values for mssa and pca if not passed by user
         if mssa is None:
-            if self.steof is None:
+            if self.steof ==[]:
                 mssa = False
-            else:
+            elif svd is False:
                 mssa = True
+            else:
+                mssa = False
 
         if pca is None:
-            if self.pc is None:
+            if self.pc == []:
                 pca = False
             else:
                 pca = True
@@ -506,39 +677,70 @@ class SpAn(object):
         ## Now do the actual reconstruct job
 
         if mssa:
+            comments+=' MSSA '
             if pca:
-                nspace=self.npca
+                nspace=[self.npca,]*len(self.pdata[0])
             else:
-                nspace=self.pdata.shape[0]
+                nspace=[]
+                for i in range(len(self.pdata)):
+                    nspace.append(self.pdata[i].shape[0])
 
             if n2 is None:
                 n2=self.nmssa
 
-            ffrec = spanlib_fort.mssa_rec(self.steof, self.stpc, nspace, self.nt, self.window, n1, n2)
+            ffrec=[]
+            for i in range(len(self.pdata)):
+                ffrec.append(spanlib_fort.mssa_rec(self.steof[i], self.stpc[i], nspace[i], self.nt, self.window, n1, n2))
 ##             print 'Ok did mssa',ffrec.shape
-            comments+=' MSSA '
+
+        if svd:
+            comments+=' SVD '
+            if pca:
+                nspace=[self.npca,self.npca]
+            else:
+                nspace=[]
+                for i in range(2):
+                    nspace.append(self.pdata[i].shape[0])
+                
+            if n2 is None:
+                n2=self.nsvd
+
+            ffrec=[]
+            for i in range(2):
+                ffrec.append(spanlib_fort.pca_rec(self.svdeof[i], self.svdpc[i], nspace[i], self.nt, n1, n2))
 
         if phases:
+            comments+=' Phases'
             if mssa:
 ##                 print 'phase+mssa reconst'
-                ffrec = computePhases(ffrec,nphases,offset,firstphase)
+                
+                for i in range(len(self.pdata)):
+                    ffrec[i] = computePhases(ffrec[i],nphases,offset,firstphase)
             else:
-                ffrec = computePhases(Numeric.transpose(self.pc),nphases,offset,firstphase)
+                ffrec=[]
+                for i in range(len(self.pdata)):
+                    ffrec.append(computePhases(Numeric.transpose(self.pc[i]),nphases,offset,firstphase))
 
             ## Replace time axis with phases axis
             ntimes=nphases
-            for i in range(len(axes)):
-                if axes[i].isTime():
-                    axes[i]=ffrec.getAxis(1)
-            ## Attributes
-                    comments+=' Phases'
+            for j in range(len(self.pdata)):
+                for i in range(len(self.axes[0])):
+                    if axes[j][i].isTime():
+                        axes[j][i]=ffrec[j].getAxis(1)
 
 
+        if svd:
+            nloop=2
+        else:
+            nloop = len(self.pdata)
+            
         if pca:
             comments+=' PCA'
-            axes=self.axes
-            if mssa is True or phases is True:
-                pcreconstruct = Numeric.transpose(ffrec) ; del(ffrec)
+            if mssa is True or phases is True or svd is True:
+                pcreconstruct=[]
+                for i in range(nloop):
+                    pcreconstruct.append(Numeric.transpose(ffrec[i]))
+                del(ffrec)
             else:
                 pcreconstruct = self.pc
 
@@ -550,26 +752,33 @@ class SpAn(object):
 
 
 ##             print pcreconstruct.shape,self.ns,ntimes
-            ffrec = spanlib_fort.pca_rec(self.eof, pcreconstruct, n1, n2)
+            ffrec=[]
+            for i in range(nloop):
+                ffrec.append(spanlib_fort.pca_rec(self.eof[i], pcreconstruct[i], n1, n2))
 
 ##         print 'SEF.mask is:',self.mask
-        if self.mask is not None:
-            ffrec = MV.transpose(spanlib_fort.unpack3d(self.mask,ffrec,1.e20))
-            ffrec.setAxisList(axes)
-        else:
-            ffrec = MV.transpose(ffrec)
-            ffrec.id=self.varname
-            ffrec.comment=comments
+                
+        for i in range(nloop):
+            if self.mask[i] is not None:
+                ffrec[i] = MV.transpose(spanlib_fort.unpack3d(self.mask[i],ffrec[i],1.e20))
+            else:
+                ffrec[i] = MV.transpose(ffrec[i])
+            ffrec[i].setAxisList(axes[i])
+            ffrec[i].id=self.varname[i]
+            ffrec[i].comment=comments
 
-        return ffrec
+        if len(ffrec)==1:
+            return ffrec[0]
+        else:
+            return ffrec
 
     def clean(self):
-        self.pc=None
-        self.stpc=None
-        self.steof=None
-        self.eof=None
-        self.stev=None
-        self.ev=None
+        self.pc=[]
+        self.eof=[]
+        self.stpc=[]
+        self.steof=[]
+        self.svdpc=[]
+        self.svdeof=[]
 
 
 
