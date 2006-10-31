@@ -119,7 +119,7 @@ def unStackData(din,weights,masks,axes):
         w=weights[istart:iend]
         ns1=len(axes[i][-1])
         ns2=len(axes[i][-2])
-        up=spanlib_fort.unpack3d(m,ns1,ns2,data.shape[1],data,mlen,1.e20)
+        up=spanlib_fort.unpack3d(m,data,1.e20)
         unpacked = MV.transpose(MV.array(up))
         unpacked.setAxisList(axes[i])
         istart+=mlen
@@ -162,9 +162,9 @@ def pack(data,weights=None):
             return packed_data,packed_weights,mask
     
     sh=list(data.shape)
-    ns1=sh[-1]
-    ns2=sh[-2]
-    nt=sh[0]
+##     ns1=sh[-1]
+##     ns2=sh[-2]
+##     nt=sh[0]
     ## Weights ?
     if weights is None:
         try:
@@ -201,13 +201,13 @@ def pack(data,weights=None):
 
     ## Dummy 1D for time for tmask
     ## Pack data
-    packed_data = spanlib_fort.pack3d(packed_data,mask,ns1,ns2,nt,ns)
+    packed_data = spanlib_fort.pack3d(packed_data,mask,ns)
     
     weights=MV.reshape(weights,(1,sh[-2],sh[-1]))
     ## Pack weights
     tweights=Numeric.transpose(weights.filled(0))
     tweights=Numeric.ones(tweights.shape,'f')
-    packed_weights = spanlib_fort.pack3d(tweights,mask,ns1,ns2,1,ns)[:,0].astype('f')
+    packed_weights = spanlib_fort.pack3d(tweights,mask,ns)[:,0].astype('f')
     
     return packed_data,packed_weights,mask
 
@@ -241,7 +241,7 @@ def computePhases(data,nphases=8,offset=.5,firstphase=0):
     ns=data.shape[0]
     nt=data.shape[1]
     w = MV.ones((ns),typecode='f')
-    phases = MV.array(spanlib_fort.phasecomp(data, ns, nt, nphases, w, offset, firstphase))
+    phases = MV.array(spanlib_fort.phasecomp(data, nphases, w, offset, firstphase))
     axes = MV.array(data).getAxisList()
     phases.id = 'phases'
     ax = phases.getAxis(1)
@@ -337,13 +337,13 @@ class SpAn(object):
             npca=self.npca
 
         ## Calls Fortran pca
-        self.eof,self.pc,self.ev = spanlib_fort.pca(self.pdata,self.ns,self.nt,self.npca,self.weights,1)
+        self.eof,self.pc,self.ev = spanlib_fort.pca(self.pdata,self.npca,self.weights,1)
 
         Axes=self.axes[1:]
 
 ##        print 'SEF.mask is:',self.mask
         if self.mask is not None:
-            eof = MV.transpose(MV.array(spanlib_fort.unpack3d(self.mask,self.ns1,self.ns2,npca,self.eof,self.ns,1.e20)))
+            eof = MV.transpose(MV.array(spanlib_fort.unpack3d(self.mask,self.eof,1.e20)))
             eof.id='EOF'
             eof.standard_name='Empirical Orthogonal Function'
         else:
@@ -418,9 +418,9 @@ class SpAn(object):
 
         if self.stpc is None: # Still no MSSA
             if pca is True: # Pre-PCA case
-                self.steof, self.stpc, self.stev = spanlib_fort.mssa(Numeric.transpose(self.pc), nspace, self.nt, self.window, self.nmssa)
+                self.steof, self.stpc, self.stev = spanlib_fort.mssa(Numeric.transpose(self.pc), self.window, self.nmssa)
             else: # Direct MSSA case
-                self.steof, self.stpc, self.stev = spanlib_fort.mssa(self.pdata, nspace, self.nt, self.window, self.nmssa)
+                self.steof, self.stpc, self.stev = spanlib_fort.mssa(self.pdata, self.window, self.nmssa)
 
         eof = MV.transpose(MV.reshape(self.steof,(self.window,nspace,self.nmssa)))
         eof.id='EOF'
@@ -514,7 +514,7 @@ class SpAn(object):
             if n2 is None:
                 n2=self.nmssa
 
-            ffrec = spanlib_fort.mssa_rec(self.steof, self.stpc, nspace, self.nt, self.nmssa, self.window, n1, n2)
+            ffrec = spanlib_fort.mssa_rec(self.steof, self.stpc, nspace, self.nt, self.window, n1, n2)
 ##             print 'Ok did mssa',ffrec.shape
             comments+=' MSSA '
 
@@ -550,11 +550,11 @@ class SpAn(object):
 
 
 ##             print pcreconstruct.shape,self.ns,ntimes
-            ffrec = spanlib_fort.pca_rec(self.eof, pcreconstruct, self.ns, ntimes, self.npca, n1, n2)
+            ffrec = spanlib_fort.pca_rec(self.eof, pcreconstruct, n1, n2)
 
 ##         print 'SEF.mask is:',self.mask
         if self.mask is not None:
-            ffrec = MV.transpose(spanlib_fort.unpack3d(self.mask,self.ns1,self.ns2,ntimes,ffrec,self.ns,1.e20))
+            ffrec = MV.transpose(spanlib_fort.unpack3d(self.mask,ffrec,1.e20))
             ffrec.setAxisList(axes)
         else:
             ffrec = MV.transpose(ffrec)

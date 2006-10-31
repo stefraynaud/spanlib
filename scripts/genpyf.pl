@@ -31,7 +31,7 @@ if($double eq "") {
 # Inits
 open(WRAPPER, $wrapper);
 open(PYF, "> $pyf");
-print PYF "! -*- Mode: f90 -*-\n\n";
+print PYF "! -*- Mode: f90 -*-\n\npython module spanlib_fort\ninterface\n";
 my $inside = 0;
 my $line;
 my $iPrecision = ($precision eq "double")?$double:$simple;
@@ -71,6 +71,7 @@ while(<WRAPPER>){
 		print PYF "$1\n\n";
 	}
 }
+print PYF "end interface\nend python module\n\n\n";
 close(PYF);
 close(WRAPPER);
 

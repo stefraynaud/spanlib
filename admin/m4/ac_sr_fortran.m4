@@ -187,16 +187,16 @@ install a Fortran 90 compiler.])
 			case "$enable_optimization" in
 				debug)
 					AC_MSG_NOTICE([**** DEBUGGING OPTIONS are SELECTED *****])
-					FCFLAGS="-g -O0 -Wall -Wunset-vars -Wunused-vars -fbounds-check "
-					FCFLAGS="-g -Wall"
+					FCFLAGS="$FCFLAGS -g -O0 -Wall -Wunset-vars -Wunused-vars -fbounds-check "
+					FCFLAGS="$FCFLAGS -g -Wall"
 					;;
 				aggressive)
 					AC_MSG_NOTICE([**** AGGRESSIVE COMPILER OPTIONS are SELECTED *****])
-	 				FCFLAGS="-g -O3"
+	 				FCFLAGS="$FCFLAGS -g -O3"
 					;;
 				normal|*)
 					AC_MSG_NOTICE([**** NORMAL MODE *****])
-					FCFLAGS="-g -O"
+					FCFLAGS="$FCFLAGS -g -O"
 				;;
 			esac
 			if test "$enable_prof" = "yes" ; then

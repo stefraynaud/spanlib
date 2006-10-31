@@ -1,0 +1,26 @@
+## Configuration of scipy_distutils build and install process
+
+## Users can modify these additional parameters
+
+## build extension configuration
+[build_ext]
+
+## Directories to search for libioapi and libnetcdf w/ fortran support.
+## Order matters, first library found in the list will be linked in.
+## Libraries should be full paths or relative paths from pyIoapi dir
+## and seperated by a ":"
+library_dirs = /usr/lib:/usr/local/lib
+
+
+## Fortran compiler configuration
+[config_fc]
+
+## Compiler type.  I recommend using g77, current setting
+## to find fortran compiler options:
+## python setup.py config_fc --help-fcompiler
+fcompiler=gfortran
+#fcompiler=intel
+#fcompiler=pg
+f90flags=-Jbuild/src -Ibuild/src
+
+
