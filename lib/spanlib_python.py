@@ -182,7 +182,9 @@ def pack(data,weights=None):
     mask = data.mask()
     if mask is None:
         mask=MV.zeros(sh,typecode='f')
-
+    else:
+        mask=mask.astype('i')
+        
     if data.rank()>2:
         mask=MV.sum(mask,axis=0)
 
