@@ -1,3 +1,7 @@
+######################################################################
+## SpanLib, Raynaud 2006
+######################################################################
+
 import os
 import sys
 
@@ -6,12 +10,13 @@ from getopt import gnu_getopt
 
 # Gather up all the files we need.
 files = ['spanlib.pyf','spanlib_pywrap.f90','spanlib.f90']
-libDirs=['/usr/local/lib']
-incDirs=['/usr/local/include']
+libDirs=@LIBDIRS@	# like ['/usr/local/lib']
+incDirs=@INCDIRS@	# like ['/usr/local/include']
+libs=@LIBS@			# like ['lapack95', 'lapack','blas']
 extra_link_args=[]
 
 ## Get package version info
-version='1.0'
+version='@VERSION@' # Like 0.1
 description='Python extension to spanlib fortran library'
 author = 'Stephane Raynaud and Charles Doutriaux'
 author_email = 'stephane.raynaud@gmail.com'
@@ -38,13 +43,13 @@ setup(name="spanlib",
       ## directories to search for libraries defined in setup.cfg
       ext_modules = [Extension('spanlib.spanlib_fort',
                                files,
-                               libraries=["lapack95", "lapack","blas"],
+                               libraries=libs,
                                library_dirs=libDirs,
-			       include_dirs=incDirs,
+			       			   include_dirs=incDirs,
                                extra_link_args=extra_link_args,
                                ),
                      ],
-      license="GNU GPL",
+      license="GNU LGPL",
       
      ## Install these to their own directory
      package_dir={'spanlib':'../lib'},

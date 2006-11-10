@@ -14,8 +14,8 @@ AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
 	AS_IF([`test "AS_VAR_GET(PYTHON)" != "no"`],
 		AS_VAR_SET(MYPYTHONPATH,[`AS_DIRNAME(AS_VAR_GET(PYTHON))`]))
 
-	# Pyfort support
-	AC_SR_PYFORT()
+	# F2py support
+	AC_SR_F2PY()
 
 	# Python modules for spanlib
 	AC_MSG_CHECKING([for Numeric and MV module support])
@@ -28,13 +28,13 @@ AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
 	)
 
 	# So..
-	AS_IF([`AS_VAR_GET(HAS_PYT_MOD) && test "AS_VAR_GET(PYFORT)" != "no" -a \
+	AS_IF([`AS_VAR_GET(HAS_PYT_MOD) && test "AS_VAR_GET(F2PY)" != "no" -a \
 			"AS_VAR_GET(PERL)" != "no" -a "AS_VAR_GET(HAS_BLASLAPACK)" != "no"`],
 			[AS_VAR_SET(WITH_PYTHON,"yes")])
 	AM_CONDITIONAL([WITH_PYTHON],AS_VAR_TEST_SET(WITH_PYTHON))
 	AS_IF(AS_VAR_TEST_SET(WITH_PYTHON),,
 		[AC_SR_WARNING([You wont be able to build the python module.
-You need perl, BLAS/LAPACK, pyfort and Numeric, MV python modules from CDAT.])]
+You need perl, BLAS/LAPACK, f2py and Numeric, MV python modules from CDAT.])]
 	)
 
 	# Python modules for python examples

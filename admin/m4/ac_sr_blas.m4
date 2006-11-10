@@ -48,6 +48,9 @@ AC_ARG_WITH(blas-lib,
 	AS_IF([test "$with_blas_lib" != "yes" -a "$with_blas_lib" != "no"],
 			AS_VAR_SET(BLAS_LIB,$with_blas_lib))
 )
+AS_VAR_SET_IF(BLAS_LIB,,[
+	AS_VAR_SET_IF(prefix,[AS_VAR_SET(BLAS_LIB,AS_VAR_GET(prefix)/lib)])
+])
 AS_VAR_SET_IF([BLAS_LIB],[
 	case AS_VAR_GET(BLAS_LIB) in
 		-L*):;;
@@ -81,7 +84,7 @@ AC_ARG_WITH(lapack,
 		no)AC_SR_ERROR([You cant disable lapack]);;
 		yes)AS_VAR_SET(LAPACK,-llapack);;
 		*)AS_VAR_SET(LAPACK,$with_lapack);;
-	esac]
+	esac] 
 )
 AS_VAR_SET_IF([LAPACK],,[AS_VAR_SET(LAPACK,-llapack)])
 case AS_VAR_GET(LAPACK) in
@@ -141,7 +144,10 @@ AC_ARG_WITH(lapack-inc,
 	AS_IF([test "$with_lapack_inc" != "yes" -a "$with_lapack_inc" != "no"],
 			AS_VAR_SET(LAPACK_INC,$with_lapack_inc))
 )
-AS_VAR_SET_IF([LAPACK_INC],[
+AS_VAR_SET_IF(LAPACK_INC,,[
+	AS_VAR_SET_IF(prefix,[AS_VAR_SET(LAPACK_INC,AS_VAR_GET(prefix)/include)])
+])
+AS_VAR_SET_IF(LAPACK_INC,[
 	case AS_VAR_GET(LAPACK_INC) in
 		-I*):;;
 		*)AS_VAR_SET(LAPACK_INC,"-I$LAPACK_INC");;
