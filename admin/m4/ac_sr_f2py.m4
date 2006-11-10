@@ -8,7 +8,7 @@ AC_DEFUN([AC_SR_F2PY_STRIPFLAGS],
 [
 	dnl AS_VAR_SET($2,`echo $1 | sed -r 's/(^| )-(L|l)/\1/g'`)
 	dnl AS_VAR_SET($2,`echo $1 | sed -e 's/^-[[[lL]]]//' -e 's/ -[[[lL]]]/ /g'`)
-	AS_VAR_SET($2,`AS_VAR_GET(PYTHON) scripts/strip_fcflags.py $1`)
+	AS_VAR_SET($2,`AS_VAR_GET(PYTHON) scripts/strip_fcargs.py $1`)
 ])
 # Setup library dir and name variables F2PY_DIRS and F2PY_LIBS
 AC_DEFUN([AC_SR_F2PY],
@@ -16,7 +16,7 @@ AC_DEFUN([AC_SR_F2PY],
 	# Full path to f2py
 	AC_ARG_VAR(F2PY,[Absolute path to F2PY executable])
 	AS_VAR_SET_IF([F2PY],[:],
-		[AC_PATH_PROG(F2PY,F2PY,no,AS_VAR_GET(MYPYTHONPATH))])
+		[AC_PATH_PROG(f2py,f2py,no,AS_VAR_GET(MYPYTHONPATH))])
 	AM_CONDITIONAL([HAS_F2PY],[`test "AS_VAR_GET(F2PY)" != "no"`])
 
 	# F90 compiler id

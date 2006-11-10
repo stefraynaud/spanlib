@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sys
 
 id2fc =  {	'gfortran':	('gfortran'),
 		'intel':	('ifort','ifc'),
@@ -8,7 +9,7 @@ id2fc =  {	'gfortran':	('gfortran'),
 		'pg':		('pgf90'),
 		'lahey':	('lf95'),
 		'ibm':	('xlf90'),
-		'compaqv':	('DF')
+		'compaqv':	('DF'),
 		'nag':	('f95'),
 		'compaq':	('fort','f90'),
 		'absoft':	('f90'),
@@ -20,7 +21,7 @@ id2fc =  {	'gfortran':	('gfortran'),
 
 myId = ""
 for id in id2fc.keys():
-	if fc in id2fc[id]:
+	if sys.argv[1] in id2fc[id]:
 		myId = id
 		break
 

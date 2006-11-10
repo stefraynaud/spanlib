@@ -37,18 +37,21 @@ AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
 You need perl, BLAS/LAPACK, f2py and Numeric, MV python modules from CDAT.])]
 	)
 
+
 	# Python modules for python examples
 	AC_MSG_CHECKING([for cdms and cvs module support])
 	AS_IF(AS_VAR_TEST_SET(WITH_PYTHON),[
 		AS_VAR_GET(PYTHON) -c ["import cdms;import vcs"] 2> /dev/null
 		AS_IF([test "$?" = "0"],
-			[AS_VAR_SET(WITH_PYTHON_EXAMPLE,"yes")])
+			[AS_VAR_SET(WITH_PYTHON_EXAMPLE,"yes")
+				AC_MSG_RESULT([yes])]
+			,AC_MSG_RESULT([no]))
 	])
-	AS_IF(AS_VAR_TEST_SET(WITH_PYTHON_EXAMPLE),
-		[AC_MSG_RESULT([yes])],
-		[AC_MSG_RESULT([no])
-			AC_SR_WARNING([You wont be able to run the python example.
-You need cdms and vcs python modules from CDAT.])])
+	
+	# So, example
+	AS_IF(AS_VAR_TEST_SET(WITH_PYTHON_EXAMPLE),,
+		AC_SR_WARNING([You wont be able to run the python example.
+You need blas lapack and cdms and vcs python modules from CDAT.]))
 	AM_CONDITIONAL([WITH_PYTHON_EXAMPLE],AS_VAR_TEST_SET(WITH_PYTHON_EXAMPLE))
 
 	# Vcdat
