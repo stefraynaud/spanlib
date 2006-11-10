@@ -310,9 +310,11 @@ class SpAn(object):
         ## Store axes for later
         self.axes=[]
         self.varname=[]
+        self.grids=[]
         for d in data:
             self.axes.append(d.getAxisList())
             self.varname.append(d.id)
+            self.grids.append(d.getGrid())
 
         ## Figures out length of time dimension
         self.nt = data[0].shape[0]
@@ -323,6 +325,8 @@ class SpAn(object):
 
         if npca is None:
             self.npca=10
+        else:
+            self.npca=npca
 
         self.ns=[]
         for p in self.pdata:
@@ -330,12 +334,18 @@ class SpAn(object):
             
         if nmssa is None:
             self.nmssa = 4
+        else:
+            self.nmssa = nmssa
             
         if nsvd is None:
             self.nsvd = 10
+        else:
+            self.nsvd = nsvd
 
         if window is None:
             self.window = int(self.nt/3.)
+        else:
+            self.window = window
 
     def pca(self,npca=None):
         """ Principal Components Analysis (PCA)
@@ -358,7 +368,6 @@ class SpAn(object):
           ev  :: List of Eigein Values array
         :::
         """
-        
 
         if npca is None:
             npca=self.npca
@@ -377,7 +386,6 @@ class SpAn(object):
 
             Axes=list(self.axes[i][1:])
 
-    ##        print 'SEF.mask is:',self.mask
             if self.mask[i] is not None:
                 teof = MV.transpose(MV.array(spanlib_fort.unpack3d(self.mask[i],nteof,1.e20)))
                 teof.id='EOF'
@@ -391,6 +399,7 @@ class SpAn(object):
             ax.standard_name='Principal Components Axis'
             Axes.insert(0,ax)
             teof.setAxisList(Axes)
+            teof.setGrid(self.grids[i])
 
             tpc=MV.transpose(MV.array(ntpc,axes=[self.axes[i][0],ax]))
             tpc.id='PC'
@@ -766,6 +775,8 @@ class SpAn(object):
             ffrec[i].setAxisList(axes[i])
             ffrec[i].id=self.varname[i]
             ffrec[i].comment=comments
+            if not svd:
+                ffrec[i].setGrid(self.grids[i])
 
         if len(ffrec)==1:
             return ffrec[0]
