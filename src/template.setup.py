@@ -10,13 +10,13 @@ from getopt import gnu_getopt
 
 # Gather up all the files we need.
 files = ['spanlib.pyf','spanlib_pywrap.f90','spanlib.f90']
-libDirs=@LIBDIRS@	# like ['/usr/local/lib']
-incDirs=@INCDIRS@	# like ['/usr/local/include']
-libs=@LIBS@			# like ['lapack95', 'lapack','blas']
+libDirs=_LIBDIRS_	# like ['/usr/local/lib']
+incDirs=_INCDIRS_	# like ['/usr/local/include']
+libs=_LIBS_		# like ['lapack95', 'lapack','blas']
 extra_link_args=[]
 
 ## Get package version info
-version='@VERSION@' # Like 0.1
+version='_VERSION_' # Like 0.1
 description='Python extension to spanlib fortran library'
 author = 'Stephane Raynaud and Charles Doutriaux'
 author_email = 'stephane.raynaud@gmail.com'

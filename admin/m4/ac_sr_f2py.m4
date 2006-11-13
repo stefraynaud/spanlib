@@ -15,20 +15,19 @@ AC_DEFUN([AC_SR_F2PY],
 [
 	# Full path to f2py
 	AC_ARG_VAR(F2PY,[Absolute path to F2PY executable])
-	AS_VAR_SET_IF([F2PY],[:],
-		[AC_PATH_PROG(f2py,f2py,no,AS_VAR_GET(MYPYTHONPATH))])
-	AM_CONDITIONAL([HAS_F2PY],[`test "AS_VAR_GET(F2PY)" != "no"`])
+	#AC_MSG_CHECKING([for f2py full path])
+	AC_PATH_PROG(F2PY,f2py,no,AS_VAR_GET(MYPYTHONPATH))
+	#AC_MSG_RESULT(AS_VAR_GET(F2PY))
+	AM_CONDITIONAL([HAS_F2PY],[test "AS_VAR_GET(F2PY)" != "no"])
 
 	# F90 compiler id
 	AS_IF([test "AS_VAR_GET(F2PY)" != "no"],[
 		AS_VAR_SET(F2PY_FC_VENDOR,[`AS_VAR_GET(PYTHON) scripts/check_fortran.py AS_VAR_GET(FC)`])
 		AS_VAR_SET_IF(F2PY_FC_VENDOR,
 			AS_VAR_SET(ac_cv_goodfcid,yes),
-			[
-				AC_SR_WARNING([Your f90 compiler (AS_VAR_GET(FC)) is not in the available list from scipy and f2py.
+			[AC_SR_WARNING([Your f90 compiler (AS_VAR_GET(FC)) is not in the available list from scipy and f2py.
 You wont be able to build the python package.])
-				AM_CONDITIONAL([HAS_F2PY],[`false`])
-			]
+				AM_CONDITIONAL([HAS_F2PY],[`false`])]
 		)
 	])
 
@@ -38,11 +37,11 @@ You wont be able to build the python package.])
 		AC_SUBST(F2PY_LIBS)
 	AC_MSG_RESULT(AS_VAR_GET(F2PY_LIBS))
 	AC_MSG_CHECKING([for fortran library directories for F2PY])
-		AC_SR_F2PY_STRIPFLAGS("AS_VAR_GET(LAPACK_LIB) AS_VAR_GET(BLAS_LIB)",F2PY_LIBDIRS)
+		AC_SR_F2PY_STRIPFLAGS("AS_VAR_GET(LAPACK95_LIB) AS_VAR_GET(LAPACK_LIB) AS_VAR_GET(BLAS_LIB)",F2PY_LIBDIRS)
 		AC_SUBST(F2PY_LIBDIRS)
 	AC_MSG_RESULT(AS_VAR_GET(F2PY_LIBDIRS))
 	AC_MSG_CHECKING([for fortran include directories for F2PY])
-		AC_SR_F2PY_STRIPFLAGS("AS_VAR_GET(LAPACK_INC)",F2PY_INCDIRS)
+		AC_SR_F2PY_STRIPFLAGS("AS_VAR_GET(LAPACK95_INC)",F2PY_INCDIRS)
 		AC_SUBST(F2PY_INCDIRS)
 	AC_MSG_RESULT(AS_VAR_GET(F2PY_INCDIRS))
 

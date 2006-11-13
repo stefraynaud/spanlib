@@ -8,9 +8,9 @@ nodist_libspanlib_a_SOURCES=spanlib_precision.f90
 dist_libspanlib_a_SOURCES=spanlib.f90
 noinst_PROGRAMS = getf90precision
 getf90precision_SOURCES = getf90precision.f90
-CLEANFILES=*.pyf *.pfp *.mod spanlib_precision.f90
+CLEANFILES=*.pyf setup.py setup.cfg *.mod spanlib_precision.f90
 EXTRA_DIST=spanlib_pywrap.f90
-AM_FCFLAGS = $(LAPACK_INC)
+AM_FCFLAGS = $(LAPACK95_INC)
 
 WRAPPER = $(PACKAGE)_pywrap.f90
 if WITH_PYTHON
@@ -36,7 +36,7 @@ check-precision: spanlib_precision.F90
 	test "$$precision" = "$(WP)" || \
 	( rm -f spanlib_precision.f90 && sed "s/wp *= *sp/wp = $(WP)/" $^ > spanlib_precision.f90 && \
 	echo "Switched to $(PRECISION) precision" )
-
+	
 if WITH_PYTHON
 install-exec-hook:
 	test -z "$(PYTHONDIR)" || $(mkdir_p) $(PYTHONDIR)
@@ -52,32 +52,32 @@ clean-local:
 	-rm -rf build $(PACKAGE).pyf $(PACKAGE).pfp
 
 $(PYTHON_LIBRARY): $(HEADERS) setup.py setup.cfg $(WRAPPER) $(LIBRARIES) $(top_srcdir)/lib/__init__.py $(top_srcdir)/lib/spanlib_python.py
-	$(F2PY) setup.py
+	$(PYTHON) setup.py install
 
 $(PACKAGE).pyf: $(top_srcdir)/scripts/genpyf.pl $(WRAPPER) getf90precision
 	@echo Creating $@
 	$(top_srcdir)/scripts/genpyf.pl $(WRAPPER) $@ $(PRECISION) `getf90precision`
 
 setup.py: FORCE
-	@test -f $@ || cp template.$@ > $@
+	test -f $@ || cp template.$@ > $@
 	@version=`grep "AM_INIT_AUTOMAKE" $(top_srcdir) | cut -d"," -f2 | cut -d")" -f1` ; \
 	test "x$$version" = "x`grep version=\'.*\' $@ | cut -d\' -f2`" -a \
 	"x$(F2PY_LIBS)" = "x`grep libs= $@ | cut -d\  -f1 | cut -d= -f2`" -a \
 	"x$(F2PY_LIBDIRS)" = "x`grep libDirs= $@ | cut -d\  -f1 | cut -d= -f2`" -a \
 	"x$(F2PY_INCDIRS)" = "x`grep incDirs= $@ | cut -d\  -f1 | cut -d= -f2`"|| \
 	rm -f $@ && sed \
-	-e "s/@VERSION@/$$version/" \
-	-e "s/@LIBS@/$(F2PY_LIBS)/" \
-	-e "s/@LIBDIRS@/$(F2PY_LIBDIRS)/" \
-	-e "s/@LIBS@/$(F2PY_INCDIRS)/" \
+	-e "s/_VERSION_/$$version/" \
+	-e "s/_LIBS_/$(F2PY_LIBS)/" \
+	-e "s=_LIBDIRS_=$(F2PY_LIBDIRS)=" \
+	-e "s=_INCDIRS_=$(F2PY_INCDIRS)=" \
 	template.$@ > $@  && \
 	echo "$@ updated"
 
 setup.cfg: FORCE
-	@test -f $@ || cp template.$@ > $@
+	test -f $@ || cp template.$@ > $@
 	@test "x$(F2PY_FC_VENDOR)" = "x`grep fcompiler= $@ | cut -d\  -f1 | cut -d= -f2`" || \
 	rm -f $@ && \
-	sed "s/@FCVENDOR@/$(F2PY_FC_VENDOR)/" template.$@ > $@  && \
+	sed "s/_FCVENDOR_/$(F2PY_FC_VENDOR)/" template.$@ > $@  && \
 	echo "$@ updated"
 
 FORCE:

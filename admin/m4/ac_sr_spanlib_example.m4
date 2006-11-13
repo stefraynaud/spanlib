@@ -49,7 +49,6 @@ you will have to download yourself the input data file to run the example]))
 		[test "AS_VAR_GET(DOWNLOADER)" = "AS_VAR_GET(LINKS)"])
 
 
-
 	#################################################################
 	# A viewver may be useful to visualise the output netcdf file
 	#################################################################

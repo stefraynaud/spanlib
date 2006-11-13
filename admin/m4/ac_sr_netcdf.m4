@@ -20,7 +20,8 @@ AC_ARG_WITH(netcdf-inc,
 	]
 )
 AS_VAR_SET_IF(NETCDF_INC,,[
-	AS_VAR_SET_IF(prefix,[AS_VAR_SET(NETCDF_INC,AS_VAR_GET(prefix)/include)])
+	AS_IF(test AS_VAR_GET(prefix) != None,
+		AS_VAR_SET(NETCDF_INC,AS_VAR_GET(prefix)/include))
 ])
 AS_VAR_SET_IF(NETCDF_INC,[
 	case AS_VAR_GET(NETCDF_INC) in
@@ -41,7 +42,8 @@ AC_ARG_WITH(netcdf-lib,
 	]
 )
 AS_VAR_SET_IF(NETCDF_LIB,,[
-	AS_VAR_SET_IF(prefix,[AS_VAR_SET(NETCDF_LIB,AS_VAR_GET(prefix)/lib)])
+	AS_IF(test AS_VAR_GET(prefix) != "None/include",
+		AS_VAR_SET(NETCDF_LIB,AS_VAR_GET(prefix)/lib))
 ])
 AS_VAR_SET_IF(NETCDF_LIB,[
 	case AS_VAR_GET(NETCDF_LIB) in

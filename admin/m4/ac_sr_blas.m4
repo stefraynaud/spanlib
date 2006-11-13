@@ -49,7 +49,8 @@ AC_ARG_WITH(blas-lib,
 			AS_VAR_SET(BLAS_LIB,$with_blas_lib))
 )
 AS_VAR_SET_IF(BLAS_LIB,,[
-	AS_VAR_SET_IF(prefix,[AS_VAR_SET(BLAS_LIB,AS_VAR_GET(prefix)/lib)])
+	AS_IF(test AS_VAR_GET(prefix) != "None/include",
+		AS_VAR_SET(BLAS_LIB,AS_VAR_GET(prefix)/lib))
 ])
 AS_VAR_SET_IF([BLAS_LIB],[
 	case AS_VAR_GET(BLAS_LIB) in
@@ -94,35 +95,12 @@ esac
 AS_VAR_SET(LIBS,"$LAPACK $LIBS")
 AC_MSG_RESULT(AS_VAR_GET(LAPACK))
 
-# F95 library name or LIBS
-AC_MSG_CHECKING([for lapack f95 library flag])
-AC_ARG_VAR(LAPACK95,F95 library name or LIBS flag(s))
-AC_ARG_WITH(lapack95,
-	AC_HELP_STRING([--with-lapack95=LIBNAME],
-		[F95 ibrary name or LIBS flag(s)]),
-	[
-		case AS_VAR_GET(with_lapack95) in
-			no):;;
-			yes)AS_VAR_SET(LAPACK,-llapack95);;
-			*)AS_VAR_SET(LAPACK,$with_lapack95);;
-		esac
-		AS_VAR_SET_IF([LAPACK95],[
-			case AS_VAR_GET(LAPACK95) in
-				-l* | */* | *.a | *.so | *.so.* | *.o):;;
-				*)AS_VAR_SET(LAPACK95,"-l$LAPACK95");;
-			esac
-		])
-	],[AS_VAR_SET(LAPACK95,[-llapack95])]
-)
-AS_VAR_SET_IF([LAPACK95],[AS_VAR_SET(LIBS,"$LAPACK95 $LIBS")])
-AC_MSG_RESULT(AS_VAR_GET(LAPACK95))
-
-# Library dir name or FCFLAGS
-AC_MSG_CHECKING([for lapack/lapack95 library location flag])
-AC_ARG_VAR(LAPACK_LIB,Location of the LAPACK/LAPACK95 library (compile-time))
+# Library dir name or FCFLAGS for Lapack
+AC_MSG_CHECKING([for lapack library location flag])
+AC_ARG_VAR(LAPACK_LIB,Location of the LAPACK library (compile-time))
 AC_ARG_WITH(lapack-lib,
 	AC_HELP_STRING([--with-lapack-lib=DIR],
-		[Location of the LAPACK/LAPACK95 library (compile-time)]),
+		[Location of the LAPACK library (compile-time)]),
 	AS_IF([test "$with_lapack_lib" != "yes" -a "$with_lapack_lib" != "no"],
 		AS_VAR_SET(LAPACK_LIB,$with_lapack_lib))
 )
@@ -135,28 +113,70 @@ AS_VAR_SET_IF([LAPACK_LIB],[
 ])
 AC_MSG_RESULT(AS_VAR_GET(LAPACK_LIB))
 
-# Directory where to find the lapack f95 modules or include flag
-AC_MSG_CHECKING([for lapack95 include flag])
-AC_ARG_VAR(LAPACK_INC,[Location of the LAPACK f95 modules (compile-time)])
-AC_ARG_WITH(lapack-inc,
-	AC_HELP_STRING([--with-lapack-inc=DIR],
-		[Location of the LAPACK f95 modules (compile-time)]), dnl
-	AS_IF([test "$with_lapack_inc" != "yes" -a "$with_lapack_inc" != "no"],
-			AS_VAR_SET(LAPACK_INC,$with_lapack_inc))
+# F95 library name or LIBS
+AC_MSG_CHECKING([for lapack f95 library flag])
+AC_ARG_VAR(LAPACK95,LAPACK95 library name or LIBS flag(s))
+AC_ARG_WITH(lapack95,
+	AC_HELP_STRING([--with-lapack95=LIBNAME],
+		[LAPACK95 ibrary name or LIBS flag(s)]),
+	[
+		case AS_VAR_GET(with_lapack95) in
+			no):;;
+			yes)AS_VAR_SET(LAPACK95,-llapack95);;
+			*)AS_VAR_SET(LAPACK95,$with_lapack95);;
+		esac
+		AS_VAR_SET_IF([LAPACK95],[
+			case AS_VAR_GET(LAPACK95) in
+				-l* | */* | *.a | *.so | *.so.* | *.o):;;
+				*)AS_VAR_SET(LAPACK95,"-l$LAPACK95");;
+			esac
+		])
+	]
 )
-AS_VAR_SET_IF(LAPACK_INC,,[
-	AS_VAR_SET_IF(prefix,[AS_VAR_SET(LAPACK_INC,AS_VAR_GET(prefix)/include)])
-])
-AS_VAR_SET_IF(LAPACK_INC,[
-	case AS_VAR_GET(LAPACK_INC) in
-		-I*):;;
-		*)AS_VAR_SET(LAPACK_INC,"-I$LAPACK_INC");;
-	esac
-	AS_VAR_SET(FCFLAGS,"$LAPACK_INC $FCFLAGS")
-])
-AC_MSG_RESULT(AS_VAR_GET(LAPACK_INC))
+AS_VAR_SET_IF([LAPACK95],[AS_VAR_SET(LIBS,"$LAPACK95 $LIBS")])
+AC_MSG_RESULT(AS_VAR_GET(LAPACK95))
 
-# Try ssyev with lapack
+# Library dir name or FCFLAGS for Lapack95 
+AC_MSG_CHECKING([for lapack95 library location flag])
+AC_ARG_VAR(LAPACK95_LIB,Location of the LAPACK95 library (compile-time))
+AC_ARG_WITH(lapack95-lib,
+	AC_HELP_STRING([--with-lapack95-lib=DIR],
+		[Location of the LAPACK95 library (compile-time)]),
+	AS_IF([test "$with_lapack95_lib" != "yes" -a "$with_lapack95_lib" != "no"],
+		AS_VAR_SET(LAPACK95_LIB,$with_lapack95_lib))
+)
+AS_VAR_SET_IF([LAPACK95_LIB],[
+	case AS_VAR_GET(LAPACK95_LIB) in
+		-L*):;;
+		*)AS_VAR_SET(LAPACK95_LIB,"-L$LAPACK95_LIB");;
+	esac
+	AS_VAR_SET(FCFLAGS,"$LAPACK95_LIB $FCFLAGS")
+])
+AC_MSG_RESULT(AS_VAR_GET(LAPACK95_LIB))
+
+# Directory where to find the lapack95 modules or include flag
+AC_MSG_CHECKING([for lapack95 include flag])
+AC_ARG_VAR(LAPACK95_INC,[Location of the LAPACK f95 modules (compile-time)])
+AC_ARG_WITH(lapack95-inc,
+	AC_HELP_STRING([--with-lapack95-inc=DIR],
+		[Location of the LAPACK95 modules (compile-time)]), dnl
+	AS_IF([test "$with_lapack95_inc" != "yes" -a "$with_lapack95_inc" != "no"],
+			AS_VAR_SET(LAPACK95_INC,$with_lapack95_inc))
+)
+AS_VAR_SET_IF(LAPACK95_INC,,[
+	AS_IF(test AS_VAR_GET(prefix) != None,
+		AS_VAR_SET(LAPACK95_INC,AS_VAR_GET(prefix)/include))
+])
+AS_VAR_SET_IF(LAPACK95_INC,[
+	case AS_VAR_GET(LAPACK95_INC) in
+		-I*):;;
+		*)AS_VAR_SET(LAPACK95_INC,"-I$LAPACK95_INC");;
+	esac
+	AS_VAR_SET(FCFLAGS,"$LAPACK95_INC $FCFLAGS")
+])
+AC_MSG_RESULT(AS_VAR_GET(LAPACK95_INC))
+
+# Try ssyev with lapack95
 # AC_CACHE_CHECK([for dsyev of the lapack library],ac_cv_lapackok,
 # [AC_TRY_LINK_FUNC([dsyev],
 #                  [AS_VAR_SET(ac_cv_lapackok,yes)],
