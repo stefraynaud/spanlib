@@ -59,7 +59,7 @@ $(PACKAGE).pyf: $(top_srcdir)/scripts/genpyf.pl $(WRAPPER) getf90precision
 	$(top_srcdir)/scripts/genpyf.pl $(WRAPPER) $@ $(PRECISION) `getf90precision`
 
 setup.py: FORCE
-	test -f $@ || cp template.$@ > $@
+	@test ! -f $@ || cp template.$@ > $@
 	@version=`grep "AM_INIT_AUTOMAKE" $(top_srcdir)/configure.in | cut -d"," -f2 | cut -d")" -f1` ; \
 	test "x$$version" = "x`grep version=\'.*\' $@ | cut -d\' -f2`" -a \
 	"x$(F2PY_LIBS)" = "x`grep libs= $@ | cut -d\  -f1 | cut -d= -f2`" -a \
@@ -74,7 +74,7 @@ setup.py: FORCE
 	echo "$@ updated"
 
 setup.cfg: FORCE
-	test -f $@ || cp template.$@ > $@
+	@test ! -f $@ || cp template.$@ > $@
 	@test "x$(F2PY_FC_VENDOR)" = "x`grep fcompiler= $@ | cut -d\  -f1 | cut -d= -f2`" || \
 	rm -f $@ && \
 	sed "s/_FCVENDOR_/$(F2PY_FC_VENDOR)/" template.$@ > $@  && \
