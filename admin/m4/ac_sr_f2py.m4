@@ -52,7 +52,8 @@ You wont be able to build the python package.])
 				[Directory where to install the spanlib python module]),
 				[case AS_VAR_GET(with_pythondir) in
 					no|yes);;
-					*)AS_VAR_SET(PYTHONDIR,AS_VAR_GET(with_pythondir));;
+					*)AS_VAR_SET(PYTHONDIR,AS_VAR_GET(with_pythondir))
+						AM_CONDITIONAL(LOCAL_PYTHON_INSTALL,true);;
 				esac]
 	)
 
@@ -66,10 +67,8 @@ You wont be able to build the python package.])
 	])
 
 	# Build option and default install path
-	AS_VAR_SET_IF(PYTHONDIR,
-		AS_VAR_SET(F2PY_BUILD_OPT,[-b]),
+	AS_VAR_SET_IF(PYTHONDIR,,
 		[
-			AS_VAR_SET(F2PY_BUILD_OPT,[-b])
 			AS_IF([test "AS_VAR_GET(F2PY)" != "no"],[
 					AC_MSG_CHECKING([where is the default place for python packages])
 					AS_VAR_SET(PYTHONDIR,
@@ -82,7 +81,6 @@ You wont be able to build the python package.])
 	)
 
 	AC_SUBST(F2PY_BUILD_DIR)
-	AC_SUBST(F2PY_BUILD_OPT)
 	AC_SUBST(F2PY_FC_VENDOR)
 
 ])

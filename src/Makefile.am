@@ -39,20 +39,25 @@ check-precision: spanlib_precision.F90
 	
 if WITH_PYTHON
 install-exec-hook:
+if LOCAL_PYTHON_INSTALL
 	test -z "$(PYTHONDIR)" || $(mkdir_p) $(PYTHONDIR)
 	@echo "Installing $(PACKAGE) python module in $(PYTHONDIR)"
 	$(INSTALL) -d -m 755 $(PYTHONDIR)/spanlib
 	$(INSTALL_DATA) $(PYTHON_LIBRARY_DIR)/* $(PYTHONDIR)/spanlib
+else
+	$(PYTHON) setup.py install
+endif
 
 uninstall-hook:
 	@echo "Uninstalling $(PACKAGE) python module"
-	-rm -rf $(PYTHONDIR)/spanlib
+	-rm -rf $(PYTHONDIR)/spanlib*
 
 clean-local:
-	-rm -rf build $(PACKAGE).pyf setup.py setup.cfg
+	$(PYTHON) setup.py clean
+	-rm -rf build $(PACKAGE).pyf
 
 $(PYTHON_LIBRARY): $(HEADERS) setup.py setup.cfg $(PACKAGE).pyf $(WRAPPER) $(LIBRARIES) $(top_srcdir)/lib/__init__.py $(top_srcdir)/lib/spanlib_python.py
-	$(PYTHON) setup.py install
+	$(PYTHON) setup.py build
 
 $(PACKAGE).pyf: $(top_srcdir)/scripts/genpyf.pl $(WRAPPER) getf90precision
 	@echo Creating $@

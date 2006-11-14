@@ -20,6 +20,8 @@ version='_VERSION_' # Like 0.1
 description='Python extension to spanlib fortran library'
 author = 'Stephane Raynaud and Charles Doutriaux'
 author_email = 'stephane.raynaud@gmail.com'
+url="http://spanlib.sf.net"
+description
 ## scypy_distutils Script
 from scipy_distutils.core import setup, Extension
 
@@ -42,10 +44,11 @@ setup(name="spanlib",
       ## Build fortran wrappers, uses f2py
       ## directories to search for libraries defined in setup.cfg
       ext_modules = [Extension('spanlib.spanlib_fort',
-                               files,
-                               libraries=libs,
-                               library_dirs=libDirs,
-			       include_dirs=incDirs,
+                              	files,
+                              	libraries=libs,
+                              	library_dirs=libDirs,
+			      	include_dirs=incDirs,
+				
                                extra_link_args=extra_link_args,
                                ),
                      ],

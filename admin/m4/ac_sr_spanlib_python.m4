@@ -7,8 +7,9 @@ AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
 	AC_CHECK_PROG(PERL,perl,perl,no)
 	AC_PROG_CC()
 	
-	# Default conditionqls
+	# Default conditionals
 	AM_CONDITIONAL(HAS_F2PY,false)
+	AM_CONDITIONAL(LOCAL_PYTHON_INSTALL,false)
 	
 	# Basic python
 	AX_WITH_PYTHON(2.4,no)

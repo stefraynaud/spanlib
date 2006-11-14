@@ -10,8 +10,8 @@ example3_SOURCES = example3.f90
 endif
 
 LOCAL_LIB=$(top_srcdir)/src/libspanlib.a
-AM_FCFLAGS = -I$(top_srcdir)/src $(NETCDF_INC) $(LAPACK_INC)
-AM_LDFLAGS = -L$(top_srcdir)/src $(NETCDF_LIB) $(LAPACK_LIB) $(BLAS_LIB)
+AM_FCFLAGS = -I$(top_srcdir)/src $(NETCDF_INC) $(LAPACK95_INC)
+AM_LDFLAGS = -L$(top_srcdir)/src $(NETCDF_LIB) $(LAPACK95_LIB) $(LAPACK_LIB) $(BLAS_LIB)
 LDADD = -lnetcdf $(LOCAL_LIB) $(LAPACK95) $(LAPACK) $(BLAS)
 URL = http://stefdeperou.free.fr/pub
 NCINPUT = data2.cdf
@@ -134,7 +134,7 @@ $(LOCAL_LIB):
 ####################
 
 if WITH_PYTHON_EXAMPLE
-$(PYTHONS): $(NCDATA)
+$(PYTHONS): $(NCINPUT)
 	@echo "###########################################################"
 	@echo "# Running the python example `echo $@ |cut -c7` program..."
 	@echo "###########################################################"
