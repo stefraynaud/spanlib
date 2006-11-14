@@ -6,5 +6,5 @@ for arg in sys.argv[1:]:
 	for lib in re.split("\s+",arg):
 		l.append(r.sub("",lib))
 
-print str(l)
+print re.sub("\s+","",str(l))
 	

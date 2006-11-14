@@ -59,26 +59,26 @@ $(PACKAGE).pyf: $(top_srcdir)/scripts/genpyf.pl $(WRAPPER) getf90precision
 	$(top_srcdir)/scripts/genpyf.pl $(WRAPPER) $@ $(PRECISION) `getf90precision`
 
 setup.py: FORCE
-	test ! -f $@ || cp template.$@ $@
+	@test -f $@ || ( cp template.$@ $@ && echo "$@ created" )
 	@version=`grep "AM_INIT_AUTOMAKE" $(top_srcdir)/configure.in | cut -d"," -f2 | cut -d")" -f1` ; \
 	test "x$$version" = "x`grep version=\'.*\' $@ | cut -d\' -f2`" -a \
-	"x$(F2PY_LIBS)" = "x`grep libs= $@ | cut -d\  -f1 | cut -d= -f2`" -a \
-	"x$(F2PY_LIBDIRS)" = "x`grep libDirs= $@ | cut -d\  -f1 | cut -d= -f2`" -a \
-	"x$(F2PY_INCDIRS)" = "x`grep incDirs= $@ | cut -d\  -f1 | cut -d= -f2`"|| \
-	rm -f $@ && sed \
+	"x$(F2PY_LIBS)" = "x`grep libs= $@ | cut -f1 | cut -d= -f2`" -a \
+	"x$(F2PY_LIBDIRS)" = "x`grep libDirs= $@ | cut -f1 | cut -d= -f2`" -a \
+	"x$(F2PY_INCDIRS)" = "x`grep incDirs= $@ | cut -f1 | cut -d= -f2`"|| \
+	( rm -f $@ && sed \
 	-e "s/_VERSION_/$$version/" \
 	-e "s/_LIBS_/$(F2PY_LIBS)/" \
 	-e "s=_LIBDIRS_=$(F2PY_LIBDIRS)=" \
 	-e "s=_INCDIRS_=$(F2PY_INCDIRS)=" \
 	template.$@ > $@  && \
-	echo "$@ updated"
+	echo "$@ updated" )
 
 setup.cfg: FORCE
-	@test ! -f $@ || cp template.$@ $@
-	@test "x$(F2PY_FC_VENDOR)" = "x`grep fcompiler= $@ | cut -d\  -f1 | cut -d= -f2`" || \
-	rm -f $@ && \
+	@test -f $@ || ( cp template.$@ $@ && echo "$@ created" )
+	@test x$(F2PY_FC_VENDOR) = x`grep "^fcompiler=" $@ | cut -f1 | cut -d= -f2` || \
+	( rm -f $@ && \
 	sed "s/_FCVENDOR_/$(F2PY_FC_VENDOR)/" template.$@ > $@  && \
-	echo "$@ updated"
+	echo "$@ updated" )
 
 FORCE:
 
