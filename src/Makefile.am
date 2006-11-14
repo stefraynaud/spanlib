@@ -49,9 +49,9 @@ uninstall-hook:
 	-rm -rf $(PYTHONDIR)/spanlib
 
 clean-local:
-	-rm -rf build $(PACKAGE).pyf $(PACKAGE).pfp
+	-rm -rf build $(PACKAGE).pyf setup.py setup.cfg
 
-$(PYTHON_LIBRARY): $(HEADERS) setup.py setup.cfg $(WRAPPER) $(LIBRARIES) $(top_srcdir)/lib/__init__.py $(top_srcdir)/lib/spanlib_python.py
+$(PYTHON_LIBRARY): $(HEADERS) setup.py setup.cfg $(PACKAGE).pyf $(WRAPPER) $(LIBRARIES) $(top_srcdir)/lib/__init__.py $(top_srcdir)/lib/spanlib_python.py
 	$(PYTHON) setup.py install
 
 $(PACKAGE).pyf: $(top_srcdir)/scripts/genpyf.pl $(WRAPPER) getf90precision
