@@ -60,7 +60,7 @@ $(PACKAGE).pyf: $(top_srcdir)/scripts/genpyf.pl $(WRAPPER) getf90precision
 
 setup.py: FORCE
 	test -f $@ || cp template.$@ > $@
-	@version=`grep "AM_INIT_AUTOMAKE" $(top_srcdir) | cut -d"," -f2 | cut -d")" -f1` ; \
+	@version=`grep "AM_INIT_AUTOMAKE" $(top_srcdir)/configure.in | cut -d"," -f2 | cut -d")" -f1` ; \
 	test "x$$version" = "x`grep version=\'.*\' $@ | cut -d\' -f2`" -a \
 	"x$(F2PY_LIBS)" = "x`grep libs= $@ | cut -d\  -f1 | cut -d= -f2`" -a \
 	"x$(F2PY_LIBDIRS)" = "x`grep libDirs= $@ | cut -d\  -f1 | cut -d= -f2`" -a \
