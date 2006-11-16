@@ -61,7 +61,7 @@ $(PYTHON_LIBRARY): $(HEADERS) setup.py setup.cfg $(PACKAGE).pyf $(WRAPPER) $(LIB
 
 $(PACKAGE).pyf: $(top_srcdir)/scripts/genpyf.pl $(WRAPPER) getf90precision
 	@echo Creating $@
-	$(top_srcdir)/scripts/genpyf.pl $(WRAPPER) $@ $(PRECISION) `getf90precision`
+	$(top_srcdir)/scripts/genpyf.pl $(WRAPPER) $@ $(PRECISION) `./getf90precision`
 
 setup.py: FORCE
 	@test -f $@ || ( cp template.$@ $@ && echo "$@ created" )
