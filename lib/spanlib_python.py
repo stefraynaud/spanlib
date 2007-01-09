@@ -254,7 +254,7 @@ def computePhases(data,nphases=8,offset=.5,firstphase=0):
     return phases
 
 class SpAn(object):
-    def __init__(self,data,weights=None,npca=None,window=None,nmssa=None,nsvd=None):
+    def __init__(self,data,weights=None,npca=None,window=None,nmssa=None,nsvd=None,relative=False):
         """ Prepare the Spectral Analysis Object
 
         Description:::
@@ -349,7 +349,8 @@ class SpAn(object):
         else:
             self.window = window
 
-    def pca(self,npca=None,get_ev_sum=False):
+
+    def pca(self,npca=None,get_ev_sum=False,relative=False):
         """ Principal Components Analysis (PCA)
 
         Descriptions:::
@@ -359,14 +360,15 @@ class SpAn(object):
         :::
 
         Usage:::
-        eof, pc, ev = pca(npca=None,weights=None)
+        eof, pc, ev = pca(npca=None,weights=None,relative=False)
 
         OR
 
-        eof, pc, ev, ev_sum = pca(npca=None,weights=None,get_ev_sum=True)
+        eof, pc, ev, ev_sum = pca(npca=None,weights=None,get_ev_sum=True,relative=False)
 
-          npca    :: Number of principal components to return (default: 10)
-          get_ev_sum  :: Also return sum of all eigen values (default: False)
+          npca    :: Number of principal components to return [default: 10]
+          get_ev_sum  :: Also return sum of all eigen values [default: False]
+          relative :: Egein values are normalized to their sum (%) [default: False]
         :::
 
         Output:::
@@ -379,8 +381,9 @@ class SpAn(object):
         :::
         """
 
-        if npca is None:
-            npca=self.npca
+        if npca is not None:
+            self.npca = npca
+            
 
         ## Calls Fortran pca
         self.eof=[]
@@ -390,35 +393,47 @@ class SpAn(object):
         pc=[]
         ev=[]
         self.ev_sum=[]
-        
+
         for i in range(len(self.pdata)):
             pdat=self.pdata[i]
             w=self.weights[i]
-            nteof,ntpc,ntev,ntev_sum = spanlib_fort.pca(pdat,npca,w,1)
+            nteof,ntpc,ntev,ntev_sum = spanlib_fort.pca(pdat,self.npca,w,1)
 
             Axes=list(self.axes[i][1:])
 
             if self.mask[i] is not None:
                 teof = MV.transpose(MV.array(spanlib_fort.unpack3d(self.mask[i],nteof,1.e20)))
-                teof.id='EOF'
-                teof.standard_name='Empirical Orthogonal Function'
+                teof.id='eof'
+                teof.name = teof.id
+                teof.standard_name='Empirical Orthogonal Functions'
+                teof.long_name = teof.standard_name
             else:
                 teof = MV.transpose(nteof)
                 tpc  = MV.array(ntpc)
 
             ax=teof.getAxis(0)
-            ax.id='pc'
-            ax.standard_name='Principal Components Axis'
+            ax.id='mode'
+            ax.standard_name='Modes in decreasing order'
+            
             Axes.insert(0,ax)
             teof.setAxisList(Axes)
             teof.setGrid(self.grids[i])
 
             tpc=MV.transpose(MV.array(ntpc,axes=[self.axes[i][0],ax]))
-            tpc.id='PC'
+            tpc.id='pc'
             tpc.standard_name='Principal Components'
 
-            tev=MV.array(ntev,id='EV',axes=[ax])
+            tev=MV.array(ntev,id='ev',axes=[ax])
             tev.standard_name='Eigen Values'
+            if relative:
+                tev[:] = tev[:] * 100. / ntev_sum
+                tev.units = '%'
+
+            for var in tpc,tev,ax:
+            	var.name = var.id
+            	var.long_name = var.standard_name
+
+
             self.pc.append(ntpc)
             self.eof.append(nteof)
             eof.append(teof)
@@ -438,7 +453,7 @@ class SpAn(object):
         return ret
     
 
-    def mssa(self,nmssa=None,pca=None,window=None,get_ev_sum=False):
+    def mssa(self,nmssa=None,pca=None,window=None,get_ev_sum=False,relative=False):
         """ MultiChannel Singular Spectrum Analysis (MSSA)
 
         Descriptions:::
@@ -451,16 +466,17 @@ class SpAn(object):
         :::
 
         Usage:::
-        eof, pc, ev = mssa(nmssa,pca)
+        eof, pc, ev = mssa(nmssa,pca,relative=False)
 
         OR
 
-        eof, pc, ev, ev_sum = mssa(nmssa,pca,get_ev_sum=True)
+        eof, pc, ev, ev_sum = mssa(nmssa,pca,get_ev_sum=True,relative=False)
 
           nmssa  :: Number of MSSA modes retained
           window :: MSSA window parameter
           pca    :: If True, performs a preliminary PCA
           get_ev_sum  :: Also return sum of all eigen values (default: False)
+          relative :: Egein values are normalized to their sum (%) [default: False]
 
         Output:::
           eof :: EOF array
@@ -509,31 +525,42 @@ class SpAn(object):
             else: # Direct MSSA case
                 ntsteof, ntstpc, ntstev, ntev_sum = spanlib_fort.mssa(self.pdata[i], self.window, self.nmssa)
 
+
             teof = MV.transpose(MV.reshape(ntsteof,(self.window,nspace[i],self.nmssa)))
-            teof.id='EOF'
-            teof.standard_name='Empirical Orthogonal Function'
+            teof.id='eof'
+            teof.standard_name='Empirical Orthogonal Functions'
 
             ax0=teof.getAxis(0)
-            ax0.id='mssa'
-            ax0.standard_name='MSSA Axis'
+            ax0.id='space'
+            ax0.standard_name='Space'
 
             ax1=teof.getAxis(1)
-            ax1.id='pc'
-            ax1.standard_name='Principal Components Axis'
+            ax1.id='mode'
+            ax1.standard_name='Modes in decreasing order'
 
             ax2=teof.getAxis(2)
             ax2.id='window'
             ax2.standard_name='Window Axis'
 
             tpc=MV.transpose(MV.array(ntstpc))
-            tpc.id='PC'
+            tpc.id='pc'
             tpc.standard_name='Principal Components'
             tpc.setAxis(0,ax0)
+
             ax3 = tpc.getAxis(1)
             ax3.id='time'
-
-            tev=MV.array(ntstev,id='EV',axes=[ax0])
-            tev.standard_name='Eigen Values'
+            ax3.standard_name = 'Time'
+            
+            tev = MV.array(ntstev,id='ev',axes=[ax0])
+            tev.standard_name = 'Eigen Values'
+            tev.id = 'ev'
+            if relative:
+                tev[:] = tev[:] * 100. / ntev_sum
+                tev.units = '%'
+            
+            for var in teof,tpc,tev,ax0,ax1,ax2,ax3:
+            	var.name = var.id
+            	var.long_name = var.standard_name
 
             self.stpc.append(ntstpc)
             self.steof.append(ntsteof)

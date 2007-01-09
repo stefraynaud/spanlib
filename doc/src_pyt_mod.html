@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Source of python module</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.69.1" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id2630233"></a>SpanLib - Source of python module</h1></div></div><hr /></div><pre class="programlisting"><span class="HLcomments">#################################################################################</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Source of python module</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.69.1" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id2555959"></a>SpanLib - Source of python module</h1></div></div><hr /></div><pre class="programlisting"><span class="HLcomments">#################################################################################</span>
 <span class="HLcomments"># File: spanlib_python.py</span>
 <span class="HLcomments">#</span>
 <span class="HLcomments"># This file is part of the SpanLib library.</span>
@@ -256,7 +256,7 @@
     <span class="HLcommands">return</span> phases
 
 class <span class="HLpersonalised">SpAn</span>(object):
-    <span class="HLcommands">def</span> __init__(<span class="HLspecial">self</span>,data,weights=<span class="HLspecial">None</span>,npca=<span class="HLspecial">None</span>,window=<span class="HLspecial">None</span>,nmssa=<span class="HLspecial">None</span>,nsvd=<span class="HLspecial">None</span>):
+    <span class="HLcommands">def</span> __init__(<span class="HLspecial">self</span>,data,weights=<span class="HLspecial">None</span>,npca=<span class="HLspecial">None</span>,window=<span class="HLspecial">None</span>,nmssa=<span class="HLspecial">None</span>,nsvd=<span class="HLspecial">None</span>,relative=False):
         <span class="HLcomments">""" Prepare the Spectral Analysis Object</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">        Description:::</span>
@@ -351,7 +351,8 @@ class <span class="HLpersonalised">SpAn</span>(object):
         <span class="HLcommands">else</span>:
             <span class="HLspecial">self</span>.window = window
 
-    <span class="HLcommands">def</span> <span class="HLpersonalised">pca</span>(<span class="HLspecial">self</span>,npca=<span class="HLspecial">None</span>,get_ev_sum=False):
+
+    <span class="HLcommands">def</span> <span class="HLpersonalised">pca</span>(<span class="HLspecial">self</span>,npca=<span class="HLspecial">None</span>,get_ev_sum=False,relative=False):
         <span class="HLcomments">""" Principal Components Analysis (PCA)</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">        Descriptions:::</span>
@@ -361,14 +362,15 @@ class <span class="HLpersonalised">SpAn</span>(object):
 <span class="HLcomments">        :::</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">        Usage:::</span>
-<span class="HLcomments">        eof, pc, ev = pca(npca=None,weights=None)</span>
+<span class="HLcomments">        eof, pc, ev = pca(npca=None,weights=None,relative=False)</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">        OR</span>
 <span class="HLcomments"></span>
-<span class="HLcomments">        eof, pc, ev, ev_sum = pca(npca=None,weights=None,get_ev_sum=True)</span>
+<span class="HLcomments">        eof, pc, ev, ev_sum = pca(npca=None,weights=None,get_ev_sum=True,relative=False)</span>
 <span class="HLcomments"></span>
-<span class="HLcomments">          npca    :: Number of principal components to return (default: 10)</span>
-<span class="HLcomments">          get_ev_sum  :: Also return sum of all eigen values (default: False)</span>
+<span class="HLcomments">          npca    :: Number of principal components to return [default: 10]</span>
+<span class="HLcomments">          get_ev_sum  :: Also return sum of all eigen values [default: False]</span>
+<span class="HLcomments">          relative :: Egein values are normalized to their sum (%) [default: False]</span>
 <span class="HLcomments">        :::</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">        Output:::</span>
@@ -381,8 +383,9 @@ class <span class="HLpersonalised">SpAn</span>(object):
 <span class="HLcomments">        :::</span>
 <span class="HLcomments">        """</span>
 
-        <span class="HLcommands">if</span> npca <span class="HLcommands">is</span> <span class="HLspecial">None</span>:
-            npca=<span class="HLspecial">self</span>.npca
+        <span class="HLcommands">if</span> npca <span class="HLcommands">is</span> not <span class="HLspecial">None</span>:
+            <span class="HLspecial">self</span>.npca = npca
+            
 
         <span class="HLcomments">## Calls Fortran pca</span>
         <span class="HLspecial">self</span>.eof=[]
@@ -392,35 +395,47 @@ class <span class="HLpersonalised">SpAn</span>(object):
         pc=[]
         ev=[]
         <span class="HLspecial">self</span>.ev_sum=[]
-        
+
         <span class="HLcommands">for</span> i <span class="HLcommands">in</span> range(len(<span class="HLspecial">self</span>.pdata)):
             pdat=<span class="HLspecial">self</span>.pdata[i]
             w=<span class="HLspecial">self</span>.weights[i]
-            nteof,ntpc,ntev,ntev_sum = spanlib_fort.<span class="HLpersonalised">pca</span>(pdat,npca,w,<span class="HLdigits">1</span>)
+            nteof,ntpc,ntev,ntev_sum = spanlib_fort.<span class="HLpersonalised">pca</span>(pdat,<span class="HLspecial">self</span>.npca,w,<span class="HLdigits">1</span>)
 
             Axes=<span class="HLfunctions">list</span>(<span class="HLspecial">self</span>.axes[i][<span class="HLdigits">1</span>:])
 
             <span class="HLcommands">if</span> <span class="HLspecial">self</span>.mask[i] <span class="HLcommands">is</span> not <span class="HLspecial">None</span>:
                 teof = MV.transpose(MV.array(spanlib_fort.unpack3d(<span class="HLspecial">self</span>.mask[i],nteof,<span class="HLdigits">1</span>.e20)))
-                teof.<span class="HLfunctions">id</span>=<span class="HLstrings">'EOF'</span>
-                teof.standard_name=<span class="HLstrings">'Empirical Orthogonal Function'</span>
+                teof.<span class="HLfunctions">id</span>=<span class="HLstrings">'eof'</span>
+                teof.name = teof.<span class="HLfunctions">id</span>
+                teof.standard_name=<span class="HLstrings">'Empirical Orthogonal Functions'</span>
+                teof.long_name = teof.standard_name
             <span class="HLcommands">else</span>:
                 teof = MV.transpose(nteof)
                 tpc  = MV.array(ntpc)
 
             ax=teof.getAxis(<span class="HLdigits">0</span>)
-            ax.<span class="HLfunctions">id</span>=<span class="HLstrings">'pc'</span>
-            ax.standard_name=<span class="HLstrings">'Principal Components Axis'</span>
+            ax.<span class="HLfunctions">id</span>=<span class="HLstrings">'mode'</span>
+            ax.standard_name=<span class="HLstrings">'Modes <span class="HLcommands">in</span> decreasing order'</span>
+            
             Axes.insert(<span class="HLdigits">0</span>,ax)
             teof.setAxisList(Axes)
             teof.setGrid(<span class="HLspecial">self</span>.grids[i])
 
             tpc=MV.transpose(MV.array(ntpc,axes=[<span class="HLspecial">self</span>.axes[i][<span class="HLdigits">0</span>],ax]))
-            tpc.<span class="HLfunctions">id</span>=<span class="HLstrings">'PC'</span>
+            tpc.<span class="HLfunctions">id</span>=<span class="HLstrings">'pc'</span>
             tpc.standard_name=<span class="HLstrings">'Principal Components'</span>
 
-            tev=MV.array(ntev,<span class="HLfunctions">id</span>=<span class="HLstrings">'EV'</span>,axes=[ax])
+            tev=MV.array(ntev,<span class="HLfunctions">id</span>=<span class="HLstrings">'ev'</span>,axes=[ax])
             tev.standard_name=<span class="HLstrings">'Eigen Values'</span>
+            <span class="HLcommands">if</span> relative:
+                tev[:] = tev[:] * <span class="HLdigits">100</span>. / ntev_sum
+                tev.units = <span class="HLstrings">'%'</span>
+
+            <span class="HLcommands">for</span> var <span class="HLcommands">in</span> tpc,tev,ax:
+            	var.name = var.<span class="HLfunctions">id</span>
+            	var.long_name = var.standard_name
+
+
             <span class="HLspecial">self</span>.pc.append(ntpc)
             <span class="HLspecial">self</span>.eof.append(nteof)
             eof.append(teof)
@@ -440,7 +455,7 @@ class <span class="HLpersonalised">SpAn</span>(object):
         <span class="HLcommands">return</span> ret
     
 
-    <span class="HLcommands">def</span> <span class="HLpersonalised">mssa</span>(<span class="HLspecial">self</span>,nmssa=<span class="HLspecial">None</span>,<span class="HLpersonalised">pca</span>=<span class="HLspecial">None</span>,window=<span class="HLspecial">None</span>,get_ev_sum=False):
+    <span class="HLcommands">def</span> <span class="HLpersonalised">mssa</span>(<span class="HLspecial">self</span>,nmssa=<span class="HLspecial">None</span>,<span class="HLpersonalised">pca</span>=<span class="HLspecial">None</span>,window=<span class="HLspecial">None</span>,get_ev_sum=False,relative=False):
         <span class="HLcomments">""" MultiChannel Singular Spectrum Analysis (MSSA)</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">        Descriptions:::</span>
@@ -453,16 +468,17 @@ class <span class="HLpersonalised">SpAn</span>(object):
 <span class="HLcomments">        :::</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">        Usage:::</span>
-<span class="HLcomments">        eof, pc, ev = mssa(nmssa,pca)</span>
+<span class="HLcomments">        eof, pc, ev = mssa(nmssa,pca,relative=False)</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">        OR</span>
 <span class="HLcomments"></span>
-<span class="HLcomments">        eof, pc, ev, ev_sum = mssa(nmssa,pca,get_ev_sum=True)</span>
+<span class="HLcomments">        eof, pc, ev, ev_sum = mssa(nmssa,pca,get_ev_sum=True,relative=False)</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">          nmssa  :: Number of MSSA modes retained</span>
 <span class="HLcomments">          window :: MSSA window parameter</span>
 <span class="HLcomments">          pca    :: If True, performs a preliminary PCA</span>
 <span class="HLcomments">          get_ev_sum  :: Also return sum of all eigen values (default: False)</span>
+<span class="HLcomments">          relative :: Egein values are normalized to their sum (%) [default: False]</span>
 <span class="HLcomments"></span>
 <span class="HLcomments">        Output:::</span>
 <span class="HLcomments">          eof :: EOF array</span>
@@ -511,31 +527,42 @@ class <span class="HLpersonalised">SpAn</span>(object):
             <span class="HLcommands">else</span>: <span class="HLcomments"># Direct MSSA case</span>
                 ntsteof, ntstpc, ntstev, ntev_sum = spanlib_fort.<span class="HLpersonalised">mssa</span>(<span class="HLspecial">self</span>.pdata[i], <span class="HLspecial">self</span>.window, <span class="HLspecial">self</span>.nmssa)
 
+
             teof = MV.transpose(MV.reshape(ntsteof,(<span class="HLspecial">self</span>.window,nspace[i],<span class="HLspecial">self</span>.nmssa)))
-            teof.<span class="HLfunctions">id</span>=<span class="HLstrings">'EOF'</span>
-            teof.standard_name=<span class="HLstrings">'Empirical Orthogonal Function'</span>
+            teof.<span class="HLfunctions">id</span>=<span class="HLstrings">'eof'</span>
+            teof.standard_name=<span class="HLstrings">'Empirical Orthogonal Functions'</span>
 
             ax0=teof.getAxis(<span class="HLdigits">0</span>)
-            ax0.<span class="HLfunctions">id</span>=<span class="HLstrings">'<span class="HLpersonalised">mssa</span>'</span>
-            ax0.standard_name=<span class="HLstrings">'<span class="HLpersonalised">MSSA</span> Axis'</span>
+            ax0.<span class="HLfunctions">id</span>=<span class="HLstrings">'space'</span>
+            ax0.standard_name=<span class="HLstrings">'Space'</span>
 
             ax1=teof.getAxis(<span class="HLdigits">1</span>)
-            ax1.<span class="HLfunctions">id</span>=<span class="HLstrings">'pc'</span>
-            ax1.standard_name=<span class="HLstrings">'Principal Components Axis'</span>
+            ax1.<span class="HLfunctions">id</span>=<span class="HLstrings">'mode'</span>
+            ax1.standard_name=<span class="HLstrings">'Modes <span class="HLcommands">in</span> decreasing order'</span>
 
             ax2=teof.getAxis(<span class="HLdigits">2</span>)
             ax2.<span class="HLfunctions">id</span>=<span class="HLstrings">'window'</span>
             ax2.standard_name=<span class="HLstrings">'Window Axis'</span>
 
             tpc=MV.transpose(MV.array(ntstpc))
-            tpc.<span class="HLfunctions">id</span>=<span class="HLstrings">'PC'</span>
+            tpc.<span class="HLfunctions">id</span>=<span class="HLstrings">'pc'</span>
             tpc.standard_name=<span class="HLstrings">'Principal Components'</span>
             tpc.setAxis(<span class="HLdigits">0</span>,ax0)
+
             ax3 = tpc.getAxis(<span class="HLdigits">1</span>)
             ax3.<span class="HLfunctions">id</span>=<span class="HLstrings">'time'</span>
-
-            tev=MV.array(ntstev,<span class="HLfunctions">id</span>=<span class="HLstrings">'EV'</span>,axes=[ax0])
-            tev.standard_name=<span class="HLstrings">'Eigen Values'</span>
+            ax3.standard_name = <span class="HLstrings">'Time'</span>
+            
+            tev = MV.array(ntstev,<span class="HLfunctions">id</span>=<span class="HLstrings">'ev'</span>,axes=[ax0])
+            tev.standard_name = <span class="HLstrings">'Eigen Values'</span>
+            tev.<span class="HLfunctions">id</span> = <span class="HLstrings">'ev'</span>
+            <span class="HLcommands">if</span> relative:
+                tev[:] = tev[:] * <span class="HLdigits">100</span>. / ntev_sum
+                tev.units = <span class="HLstrings">'%'</span>
+            
+            <span class="HLcommands">for</span> var <span class="HLcommands">in</span> teof,tpc,tev,ax0,ax1,ax2,ax3:
+            	var.name = var.<span class="HLfunctions">id</span>
+            	var.long_name = var.standard_name
 
             <span class="HLspecial">self</span>.stpc.append(ntstpc)
             <span class="HLspecial">self</span>.steof.append(ntsteof)
