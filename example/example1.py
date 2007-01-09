@@ -93,7 +93,7 @@ colors = vcs.getcolors(levels)
 iso = x.createisofill('spanlib')
 iso.levels = levels
 iso.fillareacolors = colors
-iso.list()
+#iso.list()
 #x.plot(s,templ,iso,ratio='autot')
 #templ=T.get() # dummy space
 #templ=T.get() # dummy space
@@ -103,7 +103,7 @@ f.close()
 for i in slices:
     print i
     templ = T.get(font=0)
-    templ.data.list()
+    #templ.data.list()
     x.plot(out[i],templ,iso,ratio='autot',bg=1,title="Phase composites of the first MSSA oscillation")
 ##     raw_input('map out %i/%i ok?' % ( i+1 , out.shape[0]))
 ##     x.clear()

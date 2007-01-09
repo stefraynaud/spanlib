@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 library source</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3485300"></a>SpanLib - Fortran 90 library source</h1></div></div><div></div><hr /></div><pre class="programlisting"><span class="HLcomments">! File: spanlib.f90</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Fortran 90 library source</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.69.1" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id2835648"></a>SpanLib - Fortran 90 library source</h1></div></div><hr /></div><pre class="programlisting"><span class="HLcomments">! File: spanlib.f90</span>
 <span class="HLcomments">!</span>
 <span class="HLcomments">! This file is part of the SpanLib library.</span>
 <span class="HLcomments">! Copyright (C) 2006  Stephane Raynaud</span>
@@ -34,7 +34,7 @@
 	<span class="HLcomments">! ############################################################</span>
 	<span class="HLcomments">! ############################################################</span>
 
-	<span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_pca</span>(ff, nkeep, xeof, pc, ev, weights, useteof, bLargeMatrix)
+	<span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_pca</span>(ff,nkeep,xeof,pc,ev,ev_sum,weights,useteof, bLargeMatrix)
 
 	<span class="HLcomments">!	Principal Component Analysis</span>
 	<span class="HLcomments">!</span>
@@ -42,7 +42,7 @@
 	<span class="HLcomments">!	Perform a decomposition of space-time field in a set of</span>
 	<span class="HLcomments">!	Empirical Orthogonal Functions (EOFs) and Principal components (PCs).</span>
 	<span class="HLcomments">!	The input data set can be optionally weighted in space.</span>
-	<span class="HLcomments">!	By default, the analysis computes  &quot;temporal&quot; (T) or classical</span>
+	<span class="HLcomments">!	By default, the analysis computes  "temporal" (T) or classical</span>
 	<span class="HLcomments">!	spatial (S) EOFs depending on if the space dimension is greater</span>
 	<span class="HLcomments">!	than the time dimension. This default behavior can be overridden.</span>
 	<span class="HLcomments">!</span>
@@ -54,9 +54,11 @@
 	<span class="HLcomments">!	- xeof:		Space-mode array of EOFs</span>
 	<span class="HLcomments">!	- pc:			Time-mode array of PCs</span>
 	<span class="HLcomments">!	- ev:			Mode array of eigen values (variances)</span>
+	<span class="HLcomments">!  - ev_sum:   Sum of all egein values (even thoses not returned)</span>
 	<span class="HLcomments">!	- weights:	Space array of weights</span>
 	<span class="HLcomments">!	- useteof:	To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]</span>
-	<span class="HLcomments">!	- bLargeMatrix: Use la_syevd instead of la_syev (faster for large matrices, but uses more workspace) [default:.true.]</span>
+	<span class="HLcomments">!	- bLargeMatrix: Use la_syevd instead of la_syev (faster for large </span>
+	<span class="HLcomments">!                  matrices, but uses more workspace) [default:.true.]</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Dependencies:</span>
 	<span class="HLcomments">!	[sd]gemm(BLAS) [sd]syrk(BLAS) la_syev(LAPACK95) la_syevd(LAPACK95)</span>
@@ -71,13 +73,14 @@
 
 	<span class="HLcomments">! External</span>
 	<span class="HLcomments">! --------</span>
-	<span class="HLroutines">real</span>(wp),<span class="HLattributes">intent</span>(in)           :: ff(:,:)
-	<span class="HLroutines">integer</span>, <span class="HLattributes">intent</span>(in)	         :: nkeep
-	<span class="HLroutines">real</span>(wp),<span class="HLattributes">intent</span>(out),<span class="HLattributes">optional</span> :: pc(size(ff,<span class="HLdigits">2</span>),nkeep), &amp;
+	<span class="HLroutines">real</span>(wp), <span class="HLattributes">intent</span>(in)           :: ff(:,:)
+	<span class="HLroutines">integer</span>,  <span class="HLattributes">intent</span>(in)	         :: nkeep
+	<span class="HLroutines">real</span>(wp), <span class="HLattributes">intent</span>(out), <span class="HLattributes">optional</span> :: pc(size(ff,<span class="HLdigits">2</span>),nkeep), &amp;
 	&amp;                                xeof(size(ff,<span class="HLdigits">1</span>),nkeep), ev(nkeep)
-	<span class="HLroutines">real</span>(wp),<span class="HLattributes">intent</span>(in), <span class="HLattributes">optional</span> :: weights(:)
-	<span class="HLroutines">integer</span>, <span class="HLattributes">intent</span>(in), <span class="HLattributes">optional</span> :: useteof
-	<span class="HLroutines">logical</span>, <span class="HLattributes">intent</span>(in), <span class="HLattributes">optional</span> :: bLargeMatrix
+	<span class="HLroutines">real</span>(wp), <span class="HLattributes">intent</span>(in),  <span class="HLattributes">optional</span> :: weights(:)
+	<span class="HLroutines">integer</span>,  <span class="HLattributes">intent</span>(in),  <span class="HLattributes">optional</span> :: useteof
+	<span class="HLroutines">logical</span>,  <span class="HLattributes">intent</span>(in),  <span class="HLattributes">optional</span> :: bLargeMatrix
+	<span class="HLroutines">real</span>(wp), <span class="HLattributes">intent</span>(out), <span class="HLattributes">optional</span> :: ev_sum
 
 	<span class="HLcomments">! Internal</span>
 	<span class="HLcomments">! --------</span>
@@ -219,7 +222,7 @@
 
 		<span class="HLcomments">! Eigenvalues</span>
 		<span class="HLcomments">! -----------</span>
-		<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(ev))ev = zev(nt:nt-nkeep+<span class="HLdigits">1</span>:-<span class="HLdigits">1</span>)
+		<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(ev)) ev = zev(nt:nt-nkeep+<span class="HLdigits">1</span>:-<span class="HLdigits">1</span>)
 
 	<span class="HLroutines">else</span>
 
@@ -259,6 +262,10 @@
 		<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(ev)) ev = zev(ns:ns-nkeep+<span class="HLdigits">1</span>:-<span class="HLdigits">1</span>)
 
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+
+	<span class="HLcomments">! Sum of all eigenvalues (useful for percentils)</span>
+	<span class="HLcomments">! ----------------------------------------------</span>
+	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(ev_sum)) ev_sum = <span class="HLfunctions">sum</span>(zev)
 
 	<span class="HLcomments">! Free eof array</span>
 	<span class="HLcomments">! --------------</span>
@@ -369,7 +376,7 @@
 	<span class="HLcomments">! Description:</span>
 	<span class="HLcomments">!	Perform a reconstruction using a set of components previously</span>
 	<span class="HLcomments">!	computed with a PCA. All the reconstructed components are summed.</span>
-	<span class="HLcomments">!	A reconstructed component is simply the &quot;product&quot; of an EOF</span>
+	<span class="HLcomments">!	A reconstructed component is simply the "product" of an EOF</span>
 	<span class="HLcomments">!	by its PC. The sum of all reconstructed component is the original field.</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Necessary arguments:</span>
@@ -456,7 +463,7 @@
   <span class="HLcomments">!############################################################</span>
   <span class="HLcomments">!############################################################</span>
 
-	<span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_mssa</span>(ff, nwindow, nkeep, steof, stpc, ev, bLargeMatrix)
+	<span class="HLroutines">subroutine</span> <span class="HLpersonalised">sl_mssa</span>(ff, nwindow, nkeep, steof, stpc, ev, ev_sum, bLargeMatrix)
 
 	<span class="HLcomments">! Title:</span>
 	<span class="HLcomments">!	Multi-channel Singular Spectrum Analysis</span>
@@ -473,10 +480,12 @@
 	<span class="HLcomments">!	- nkeep:   Maximum number of modes to keep in outputs</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Optional arguments:</span>
-	<span class="HLcomments">!	- steof: Space-window-mode array of EOFs</span>
-	<span class="HLcomments">!	- stpc:  Time-mode array of PCs</span>
-	<span class="HLcomments">!	- ev:    Mode array of eigen values (variances)</span>
-	<span class="HLcomments">!	- bLargeMatrix: Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) [default:.true.]</span>
+	<span class="HLcomments">!	- steof:  Space-window-mode array of EOFs</span>
+	<span class="HLcomments">!	- stpc:   Time-mode array of PCs</span>
+	<span class="HLcomments">!	- ev:     Mode array of eigen values (variances)</span>
+	<span class="HLcomments">!  - ev_sum: Sum of all eigen values (even thoses not returned)</span>
+	<span class="HLcomments">!	- bLargeMatrix: Use ssyevd instead of ssyev (faster for large matrices, </span>
+	<span class="HLcomments">!                  but uses more workspace) [default:.true.]</span>
 	<span class="HLcomments">!</span>
 	<span class="HLcomments">! Dependencies:</span>
 	<span class="HLcomments">!	la_syev(LAPACK95) la_syevd(LAPACK95)</span>
@@ -492,11 +501,12 @@
 	<span class="HLcomments">! External</span>
 	<span class="HLcomments">! --------</span>
 	<span class="HLroutines">real</span>(wp), <span class="HLattributes">intent</span>(in)            :: ff(:,:)
-	<span class="HLroutines">integer</span>,       <span class="HLattributes">intent</span>(in)            :: nwindow, nkeep
+	<span class="HLroutines">integer</span>,  <span class="HLattributes">intent</span>(in)            :: nwindow, nkeep
 	<span class="HLroutines">real</span>(wp), <span class="HLattributes">intent</span>(out), <span class="HLattributes">optional</span> :: &amp;
 		&amp; steof(size(ff,<span class="HLdigits">1</span>)*nwindow, nkeep), &amp;
 		&amp; stpc(size(ff,<span class="HLdigits">2</span>)-nwindow+<span class="HLdigits">1</span>, nkeep), ev(nkeep)
-	<span class="HLroutines">logical</span>,       <span class="HLattributes">intent</span>(in),  <span class="HLattributes">optional</span> :: bLargeMatrix
+	<span class="HLroutines">logical</span>,  <span class="HLattributes">intent</span>(in),  <span class="HLattributes">optional</span> :: bLargeMatrix
+	<span class="HLroutines">real</span>(wp), <span class="HLattributes">intent</span>(out), <span class="HLattributes">optional</span> :: ev_sum
 
 	<span class="HLcomments">! Internal</span>
 	<span class="HLcomments">! --------</span>
@@ -587,6 +597,7 @@
 	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(ev))<span class="HLroutines">then</span>
 		ev = zev(nsteof : nsteof-nkeep+<span class="HLdigits">1</span> : -<span class="HLdigits">1</span>)
 	<span class="HLroutines">end</span> <span class="HLroutines">if</span>
+	<span class="HLroutines">if</span>(<span class="HLfunctions">present</span>(ev_sum)) ev_sum = <span class="HLfunctions">sum</span>(zev)
 	<span class="HLfunctions">deallocate</span>(zev)
 
 

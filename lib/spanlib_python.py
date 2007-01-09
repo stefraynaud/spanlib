@@ -349,7 +349,7 @@ class SpAn(object):
         else:
             self.window = window
 
-    def pca(self,npca=None):
+    def pca(self,npca=None,get_ev_sum=False):
         """ Principal Components Analysis (PCA)
 
         Descriptions:::
@@ -361,13 +361,21 @@ class SpAn(object):
         Usage:::
         eof, pc, ev = pca(npca=None,weights=None)
 
-          npca    :: Number of principal components to return, default will be 10
+        OR
+
+        eof, pc, ev, ev_sum = pca(npca=None,weights=None,get_ev_sum=True)
+
+          npca    :: Number of principal components to return (default: 10)
+          get_ev_sum  :: Also return sum of all eigen values (default: False)
         :::
 
         Output:::
-          eof :: List EOF array (one per data input when created SpAn object)
-          pc  :: List of Principal Components array
-          ev  :: List of Eigein Values array
+          eof    :: List EOF array (one per data input when created SpAn object)
+          pc     :: List of Principal Components array
+          ev     :: List of Eigein Values array
+          ev_sum :: Sum of all eigen values (even thoses not returned).
+                    Returned ONLY if get_ev_sum is True.
+                    It can also be retreived with <SpAn_object>.ev_sum.
         :::
         """
 
@@ -381,10 +389,12 @@ class SpAn(object):
         eof=[]
         pc=[]
         ev=[]
+        self.ev_sum=[]
+        
         for i in range(len(self.pdata)):
             pdat=self.pdata[i]
             w=self.weights[i]
-            nteof,ntpc,ntev = spanlib_fort.pca(pdat,npca,w,1)
+            nteof,ntpc,ntev,ntev_sum = spanlib_fort.pca(pdat,npca,w,1)
 
             Axes=list(self.axes[i][1:])
 
@@ -414,15 +424,21 @@ class SpAn(object):
             eof.append(teof)
             pc.append(tpc)
             ev.append(tev)
+            self.ev_sum.append(ntev_sum)
 
         if len(eof)==1:
-            return eof[0],pc[0],ev[0]
+            ret =  [eof[0],pc[0],ev[0]]
+            self.ev_sum = self.ev_sum[0]
         else:
-            return eof,pc,ev
+            ret =  [eof,pc,ev]
 
+        if get_ev_sum:
+            ret.append(self.ev_sum)
 
+        return ret
+    
 
-    def mssa(self,nmssa=None,pca=None,window=None):
+    def mssa(self,nmssa=None,pca=None,window=None,get_ev_sum=False):
         """ MultiChannel Singular Spectrum Analysis (MSSA)
 
         Descriptions:::
@@ -437,14 +453,22 @@ class SpAn(object):
         Usage:::
         eof, pc, ev = mssa(nmssa,pca)
 
+        OR
+
+        eof, pc, ev, ev_sum = mssa(nmssa,pca,get_ev_sum=True)
+
           nmssa  :: Number of MSSA modes retained
           window :: MSSA window parameter
           pca    :: If True, performs a preliminary PCA
+          get_ev_sum  :: Also return sum of all eigen values (default: False)
 
         Output:::
           eof :: EOF array
           pc  :: Principal Components array
           ev  :: Eigen Values  array
+          ev_sum :: Sum of all eigen values (even thoses not returned).
+                    Returned ONLY if get_ev_sum is True.
+                    It can also be retreived with <SpAn_object>.stev_sum.
         :::
         """
 
@@ -477,12 +501,13 @@ class SpAn(object):
         eof=[]
         ev=[]
         pc=[]
+        self.stev_sum=[]
         
         for i in range(len(self.pdata)):
             if pca is True: # Pre-PCA case
-                ntsteof, ntstpc, ntstev = spanlib_fort.mssa(Numeric.transpose(self.pc[i]), self.window, self.nmssa)
+                ntsteof, ntstpc, ntstev, ntev_sum = spanlib_fort.mssa(Numeric.transpose(self.pc[i]), self.window, self.nmssa)
             else: # Direct MSSA case
-                ntsteof, ntstpc, ntstev = spanlib_fort.mssa(self.pdata[i], self.window, self.nmssa)
+                ntsteof, ntstpc, ntstev, ntev_sum = spanlib_fort.mssa(self.pdata[i], self.window, self.nmssa)
 
             teof = MV.transpose(MV.reshape(ntsteof,(self.window,nspace[i],self.nmssa)))
             teof.id='EOF'
@@ -515,12 +540,19 @@ class SpAn(object):
             eof.append(teof)
             pc.append(tpc)
             ev.append(tev)
+            self.stev_sum.append(ntev_sum)
 
         if len(eof)==1:
-            return eof[0],pc[0],ev[0]
+            ret = [eof[0],pc[0],ev[0]]
+            self.stev_sum = self.stev_sum[0]
         else:
-            return eof,pc,ev
+            ret = [eof,pc,ev]
 
+        if get_ev_sum:
+            ret.append(self.ev_sum)
+
+        return ret
+    
 
     def svd(self,nsvd=None,pca=None):
         """ Singular Value Decomposition (SVD)

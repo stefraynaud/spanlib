@@ -32,7 +32,7 @@ contains
 	! ############################################################
 	! ############################################################
 
-	subroutine sl_pca(ff, nkeep, xeof, pc, ev, weights, useteof, bLargeMatrix)
+	subroutine sl_pca(ff,nkeep,xeof,pc,ev,ev_sum,weights,useteof, bLargeMatrix)
 
 	!	Principal Component Analysis
 	!
@@ -52,9 +52,11 @@ contains
 	!	- xeof:		Space-mode array of EOFs
 	!	- pc:			Time-mode array of PCs
 	!	- ev:			Mode array of eigen values (variances)
+	!  - ev_sum:   Sum of all egein values (even thoses not returned)
 	!	- weights:	Space array of weights
 	!	- useteof:	To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]
-	!	- bLargeMatrix: Use la_syevd instead of la_syev (faster for large matrices, but uses more workspace) [default:.true.]
+	!	- bLargeMatrix: Use la_syevd instead of la_syev (faster for large 
+	!                  matrices, but uses more workspace) [default:.true.]
 	!
 	! Dependencies:
 	!	[sd]gemm(BLAS) [sd]syrk(BLAS) la_syev(LAPACK95) la_syevd(LAPACK95)
@@ -69,13 +71,14 @@ contains
 
 	! External
 	! --------
-	real(wp),intent(in)           :: ff(:,:)
-	integer, intent(in)	         :: nkeep
-	real(wp),intent(out),optional :: pc(size(ff,2),nkeep), &
+	real(wp), intent(in)           :: ff(:,:)
+	integer,  intent(in)	         :: nkeep
+	real(wp), intent(out), optional :: pc(size(ff,2),nkeep), &
 	&                                xeof(size(ff,1),nkeep), ev(nkeep)
-	real(wp),intent(in), optional :: weights(:)
-	integer, intent(in), optional :: useteof
-	logical, intent(in), optional :: bLargeMatrix
+	real(wp), intent(in),  optional :: weights(:)
+	integer,  intent(in),  optional :: useteof
+	logical,  intent(in),  optional :: bLargeMatrix
+	real(wp), intent(out), optional :: ev_sum
 
 	! Internal
 	! --------
@@ -217,7 +220,7 @@ contains
 
 		! Eigenvalues
 		! -----------
-		if(present(ev))ev = zev(nt:nt-nkeep+1:-1)
+		if(present(ev)) ev = zev(nt:nt-nkeep+1:-1)
 
 	else
 
@@ -257,6 +260,10 @@ contains
 		if(present(ev)) ev = zev(ns:ns-nkeep+1:-1)
 
 	end if
+
+	! Sum of all eigenvalues (useful for percentils)
+	! ----------------------------------------------
+	if(present(ev_sum)) ev_sum = sum(zev)
 
 	! Free eof array
 	! --------------
@@ -454,7 +461,7 @@ contains
   !############################################################
   !############################################################
 
-	subroutine sl_mssa(ff, nwindow, nkeep, steof, stpc, ev, bLargeMatrix)
+	subroutine sl_mssa(ff, nwindow, nkeep, steof, stpc, ev, ev_sum, bLargeMatrix)
 
 	! Title:
 	!	Multi-channel Singular Spectrum Analysis
@@ -471,10 +478,12 @@ contains
 	!	- nkeep:   Maximum number of modes to keep in outputs
 	!
 	! Optional arguments:
-	!	- steof: Space-window-mode array of EOFs
-	!	- stpc:  Time-mode array of PCs
-	!	- ev:    Mode array of eigen values (variances)
-	!	- bLargeMatrix: Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) [default:.true.]
+	!	- steof:  Space-window-mode array of EOFs
+	!	- stpc:   Time-mode array of PCs
+	!	- ev:     Mode array of eigen values (variances)
+	!  - ev_sum: Sum of all eigen values (even thoses not returned)
+	!	- bLargeMatrix: Use ssyevd instead of ssyev (faster for large matrices, 
+	!                  but uses more workspace) [default:.true.]
 	!
 	! Dependencies:
 	!	la_syev(LAPACK95) la_syevd(LAPACK95)
@@ -490,11 +499,12 @@ contains
 	! External
 	! --------
 	real(wp), intent(in)            :: ff(:,:)
-	integer,       intent(in)            :: nwindow, nkeep
+	integer,  intent(in)            :: nwindow, nkeep
 	real(wp), intent(out), optional :: &
 		& steof(size(ff,1)*nwindow, nkeep), &
 		& stpc(size(ff,2)-nwindow+1, nkeep), ev(nkeep)
-	logical,       intent(in),  optional :: bLargeMatrix
+	logical,  intent(in),  optional :: bLargeMatrix
+	real(wp), intent(out), optional :: ev_sum
 
 	! Internal
 	! --------
@@ -585,6 +595,7 @@ contains
 	if(present(ev))then
 		ev = zev(nsteof : nsteof-nkeep+1 : -1)
 	end if
+	if(present(ev_sum)) ev_sum = sum(zev)
 	deallocate(zev)
 
 

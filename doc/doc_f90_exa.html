@@ -1,37 +1,38 @@
-<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <title>3.3. Fortran 90 examples</title>
-    <link rel="stylesheet" href="spanlib.css" type="text/css"/>
-    <meta name="generator" content="DocBook XSL Stylesheets V1.61.2"/>
-    <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, Multichannel singular spectrum analysis, PCA, Principal component analysis, EOF, Empirical othogonal funtion, PC, Principal component, SVD, Singular value decomposition, POP, Principal oscillation patterns"/>
-    <link rel="home" href="index.html" title="SpanLib - Spectral Analysis Library"/>
-    <link rel="up" href="doc_f90.html" title="3. The Fortran 90 library"/>
-    <link rel="previous" href="doc_f90_sub.html" title="3.2. F90 subroutines"/>
-    <link rel="next" href="doc_pyt.html" title="4. The python module"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>3.3.Â Fortran 90 examples</title>
+    <link rel="stylesheet" href="spanlib.css" type="text/css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.69.1" />
+    <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, Multichannel singular spectrum analysis, PCA, Principal component analysis, EOF, Empirical othogonal funtion, PC, Principal component, SVD, Singular value decomposition, POP, Principal oscillation patterns" />
+    <link rel="start" href="index.html" title="SpanLib - Spectral Analysis Library" />
+    <link rel="up" href="doc_f90.html" title="3.Â The Fortran 90 library" />
+    <link rel="prev" href="doc_f90_sub.html" title="3.2.Â F90 subroutines" />
+    <link rel="next" href="doc_pyt.html" title="4.Â The python module" />
   </head>
   <body>
     <div class="navheader">
       <table width="100%" summary="Navigation header">
         <tr>
-          <th colspan="3" align="center">3.3. Fortran 90 examples</th>
+          <th colspan="3" align="center">3.3.Â Fortran 90 examples</th>
         </tr>
         <tr>
-          <td width="20%" align="left"><a accesskey="p" href="doc_f90_sub.html">Prev</a> </td>
-          <th width="60%" align="center">3. The Fortran 90 library</th>
-          <td width="20%" align="right"> <a accesskey="n" href="doc_pyt.html">Next</a></td>
+          <td width="20%" align="left"><a accesskey="p" href="doc_f90_sub.html">Prev</a>Â </td>
+          <th width="60%" align="center">3.Â The Fortran 90 library</th>
+          <td width="20%" align="right">Â <a accesskey="n" href="doc_pyt.html">Next</a></td>
         </tr>
       </table>
-      <hr/>
+      <hr />
     </div>
-    <div class="sect2" lang="en">
+    <div class="sect2" lang="en" xml:lang="en">
       <div class="titlepage">
         <div>
           <div>
-            <h3 class="title"><a id="doc_f90_exa"/>3.3. Fortran 90 examples</h3>
+            <h3 class="title"><a id="doc_f90_exa"></a>3.3.Â Fortran 90 examples</h3>
           </div>
         </div>
-        <div/>
       </div>
       <p>
 				Theses examples illustrate of how to use the Fortran 90 component of Spanlib.
@@ -41,22 +42,21 @@
       <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3>
 					Each example create an output netcdf file.
 					The configure script should have tried to find a way
-					to view these outputs (like <b class="command">ncview</b>,
-					<b class="command">vcdat</b>, or a simple python script provided
+					to view these outputs (like <span><strong class="command">ncview</strong></span>,
+					<span><strong class="command">vcdat</strong></span>, or a simple python script provided
 					with the package).
 					If it failed, you will have to visualise results by yourself
 					(indications are provided and the end of the run).
 				</div>
       <p>
 			</p>
-      <div class="sect3" lang="en">
+      <div class="sect3" lang="en" xml:lang="en">
         <div class="titlepage">
           <div>
             <div>
-              <h4 class="title"><a id="doc_f90_ex1"/>3.3.1. F90 example 1</h4>
+              <h4 class="title"><a id="doc_f90_ex1"></a>3.3.1.Â F90 example 1</h4>
             </div>
           </div>
-          <div/>
         </div>
         <p>
 					In this example, PCA is performed on the whole dataset to reduce
@@ -67,22 +67,22 @@
 					Phase composites are also computed to represent the oscillation over its cycle.
 				</p>
         <div class="example">
-          <a id="id3014196"/>
+          <a id="id2581898"></a>
           <p class="title">
-            <b>Example 1. F90 example 1</b>
+            <b>ExampleÂ 1.Â F90 example 1</b>
           </p>
           <p>
 						You can run this example typing (from package directory):
 						</p>
-          <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make example</tt></b></pre>
+          <pre class="programlisting"><code class="prompt">&lt;user&gt;</code> <strong class="userinput"><code>make example</code></strong></pre>
           <p> or
 						</p>
-          <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make fortran1</tt></b></pre>
+          <pre class="programlisting"><code class="prompt">&lt;user&gt;</code> <strong class="userinput"><code>make fortran1</code></strong></pre>
           <p>
 						This command will first try to download the dataset,
 						then compile the following f90 program, run it,
 						and finally try to visualise output data.
-						See <a href="doc_ins.html#doc_ins_req" title="2.1. Requirements">Section 2.1, &#8220;Requirements&#8221;</a> if it fails.
+						See <a href="doc_ins.html#doc_ins_req" title="2.1.Â Requirements">SectionÂ 2.1, â€œRequirementsâ€</a> if it fails.
 					</p>
           <p>
 						The source code of this example is highlighted below, with comments inside.
@@ -116,7 +116,7 @@
 	<span class="HLcomments">! that include the El Nino Southern Oscillation signal.</span>
 	<span class="HLcomments">! Input is the netcdf file data2.cdf.</span>
 	<span class="HLcomments">! We remove land points from the initial array according</span>
-	<span class="HLcomments">! to the netcdf missing_value attribute of the analysed variable (data are &quot;packed&quot;).</span>
+	<span class="HLcomments">! to the netcdf missing_value attribute of the analysed variable (data are "packed").</span>
 	<span class="HLcomments">! A PCA is used to reduce the degrees of freedoom before MSSA analysis.</span>
 	<span class="HLcomments">! Weights for PCA are computed as a fonction of latitude.</span>
 	<span class="HLcomments">! Then, we assume that we have already identified an oscillation (after tests).</span>
@@ -156,8 +156,8 @@
 		&amp; first_mode=<span class="HLdigits">1</span>, nphases=<span class="HLdigits">8</span>
 	<span class="HLroutines">real</span>(wp), <span class="HLattributes">parameter</span> :: offset=<span class="HLdigits">0</span>.d0, first_phase=<span class="HLdigits">180</span>.d0, &amp;
 		&amp; new_missing_value=-<span class="HLdigits">999</span>.d0
-	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">&quot;data2.cdf&quot;</span>, &amp;
-		&amp; output_nc_file=<span class="HLstrings">&quot;output_fortran1.nc&quot;</span>, var_name=<span class="HLstrings">'ssta'</span>
+	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">"data2.cdf"</span>, &amp;
+		&amp; output_nc_file=<span class="HLstrings">"output_fortran1.nc"</span>, var_name=<span class="HLstrings">'ssta'</span>
 
 	<span class="HLcomments">! Other declarations</span>
 	<span class="HLcomments">! ------------------</span>
@@ -271,7 +271,6 @@
 	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_phasecomp</span>] Phase composites...'</span>
 	<span class="HLfunctions">allocate</span>(stphasecomps(nkeep_pca, nphases))
 	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_phasecomp</span>(stpair, nphases, stphasecomps, &amp;
-		&amp;	weights=packed_weights, &amp;
 		&amp;	offset=offset, firstphase=first_phase)
 
 	<span class="HLcomments">! We go back to the physical space for</span>
@@ -386,14 +385,13 @@
 					</p>
         </div>
       </div>
-      <div class="sect3" lang="en">
+      <div class="sect3" lang="en" xml:lang="en">
         <div class="titlepage">
           <div>
             <div>
-              <h4 class="title"><a id="doc_f90_ex2"/>3.3.2. F90 example 2</h4>
+              <h4 class="title"><a id="doc_f90_ex2"></a>3.3.2.Â F90 example 2</h4>
             </div>
           </div>
-          <div/>
         </div>
         <p>
 					The goal is to provide an example to show how SVD works.
@@ -405,14 +403,14 @@
 					and joint eigen values are stored to the netcdf file.
 				</p>
         <div class="example">
-          <a id="id3017042"/>
+          <a id="id2581979"></a>
           <p class="title">
-            <b>Example 2. F90 example 2</b>
+            <b>ExampleÂ 2.Â F90 example 2</b>
           </p>
           <p>
 						You can run this example typing (from package directory):
 						</p>
-          <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make fortran2</tt></b></pre>
+          <pre class="programlisting"><code class="prompt">&lt;user&gt;</code> <strong class="userinput"><code>make fortran2</code></strong></pre>
           <p>
 					</p>
           <p>
@@ -471,8 +469,8 @@
 		&amp; lons1(<span class="HLdigits">2</span>)=(/<span class="HLdigits">70</span>,<span class="HLdigits">150</span>/),lats1(<span class="HLdigits">2</span>)=(/<span class="HLdigits">16</span>,<span class="HLdigits">45</span>/),&amp; <span class="HLcomments">! East</span>
 		&amp; lons2(<span class="HLdigits">2</span>)=(/<span class="HLdigits">10</span>,<span class="HLdigits">40</span>/),lats2(<span class="HLdigits">2</span>)=(/<span class="HLdigits">12</span>,<span class="HLdigits">49</span>/)    <span class="HLcomments">! West</span>
 	<span class="HLroutines">real</span>(wp), <span class="HLattributes">parameter</span> ::new_missing_value=-<span class="HLdigits">999</span>.d0
-	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">&quot;data2.cdf&quot;</span>, &amp;
-		&amp; output_nc_file=<span class="HLstrings">&quot;output_fortran2.nc&quot;</span>, var_name=<span class="HLstrings">'ssta'</span>
+	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">"data2.cdf"</span>, &amp;
+		&amp; output_nc_file=<span class="HLstrings">"output_fortran2.nc"</span>, var_name=<span class="HLstrings">'ssta'</span>
 
 	<span class="HLcomments">! Other declarations</span>
 	<span class="HLcomments">! ------------------</span>
@@ -802,27 +800,27 @@
       </div>
     </div>
     <div class="navfooter">
-      <hr/>
+      <hr />
       <table width="100%" summary="Navigation footer">
         <tr>
-          <td width="40%" align="left"><a accesskey="p" href="doc_f90_sub.html">Prev</a> </td>
+          <td width="40%" align="left"><a accesskey="p" href="doc_f90_sub.html">Prev</a>Â </td>
           <td width="20%" align="center">
             <a accesskey="u" href="doc_f90.html">Up</a>
           </td>
-          <td width="40%" align="right"> <a accesskey="n" href="doc_pyt.html">Next</a></td>
+          <td width="40%" align="right">Â <a accesskey="n" href="doc_pyt.html">Next</a></td>
         </tr>
         <tr>
-          <td width="40%" align="left" valign="top">3.2. F90 subroutines </td>
+          <td width="40%" align="left" valign="top">3.2.Â F90 subroutinesÂ </td>
           <td width="20%" align="center">
             <a accesskey="h" href="index.html">Home</a>
           </td>
-          <td width="40%" align="right" valign="top"> 4. The python module</td>
+          <td width="40%" align="right" valign="top">Â 4.Â The python module</td>
         </tr>
       </table>
     </div>
-    <a xmlns="" xmlns:fo="http://www.w3.org/1999/XSL/Format" href="http://sourceforge.net">
-      <img src="http://sflogo.sourceforge.net/sflogo.php?group_id=168272&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo"/>
+    <a xmlns="" href="http://sourceforge.net">
+      <img src="http://sflogo.sourceforge.net/sflogo.php?group_id=168272&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo" />
     </a>
-    <div xmlns="" xmlns:fo="http://www.w3.org/1999/XSL/Format" class="generated">This document was generated using xsltproc and perl.</div>
+    <div xmlns="" class="generated">This document was generated using xsltproc and perl.</div>
   </body>
 </html>

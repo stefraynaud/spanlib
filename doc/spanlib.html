@@ -4,9 +4,9 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>SpanLib - Spectral Analysis Library</title>
-    <meta name="generator" content="DocBook XSL Stylesheets V1.61.2" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.69.1" />
     <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, Multichannel singular spectrum analysis, PCA, Principal component analysis, EOF, Empirical othogonal funtion, PC, Principal component, SVD, Singular value decomposition, POP, Principal oscillation patterns" />
-    <style xmlns="" xmlns:fo="http://www.w3.org/1999/XSL/Format" type="text/css">
+    <style xmlns="" type="text/css">
 			/* Main */
 body {
 	padding-right:30px;
@@ -83,7 +83,7 @@ div.note h3.title {font-size:smaller;}
       <div class="titlepage">
         <div>
           <div>
-            <h1 class="title"><a id="id3514302"></a>SpanLib - Spectral Analysis Library</h1>
+            <h1 class="title"><a id="id2691706"></a>SpanLib - Spectral Analysis Library</h1>
           </div>
           <div>
             <div class="authorgroup">
@@ -95,7 +95,7 @@ div.note h3.title {font-size:smaller;}
               </div>
               <div class="affiliation">
                 <div class="address">
-                  <p>Contact: <tt class="email">&lt;<a href="mailto:stephane dot raynaud at gmail dot com">stephane dot raynaud at gmail dot com</a>&gt;</tt><br />
+                  <p>Contact: <code class="email">&lt;<a href="mailto:stephane dot raynaud at gmail dot com">stephane dot raynaud at gmail dot com</a>&gt;</code><br />
 				</p>
                 </div>
               </div>
@@ -117,10 +117,9 @@ div.note h3.title {font-size:smaller;}
 		</p>
           </div>
           <div>
-            <fo:block xmlns:fo="http://www.w3.org/1999/XSL/Format">This documentation was generated on 28 September 2006</fo:block>
+            <fo:block xmlns:fo="http://www.w3.org/1999/XSL/Format">This documentation was generated on 9 January 2007</fo:block>
           </div>
         </div>
-        <div></div>
         <hr />
       </div>
       <div class="toc">
@@ -128,43 +127,121 @@ div.note h3.title {font-size:smaller;}
           <b>Table of Contents</b>
         </p>
         <dl>
-          <dt>1. <a href="#doc_pre">Presentation</a></dt>
-          <dd>
-            <dl>
-              <dt>1.1. <a href="#doc_pre_int">Introduction</a></dt>
-              <dt>1.2. <a href="#doc_pre_fun">Fundamentals</a></dt>
-              <dt>1.3. <a href="#doc_pre_tec">Some technical details...</a></dt>
-              <dt>1.4. <a href="#doc_pre_mor">For more information</a></dt>
-              <dt>1.5. <a href="#doc_int_vie">View colorized sources</a></dt>
-            </dl>
-          </dd>
-          <dt>2. <a href="#doc_ins">Installation</a></dt>
-          <dd>
-            <dl>
-              <dt>2.1. <a href="#doc_ins_req">Requirements</a></dt>
-              <dt>2.2. <a href="#doc_ins_dow">Download</a></dt>
-              <dt>2.3. <a href="#doc_ins_ins">Compilation and installation</a></dt>
-            </dl>
-          </dd>
-          <dt>3. <a href="#doc_f90">The Fortran 90 library</a></dt>
-          <dd>
-            <dl>
-              <dt>3.1. <a href="#doc_f90_int">Introduction</a></dt>
-              <dt>3.2. <a href="#doc_f90_sub">F90 subroutines</a></dt>
-              <dt>3.3. <a href="#doc_f90_exa">Fortran 90 examples</a></dt>
-            </dl>
-          </dd>
-          <dt>4. <a href="#doc_pyt">The python module</a></dt>
-          <dd>
-            <dl>
-              <dt>4.1. <a href="#doc_pyt_int">Introduction</a></dt>
-              <dt>4.2. <a href="#doc_pyt_sub">Python functions</a></dt>
-              <dt>4.3. <a href="#doc_pyt_exa">Python examples</a></dt>
-            </dl>
-          </dd>
-          <dt>5. <a href="#doc_lin">Links</a></dt>
           <dt>
-            <a href="#doc_bib">Bibliography</a>
+            <span class="sect1">
+              <a href="#doc_pre">1. Presentation</a>
+            </span>
+          </dt>
+          <dd>
+            <dl>
+              <dt>
+                <span class="sect2">
+                  <a href="#doc_pre_int">1.1. Introduction</a>
+                </span>
+              </dt>
+              <dt>
+                <span class="sect2">
+                  <a href="#doc_pre_fun">1.2. Fundamentals</a>
+                </span>
+              </dt>
+              <dt>
+                <span class="sect2">
+                  <a href="#doc_pre_tec">1.3. Some technical details...</a>
+                </span>
+              </dt>
+              <dt>
+                <span class="sect2">
+                  <a href="#doc_pre_mor">1.4. For more information</a>
+                </span>
+              </dt>
+              <dt>
+                <span class="sect2">
+                  <a href="#doc_int_vie">1.5. View colorized sources</a>
+                </span>
+              </dt>
+            </dl>
+          </dd>
+          <dt>
+            <span class="sect1">
+              <a href="#doc_ins">2. Installation</a>
+            </span>
+          </dt>
+          <dd>
+            <dl>
+              <dt>
+                <span class="sect2">
+                  <a href="#doc_ins_req">2.1. Requirements</a>
+                </span>
+              </dt>
+              <dt>
+                <span class="sect2">
+                  <a href="#doc_ins_dow">2.2. Download</a>
+                </span>
+              </dt>
+              <dt>
+                <span class="sect2">
+                  <a href="#doc_ins_ins">2.3. Compilation and installation</a>
+                </span>
+              </dt>
+            </dl>
+          </dd>
+          <dt>
+            <span class="sect1">
+              <a href="#doc_f90">3. The Fortran 90 library</a>
+            </span>
+          </dt>
+          <dd>
+            <dl>
+              <dt>
+                <span class="sect2">
+                  <a href="#doc_f90_int">3.1. Introduction</a>
+                </span>
+              </dt>
+              <dt>
+                <span class="sect2">
+                  <a href="#doc_f90_sub">3.2. F90 subroutines</a>
+                </span>
+              </dt>
+              <dt>
+                <span class="sect2">
+                  <a href="#doc_f90_exa">3.3. Fortran 90 examples</a>
+                </span>
+              </dt>
+            </dl>
+          </dd>
+          <dt>
+            <span class="sect1">
+              <a href="#doc_pyt">4. The python module</a>
+            </span>
+          </dt>
+          <dd>
+            <dl>
+              <dt>
+                <span class="sect2">
+                  <a href="#doc_pyt_int">4.1. Introduction</a>
+                </span>
+              </dt>
+              <dt>
+                <span class="sect2">
+                  <a href="#doc_pyt_sub">4.2. Python functions</a>
+                </span>
+              </dt>
+              <dt>
+                <span class="sect2">
+                  <a href="#doc_pyt_exa">4.3. Python examples</a>
+                </span>
+              </dt>
+            </dl>
+          </dd>
+          <dt>
+            <span class="sect1">
+              <a href="#doc_lin">5. Links</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="bibliography">
+              <a href="#doc_bib">Bibliography</a>
+            </span>
           </dt>
         </dl>
       </div>
@@ -175,7 +252,6 @@ div.note h3.title {font-size:smaller;}
               <h2 class="title" style="clear: both"><a id="doc_pre"></a>1. Presentation</h2>
             </div>
           </div>
-          <div></div>
         </div>
         <div class="sect2" lang="en" xml:lang="en">
           <div class="titlepage">
@@ -184,7 +260,6 @@ div.note h3.title {font-size:smaller;}
                 <h3 class="title"><a id="doc_pre_int"></a>1.1. Introduction</h3>
               </div>
             </div>
-            <div></div>
           </div>
           <p>
 				Observed or simulated multi-channel timeseries generally include
@@ -200,9 +275,9 @@ div.note h3.title {font-size:smaller;}
           <p>
 				This package provides a <a href="#doc_f90" title="3.&#xA0;The Fortran 90 library">F90 library</a> (as a module)
 				containing a minimal collection of subroutines to perform
-				<span class="bold"><b>Principal Componant Analysis</b></span> (PCA),
-				<span class="bold"><b>Multi-channel Singular Spectrum Analysis</b></span> (MSSA),
-				<span class="bold"><b>Singular Value Decomposition</b></span> (SVD),
+				<span class="bold"><strong>Principal Componant Analysis</strong></span> (PCA),
+				<span class="bold"><strong>Multi-channel Singular Spectrum Analysis</strong></span> (MSSA),
+				<span class="bold"><strong>Singular Value Decomposition</strong></span> (SVD),
 				reconstruction of components and phase composites.
 				The package also provide a <a href="#doc_pyt" title="4.&#xA0;The python module">python module</a>
 				that calls the F90 library and gives the user a set of useful functions
@@ -221,10 +296,9 @@ div.note h3.title {font-size:smaller;}
                 <h3 class="title"><a id="doc_pre_fun"></a>1.2. Fundamentals</h3>
               </div>
             </div>
-            <div></div>
           </div>
           <p>
-				<span class="bold"><b><a href="#pca">PCA</a></b></span> is also know as Empirical Orthogonal Functions (EOFs) decomposition:
+				<span class="bold"><strong><a href="#pca">PCA</a></strong></span> is also know as Empirical Orthogonal Functions (EOFs) decomposition:
 				it decomposes a space-time signal in pairs of
 				spatial EOFs and temporal
 				Principal Components (PCs)
@@ -233,14 +307,14 @@ div.note h3.title {font-size:smaller;}
 				and their associated PCs are the coefficients that regulate these patterns.
 				</p>
           <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3>
-					In this document, &quot;space&quot; refers to the more general notion
-					of &quot;channel&quot;,  in opposition to &quot;time&quot;.
+					In this document, "space" refers to the more general notion
+					of "channel",  in opposition to "time".
 					In climate studies, the channel dimension generally coincides with space.
 				</div>
           <p>
 			</p>
           <p>
-				<span class="bold"><b><a href="#ssa">SSA</a></b></span> (Singular Spectrum Analysis)
+				<span class="bold"><strong><a href="#ssa">SSA</a></strong></span> (Singular Spectrum Analysis)
 				is mathematically very similar to PCA:
 				there is now only one channel as an input dataset, and eigenmodes are computed on
 				the lag-covariance matrix (instead of on the cross -between channels- covriance matrix).
@@ -254,7 +328,7 @@ div.note h3.title {font-size:smaller;}
               <li>
 						It removes <span class="emphasis"><em>incoherent noise</em></span> (white noise):
 						the noisy part of the signal takes the form of low order
-						modes, identified as a &quot;background&quot; that can be easily neglected.
+						modes, identified as a "background" that can be easily neglected.
 					</li>
               <li>
 						It naturally extracts <span class="emphasis"><em>regular oscillations</em></span> (with a narrow spectral peak).
@@ -274,10 +348,10 @@ div.note h3.title {font-size:smaller;}
 				<a href="#window" title="The window parameter">window</a>.
 			</p>
           <p>
-				<span class="bold"><b><a href="#mssa">MSSA</a></b></span>
+				<span class="bold"><strong><a href="#mssa">MSSA</a></strong></span>
 				is a combination of PCA and SSA: it is an SSA on several channels.
 				The diagonalized is built on covariances between channels (cross) and time segments (lag).
-				Therefore, it has the advantage of PCA for extracting the dominant &quot;spatial&quot; patterns
+				Therefore, it has the advantage of PCA for extracting the dominant "spatial" patterns
 				of the variability, and has also the spectral filtering capabilities of SSA.
 				All identified modes have spatio-temporal properties.
 				For example, oscillations are not constrained on a fixed spatial pattern, but can also
@@ -287,7 +361,7 @@ div.note h3.title {font-size:smaller;}
 				noisy signal.</em></span>
 			</p>
           <p>
-				<span class="bold"><b><a href="#svd">SVD</a></b></span>
+				<span class="bold"><strong><a href="#svd">SVD</a></strong></span>
 				works in a similar way to PCA, except that two different dataset are
 				decomposed at the same time.
 				Therefore, the diagonalyzed matrix is a cross-covariance matrix and
@@ -298,7 +372,7 @@ div.note h3.title {font-size:smaller;}
           <p>
 				All these analysis methods act as a linear filter.
 				For each of them, it is possible to reconstruct part of the filtered signal.
-				A reconstructed mode is the &quot;multiplication&quot; of its EOF by its PC, and
+				A reconstructed mode is the "multiplication" of its EOF by its PC, and
 				it has the same dimension of the initial dataset.
 				Such operation is necessary to go back from the EOF space to the physical space.
 			</p>
@@ -318,7 +392,6 @@ div.note h3.title {font-size:smaller;}
                 <h3 class="title"><a id="doc_pre_tec"></a>1.3. Some technical details...</h3>
               </div>
             </div>
-            <div></div>
           </div>
           <div class="sect3" lang="en" xml:lang="en">
             <div class="titlepage">
@@ -327,16 +400,14 @@ div.note h3.title {font-size:smaller;}
                   <h4 class="title"><a id="doc_pre_tec_pca"></a>1.3.1. ...about PCA</h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3499296"></a>CPU: space versus time</h5>
+                    <h5 class="title"><a id="id2743135"></a>CPU: space versus time</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>
 						PCA decomposition is performed on spatio-temporal datasets.
@@ -345,7 +416,7 @@ div.note h3.title {font-size:smaller;}
 						It is possible to partly avoid this problem when the time dimension is lower
 						than the spatial dimension, using a correlation matrix
 						in time instead of in space.
-						F90 subroutine <tt class="varname"><a href="#sl_pca" title="3.2.1.&#xA0;: sl_pca">sl_pca</a></tt> of SpanLib
+						F90 subroutine <code class="varname"><a href="#sl_pca" title="3.2.1.&#xA0;: sl_pca">sl_pca</a></code> of SpanLib
 						provides the ability
 						to choose which of theses approaches to use for PCA.
 					</p>
@@ -354,10 +425,9 @@ div.note h3.title {font-size:smaller;}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3499329"></a>Weights</h5>
+                    <h5 class="title"><a id="id2743163"></a>Weights</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>
 						In some case, not all channels have the same weight.
@@ -365,41 +435,39 @@ div.note h3.title {font-size:smaller;}
 						to the grid cell area.
 						Whereas common PCA analysis does not take these weights into account
 						it is possible to give optional weights to
-						<tt class="varname"><a href="#sl_pca" title="3.2.1.&#xA0;: sl_pca">sl_pca</a></tt>.
+						<code class="varname"><a href="#sl_pca" title="3.2.1.&#xA0;: sl_pca">sl_pca</a></code>.
 						Using the <a href="#doc_pyt" title="4.&#xA0;The python module">python module</a>,
-						it is easy to &quot;attach&quot; weights to a variable for use by
-						<tt class="varname"><a href="#&lt;SpAn_object&gt;.pca" title="4.2.6.&#xA0; Principal Components Analysis (PCA): &lt;SpAn_object&gt;.pca">pca</a></tt>.
+						it is easy to "attach" weights to a variable for use by
+						<code class="varname"><a href="#&lt;SpAn_object&gt;.pca" title="4.2.6.&#xA0; Principal Components Analysis (PCA): &lt;SpAn_object&gt;.pca">pca</a></code>.
 					</p>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3499376"></a>Mask</h5>
+                    <h5 class="title"><a id="id2743203"></a>Mask</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>
 						Similarly, it is not useful to analyse masked points
 						(for example, gridded points situated on land when use analyse oceanic data).
-						The F90 subroutine <tt class="varname"><a href="#sl_pca" title="3.2.1.&#xA0;: sl_pca">sl_pca</a></tt>
+						The F90 subroutine <code class="varname"><a href="#sl_pca" title="3.2.1.&#xA0;: sl_pca">sl_pca</a></code>
 						makes the supposition that none of the masked (all channels are analysed).
 						However, as well as for the weights, it is possible to associate
 						an spatial mask to a dataset in order to remove masked points when
 						using the python module.
-						Then, <tt class="varname"><a href="#spanlib.pack" title="4.2.3.&#xA0; Pack a dataset and its weights according to its mask: spanlib.pack">spanlib.pack</a></tt>
-						can be used to &quot;pack&quot; (compress) data before they are analysed.
+						Then, <code class="varname"><a href="#spanlib.pack" title="4.2.3.&#xA0; Pack a dataset and its weights according to its mask: spanlib.pack">spanlib.pack</a></code>
+						can be used to "pack" (compress) data before they are analysed.
 					</p>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3499418"></a>Analysing several variables at the same time</h5>
+                    <h5 class="title"><a id="id2743239"></a>Analysing several variables at the same time</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>
 						One can be interested in analysing several variables ate the same time.
@@ -407,9 +475,9 @@ div.note h3.title {font-size:smaller;}
 						even of completely different nature.
 						The essential problem of units may be solved using simple
 						normalisations.
-						Python function <tt class="varname"><a href="#spanlib.stackData" title="4.2.1.&#xA0; Takes several data files, of same time and stacks them up together: spanlib.stackData">spanlib.stackData</a></tt>
-						can be used to &quot;pack&quot; (compress) data before they are analysed.
-						Then, using <tt class="varname"><a href="#spanlib.unStackData" title="4.2.2.&#xA0; Unstack data in the form returned from stackData: spanlib.unStackData">spanlib.unStackData</a></tt>
+						Python function <code class="varname"><a href="#spanlib.stackData" title="4.2.1.&#xA0; Takes several data files, of same time and stacks them up together: spanlib.stackData">spanlib.stackData</a></code>
+						can be used to "pack" (compress) data before they are analysed.
+						Then, using <code class="varname"><a href="#spanlib.unStackData" title="4.2.2.&#xA0; Unstack data in the form returned from stackData: spanlib.unStackData">spanlib.unStackData</a></code>
 						you can unpack results from you analysis.
 						<a href="#raynal06">Raynaud et al (2006)</a> presents an example of use where variables
 						such as sea surface temperature, wind stress modulus and air-sea CO2
@@ -422,14 +490,13 @@ div.note h3.title {font-size:smaller;}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3499474"></a>Reconstructions</h5>
+                    <h5 class="title"><a id="id2743287"></a>Reconstructions</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>
-						Reconstructions (F90:<tt class="varname"><a href="#sl_pca_rec" title="3.2.3.&#xA0;Reconstruction of a set of PCA components: sl_pca_rec">sl_pca_rec</a></tt>,
-						Python:<tt class="varname"><a href="#&lt;SpAn_object&gt;.reconstruct" title="4.2.8.&#xA0; Reconstruct results from mssa or pca: &lt;SpAn_object&gt;.reconstruct">&lt;SpAn_object&gt;.reconstruct</a></tt>)
+						Reconstructions (F90:<code class="varname"><a href="#sl_pca_rec" title="3.2.3.&#xA0;Reconstruction of a set of PCA components: sl_pca_rec">sl_pca_rec</a></code>,
+						Python:<code class="varname"><a href="#&lt;SpAn_object&gt;.reconstruct" title="4.2.9.&#xA0; Reconstruct results from mssa or pca: &lt;SpAn_object&gt;.reconstruct">&lt;SpAn_object&gt;.reconstruct</a></code>)
 						may not be necessary the multiplication of an EOF by its associated PC.
 						When PCA is used for a reduction of d-o-f (see <a href="#pg:dof">Section 1.2, “Fundamentals”</a>),
 						orginal PCs are first filtered and then converted back to the original space
@@ -444,7 +511,6 @@ div.note h3.title {font-size:smaller;}
                   <h4 class="title"><a id="doc_pre_tec_msa"></a>1.3.2. ...about MSSA</h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
@@ -453,12 +519,11 @@ div.note h3.title {font-size:smaller;}
                     <h5 class="title"><a id="window"></a>The window parameter</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>
 						This is the only and essential parameter of SSA and MSSA
-						(F90:<tt class="varname"><a href="#sl_pca_rec" title="3.2.3.&#xA0;Reconstruction of a set of PCA components: sl_pca_rec">sl_mssa</a></tt>,
-						Python:<tt class="varname"><a href="#&lt;SpAn_object&gt;.mssa" title="4.2.7.&#xA0; MultiChannel Singular Spectrum Analysis (MSSA): &lt;SpAn_object&gt;.mssa">&lt;SpAn_object&gt;.mssa</a></tt>).
+						(F90:<code class="varname"><a href="#sl_pca_rec" title="3.2.3.&#xA0;Reconstruction of a set of PCA components: sl_pca_rec">sl_mssa</a></code>,
+						Python:<code class="varname"><a href="#&lt;SpAn_object&gt;.mssa" title="4.2.7.&#xA0; MultiChannel Singular Spectrum Analysis (MSSA): &lt;SpAn_object&gt;.mssa">&lt;SpAn_object&gt;.mssa</a></code>).
 						It defines the maximal value of the lags use when building
 						the covariance matrix.
 						It acts as a spectral parameter: the spectral resolution
@@ -466,7 +531,7 @@ div.note h3.title {font-size:smaller;}
 						A standard value is one third of the time dimension.
 					</p>
             </div>
-            <div class="simplesect" lang="en" xml:lang="en"><div class="titlepage"><div><div><h5 class="title"><a id="prepcamssa"></a>Pre-PCA</h5></div></div><div></div></div>
+            <div class="simplesect" lang="en" xml:lang="en"><div class="titlepage"><div><div><h5 class="title"><a id="prepcamssa"></a>Pre-PCA</h5></div></div></div>
 					Since the covariance matrix may quickly huge depending on
 					parameters (number of channels and window size), is more appropriate
 					to perform a pre-PCA to reduce the number of channels.
@@ -475,18 +540,17 @@ div.note h3.title {font-size:smaller;}
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3499592"></a>Phase composites</h5>
+                    <h5 class="title"><a id="id2743387"></a>Phase composites</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>
 						One of the most important interests of MSSA is to be able to
 						extract intermittent space-time oscillations from the signal.
-						At the first order, an oscillation is its &quot;typical&quot; cycle.
-						<tt class="varname"><a href="#sl_phasecomp" title="3.2.7.&#xA0;Phase composites: sl_phasecomp">sl_phasecomp</a></tt> (F90)
+						At the first order, an oscillation is its "typical" cycle.
+						<code class="varname"><a href="#sl_phasecomp" title="3.2.7.&#xA0;Phase composites: sl_phasecomp">sl_phasecomp</a></code> (F90)
 						and
-						<tt class="varname"><a href="#spanlib.computePhases" title="4.2.4.&#xA0; Phase composites for oscillatory fields: spanlib.computePhases">spanlib.computePhases</a></tt> (Python)
+						<code class="varname"><a href="#spanlib.computePhases" title="4.2.4.&#xA0; Phase composites for oscillatory fields: spanlib.computePhases">spanlib.computePhases</a></code> (Python)
 						perfom phases composites: it computes an averaged cycle and cut it an
 						homegeneous parts (as one can do for the annual cycle in 12 months).
 					</p>
@@ -499,9 +563,8 @@ div.note h3.title {font-size:smaller;}
                   <h4 class="title"><a id="doc_pre_tec_svd"></a>1.3.3. ...about SVD</h4>
                 </div>
               </div>
-              <div></div>
             </div>
-            <div class="simplesect" lang="en" xml:lang="en"><div class="titlepage"><div><div><h5 class="title"><a id="prepcasvd"></a>Pre-PCA</h5></div></div><div></div></div>
+            <div class="simplesect" lang="en" xml:lang="en"><div class="titlepage"><div><div><h5 class="title"><a id="prepcasvd"></a>Pre-PCA</h5></div></div></div>
 					Unlike PCA, is not possible to switch channel and time
 					dimension to computes EOFs.
 					Therefore, it is common to perform a pre-PCA, like with
@@ -516,7 +579,6 @@ div.note h3.title {font-size:smaller;}
                 <h3 class="title"><a id="doc_pre_mor"></a>1.4. For more information</h3>
               </div>
             </div>
-            <div></div>
           </div>
           <p>
 				For more information about PCA, MSSA and SVD may be found in papers and on the web.
@@ -524,17 +586,17 @@ div.note h3.title {font-size:smaller;}
 				</p>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><span class="bold"><a id="pca"></a><b>PCA: </b></span><a href="#prei88">Preisendorfer (1988)</a>,
+              <li><span class="bold"><a id="pca"></a><strong>PCA: </strong></span><a href="#prei88">Preisendorfer (1988)</a>,
 						<a href="#wilk95">Wilks (1995)</a>.
 					</li>
-              <li><span class="bold"><a id="ssa"></a><b>SSA: </b></span><a href="#brki86">Broomhead and King (1986)</a>,
+              <li><span class="bold"><a id="ssa"></a><strong>SSA: </strong></span><a href="#brki86">Broomhead and King (1986)</a>,
 						<a href="#vagh89">Vautard and Ghil (1989)</a>.
 					</li>
-              <li><span class="bold"><a id="mssa"></a><b>MSSA: </b></span><a href="#plva94">Plaut and Vautard (1994)</a>,
+              <li><span class="bold"><a id="mssa"></a><strong>MSSA: </strong></span><a href="#plva94">Plaut and Vautard (1994)</a>,
 						<a href="#raynal05">Raynaud et al (2005)</a>,
 						<a href="#raynal06">Raynaud et al (2006)</a>.
 					</li>
-              <li><span class="bold"><a id="svd"></a><b>SVD: </b></span>,
+              <li><span class="bold"><a id="svd"></a><strong>SVD: </strong></span>,
 					</li>
             </ul>
           </div>
@@ -549,17 +611,16 @@ div.note h3.title {font-size:smaller;}
                 <h3 class="title"><a id="doc_int_vie"></a>1.5. View colorized sources</h3>
               </div>
             </div>
-            <div></div>
           </div>
           <p>
 				An html version of the source codes is available here:
 				</p>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt class="filename"><a href="src_f90_lib.html" target="_top">spanlib.f90</a></tt>
+              <li><code class="filename"><a href="src_f90_lib.html" target="_top">spanlib.f90</a></code>
 						for the <a href="#doc_f90" title="3.&#xA0;The Fortran 90 library">fortran library</a>,
 					</li>
-              <li><tt class="filename"><a href="src_pyt_mod.html" target="_top">spanlib_python.py</a></tt>
+              <li><code class="filename"><a href="src_pyt_mod.html" target="_top">spanlib_python.py</a></code>
 						for the <a href="#doc_pyt" title="4.&#xA0;The python module">python module</a>.
 					</li>
             </ul>
@@ -576,7 +637,6 @@ div.note h3.title {font-size:smaller;}
               <h2 class="title" style="clear: both"><a id="doc_ins"></a>2. Installation</h2>
             </div>
           </div>
-          <div></div>
         </div>
         <div class="sect2" lang="en" xml:lang="en">
           <div class="titlepage">
@@ -585,16 +645,14 @@ div.note h3.title {font-size:smaller;}
                 <h3 class="title"><a id="doc_ins_req"></a>2.1. Requirements</h3>
               </div>
             </div>
-            <div></div>
           </div>
           <div class="sect3" lang="en" xml:lang="en">
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="id3445957"></a>2.1.1. Fortran library</h4>
+                  <h4 class="title"><a id="id2789667"></a>2.1.1. Fortran library</h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <p>
 					You need a F90 compiler to compile it, and <a href="http://www.netlib.org/lapack/" target="_top">BLAS/LAPACK/LAPACK95</a>
@@ -606,13 +664,12 @@ div.note h3.title {font-size:smaller;}
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="id3445985"></a>2.1.2. Python module</h4>
+                  <h4 class="title"><a id="id2789689"></a>2.1.2. Python module</h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <p>You need the fortran library, and the pyfort and Numeric modules from <a href="http://www-pcmdi.llnl.gov/software-portal/cdat" target="_top">CDAT</a>.</p>
-            <p>To run python example, you needs the <tt class="literal">cdms</tt> and <tt class="literal">vcs</tt> modules (delivered with <a href="http://www-pcmdi.llnl.gov/software-portal/cdat" target="_top">CDAT</a>).</p>
+            <p>To run python example, you needs the <code class="literal">cdms</code> and <code class="literal">vcs</code> modules (delivered with <a href="http://www-pcmdi.llnl.gov/software-portal/cdat" target="_top">CDAT</a>).</p>
           </div>
         </div>
         <div class="sect2" lang="en" xml:lang="en">
@@ -622,7 +679,6 @@ div.note h3.title {font-size:smaller;}
                 <h3 class="title"><a id="doc_ins_dow"></a>2.2. Download</h3>
               </div>
             </div>
-            <div></div>
           </div>
           <p>
 				You can download the sources (tarball) of the package from the <a href="http://sourceforge.net/project/showfiles.php?group_id=168272" target="_top">Sourceforge repositories</a> of the project.
@@ -630,8 +686,8 @@ div.note h3.title {font-size:smaller;}
 
 </p>
           <pre class="programlisting">
-<tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>tar xzf spanlib-1.2.tgz</tt></b>
-<tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>cd spanlib-1.2</tt></b>
+<code class="prompt">&lt;user&gt;</code> <strong class="userinput"><code>tar xzf spanlib-1.2.tgz</code></strong>
+<code class="prompt">&lt;user&gt;</code> <strong class="userinput"><code>cd spanlib-1.2</code></strong>
 </pre>
           <p>.
 
@@ -644,7 +700,6 @@ div.note h3.title {font-size:smaller;}
                 <h3 class="title"><a id="doc_ins_ins"></a>2.3. Compilation and installation</h3>
               </div>
             </div>
-            <div></div>
           </div>
           <p>Detailed instructions can be found in the INSTALL file of the package.</p>
           <div class="procedure">
@@ -655,8 +710,8 @@ div.note h3.title {font-size:smaller;}
 
 </p>
                 <pre class="programlisting">
-<tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>./configure</tt></b>
-<tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make</tt></b>
+<code class="prompt">&lt;user&gt;</code> <strong class="userinput"><code>./configure</code></strong>
+<code class="prompt">&lt;user&gt;</code> <strong class="userinput"><code>make</code></strong>
 </pre>
                 <p>
 					</p>
@@ -666,8 +721,8 @@ div.note h3.title {font-size:smaller;}
 						Second, install it as root:
 </p>
                 <pre class="programlisting">
-<tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>su</tt></b>
-<tt class="prompt">&lt;root&gt;</tt> <b class="userinput"><tt>make install</tt></b>
+<code class="prompt">&lt;user&gt;</code> <strong class="userinput"><code>su</code></strong>
+<code class="prompt">&lt;root&gt;</code> <strong class="userinput"><code>make install</code></strong>
 </pre>
                 <p>.
 
@@ -676,22 +731,22 @@ div.note h3.title {font-size:smaller;}
             </ol>
           </div>
           <p>
-				Here is an example of <b class="userinput"><tt>./configure</tt></b>:
+				Here is an example of <strong class="userinput"><code>./configure</code></strong>:
 				</p>
-          <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>./configure --with-blas-lib=/usr/local/install/lapack-3.0/lib \
+          <pre class="programlisting"><code class="prompt">&lt;user&gt;</code> <strong class="userinput"><code>./configure --with-blas-lib=/usr/local/install/lapack-3.0/lib \
 --with-netcdf-lib=/usr/local/install/netcdf-3.6.1/lib \
 --with-netcdf-inc=/usr/local/install/netcdf-3.6.1/include \
---prefix=$HOME --with-pythondir=$HOME/python FC=ifort</tt></b></pre>
+--prefix=$HOME --with-pythondir=$HOME/python FC=ifort</code></strong></pre>
           <p>
 			</p>
           <p>
-				You can list all <b class="command">configure</b> options using:
+				You can list all <span><strong class="command">configure</strong></span> options using:
 				</p>
-          <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>./configure --help</tt></b></pre>
+          <pre class="programlisting"><code class="prompt">&lt;user&gt;</code> <strong class="userinput"><code>./configure --help</code></strong></pre>
           <p>
-				You can also list usefull <b class="command">make</b> targets with:
+				You can also list usefull <span><strong class="command">make</strong></span> targets with:
 				</p>
-          <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>.make  help</tt></b></pre>
+          <pre class="programlisting"><code class="prompt">&lt;user&gt;</code> <strong class="userinput"><code>.make  help</code></strong></pre>
           <p>
 			</p>
         </div>
@@ -703,7 +758,6 @@ div.note h3.title {font-size:smaller;}
               <h2 class="title" style="clear: both"><a id="doc_f90"></a>3. The Fortran 90 library</h2>
             </div>
           </div>
-          <div></div>
         </div>
         <div class="sect2" lang="en" xml:lang="en">
           <div class="titlepage">
@@ -712,7 +766,6 @@ div.note h3.title {font-size:smaller;}
                 <h3 class="title"><a id="doc_f90_int"></a>3.1. Introduction</h3>
               </div>
             </div>
-            <div></div>
           </div>
           <p>
 				The fortran 90 library provides a list of subroutines to perform PCA, MSSA, recontructions and phase composites.
@@ -721,7 +774,7 @@ div.note h3.title {font-size:smaller;}
 				The channel (spatial) dimension is always 1D.
 				Therefore, as in the python module, multi-dimensional arrays must be
 				packed before being analysed.
-				You can use <tt class="literal">pack</tt> and <tt class="literal">unpack</tt> F90 subroutines
+				You can use <code class="literal">pack</code> and <code class="literal">unpack</code> F90 subroutines
 				for this task, and optionally give a mask to remove masked points.
 				If you analyse several variables at the same time, concatenate
 				normalised packed arrays before the analsysis.
@@ -734,42 +787,38 @@ div.note h3.title {font-size:smaller;}
                 <h3 class="title"><a id="doc_f90_sub"></a>3.2. F90 subroutines</h3>
               </div>
             </div>
-            <div></div>
           </div>
           <div class="sect3" lang="en" xml:lang="en">
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="sl_pca"></a>3.2.1. : <tt class="literal">sl_pca</tt></h4>
+                  <h4 class="title"><a id="sl_pca"></a>3.2.1. : <code class="literal">sl_pca</code></h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3446667"></a>Usage</h5>
+                    <h5 class="title"><a id="id2741348"></a>Usage</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
-              <pre class="programlisting">call <span class="HLpersonalised">sl_pca</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nkeep</span>, <span class="HLpersonalised">xeof</span>, <span class="HLpersonalised">pc</span>, <span class="HLpersonalised">ev</span>, <span class="HLpersonalised">weights</span>, useteof=<span class="HLpersonalised">useteof</span>, <span class="HLpersonalised">bLargeMatrix</span>)</pre>
+              <pre class="programlisting">call <span class="HLpersonalised">sl_pca</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nkeep</span>, <span class="HLpersonalised">xeof</span>, <span class="HLpersonalised">pc</span>, <span class="HLpersonalised">ev</span>, <span class="HLpersonalised">ev_sum</span>, <span class="HLpersonalised">weights</span>, useteof=<span class="HLpersonalised">useteof</span>, <span class="HLpersonalised">bLargeMatrix</span>)</pre>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3505792"></a>Description</h5>
+                    <h5 class="title"><a id="id2765397"></a>Description</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>
 Perform a decomposition of space-time field in a set of
 Empirical Orthogonal Functions (EOFs) and Principal components (PCs).
 The input data set can be optionally weighted in space.
-By default, the analysis computes  &quot;temporal&quot; (T) or classical
+By default, the analysis computes  "temporal" (T) or classical
 spatial (S) EOFs depending on if the space dimension is greater
 than the time dimension. This default behavior can be overridden.
 		</p>
@@ -778,24 +827,25 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3505812"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2765414"></a>Necessary arguments</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">ff    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+                  <li><code class="varname">ff    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>			Space-time array</em></span></li>
-                  <li><tt class="varname">nkeep    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+                  <li><code class="varname">nkeep    </code><code class="option"><span class="ARGspec">[intent:input, type:integer]    </span></code> 
 				 :: <span class="emphasis"><em>		Maximum number of modes to keep in outputs</em></span></li>
-                  <li><tt class="varname">xeof    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+                  <li><code class="varname">xeof    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>		Space-mode array of EOFs</em></span></li>
-                  <li><tt class="varname">pc    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+                  <li><code class="varname">pc    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>			Time-mode array of PCs</em></span></li>
-                  <li><tt class="varname">ev    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+                  <li><code class="varname">ev    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>			Mode array of eigen values (variances)</em></span></li>
-                  <li><tt class="varname">weights    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+                  <li><code class="varname">ev_sum    </code><code class="option"><span class="ARGspec">    </span></code> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><code class="varname">weights    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>	Space array of weights</em></span></li>
                 </ul>
               </div>
@@ -804,14 +854,13 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3505965"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2741467"></a>Optional arguments</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">useteof    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+                  <li><code class="varname">useteof    </code><code class="option"><span class="ARGspec">[intent:input, type:integer]    </span></code> 
 				 :: <span class="emphasis"><em>	To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]</em></span></li>
                 </ul>
               </div>
@@ -820,15 +869,14 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3444212"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2741498"></a>Necessary arguments</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">bLargeMatrix    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
-				 :: <span class="emphasis"><em> Use la_syevd instead of la_syev (faster for large matrices, but uses more workspace) </em></span></li>
+                  <li><code class="varname">bLargeMatrix    </code><code class="option"><span class="ARGspec">    </span></code> 
+				 :: <span class="emphasis"><em> Use la_syevd instead of la_syev (faster for large </em></span></li>
                 </ul>
               </div>
             </div>
@@ -836,13 +884,12 @@ than the time dimension. This default behavior can be overridden.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3444250"></a>Dependencies</h5>
+                    <h5 class="title"><a id="id2741531"></a>Dependencies</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>
-<tt class="literal">[sd]gemm(BLAS) [sd]syrk(BLAS) la_syev(LAPACK95) la_syevd(LAPACK95)</tt>
+<code class="literal">[sd]gemm(BLAS) [sd]syrk(BLAS) la_syev(LAPACK95) la_syevd(LAPACK95)</code>
 		</p>
             </div>
           </div>
@@ -854,19 +901,17 @@ than the time dimension. This default behavior can be overridden.
 Get an expansion coefficients from a space-time field
 and a set of EOFs computed by PCA. If the input
 space-time field is the same as the one used to computes
-input ST-EOFs, these expansion coincide with the: <tt class="literal">sl_pca_getec</tt></h4>
+input ST-EOFs, these expansion coincide with the: <code class="literal">sl_pca_getec</code></h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3444286"></a>Usage</h5>
+                    <h5 class="title"><a id="id2741563"></a>Usage</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <pre class="programlisting">call <span class="HLpersonalised">sl_pca_getec</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">xeof</span>, <span class="HLpersonalised">ec</span>, <span class="HLpersonalised">weights</span>)</pre>
             </div>
@@ -875,19 +920,17 @@ input ST-EOFs, these expansion coincide with the: <tt class="literal">sl_pca_get
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="sl_pca_rec"></a>3.2.3. Reconstruction of a set of PCA components: <tt class="literal">sl_pca_rec</tt></h4>
+                  <h4 class="title"><a id="sl_pca_rec"></a>3.2.3. Reconstruction of a set of PCA components: <code class="literal">sl_pca_rec</code></h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3444348"></a>Usage</h5>
+                    <h5 class="title"><a id="id2741617"></a>Usage</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <pre class="programlisting">call <span class="HLpersonalised">sl_pca_rec</span>(<span class="HLpersonalised">xeof</span>, <span class="HLpersonalised">pc</span>, <span class="HLpersonalised">ffrec</span>, istart=<span class="HLpersonalised">istart</span>, iend=<span class="HLpersonalised">iend</span>)</pre>
             </div>
@@ -895,15 +938,14 @@ input ST-EOFs, these expansion coincide with the: <tt class="literal">sl_pca_get
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3444402"></a>Description</h5>
+                    <h5 class="title"><a id="id2741665"></a>Description</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>
 Perform a reconstruction using a set of components previously
 computed with a PCA. All the reconstructed components are summed.
-A reconstructed component is simply the &quot;product&quot; of an EOF
+A reconstructed component is simply the "product" of an EOF
 by its PC. The sum of all reconstructed component is the original field.
 		</p>
             </div>
@@ -911,18 +953,17 @@ by its PC. The sum of all reconstructed component is the original field.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3444420"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2741681"></a>Necessary arguments</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">xeof    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+                  <li><code class="varname">xeof    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>		Space-mode array of EOFs</em></span></li>
-                  <li><tt class="varname">pc    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+                  <li><code class="varname">pc    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>		Time-mode array of PCs</em></span></li>
-                  <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+                  <li><code class="varname">ffrec    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>	Space-time array of the reconstructed field</em></span></li>
                 </ul>
               </div>
@@ -931,16 +972,15 @@ by its PC. The sum of all reconstructed component is the original field.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3444503"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2741754"></a>Optional arguments</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">istart    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+                  <li><code class="varname">istart    </code><code class="option"><span class="ARGspec">[intent:input, type:integer]    </span></code> 
 				 :: <span class="emphasis"><em>	Index of the first component to use</em></span></li>
-                  <li><tt class="varname">iend    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+                  <li><code class="varname">iend    </code><code class="option"><span class="ARGspec">[intent:input, type:integer]    </span></code> 
 				 :: <span class="emphasis"><em>		Index of the last component to use</em></span></li>
                 </ul>
               </div>
@@ -950,30 +990,27 @@ by its PC. The sum of all reconstructed component is the original field.
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="sl_mssa"></a>3.2.4. Multi-channel Singular Spectrum Analysis: <tt class="literal">sl_mssa</tt></h4>
+                  <h4 class="title"><a id="sl_mssa"></a>3.2.4. Multi-channel Singular Spectrum Analysis: <code class="literal">sl_mssa</code></h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3445045"></a>Usage</h5>
+                    <h5 class="title"><a id="id2791880"></a>Usage</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
-              <pre class="programlisting">call <span class="HLpersonalised">sl_mssa</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nwindow</span>, <span class="HLpersonalised">nkeep</span>, <span class="HLpersonalised">steof</span>, <span class="HLpersonalised">stpc</span>, <span class="HLpersonalised">ev</span>, <span class="HLpersonalised">bLargeMatrix</span>)</pre>
+              <pre class="programlisting">call <span class="HLpersonalised">sl_mssa</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nwindow</span>, <span class="HLpersonalised">nkeep</span>, <span class="HLpersonalised">steof</span>, <span class="HLpersonalised">stpc</span>, <span class="HLpersonalised">ev</span>, <span class="HLpersonalised">ev_sum</span>, <span class="HLpersonalised">bLargeMatrix</span>)</pre>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3445113"></a>Description</h5>
+                    <h5 class="title"><a id="id2791937"></a>Description</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>
 Perform a decomposition of space-time field in a set of
@@ -986,27 +1023,28 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3445128"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2791949"></a>Necessary arguments</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">ff    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+                  <li><code class="varname">ff    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>      Space-time array</em></span></li>
-                  <li><tt class="varname">nwindow    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+                  <li><code class="varname">nwindow    </code><code class="option"><span class="ARGspec">[intent:input, type:integer]    </span></code> 
 				 :: <span class="emphasis"><em> Window size</em></span></li>
-                  <li><tt class="varname">nkeep    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+                  <li><code class="varname">nkeep    </code><code class="option"><span class="ARGspec">[intent:input, type:integer]    </span></code> 
 				 :: <span class="emphasis"><em>   Maximum number of modes to keep in outputs</em></span></li>
-                  <li><tt class="varname">steof    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
-				 :: <span class="emphasis"><em> Space-window-mode array of EOFs</em></span></li>
-                  <li><tt class="varname">stpc    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
-				 :: <span class="emphasis"><em>  Time-mode array of PCs</em></span></li>
-                  <li><tt class="varname">ev    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
-				 :: <span class="emphasis"><em>    Mode array of eigen values (variances)</em></span></li>
-                  <li><tt class="varname">bLargeMatrix    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
-				 :: <span class="emphasis"><em> Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) </em></span></li>
+                  <li><code class="varname">steof    </code><code class="option"><span class="ARGspec">    </span></code> 
+				 :: <span class="emphasis"><em>  Space-window-mode array of EOFs</em></span></li>
+                  <li><code class="varname">stpc    </code><code class="option"><span class="ARGspec">    </span></code> 
+				 :: <span class="emphasis"><em>   Time-mode array of PCs</em></span></li>
+                  <li><code class="varname">ev    </code><code class="option"><span class="ARGspec">    </span></code> 
+				 :: <span class="emphasis"><em>     Mode array of eigen values (variances)</em></span></li>
+                  <li><code class="varname">ev_sum    </code><code class="option"><span class="ARGspec">    </span></code> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><code class="varname">bLargeMatrix    </code><code class="option"><span class="ARGspec">    </span></code> 
+				 :: <span class="emphasis"><em> Use ssyevd instead of ssyev (faster for large matrices, </em></span></li>
                 </ul>
               </div>
             </div>
@@ -1014,13 +1052,12 @@ parameter.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3445309"></a>Dependencies</h5>
+                    <h5 class="title"><a id="id2792106"></a>Dependencies</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>
-<tt class="literal">la_syev(LAPACK95) la_syevd(LAPACK95)</tt>
+<code class="literal">la_syev(LAPACK95) la_syevd(LAPACK95)</code>
 		</p>
             </div>
           </div>
@@ -1032,19 +1069,17 @@ parameter.
 Get an expansion coefficients from a space-time field
 and a set of ST-EOFs computed by MSSA. If the input
 space-time field is the same as the one used to computes
-input ST-EOFs, these expansion coincide with the: <tt class="literal">sl_mssa_getec</tt></h4>
+input ST-EOFs, these expansion coincide with the: <code class="literal">sl_mssa_getec</code></h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3445345"></a>Usage</h5>
+                    <h5 class="title"><a id="id2792134"></a>Usage</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <pre class="programlisting">call <span class="HLpersonalised">sl_mssa_getec</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">steof</span>, <span class="HLpersonalised">nwindow</span>, <span class="HLpersonalised">stec</span>)</pre>
             </div>
@@ -1052,13 +1087,12 @@ input ST-EOFs, these expansion coincide with the: <tt class="literal">sl_mssa_ge
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3445392"></a>Dependencies</h5>
+                    <h5 class="title"><a id="id2792170"></a>Dependencies</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>
-<tt class="literal">[sd]gemm(BLAS)</tt>
+<code class="literal">[sd]gemm(BLAS)</code>
 		</p>
             </div>
           </div>
@@ -1066,19 +1100,17 @@ input ST-EOFs, these expansion coincide with the: <tt class="literal">sl_mssa_ge
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="sl_mssa_rec"></a>3.2.6. Reconstruction of a set of MSSA components: <tt class="literal">sl_mssa_rec</tt></h4>
+                  <h4 class="title"><a id="sl_mssa_rec"></a>3.2.6. Reconstruction of a set of MSSA components: <code class="literal">sl_mssa_rec</code></h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3445424"></a>Usage</h5>
+                    <h5 class="title"><a id="id2792194"></a>Usage</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <pre class="programlisting">call <span class="HLpersonalised">sl_mssa_rec</span>(<span class="HLpersonalised">steof</span>, <span class="HLpersonalised">stpc</span>, <span class="HLpersonalised">nwindow</span>, <span class="HLpersonalised">ffrec</span>, istart=<span class="HLpersonalised">istart</span>, iend=<span class="HLpersonalised">iend</span>)</pre>
             </div>
@@ -1086,10 +1118,9 @@ input ST-EOFs, these expansion coincide with the: <tt class="literal">sl_mssa_ge
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3445485"></a>Description</h5>
+                    <h5 class="title"><a id="id2792240"></a>Description</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>
 Same as for the reconstruction of PCA components, but for MSSA.
@@ -1099,20 +1130,19 @@ Same as for the reconstruction of PCA components, but for MSSA.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3445498"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2792251"></a>Necessary arguments</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">steof    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+                  <li><code class="varname">steof    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>   SpaceXwindow-mode array of EOFs</em></span></li>
-                  <li><tt class="varname">stpc    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+                  <li><code class="varname">stpc    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>    Time-mode array of PCs</em></span></li>
-                  <li><tt class="varname">nwindow    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+                  <li><code class="varname">nwindow    </code><code class="option"><span class="ARGspec">[intent:input, type:integer]    </span></code> 
 				 :: <span class="emphasis"><em> Window size</em></span></li>
-                  <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+                  <li><code class="varname">ffrec    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>   Space-time array of the reconstructed field</em></span></li>
                 </ul>
               </div>
@@ -1121,16 +1151,15 @@ Same as for the reconstruction of PCA components, but for MSSA.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3445606"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2792334"></a>Optional arguments</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">istart    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+                  <li><code class="varname">istart    </code><code class="option"><span class="ARGspec">[intent:input, type:integer]    </span></code> 
 				 :: <span class="emphasis"><em> Index of the first component to use</em></span></li>
-                  <li><tt class="varname">iend    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+                  <li><code class="varname">iend    </code><code class="option"><span class="ARGspec">[intent:input, type:integer]    </span></code> 
 				 :: <span class="emphasis"><em>   Index of the last component to use</em></span></li>
                 </ul>
               </div>
@@ -1140,19 +1169,17 @@ Same as for the reconstruction of PCA components, but for MSSA.
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="sl_phasecomp"></a>3.2.7. Phase composites: <tt class="literal">sl_phasecomp</tt></h4>
+                  <h4 class="title"><a id="sl_phasecomp"></a>3.2.7. Phase composites: <code class="literal">sl_phasecomp</code></h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3515065"></a>Usage</h5>
+                    <h5 class="title"><a id="id2792393"></a>Usage</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <pre class="programlisting">call <span class="HLpersonalised">sl_phasecomp</span>(<span class="HLpersonalised">ffrec</span>, <span class="HLpersonalised">np</span>, <span class="HLpersonalised">phases</span>, <span class="HLpersonalised">weights</span>, <span class="HLpersonalised">offset</span>, <span class="HLpersonalised">firstphase</span>)</pre>
             </div>
@@ -1160,10 +1187,9 @@ Same as for the reconstruction of PCA components, but for MSSA.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3515127"></a>Description</h5>
+                    <h5 class="title"><a id="id2792439"></a>Description</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>
 Performs phase composites of S-T oscillatory field.
@@ -1182,24 +1208,23 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3515149"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2792458"></a>Necessary arguments</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+                  <li><code class="varname">ffrec    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em> Space-time array</em></span></li>
-                  <li><tt class="varname">np    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integerdefault:<span class="HLpersonalised">8</span>]    </span></tt> 
+                  <li><code class="varname">np    </code><code class="option"><span class="ARGspec">[intent:input, type:integerdefault:<span class="HLpersonalised">8</span>]    </span></code> 
 				 :: <span class="emphasis"><em>    Number of requested phases over the 360 degrees cycle </em></span></li>
-                  <li><tt class="varname">phases    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+                  <li><code class="varname">phases    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em></em></span></li>
-                  <li><tt class="varname">weights    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+                  <li><code class="varname">weights    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>    Space array of weights</em></span></li>
-                  <li><tt class="varname">offset    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+                  <li><code class="varname">offset    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>     Minimal normalized amplitude of the index </em></span></li>
-                  <li><tt class="varname">firstphase    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+                  <li><code class="varname">firstphase    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em> Value in degrees of the first phase </em></span></li>
                 </ul>
               </div>
@@ -1208,13 +1233,12 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3515310"></a>Dependencies</h5>
+                    <h5 class="title"><a id="id2792582"></a>Dependencies</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>
-			<span class="HLpersonalised"><tt class="literal"><a href="#sl_pca" title="3.2.1.&#xA0;: sl_pca">sl_pca</a></tt></span>
+			<span class="HLpersonalised"><code class="literal"><a href="#sl_pca" title="3.2.1.&#xA0;: sl_pca">sl_pca</a></code></span>
 		</p>
             </div>
           </div>
@@ -1226,7 +1250,6 @@ the first phase conincides with the maximmum.
                 <h3 class="title"><a id="doc_f90_exa"></a>3.3. Fortran 90 examples</h3>
               </div>
             </div>
-            <div></div>
           </div>
           <p>
 				Theses examples illustrate of how to use the Fortran 90 component of Spanlib.
@@ -1236,8 +1259,8 @@ the first phase conincides with the maximmum.
           <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3>
 					Each example create an output netcdf file.
 					The configure script should have tried to find a way
-					to view these outputs (like <b class="command">ncview</b>,
-					<b class="command">vcdat</b>, or a simple python script provided
+					to view these outputs (like <span><strong class="command">ncview</strong></span>,
+					<span><strong class="command">vcdat</strong></span>, or a simple python script provided
 					with the package).
 					If it failed, you will have to visualise results by yourself
 					(indications are provided and the end of the run).
@@ -1251,7 +1274,6 @@ the first phase conincides with the maximmum.
                   <h4 class="title"><a id="doc_f90_ex1"></a>3.3.1. F90 example 1</h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <p>
 					In this example, PCA is performed on the whole dataset to reduce
@@ -1262,17 +1284,17 @@ the first phase conincides with the maximmum.
 					Phase composites are also computed to represent the oscillation over its cycle.
 				</p>
             <div class="example">
-              <a id="id3447068"></a>
+              <a id="id2790088"></a>
               <p class="title">
                 <b>Example 1. F90 example 1</b>
               </p>
               <p>
 						You can run this example typing (from package directory):
 						</p>
-              <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make example</tt></b></pre>
+              <pre class="programlisting"><code class="prompt">&lt;user&gt;</code> <strong class="userinput"><code>make example</code></strong></pre>
               <p> or
 						</p>
-              <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make fortran1</tt></b></pre>
+              <pre class="programlisting"><code class="prompt">&lt;user&gt;</code> <strong class="userinput"><code>make fortran1</code></strong></pre>
               <p>
 						This command will first try to download the dataset,
 						then compile the following f90 program, run it,
@@ -1311,7 +1333,7 @@ the first phase conincides with the maximmum.
 	<span class="HLcomments">! that include the El Nino Southern Oscillation signal.</span>
 	<span class="HLcomments">! Input is the netcdf file data2.cdf.</span>
 	<span class="HLcomments">! We remove land points from the initial array according</span>
-	<span class="HLcomments">! to the netcdf missing_value attribute of the analysed variable (data are &quot;packed&quot;).</span>
+	<span class="HLcomments">! to the netcdf missing_value attribute of the analysed variable (data are "packed").</span>
 	<span class="HLcomments">! A PCA is used to reduce the degrees of freedoom before MSSA analysis.</span>
 	<span class="HLcomments">! Weights for PCA are computed as a fonction of latitude.</span>
 	<span class="HLcomments">! Then, we assume that we have already identified an oscillation (after tests).</span>
@@ -1351,8 +1373,8 @@ the first phase conincides with the maximmum.
 		&amp; first_mode=<span class="HLdigits">1</span>, nphases=<span class="HLdigits">8</span>
 	<span class="HLroutines">real</span>(wp), <span class="HLattributes">parameter</span> :: offset=<span class="HLdigits">0</span>.d0, first_phase=<span class="HLdigits">180</span>.d0, &amp;
 		&amp; new_missing_value=-<span class="HLdigits">999</span>.d0
-	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">&quot;data2.cdf&quot;</span>, &amp;
-		&amp; output_nc_file=<span class="HLstrings">&quot;output_fortran1.nc&quot;</span>, var_name=<span class="HLstrings">'ssta'</span>
+	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">"data2.cdf"</span>, &amp;
+		&amp; output_nc_file=<span class="HLstrings">"output_fortran1.nc"</span>, var_name=<span class="HLstrings">'ssta'</span>
 
 	<span class="HLcomments">! Other declarations</span>
 	<span class="HLcomments">! ------------------</span>
@@ -1466,7 +1488,6 @@ the first phase conincides with the maximmum.
 	<span class="HLroutines">print</span>*,<span class="HLstrings">'[<span class="HLpersonalised">sl_phasecomp</span>] Phase composites...'</span>
 	<span class="HLfunctions">allocate</span>(stphasecomps(nkeep_pca, nphases))
 	<span class="HLroutines">call</span> <span class="HLpersonalised">sl_phasecomp</span>(stpair, nphases, stphasecomps, &amp;
-		&amp;	weights=packed_weights, &amp;
 		&amp;	offset=offset, firstphase=first_phase)
 
 	<span class="HLcomments">! We go back to the physical space for</span>
@@ -1588,7 +1609,6 @@ the first phase conincides with the maximmum.
                   <h4 class="title"><a id="doc_f90_ex2"></a>3.3.2. F90 example 2</h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <p>
 					The goal is to provide an example to show how SVD works.
@@ -1600,14 +1620,14 @@ the first phase conincides with the maximmum.
 					and joint eigen values are stored to the netcdf file.
 				</p>
             <div class="example">
-              <a id="id3449909"></a>
+              <a id="id2790169"></a>
               <p class="title">
                 <b>Example 2. F90 example 2</b>
               </p>
               <p>
 						You can run this example typing (from package directory):
 						</p>
-              <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make fortran2</tt></b></pre>
+              <pre class="programlisting"><code class="prompt">&lt;user&gt;</code> <strong class="userinput"><code>make fortran2</code></strong></pre>
               <p>
 					</p>
               <p>
@@ -1666,8 +1686,8 @@ the first phase conincides with the maximmum.
 		&amp; lons1(<span class="HLdigits">2</span>)=(/<span class="HLdigits">70</span>,<span class="HLdigits">150</span>/),lats1(<span class="HLdigits">2</span>)=(/<span class="HLdigits">16</span>,<span class="HLdigits">45</span>/),&amp; <span class="HLcomments">! East</span>
 		&amp; lons2(<span class="HLdigits">2</span>)=(/<span class="HLdigits">10</span>,<span class="HLdigits">40</span>/),lats2(<span class="HLdigits">2</span>)=(/<span class="HLdigits">12</span>,<span class="HLdigits">49</span>/)    <span class="HLcomments">! West</span>
 	<span class="HLroutines">real</span>(wp), <span class="HLattributes">parameter</span> ::new_missing_value=-<span class="HLdigits">999</span>.d0
-	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">&quot;data2.cdf&quot;</span>, &amp;
-		&amp; output_nc_file=<span class="HLstrings">&quot;output_fortran2.nc&quot;</span>, var_name=<span class="HLstrings">'ssta'</span>
+	<span class="HLroutines">character</span>(len=<span class="HLdigits">20</span>), <span class="HLattributes">parameter</span> :: input_nc_file=<span class="HLstrings">"data2.cdf"</span>, &amp;
+		&amp; output_nc_file=<span class="HLstrings">"output_fortran2.nc"</span>, var_name=<span class="HLstrings">'ssta'</span>
 
 	<span class="HLcomments">! Other declarations</span>
 	<span class="HLcomments">! ------------------</span>
@@ -2004,7 +2024,6 @@ the first phase conincides with the maximmum.
               <h2 class="title" style="clear: both"><a id="doc_pyt"></a>4. The python module</h2>
             </div>
           </div>
-          <div></div>
         </div>
         <div class="sect2" lang="en" xml:lang="en">
           <div class="titlepage">
@@ -2013,7 +2032,6 @@ the first phase conincides with the maximmum.
                 <h3 class="title"><a id="doc_pyt_int"></a>4.1. Introduction</h3>
               </div>
             </div>
-            <div></div>
           </div>
           <p>
 				The intent of the python module is to offer
@@ -2031,7 +2049,7 @@ the first phase conincides with the maximmum.
 			</p>
           <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3>
 				The current version of this module only manage 3D dataset:
-				first two dimensions for &quot;space&quot;, the last dimension for time.
+				first two dimensions for "space", the last dimension for time.
 			</div>
         </div>
         <div class="sect2" lang="en" xml:lang="en">
@@ -2041,25 +2059,22 @@ the first phase conincides with the maximmum.
                 <h3 class="title"><a id="doc_pyt_sub"></a>4.2. Python functions</h3>
               </div>
             </div>
-            <div></div>
           </div>
           <div class="sect3" lang="en" xml:lang="en">
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="spanlib.stackData"></a>4.2.1.  Takes several data files, of same time and stacks them up together: <tt class="literal">spanlib.stackData</tt></h4>
+                  <h4 class="title"><a id="spanlib.stackData"></a>4.2.1.  Takes several data files, of same time and stacks them up together: <code class="literal">spanlib.stackData</code></h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3530128"></a>Usage</h5>
+                    <h5 class="title"><a id="id2822063"></a>Usage</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <pre class="programlisting"><span class="HLpersonalised">dout</span>, <span class="HLpersonalised">weights</span>, <span class="HLpersonalised">masks</span>, <span class="HLpersonalised">axes</span> = <span class="HLpersonalised">spanlib.stackData</span>(*<span class="HLpersonalised">data</span>)</pre>
             </div>
@@ -2067,10 +2082,9 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3530179"></a>Description</h5>
+                    <h5 class="title"><a id="id2824579"></a>Description</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>      This fonction concatenates several dataset that have the
       same time axis. It is useful for analysing for example
@@ -2082,14 +2096,13 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3530196"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2810622"></a>Necessary arguments</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">*data    </tt><tt class="option"><span class="ARGspec">[intent:input]    </span></tt> 
+                  <li><code class="varname">*data    </code><code class="option"><span class="ARGspec">[intent:input]    </span></code> 
 				 :: <span class="emphasis"><em> One or more data objects to stack.
                  They must all have the same time length.
 </em></span></li>
@@ -2100,23 +2113,22 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3530234"></a>Outputs</h5>
+                    <h5 class="title"><a id="id2825702"></a>Outputs</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">dout    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+                  <li><code class="varname">dout    </code><code class="option"><span class="ARGspec">[intent:output]    </span></code> 
 				 :: <span class="emphasis"><em> Stacked data
 </em></span></li>
-                  <li><tt class="varname">weights    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+                  <li><code class="varname">weights    </code><code class="option"><span class="ARGspec">[intent:output]    </span></code> 
 				 :: <span class="emphasis"><em> Associated stacked weights
 </em></span></li>
-                  <li><tt class="varname">masks    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+                  <li><code class="varname">masks    </code><code class="option"><span class="ARGspec">[intent:output]    </span></code> 
 				 :: <span class="emphasis"><em> Associated stacked masks
 </em></span></li>
-                  <li><tt class="varname">axes    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+                  <li><code class="varname">axes    </code><code class="option"><span class="ARGspec">[intent:output]    </span></code> 
 				 :: <span class="emphasis"><em> Associated stacked axes
 </em></span></li>
                 </ul>
@@ -2127,19 +2139,17 @@ the first phase conincides with the maximmum.
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="spanlib.unStackData"></a>4.2.2.  Unstack data in the form returned from stackData: <tt class="literal">spanlib.unStackData</tt></h4>
+                  <h4 class="title"><a id="spanlib.unStackData"></a>4.2.2.  Unstack data in the form returned from stackData: <code class="literal">spanlib.unStackData</code></h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3530358"></a>Usage</h5>
+                    <h5 class="title"><a id="id2798571"></a>Usage</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <pre class="programlisting"><span class="HLpersonalised">dout</span> = <span class="HLpersonalised">spanlib.unStackData</span>(<span class="HLpersonalised">din</span>, <span class="HLpersonalised">weights</span>, <span class="HLpersonalised">masks</span>, <span class="HLpersonalised">axes</span>)</pre>
             </div>
@@ -2147,10 +2157,9 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3530411"></a>Description</h5>
+                    <h5 class="title"><a id="id2814338"></a>Description</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>      This function is the reverse operation of stakData.
       It splits stacked datasets into a list.
@@ -2160,23 +2169,22 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3530425"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2814351"></a>Necessary arguments</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">din    </tt><tt class="option"><span class="ARGspec">[intent:input]    </span></tt> 
+                  <li><code class="varname">din    </code><code class="option"><span class="ARGspec">[intent:input]    </span></code> 
 				 :: <span class="emphasis"><em> Stacked data (see stackData function)
 </em></span></li>
-                  <li><tt class="varname">weights    </tt><tt class="option"><span class="ARGspec">[intent:input]    </span></tt> 
+                  <li><code class="varname">weights    </code><code class="option"><span class="ARGspec">[intent:input]    </span></code> 
 				 :: <span class="emphasis"><em> Associated stacked weights
 </em></span></li>
-                  <li><tt class="varname">masks    </tt><tt class="option"><span class="ARGspec">[intent:input]    </span></tt> 
+                  <li><code class="varname">masks    </code><code class="option"><span class="ARGspec">[intent:input]    </span></code> 
 				 :: <span class="emphasis"><em> Associated stacked masks
 </em></span></li>
-                  <li><tt class="varname">axes    </tt><tt class="option"><span class="ARGspec">[intent:input]    </span></tt> 
+                  <li><code class="varname">axes    </code><code class="option"><span class="ARGspec">[intent:input]    </span></code> 
 				 :: <span class="emphasis"><em> Associated stacked axes
 </em></span></li>
                 </ul>
@@ -2186,14 +2194,13 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3528337"></a>Outputs</h5>
+                    <h5 class="title"><a id="id2804393"></a>Outputs</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">dout    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+                  <li><code class="varname">dout    </code><code class="option"><span class="ARGspec">[intent:output]    </span></code> 
 				 :: <span class="emphasis"><em> List of unstacked data
 </em></span></li>
                 </ul>
@@ -2204,19 +2211,17 @@ the first phase conincides with the maximmum.
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="spanlib.pack"></a>4.2.3.  Pack a dataset and its weights according to its mask: <tt class="literal">spanlib.pack</tt></h4>
+                  <h4 class="title"><a id="spanlib.pack"></a>4.2.3.  Pack a dataset and its weights according to its mask: <code class="literal">spanlib.pack</code></h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3528390"></a>Usage</h5>
+                    <h5 class="title"><a id="id2818991"></a>Usage</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <pre class="programlisting"><span class="HLpersonalised">packed_data</span>, <span class="HLpersonalised">packed_weights</span>, <span class="HLpersonalised">mask</span> = <span class="HLpersonalised">spanlib.pack</span>(<span class="HLpersonalised">data</span>, <span class="HLpersonalised">weights</span>=<span class="HLpersonalised">None</span>)</pre>
             </div>
@@ -2224,10 +2229,9 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3528450"></a>Description</h5>
+                    <h5 class="title"><a id="id2834770"></a>Description</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>      This function packs a dataset in 2D space by removing
       all masked points and returning a space-time array.
@@ -2240,14 +2244,13 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3528467"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2834786"></a>Necessary arguments</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">data    </tt><tt class="option"><span class="ARGspec">[intent:input]    </span></tt> 
+                  <li><code class="varname">data    </code><code class="option"><span class="ARGspec">[intent:input]    </span></code> 
 				 :: <span class="emphasis"><em> Flatten in space an [x,y,t] array by removing
                  its masked point
 </em></span></li>
@@ -2258,14 +2261,13 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3528505"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2803920"></a>Optional arguments</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">weights    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+                  <li><code class="varname">weights    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></code> 
 				 :: <span class="emphasis"><em> Weights to be flatten also
 </em></span></li>
                 </ul>
@@ -2275,20 +2277,19 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3528549"></a>Outputs</h5>
+                    <h5 class="title"><a id="id2831266"></a>Outputs</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">packed_data    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+                  <li><code class="varname">packed_data    </code><code class="option"><span class="ARGspec">[intent:output]    </span></code> 
 				 :: <span class="emphasis"><em> Space-time packed array
 </em></span></li>
-                  <li><tt class="varname">packed_weights    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+                  <li><code class="varname">packed_weights    </code><code class="option"><span class="ARGspec">[intent:output]    </span></code> 
 				 :: <span class="emphasis"><em> Packed weights that were guessed or used
 </em></span></li>
-                  <li><tt class="varname">mask    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+                  <li><code class="varname">mask    </code><code class="option"><span class="ARGspec">[intent:output]    </span></code> 
 				 :: <span class="emphasis"><em> Mask that were guessed or used
 </em></span></li>
                 </ul>
@@ -2299,19 +2300,17 @@ the first phase conincides with the maximmum.
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="spanlib.computePhases"></a>4.2.4.  Phase composites for oscillatory fields: <tt class="literal">spanlib.computePhases</tt></h4>
+                  <h4 class="title"><a id="spanlib.computePhases"></a>4.2.4.  Phase composites for oscillatory fields: <code class="literal">spanlib.computePhases</code></h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3528651"></a>Usage</h5>
+                    <h5 class="title"><a id="id2826615"></a>Usage</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <pre class="programlisting"><span class="HLpersonalised">phases</span> = <span class="HLpersonalised">spanlib.computePhases</span>(<span class="HLpersonalised">data</span>, <span class="HLpersonalised">nphases</span>=<span class="HLpersonalised">8</span>, <span class="HLpersonalised">offset</span>=.<span class="HLpersonalised">5</span>, <span class="HLpersonalised">firstphase</span>=<span class="HLpersonalised">0</span>)</pre>
             </div>
@@ -2319,10 +2318,9 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3528725"></a>Description</h5>
+                    <h5 class="title"><a id="id2835398"></a>Description</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>      This computes temporal phase composites of a spatio-temporal
       dataset. The dataset is expected to be oscillatory in time.
@@ -2336,14 +2334,13 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3528744"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2811775"></a>Necessary arguments</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">data    </tt><tt class="option"><span class="ARGspec">[intent:input]    </span></tt> 
+                  <li><code class="varname">data    </code><code class="option"><span class="ARGspec">[intent:input]    </span></code> 
 				 :: <span class="emphasis"><em> Space-time data oscillatory in time data.shape is rank 2 and dim 0 is space
 </em></span></li>
                 </ul>
@@ -2353,20 +2350,19 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3528782"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2811808"></a>Optional arguments</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">nphases    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">8</span>]    </span></tt> 
+                  <li><code class="varname">nphases    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">8</span>]    </span></code> 
 				 :: <span class="emphasis"><em> Number of phases (divisions of the cycle)
       offset     :: Normalised offset to keep higher values only [default:
 </em></span></li>
-                  <li><tt class="varname">offset    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">.5</span>]    </span></tt> 
+                  <li><code class="varname">offset    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">.5</span>]    </span></code> 
 				 :: <span class="emphasis"><em></em></span></li>
-                  <li><tt class="varname">firstphase    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">0</span>]    </span></tt> 
+                  <li><code class="varname">firstphase    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">0</span>]    </span></code> 
 				 :: <span class="emphasis"><em> Position of the first phase in the 360 degree cycle
 </em></span></li>
                 </ul>
@@ -2376,14 +2372,13 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3529381"></a>Outputs</h5>
+                    <h5 class="title"><a id="id2818587"></a>Outputs</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">phases    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+                  <li><code class="varname">phases    </code><code class="option"><span class="ARGspec">[intent:output]    </span></code> 
 				 :: <span class="emphasis"><em> Space-phase array
 </em></span></li>
                 </ul>
@@ -2394,30 +2389,27 @@ the first phase conincides with the maximmum.
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="spanlib.SpAn"></a>4.2.5.  Prepare the Spectral Analysis Object: <tt class="literal">spanlib.SpAn</tt></h4>
+                  <h4 class="title"><a id="spanlib.SpAn"></a>4.2.5.  Prepare the Spectral Analysis Object: <code class="literal">spanlib.SpAn</code></h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3529435"></a>Usage</h5>
+                    <h5 class="title"><a id="id2830628"></a>Usage</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
-              <pre class="programlisting"><span class="HLpersonalised">&lt;SpAn_object&gt;</span> = <span class="HLpersonalised">spanlib.SpAn</span>(<span class="HLpersonalised">data</span>, <span class="HLpersonalised">weights</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">npca</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">window</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">nmssa</span>=<span class="HLpersonalised">None</span>)</pre>
+              <pre class="programlisting"><span class="HLpersonalised">&lt;SpAn_object&gt;</span> = <span class="HLpersonalised">spanlib.SpAn</span>(<span class="HLpersonalised">data</span>, <span class="HLpersonalised">weights</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">npca</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">window</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">nmssa</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">nsvd</span>=<span class="HLpersonalised">None</span>)</pre>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3529523"></a>Description</h5>
+                    <h5 class="title"><a id="id2828686"></a>Description</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>          This function creates an object for future analyses.
           It optionally initializes some parameters.
@@ -2427,15 +2419,14 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3529537"></a>Necessary arguments</h5>
+                    <h5 class="title"><a id="id2828700"></a>Necessary arguments</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">data    </tt><tt class="option"><span class="ARGspec">[intent:input]    </span></tt> 
-				 :: <span class="emphasis"><em> Data on which to run the PC Analysis
+                  <li><code class="varname">data    </code><code class="option"><span class="ARGspec">[intent:input]    </span></code> 
+				 :: <span class="emphasis"><em> List of data on which to run the PC Analysis
                      Last dimensions must represent the spatial dimensions.
                      Analysis will be run on the first dimension.
 </em></span></li>
@@ -2446,16 +2437,15 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3529577"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2824209"></a>Optional arguments</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">weights    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">1. everywhere</span>]    </span></tt> 
+                  <li><code class="varname">weights    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">1. everywhere</span>]    </span></code> 
 				 :: <span class="emphasis"><em> If you which to apply weights on some points,
-                     set weights to &quot;0&quot; where you wish to mask.
+                     set weights to "0" where you wish to mask.
                      The input data mask will be applied,
                      using the union of all none spacial dimension mask.
                      If the data are on a regular grid, area weights
@@ -2463,13 +2453,16 @@ the first phase conincides with the maximmum.
                      
           npca    :: Number of principal components to return [default: 10]
           nmssa   :: Number of MSSA modes retained [default: 4]
+          nsvd    :: Number of SVD modes retained [default: 10]
           window  :: MSSA window parameter [default: time_length/3.]
 </em></span></li>
-                  <li><tt class="varname">npca    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+                  <li><code class="varname">npca    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></code> 
 				 :: <span class="emphasis"><em></em></span></li>
-                  <li><tt class="varname">window    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+                  <li><code class="varname">window    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></code> 
 				 :: <span class="emphasis"><em></em></span></li>
-                  <li><tt class="varname">nmssa    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+                  <li><code class="varname">nmssa    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></code> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><code class="varname">nsvd    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></code> 
 				 :: <span class="emphasis"><em></em></span></li>
                 </ul>
               </div>
@@ -2478,14 +2471,13 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3529719"></a>Outputs</h5>
+                    <h5 class="title"><a id="id2813711"></a>Outputs</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">&lt;SpAn_object&gt;    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+                  <li><code class="varname">&lt;SpAn_object&gt;    </code><code class="option"><span class="ARGspec">[intent:output]    </span></code> 
 				 :: <span class="emphasis"><em>Object created for further analysis</em></span></li>
                 </ul>
               </div>
@@ -2495,36 +2487,34 @@ the first phase conincides with the maximmum.
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="&lt;SpAn_object&gt;.pca"></a>4.2.6.  Principal Components Analysis (PCA): <tt class="literal">&lt;SpAn_object&gt;.pca</tt></h4>
+                  <h4 class="title"><a id="&lt;SpAn_object&gt;.pca"></a>4.2.6.  Principal Components Analysis (PCA): <code class="literal">&lt;SpAn_object&gt;.pca</code></h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3529773"></a>Usage</h5>
+                    <h5 class="title"><a id="id2812698"></a>Usage</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
-              <pre class="programlisting"><span class="HLpersonalised">eof</span>, <span class="HLpersonalised">pc</span>, <span class="HLpersonalised">ev</span> = <span class="HLpersonalised">&lt;SpAn_object&gt;.pca</span>(<span class="HLpersonalised">npca</span>=<span class="HLpersonalised">None</span>)</pre>
+              <pre class="programlisting"><span class="HLpersonalised">ret</span> = <span class="HLpersonalised">&lt;SpAn_object&gt;.pca</span>(<span class="HLpersonalised">npca</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">get_ev_sum</span>=<span class="HLpersonalised">False</span>)</pre>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3529826"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2809686"></a>Optional arguments</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">npca    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
-				 :: <span class="emphasis"><em> Number of principal components to return, default will be 10
-</em></span></li>
+                  <li><code class="varname">npca    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></code> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><code class="varname">get_ev_sum    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">False</span>]    </span></code> 
+				 :: <span class="emphasis"><em></em></span></li>
                 </ul>
               </div>
             </div>
@@ -2532,22 +2522,14 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3529870"></a>Outputs</h5>
+                    <h5 class="title"><a id="id2765517"></a>Outputs</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">eof    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em> EOF array
-</em></span></li>
-                  <li><tt class="varname">pc    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em> Principal Components array
-</em></span></li>
-                  <li><tt class="varname">ev    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em> Eigein Values array
-</em></span></li>
+                  <li><code class="varname">ret    </code><code class="option"><span class="ARGspec">[intent:output]    </span></code> 
+				 :: <span class="emphasis"><em></em></span></li>
                 </ul>
               </div>
             </div>
@@ -2556,43 +2538,96 @@ the first phase conincides with the maximmum.
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="&lt;SpAn_object&gt;.mssa"></a>4.2.7.  MultiChannel Singular Spectrum Analysis (MSSA): <tt class="literal">&lt;SpAn_object&gt;.mssa</tt></h4>
+                  <h4 class="title"><a id="&lt;SpAn_object&gt;.mssa"></a>4.2.7.  MultiChannel Singular Spectrum Analysis (MSSA): <code class="literal">&lt;SpAn_object&gt;.mssa</code></h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3529972"></a>Usage</h5>
+                    <h5 class="title"><a id="id2815241"></a>Usage</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
-              <pre class="programlisting"><span class="HLpersonalised">eof</span>, <span class="HLpersonalised">pc</span>, <span class="HLpersonalised">ev</span> = <span class="HLpersonalised">&lt;SpAn_object&gt;.mssa</span>(<span class="HLpersonalised">nmssa</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">pca</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">window</span>=<span class="HLpersonalised">None</span>)</pre>
+              <pre class="programlisting"><span class="HLpersonalised">ret</span> = <span class="HLpersonalised">&lt;SpAn_object&gt;.mssa</span>(<span class="HLpersonalised">nmssa</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">pca</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">window</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">get_ev_sum</span>=<span class="HLpersonalised">False</span>)</pre>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3584167"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2826875"></a>Optional arguments</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">nmssa    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+                  <li><code class="varname">nmssa    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></code> 
 				 :: <span class="emphasis"><em> Number of MSSA modes retained
 </em></span></li>
-                  <li><tt class="varname">pca    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+                  <li><code class="varname">pca    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></code> 
+				 :: <span class="emphasis"><em> If True, performs a preliminary PCA
+          get_ev_sum  :: Also return sum of all eigen values (default: False)
+
+</em></span></li>
+                  <li><code class="varname">window    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></code> 
+				 :: <span class="emphasis"><em> MSSA window parameter
+</em></span></li>
+                  <li><code class="varname">get_ev_sum    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">False</span>]    </span></code> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id2822913"></a>Outputs</h5>
+                  </div>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><code class="varname">ret    </code><code class="option"><span class="ARGspec">[intent:output]    </span></code> 
+				 :: <span class="emphasis"><em></em></span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="sect3" lang="en" xml:lang="en">
+            <div class="titlepage">
+              <div>
+                <div>
+                  <h4 class="title"><a id="&lt;SpAn_object&gt;.svd"></a>4.2.8.  Singular Value Decomposition (SVD): <code class="literal">&lt;SpAn_object&gt;.svd</code></h4>
+                </div>
+              </div>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id2836081"></a>Usage</h5>
+                  </div>
+                </div>
+              </div>
+              <pre class="programlisting"><span class="HLpersonalised">eof</span>[<span class="HLpersonalised">0</span>], <span class="HLpersonalised">pc</span>[<span class="HLpersonalised">0</span>], <span class="HLpersonalised">eof</span>[<span class="HLpersonalised">1</span>], <span class="HLpersonalised">pc</span>[<span class="HLpersonalised">1</span>], <span class="HLpersonalised">ev</span> = <span class="HLpersonalised">&lt;SpAn_object&gt;.svd</span>(<span class="HLpersonalised">nsvd</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">pca</span>=<span class="HLpersonalised">None</span>)</pre>
+            </div>
+            <div class="simplesect" lang="en" xml:lang="en">
+              <div class="titlepage">
+                <div>
+                  <div>
+                    <h5 class="title"><a id="id2798785"></a>Optional arguments</h5>
+                  </div>
+                </div>
+              </div>
+              <div class="itemizedlist">
+                <ul type="disc">
+                  <li><code class="varname">nsvd    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></code> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><code class="varname">pca    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></code> 
 				 :: <span class="emphasis"><em> If True, performs a preliminary PCA
 
 </em></span></li>
-                  <li><tt class="varname">window    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
-				 :: <span class="emphasis"><em> MSSA window parameter
-</em></span></li>
                 </ul>
               </div>
             </div>
@@ -2600,21 +2635,24 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3584272"></a>Outputs</h5>
+                    <h5 class="title"><a id="id2792616"></a>Outputs</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">eof    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em> EOF array
-</em></span></li>
-                  <li><tt class="varname">pc    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em> Principal Components array
-</em></span></li>
-                  <li><tt class="varname">ev    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
+                  <li><code class="varname">eof[0]    </code><code class="option"><span class="ARGspec">[intent:output]    </span></code> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><code class="varname">pc[0]    </code><code class="option"><span class="ARGspec">[intent:output]    </span></code> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><code class="varname">eof[1]    </code><code class="option"><span class="ARGspec">[intent:output]    </span></code> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><code class="varname">pc[1]    </code><code class="option"><span class="ARGspec">[intent:output]    </span></code> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><code class="varname">ev    </code><code class="option"><span class="ARGspec">[intent:output]    </span></code> 
 				 :: <span class="emphasis"><em> Eigen Values  array
+
+        ---blabla---
 </em></span></li>
                 </ul>
               </div>
@@ -2624,30 +2662,27 @@ the first phase conincides with the maximmum.
             <div class="titlepage">
               <div>
                 <div>
-                  <h4 class="title"><a id="&lt;SpAn_object&gt;.reconstruct"></a>4.2.8.  Reconstruct results from mssa or pca: <tt class="literal">&lt;SpAn_object&gt;.reconstruct</tt></h4>
+                  <h4 class="title"><a id="&lt;SpAn_object&gt;.reconstruct"></a>4.2.9.  Reconstruct results from mssa or pca: <code class="literal">&lt;SpAn_object&gt;.reconstruct</code></h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3584374"></a>Usage</h5>
+                    <h5 class="title"><a id="id2807061"></a>Usage</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
-              <pre class="programlisting"><span class="HLpersonalised">ffrec</span> = <span class="HLpersonalised">&lt;SpAn_object&gt;.reconstruct</span>(<span class="HLpersonalised">start</span>=<span class="HLpersonalised">1</span>, <span class="HLpersonalised">end</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">mssa</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">pca</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">phases</span>=<span class="HLpersonalised">False</span>, <span class="HLpersonalised">nphases</span>=<span class="HLpersonalised">8</span>, <span class="HLpersonalised">offset</span>=.<span class="HLpersonalised">5</span>, <span class="HLpersonalised">firstphase</span>=<span class="HLpersonalised">0</span>)</pre>
+              <pre class="programlisting"><span class="HLpersonalised">ffrec</span>[<span class="HLpersonalised">0</span>] = <span class="HLpersonalised">&lt;SpAn_object&gt;.reconstruct</span>(<span class="HLpersonalised">start</span>=<span class="HLpersonalised">1</span>, <span class="HLpersonalised">end</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">mssa</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">pca</span>=<span class="HLpersonalised">None</span>, <span class="HLpersonalised">phases</span>=<span class="HLpersonalised">False</span>, <span class="HLpersonalised">nphases</span>=<span class="HLpersonalised">8</span>, <span class="HLpersonalised">offset</span>=.<span class="HLpersonalised">5</span>, <span class="HLpersonalised">firstphase</span>=<span class="HLpersonalised">0</span>, <span class="HLpersonalised">svd</span>=<span class="HLpersonalised">None</span>)</pre>
             </div>
             <div class="simplesect" lang="en" xml:lang="en">
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3584510"></a>Description</h5>
+                    <h5 class="title"><a id="id2836120"></a>Description</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <p>          This function performs recontructions to retreive the
           the contribution of a selection of modes to the original field.
@@ -2663,33 +2698,34 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3584532"></a>Optional arguments</h5>
+                    <h5 class="title"><a id="id2836139"></a>Optional arguments</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">start    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">1</span>]    </span></tt> 
+                  <li><code class="varname">start    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">1</span>]    </span></code> 
 				 :: <span class="emphasis"><em> First mode
 </em></span></li>
-                  <li><tt class="varname">end    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+                  <li><code class="varname">end    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></code> 
 				 :: <span class="emphasis"><em> Last mode
 </em></span></li>
-                  <li><tt class="varname">mssa    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+                  <li><code class="varname">mssa    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></code> 
 				 :: <span class="emphasis"><em> Reconstruct MSSA if True
 </em></span></li>
-                  <li><tt class="varname">pca    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></tt> 
+                  <li><code class="varname">pca    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></code> 
 				 :: <span class="emphasis"><em> Reconstruct PCA if True
 </em></span></li>
-                  <li><tt class="varname">phases    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">False</span>]    </span></tt> 
+                  <li><code class="varname">phases    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">False</span>]    </span></code> 
 				 :: <span class="emphasis"><em> Operate phase reconstruction True/False (default is False)
 </em></span></li>
-                  <li><tt class="varname">nphases    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">8</span>]    </span></tt> 
+                  <li><code class="varname">nphases    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">8</span>]    </span></code> 
 				 :: <span class="emphasis"><em></em></span></li>
-                  <li><tt class="varname">offset    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">.5</span>]    </span></tt> 
+                  <li><code class="varname">offset    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">.5</span>]    </span></code> 
 				 :: <span class="emphasis"><em></em></span></li>
-                  <li><tt class="varname">firstphase    </tt><tt class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">0</span>]    </span></tt> 
+                  <li><code class="varname">firstphase    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">0</span>]    </span></code> 
+				 :: <span class="emphasis"><em></em></span></li>
+                  <li><code class="varname">svd    </code><code class="option"><span class="ARGspec">[intent:input, default:<span class="HLpersonalised">None</span>]    </span></code> 
 				 :: <span class="emphasis"><em></em></span></li>
                 </ul>
               </div>
@@ -2698,16 +2734,14 @@ the first phase conincides with the maximmum.
               <div class="titlepage">
                 <div>
                   <div>
-                    <h5 class="title"><a id="id3584786"></a>Outputs</h5>
+                    <h5 class="title"><a id="id2816297"></a>Outputs</h5>
                   </div>
                 </div>
-                <div></div>
               </div>
               <div class="itemizedlist">
                 <ul type="disc">
-                  <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">[intent:output]    </span></tt> 
-				 :: <span class="emphasis"><em> Reconstructed field
-</em></span></li>
+                  <li><code class="varname">ffrec[0]    </code><code class="option"><span class="ARGspec">[intent:output]    </span></code> 
+				 :: <span class="emphasis"><em></em></span></li>
                 </ul>
               </div>
             </div>
@@ -2720,7 +2754,6 @@ the first phase conincides with the maximmum.
                 <h3 class="title"><a id="doc_pyt_exa"></a>4.3. Python examples</h3>
               </div>
             </div>
-            <div></div>
           </div>
           <p>
 				These examples show how to use some of the available
@@ -2729,7 +2762,7 @@ the first phase conincides with the maximmum.
 			</p>
           <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3>
 				You can run depending on your configuration, and
-				you must have previously performed a <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make install</tt></b></pre></div>
+				you must have previously performed a <pre class="programlisting"><code class="prompt">&lt;user&gt;</code> <strong class="userinput"><code>make install</code></strong></pre></div>
           <div class="sect3" lang="en" xml:lang="en">
             <div class="titlepage">
               <div>
@@ -2737,7 +2770,6 @@ the first phase conincides with the maximmum.
                   <h4 class="title"><a id="doc_pyt_ex1"></a>4.3.1. Python example 1</h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <p>
 					This first example is similar to <a href="#doc_f90_exa" title="3.3.&#xA0;Fortran 90 examples">Section 3.3, “Fortran 90 examples”</a>:
@@ -2746,14 +2778,14 @@ the first phase conincides with the maximmum.
 				reconstructed using phases composites (16 phases).
 				</p>
             <div class="example">
-              <a id="id3450107"></a>
+              <a id="id2790337"></a>
               <p class="title">
                 <b>Example 3. Python example 1</b>
               </p>
               <p>
 						Run this example using:
 						</p>
-              <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make python1</tt></b></pre>
+              <pre class="programlisting"><code class="prompt">&lt;user&gt;</code> <strong class="userinput"><code>make python1</code></strong></pre>
               <p>
 							</p>
               <pre class="programlisting"><span class="HLcomments"># File: example2.py</span>
@@ -2782,10 +2814,10 @@ the first phase conincides with the maximmum.
 <span class="HLcomments"># You can do the same with two completely different datasets,</span>
 <span class="HLcomments"># except that they must have the same temporal grid.</span>
 <span class="HLcomments">###################################################################</span>
-<span class="HLcommands">print</span> &quot;<span class="HLcomments">##############################################&quot;</span>
-<span class="HLcommands">print</span> &quot;<span class="HLcomments"># PCA+MSSA applied on two different regions. #&quot;</span>
-<span class="HLcommands">print</span> &quot;<span class="HLcomments"># Then reconstructions and plots.            #&quot;</span>
-<span class="HLcommands">print</span> &quot;<span class="HLcomments">##############################################&quot;</span>
+<span class="HLcommands">print</span> "<span class="HLcomments">##############################################"</span>
+<span class="HLcommands">print</span> "<span class="HLcomments"># PCA+MSSA applied on two different regions. #"</span>
+<span class="HLcommands">print</span> "<span class="HLcomments"># Then reconstructions and plots.            #"</span>
+<span class="HLcommands">print</span> "<span class="HLcomments">##############################################"</span>
 
 <span class="HLcomments"># Needed modules</span>
 <span class="HLcommands">import</span> cdms
@@ -2799,38 +2831,38 @@ cdms.axis.longitude_aliases.append(<span class="HLstrings">'X'</span>)
 cdms.axis.time_aliases.append(<span class="HLstrings">'T'</span>)
 
 <span class="HLcomments"># Simply open the netcdf file</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;<span class="HLfunctions">Open</span> file&quot;</span>
+<span class="HLcommands">print</span> <span class="HLstrings">"<span class="HLfunctions">Open</span> file"</span>
 f=cdms.<span class="HLfunctions">open</span>(<span class="HLstrings">'data2.cdf'</span>)
 
 <span class="HLcomments"># Get our two datasets</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;Read two different regions&quot;</span>
+<span class="HLcommands">print</span> <span class="HLstrings">"Read two different regions"</span>
 s2=f(<span class="HLstrings">'ssta'</span>,latitude=(-<span class="HLdigits">10</span>,<span class="HLdigits">10</span>),longitude=(<span class="HLdigits">110</span>,<span class="HLdigits">180</span>))
 s1=f(<span class="HLstrings">'ssta'</span>,latitude=(-<span class="HLdigits">15</span>,<span class="HLdigits">15</span>),longitude=(<span class="HLdigits">210</span>,<span class="HLdigits">250</span>))
 
 <span class="HLcomments"># Stack the two dataset to have only one dataset</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;Stacking data&quot;</span>
+<span class="HLcommands">print</span> <span class="HLstrings">"Stacking data"</span>
 res = spanlib.<span class="HLpersonalised">stackData</span>(s1,s2)
 
 <span class="HLcomments"># Create the analysis object</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;Creating <span class="HLpersonalised">SpAn</span> object&quot;</span>
+<span class="HLcommands">print</span> <span class="HLstrings">"Creating <span class="HLpersonalised">SpAn</span> object"</span>
 SP=spanlib.<span class="HLpersonalised">SpAn</span>(MV.array(res[<span class="HLdigits">0</span>]),weights=MV.array(res[<span class="HLdigits">1</span>]))
 
 <span class="HLcomments"># Perform a preliminary PCA</span>
 <span class="HLcomments"># (optional step since done by default with mssa)</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;<span class="HLpersonalised">PCA</span>+<span class="HLpersonalised">MSSA</span>...&quot;</span>
+<span class="HLcommands">print</span> <span class="HLstrings">"<span class="HLpersonalised">PCA</span>+<span class="HLpersonalised">MSSA</span>..."</span>
 steof,stpc,stev = SP.<span class="HLpersonalised">mssa</span>(<span class="HLpersonalised">pca</span>=<span class="HLspecial">True</span>)
 
 <span class="HLcomments"># Recontructed the filtered field</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;Reconstructing selected modes&quot;</span>
+<span class="HLcommands">print</span> <span class="HLstrings">"Reconstructing selected modes"</span>
 ffrec = SP.<span class="HLpersonalised">reconstruct</span>()
 
 <span class="HLcomments"># Unstacking</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;Unstaking data&quot;</span>
+<span class="HLcommands">print</span> <span class="HLstrings">"Unstaking data"</span>
 out = spanlib.<span class="HLpersonalised">unStackData</span>(ffrec,res[<span class="HLdigits">1</span>],res[<span class="HLdigits">2</span>],res[<span class="HLdigits">3</span>])
 
 <span class="HLcomments"># Plot a timeseries taken from our two</span>
 <span class="HLcomments"># recontructed datasets</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;Time series <span class="HLcommands">for</span> the two filtered regions&quot;</span>
+<span class="HLcommands">print</span> <span class="HLstrings">"Time series <span class="HLcommands">for</span> the two filtered regions"</span>
 x=vcs.init()
 x.plot(out[<span class="HLdigits">1</span>][:,<span class="HLdigits">5</span>,<span class="HLdigits">5</span>])
 x.plot(out[<span class="HLdigits">0</span>][:,<span class="HLdigits">5</span>,<span class="HLdigits">5</span>])
@@ -2845,7 +2877,6 @@ x.plot(out[<span class="HLdigits">0</span>][:,<span class="HLdigits">5</span>,<s
                   <h4 class="title"><a id="doc_pyt_ex2"></a>4.3.2. Python example 2</h4>
                 </div>
               </div>
-              <div></div>
             </div>
             <p>
 					In this second example, two different areas are analysed at
@@ -2858,14 +2889,14 @@ x.plot(out[<span class="HLdigits">0</span>][:,<span class="HLdigits">5</span>,<s
 				</p>
           </div>
           <div class="example">
-            <a id="id3505124"></a>
+            <a id="id2790394"></a>
             <p class="title">
               <b>Example 4. Python example 2</b>
             </p>
             <p>
 					Run this example using:
 					</p>
-            <pre class="programlisting"><tt class="prompt">&lt;user&gt;</tt> <b class="userinput"><tt>make python2</tt></b></pre>
+            <pre class="programlisting"><code class="prompt">&lt;user&gt;</code> <strong class="userinput"><code>make python2</code></strong></pre>
             <p>
 				</p>
             <pre class="programlisting"></pre>
@@ -2879,7 +2910,6 @@ x.plot(out[<span class="HLdigits">0</span>][:,<span class="HLdigits">5</span>,<s
               <h2 class="title" style="clear: both"><a id="doc_lin"></a>5. Links</h2>
             </div>
           </div>
-          <div></div>
         </div>
         <div class="itemizedlist">
           <ul type="disc">
@@ -2913,7 +2943,6 @@ x.plot(out[<span class="HLdigits">0</span>][:,<span class="HLdigits">5</span>,<s
               <h2 class="title"><a id="doc_bib"></a>Bibliography</h2>
             </div>
           </div>
-          <div></div>
         </div>
         <div class="biblioentry">
           <a id="prei88"></a>
@@ -2925,23 +2954,23 @@ x.plot(out[<span class="HLdigits">0</span>][:,<span class="HLdigits">5</span>,<s
         </div>
         <div class="biblioentry">
           <a id="brki86"></a>
-          <p>[<span class="abbrev">3</span>] <span class="authorgroup"><span class="firstname">S.</span> <span class="othername">D.</span> <span class="surname">Broomhead</span> and <span class="firstname">G.</span> <span class="othername">P.</span> <span class="surname">King</span>. </span><span class="citetitle">“<span class="citetitle">Extracting qualitative dynamics from experimental data</span>”. </span><span class="citetitle"><i class="citetitle">Physica D</i>. </span><span class="publisher"><span class="publishername">Elsevier Science Publishers B. V.. </span></span><span class="volumenum">20. </span><span class="artpagenums">217–236. </span><span class="pubdate">1986. </span></p>
+          <p>[<span class="abbrev">3</span>] <span class="authorgroup"><span class="firstname">S.</span> <span class="othername">D.</span> <span class="surname">Broomhead</span> and <span class="firstname">G.</span> <span class="othername">P.</span> <span class="surname">King</span>. </span><span class="citetitle">“<span class="citetitle">Extracting qualitative dynamics from experimental data</span>”. </span><span class="citetitle"><em class="citetitle">Physica D</em>. </span><span class="publisher"><span class="publishername">Elsevier Science Publishers B. V.. </span></span><span class="volumenum">20. </span><span class="artpagenums">217–236. </span><span class="pubdate">1986. </span></p>
         </div>
         <div class="biblioentry">
           <a id="vagh89"></a>
-          <p>[<span class="abbrev">4</span>] <span class="authorgroup"><span class="firstname">R.</span> <span class="surname">Vautard</span> and <span class="firstname">M.</span> <span class="surname">Ghil</span>. </span><span class="citetitle">“<span class="citetitle">Singular Spectrum Analysis in nonlinear dynamics,with application to paleoclimatic time series</span>”. </span><span class="citetitle"><i class="citetitle">Physica D</i>. </span><span class="volumenum">35. </span><span class="artpagenums">395-424. </span><span class="pubdate">1989. </span></p>
+          <p>[<span class="abbrev">4</span>] <span class="authorgroup"><span class="firstname">R.</span> <span class="surname">Vautard</span> and <span class="firstname">M.</span> <span class="surname">Ghil</span>. </span><span class="citetitle">“<span class="citetitle">Singular Spectrum Analysis in nonlinear dynamics,with application to paleoclimatic time series</span>”. </span><span class="citetitle"><em class="citetitle">Physica D</em>. </span><span class="volumenum">35. </span><span class="artpagenums">395-424. </span><span class="pubdate">1989. </span></p>
         </div>
         <div class="biblioentry">
           <a id="plva94"></a>
-          <p>[<span class="abbrev">5</span>] <span class="authorgroup"><span class="firstname">G.</span> <span class="surname">Plaut</span> and <span class="firstname">R.</span> <span class="surname">Vautard</span>. </span><span class="citetitle">“<span class="citetitle"> Spells of low-frequency oscillations and weather regimes in the northern hemisphere</span>”. </span><span class="citetitle"><i class="citetitle">J. Atm. Sc.</i>. </span><span class="volumenum">51. </span><span class="artpagenums">210-236. </span><span class="pubdate">1994. </span></p>
+          <p>[<span class="abbrev">5</span>] <span class="authorgroup"><span class="firstname">G.</span> <span class="surname">Plaut</span> and <span class="firstname">R.</span> <span class="surname">Vautard</span>. </span><span class="citetitle">“<span class="citetitle"> Spells of low-frequency oscillations and weather regimes in the northern hemisphere</span>”. </span><span class="citetitle"><em class="citetitle">J. Atm. Sc.</em>. </span><span class="volumenum">51. </span><span class="artpagenums">210-236. </span><span class="pubdate">1994. </span></p>
         </div>
         <div class="biblioentry">
           <a id="raynal05"></a>
-          <p>[<span class="abbrev">6</span>] <span class="authorgroup"><span class="firstname">S.</span> <span class="surname">Raynaud</span>, <span class="firstname">P.</span> <span class="surname">Yiou</span>, <span class="firstname">R.</span> <span class="surname">Kleeman</span>, and <span class="firstname">S.</span> <span class="surname">Speich</span>. </span><span class="citetitle">“<span class="citetitle">Using MSSA to determine explicitly the oscillatory dynamics of weakly nonlinear climate systems</span>”. </span><span class="citetitle"><i class="citetitle">Nonlin. Proc. Geophys.</i>. </span><span class="volumenum">12. </span><span class="artpagenums">807–815. </span><span class="pubdate">2005. </span><span class="releaseinfo"><a href="http://www.nonlin-processes-geophys.net/12/807/2005/npg-12-807-2005.pdf" target="_top">Download</a>. </span></p>
+          <p>[<span class="abbrev">6</span>] <span class="authorgroup"><span class="firstname">S.</span> <span class="surname">Raynaud</span>, <span class="firstname">P.</span> <span class="surname">Yiou</span>, <span class="firstname">R.</span> <span class="surname">Kleeman</span>, and <span class="firstname">S.</span> <span class="surname">Speich</span>. </span><span class="citetitle">“<span class="citetitle">Using MSSA to determine explicitly the oscillatory dynamics of weakly nonlinear climate systems</span>”. </span><span class="citetitle"><em class="citetitle">Nonlin. Proc. Geophys.</em>. </span><span class="volumenum">12. </span><span class="artpagenums">807–815. </span><span class="pubdate">2005. </span><span class="releaseinfo"><a href="http://www.nonlin-processes-geophys.net/12/807/2005/npg-12-807-2005.pdf" target="_top">Download</a>. </span></p>
         </div>
         <div class="biblioentry">
           <a id="raynal06"></a>
-          <p>[<span class="abbrev">7</span>] <span class="authorgroup"><span class="firstname">S.</span> <span class="surname">Raynaud</span>, <span class="firstname">O.</span> <span class="surname">Aumont</span>, <span class="firstname">K.</span> <span class="surname">Rodgers</span>, and <span class="firstname">P.</span> <span class="surname">Yiou</span>. </span><span class="citetitle">“<span class="citetitle">Interannual to decadal variability of air-sea CO2 fluxes in the North Atlantic</span>”. </span><span class="citetitle"><i class="citetitle">Ocean Sci.</i>. </span><span class="volumenum">2. </span><span class="artpagenums">43-60. </span><span class="pubdate">2006. </span><span class="releaseinfo"><a href="http://www.ocean-sci.net/2/43/2006/os-2-43-2006.pdf" target="_top">Download</a>. </span></p>
+          <p>[<span class="abbrev">7</span>] <span class="authorgroup"><span class="firstname">S.</span> <span class="surname">Raynaud</span>, <span class="firstname">O.</span> <span class="surname">Aumont</span>, <span class="firstname">K.</span> <span class="surname">Rodgers</span>, and <span class="firstname">P.</span> <span class="surname">Yiou</span>. </span><span class="citetitle">“<span class="citetitle">Interannual to decadal variability of air-sea CO2 fluxes in the North Atlantic</span>”. </span><span class="citetitle"><em class="citetitle">Ocean Sci.</em>. </span><span class="volumenum">2. </span><span class="artpagenums">43-60. </span><span class="pubdate">2006. </span><span class="releaseinfo"><a href="http://www.ocean-sci.net/2/43/2006/os-2-43-2006.pdf" target="_top">Download</a>. </span></p>
         </div>
       </div>
     </div>

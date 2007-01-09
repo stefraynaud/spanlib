@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Python example 1</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.61.2" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id3333905"></a>SpanLib - Python example 1</h1></div></div><div></div><hr /></div><pre class="programlisting"><span class="HLcomments"># File: example2.py</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Python example 1</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.69.1" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id2447415"></a>SpanLib - Python example 1</h1></div></div><hr /></div><pre class="programlisting"><span class="HLcomments"># File: example2.py</span>
 <span class="HLcomments">#</span>
 <span class="HLcomments"># This file is part of the SpanLib library.</span>
 <span class="HLcomments"># Copyright (C) 2006  Charles Doutiraux, Stephane Raynaud</span>
@@ -26,10 +26,10 @@
 <span class="HLcomments"># You can do the same with two completely different datasets,</span>
 <span class="HLcomments"># except that they must have the same temporal grid.</span>
 <span class="HLcomments">###################################################################</span>
-<span class="HLcommands">print</span> &quot;<span class="HLcomments">##############################################&quot;</span>
-<span class="HLcommands">print</span> &quot;<span class="HLcomments"># PCA+MSSA applied on two different regions. #&quot;</span>
-<span class="HLcommands">print</span> &quot;<span class="HLcomments"># Then reconstructions and plots.            #&quot;</span>
-<span class="HLcommands">print</span> &quot;<span class="HLcomments">##############################################&quot;</span>
+<span class="HLcommands">print</span> "<span class="HLcomments">##############################################"</span>
+<span class="HLcommands">print</span> "<span class="HLcomments"># PCA+MSSA applied on two different regions. #"</span>
+<span class="HLcommands">print</span> "<span class="HLcomments"># Then reconstructions and plots.            #"</span>
+<span class="HLcommands">print</span> "<span class="HLcomments">##############################################"</span>
 
 <span class="HLcomments"># Needed modules</span>
 <span class="HLcommands">import</span> cdms
@@ -43,38 +43,38 @@ cdms.axis.longitude_aliases.append(<span class="HLstrings">'X'</span>)
 cdms.axis.time_aliases.append(<span class="HLstrings">'T'</span>)
 
 <span class="HLcomments"># Simply open the netcdf file</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;<span class="HLfunctions">Open</span> file&quot;</span>
+<span class="HLcommands">print</span> <span class="HLstrings">"<span class="HLfunctions">Open</span> file"</span>
 f=cdms.<span class="HLfunctions">open</span>(<span class="HLstrings">'data2.cdf'</span>)
 
 <span class="HLcomments"># Get our two datasets</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;Read two different regions&quot;</span>
+<span class="HLcommands">print</span> <span class="HLstrings">"Read two different regions"</span>
 s2=f(<span class="HLstrings">'ssta'</span>,latitude=(-<span class="HLdigits">10</span>,<span class="HLdigits">10</span>),longitude=(<span class="HLdigits">110</span>,<span class="HLdigits">180</span>))
 s1=f(<span class="HLstrings">'ssta'</span>,latitude=(-<span class="HLdigits">15</span>,<span class="HLdigits">15</span>),longitude=(<span class="HLdigits">210</span>,<span class="HLdigits">250</span>))
 
 <span class="HLcomments"># Stack the two dataset to have only one dataset</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;Stacking data&quot;</span>
+<span class="HLcommands">print</span> <span class="HLstrings">"Stacking data"</span>
 res = spanlib.<span class="HLpersonalised">stackData</span>(s1,s2)
 
 <span class="HLcomments"># Create the analysis object</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;Creating <span class="HLpersonalised">SpAn</span> object&quot;</span>
+<span class="HLcommands">print</span> <span class="HLstrings">"Creating <span class="HLpersonalised">SpAn</span> object"</span>
 SP=spanlib.<span class="HLpersonalised">SpAn</span>(MV.array(res[<span class="HLdigits">0</span>]),weights=MV.array(res[<span class="HLdigits">1</span>]))
 
 <span class="HLcomments"># Perform a preliminary PCA</span>
 <span class="HLcomments"># (optional step since done by default with mssa)</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;<span class="HLpersonalised">PCA</span>+<span class="HLpersonalised">MSSA</span>...&quot;</span>
+<span class="HLcommands">print</span> <span class="HLstrings">"<span class="HLpersonalised">PCA</span>+<span class="HLpersonalised">MSSA</span>..."</span>
 steof,stpc,stev = SP.<span class="HLpersonalised">mssa</span>(<span class="HLpersonalised">pca</span>=<span class="HLspecial">True</span>)
 
 <span class="HLcomments"># Recontructed the filtered field</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;Reconstructing selected modes&quot;</span>
+<span class="HLcommands">print</span> <span class="HLstrings">"Reconstructing selected modes"</span>
 ffrec = SP.<span class="HLpersonalised">reconstruct</span>()
 
 <span class="HLcomments"># Unstacking</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;Unstaking data&quot;</span>
+<span class="HLcommands">print</span> <span class="HLstrings">"Unstaking data"</span>
 out = spanlib.<span class="HLpersonalised">unStackData</span>(ffrec,res[<span class="HLdigits">1</span>],res[<span class="HLdigits">2</span>],res[<span class="HLdigits">3</span>])
 
 <span class="HLcomments"># Plot a timeseries taken from our two</span>
 <span class="HLcomments"># recontructed datasets</span>
-<span class="HLcommands">print</span> <span class="HLstrings">&quot;Time series <span class="HLcommands">for</span> the two filtered regions&quot;</span>
+<span class="HLcommands">print</span> <span class="HLstrings">"Time series <span class="HLcommands">for</span> the two filtered regions"</span>
 x=vcs.init()
 x.plot(out[<span class="HLdigits">1</span>][:,<span class="HLdigits">5</span>,<span class="HLdigits">5</span>])
 x.plot(out[<span class="HLdigits">0</span>][:,<span class="HLdigits">5</span>,<span class="HLdigits">5</span>])

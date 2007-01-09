@@ -1,276 +1,262 @@
-<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <title>3.2. F90 subroutines</title>
-    <link rel="stylesheet" href="spanlib.css" type="text/css"/>
-    <meta name="generator" content="DocBook XSL Stylesheets V1.61.2"/>
-    <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, Multichannel singular spectrum analysis, PCA, Principal component analysis, EOF, Empirical othogonal funtion, PC, Principal component, SVD, Singular value decomposition, POP, Principal oscillation patterns"/>
-    <link rel="home" href="index.html" title="SpanLib - Spectral Analysis Library"/>
-    <link rel="up" href="doc_f90.html" title="3. The Fortran 90 library"/>
-    <link rel="previous" href="doc_f90.html" title="3. The Fortran 90 library"/>
-    <link rel="next" href="doc_f90_exa.html" title="3.3. Fortran 90 examples"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>3.2.Â F90 subroutines</title>
+    <link rel="stylesheet" href="spanlib.css" type="text/css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.69.1" />
+    <meta name="keywords" content="statistics, physics, climate variability, financial variability, FFT, eigen problem, spatio-temporal, MSSA, Multichannel singular spectrum analysis, PCA, Principal component analysis, EOF, Empirical othogonal funtion, PC, Principal component, SVD, Singular value decomposition, POP, Principal oscillation patterns" />
+    <link rel="start" href="index.html" title="SpanLib - Spectral Analysis Library" />
+    <link rel="up" href="doc_f90.html" title="3.Â The Fortran 90 library" />
+    <link rel="prev" href="doc_f90.html" title="3.Â The Fortran 90 library" />
+    <link rel="next" href="doc_f90_exa.html" title="3.3.Â Fortran 90 examples" />
   </head>
   <body>
     <div class="navheader">
       <table width="100%" summary="Navigation header">
         <tr>
-          <th colspan="3" align="center">3.2. F90 subroutines</th>
+          <th colspan="3" align="center">3.2.Â F90 subroutines</th>
         </tr>
         <tr>
-          <td width="20%" align="left"><a accesskey="p" href="doc_f90.html">Prev</a> </td>
-          <th width="60%" align="center">3. The Fortran 90 library</th>
-          <td width="20%" align="right"> <a accesskey="n" href="doc_f90_exa.html">Next</a></td>
+          <td width="20%" align="left"><a accesskey="p" href="doc_f90.html">Prev</a>Â </td>
+          <th width="60%" align="center">3.Â The Fortran 90 library</th>
+          <td width="20%" align="right">Â <a accesskey="n" href="doc_f90_exa.html">Next</a></td>
         </tr>
       </table>
-      <hr/>
+      <hr />
     </div>
-    <div class="sect2" lang="en">
+    <div class="sect2" lang="en" xml:lang="en">
       <div class="titlepage">
         <div>
           <div>
-            <h3 class="title"><a id="doc_f90_sub"/>3.2. F90 subroutines</h3>
+            <h3 class="title"><a id="doc_f90_sub"></a>3.2.Â F90 subroutines</h3>
           </div>
         </div>
-        <div/>
       </div>
-      <div class="sect3" lang="en">
+      <div class="sect3" lang="en" xml:lang="en">
         <div class="titlepage">
           <div>
             <div>
-              <h4 class="title"><a id="sl_pca"/>3.2.1. : <tt class="literal">sl_pca</tt></h4>
+              <h4 class="title"><a id="sl_pca"></a>3.2.1.Â : <code class="literal">sl_pca</code></h4>
             </div>
           </div>
-          <div/>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3013792"/>Usage</h5>
+                <h5 class="title"><a id="id2533191"></a>Usage</h5>
               </div>
             </div>
-            <div/>
           </div>
-          <pre class="programlisting">call <span class="HLpersonalised">sl_pca</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nkeep</span>, <span class="HLpersonalised">xeof</span>, <span class="HLpersonalised">pc</span>, <span class="HLpersonalised">ev</span>, <span class="HLpersonalised">weights</span>, useteof=<span class="HLpersonalised">useteof</span>, <span class="HLpersonalised">bLargeMatrix</span>)</pre>
+          <pre class="programlisting">call <span class="HLpersonalised">sl_pca</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nkeep</span>, <span class="HLpersonalised">xeof</span>, <span class="HLpersonalised">pc</span>, <span class="HLpersonalised">ev</span>, <span class="HLpersonalised">ev_sum</span>, <span class="HLpersonalised">weights</span>, useteof=<span class="HLpersonalised">useteof</span>, <span class="HLpersonalised">bLargeMatrix</span>)</pre>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3072929"/>Description</h5>
+                <h5 class="title"><a id="id2557204"></a>Description</h5>
               </div>
             </div>
-            <div/>
           </div>
           <p>
 Perform a decomposition of space-time field in a set of
 Empirical Orthogonal Functions (EOFs) and Principal components (PCs).
 The input data set can be optionally weighted in space.
-By default, the analysis computes  &quot;temporal&quot; (T) or classical
+By default, the analysis computes  "temporal" (T) or classical
 spatial (S) EOFs depending on if the space dimension is greater
 than the time dimension. This default behavior can be overridden.
 		</p>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3072948"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id2557221"></a>Necessary arguments</h5>
               </div>
             </div>
-            <div/>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt class="varname">ff    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+              <li><code class="varname">ff    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>			Space-time array</em></span></li>
-              <li><tt class="varname">nkeep    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+              <li><code class="varname">nkeep    </code><code class="option"><span class="ARGspec">[intent:input, type:integer]    </span></code> 
 				 :: <span class="emphasis"><em>		Maximum number of modes to keep in outputs</em></span></li>
-              <li><tt class="varname">xeof    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+              <li><code class="varname">xeof    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>		Space-mode array of EOFs</em></span></li>
-              <li><tt class="varname">pc    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+              <li><code class="varname">pc    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>			Time-mode array of PCs</em></span></li>
-              <li><tt class="varname">ev    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+              <li><code class="varname">ev    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>			Mode array of eigen values (variances)</em></span></li>
-              <li><tt class="varname">weights    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+              <li><code class="varname">ev_sum    </code><code class="option"><span class="ARGspec">    </span></code> 
+				 :: <span class="emphasis"><em></em></span></li>
+              <li><code class="varname">weights    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>	Space array of weights</em></span></li>
             </ul>
           </div>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3073102"/>Optional arguments</h5>
+                <h5 class="title"><a id="id2533310"></a>Optional arguments</h5>
               </div>
             </div>
-            <div/>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt class="varname">useteof    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+              <li><code class="varname">useteof    </code><code class="option"><span class="ARGspec">[intent:input, type:integer]    </span></code> 
 				 :: <span class="emphasis"><em>	To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]</em></span></li>
             </ul>
           </div>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3011133"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id2533342"></a>Necessary arguments</h5>
               </div>
             </div>
-            <div/>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt class="varname">bLargeMatrix    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
-				 :: <span class="emphasis"><em> Use la_syevd instead of la_syev (faster for large matrices, but uses more workspace) </em></span></li>
+              <li><code class="varname">bLargeMatrix    </code><code class="option"><span class="ARGspec">    </span></code> 
+				 :: <span class="emphasis"><em> Use la_syevd instead of la_syev (faster for large </em></span></li>
             </ul>
           </div>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3011171"/>Dependencies</h5>
+                <h5 class="title"><a id="id2533374"></a>Dependencies</h5>
               </div>
             </div>
-            <div/>
           </div>
           <p>
-<tt class="literal">[sd]gemm(BLAS) [sd]syrk(BLAS) la_syev(LAPACK95) la_syevd(LAPACK95)</tt>
+<code class="literal">[sd]gemm(BLAS) [sd]syrk(BLAS) la_syev(LAPACK95) la_syevd(LAPACK95)</code>
 		</p>
         </div>
       </div>
-      <div class="sect3" lang="en">
+      <div class="sect3" lang="en" xml:lang="en">
         <div class="titlepage">
           <div>
             <div>
-              <h4 class="title"><a id="sl_pca_getec"/>3.2.2. Compute PCA expansion coefficients
+              <h4 class="title"><a id="sl_pca_getec"></a>3.2.2.Â Compute PCA expansion coefficients
 Get an expansion coefficients from a space-time field
 and a set of EOFs computed by PCA. If the input
 space-time field is the same as the one used to computes
-input ST-EOFs, these expansion coincide with the: <tt class="literal">sl_pca_getec</tt></h4>
+input ST-EOFs, these expansion coincide with the: <code class="literal">sl_pca_getec</code></h4>
             </div>
           </div>
-          <div/>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3011207"/>Usage</h5>
+                <h5 class="title"><a id="id2533407"></a>Usage</h5>
               </div>
             </div>
-            <div/>
           </div>
           <pre class="programlisting">call <span class="HLpersonalised">sl_pca_getec</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">xeof</span>, <span class="HLpersonalised">ec</span>, <span class="HLpersonalised">weights</span>)</pre>
         </div>
       </div>
-      <div class="sect3" lang="en">
+      <div class="sect3" lang="en" xml:lang="en">
         <div class="titlepage">
           <div>
             <div>
-              <h4 class="title"><a id="sl_pca_rec"/>3.2.3. Reconstruction of a set of PCA components: <tt class="literal">sl_pca_rec</tt></h4>
+              <h4 class="title"><a id="sl_pca_rec"></a>3.2.3.Â Reconstruction of a set of PCA components: <code class="literal">sl_pca_rec</code></h4>
             </div>
           </div>
-          <div/>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3011269"/>Usage</h5>
+                <h5 class="title"><a id="id2533461"></a>Usage</h5>
               </div>
             </div>
-            <div/>
           </div>
           <pre class="programlisting">call <span class="HLpersonalised">sl_pca_rec</span>(<span class="HLpersonalised">xeof</span>, <span class="HLpersonalised">pc</span>, <span class="HLpersonalised">ffrec</span>, istart=<span class="HLpersonalised">istart</span>, iend=<span class="HLpersonalised">iend</span>)</pre>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3011323"/>Description</h5>
+                <h5 class="title"><a id="id2533509"></a>Description</h5>
               </div>
             </div>
-            <div/>
           </div>
           <p>
 Perform a reconstruction using a set of components previously
 computed with a PCA. All the reconstructed components are summed.
-A reconstructed component is simply the &quot;product&quot; of an EOF
+A reconstructed component is simply the "product" of an EOF
 by its PC. The sum of all reconstructed component is the original field.
 		</p>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3011340"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id2533524"></a>Necessary arguments</h5>
               </div>
             </div>
-            <div/>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt class="varname">xeof    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+              <li><code class="varname">xeof    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>		Space-mode array of EOFs</em></span></li>
-              <li><tt class="varname">pc    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+              <li><code class="varname">pc    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>		Time-mode array of PCs</em></span></li>
-              <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+              <li><code class="varname">ffrec    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>	Space-time array of the reconstructed field</em></span></li>
             </ul>
           </div>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3011423"/>Optional arguments</h5>
+                <h5 class="title"><a id="id2533597"></a>Optional arguments</h5>
               </div>
             </div>
-            <div/>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt class="varname">istart    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+              <li><code class="varname">istart    </code><code class="option"><span class="ARGspec">[intent:input, type:integer]    </span></code> 
 				 :: <span class="emphasis"><em>	Index of the first component to use</em></span></li>
-              <li><tt class="varname">iend    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+              <li><code class="varname">iend    </code><code class="option"><span class="ARGspec">[intent:input, type:integer]    </span></code> 
 				 :: <span class="emphasis"><em>		Index of the last component to use</em></span></li>
             </ul>
           </div>
         </div>
       </div>
-      <div class="sect3" lang="en">
+      <div class="sect3" lang="en" xml:lang="en">
         <div class="titlepage">
           <div>
             <div>
-              <h4 class="title"><a id="sl_mssa"/>3.2.4. Multi-channel Singular Spectrum Analysis: <tt class="literal">sl_mssa</tt></h4>
+              <h4 class="title"><a id="sl_mssa"></a>3.2.4.Â Multi-channel Singular Spectrum Analysis: <code class="literal">sl_mssa</code></h4>
             </div>
           </div>
-          <div/>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3012174"/>Usage</h5>
+                <h5 class="title"><a id="id2583695"></a>Usage</h5>
               </div>
             </div>
-            <div/>
           </div>
-          <pre class="programlisting">call <span class="HLpersonalised">sl_mssa</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nwindow</span>, <span class="HLpersonalised">nkeep</span>, <span class="HLpersonalised">steof</span>, <span class="HLpersonalised">stpc</span>, <span class="HLpersonalised">ev</span>, <span class="HLpersonalised">bLargeMatrix</span>)</pre>
+          <pre class="programlisting">call <span class="HLpersonalised">sl_mssa</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">nwindow</span>, <span class="HLpersonalised">nkeep</span>, <span class="HLpersonalised">steof</span>, <span class="HLpersonalised">stpc</span>, <span class="HLpersonalised">ev</span>, <span class="HLpersonalised">ev_sum</span>, <span class="HLpersonalised">bLargeMatrix</span>)</pre>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3012242"/>Description</h5>
+                <h5 class="title"><a id="id2583751"></a>Description</h5>
               </div>
             </div>
-            <div/>
           </div>
           <p>
 Perform a decomposition of space-time field in a set of
@@ -279,188 +265,177 @@ time Principal components (PCs), according to a window
 parameter.
 		</p>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3012258"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id2583764"></a>Necessary arguments</h5>
               </div>
             </div>
-            <div/>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt class="varname">ff    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+              <li><code class="varname">ff    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>      Space-time array</em></span></li>
-              <li><tt class="varname">nwindow    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+              <li><code class="varname">nwindow    </code><code class="option"><span class="ARGspec">[intent:input, type:integer]    </span></code> 
 				 :: <span class="emphasis"><em> Window size</em></span></li>
-              <li><tt class="varname">nkeep    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+              <li><code class="varname">nkeep    </code><code class="option"><span class="ARGspec">[intent:input, type:integer]    </span></code> 
 				 :: <span class="emphasis"><em>   Maximum number of modes to keep in outputs</em></span></li>
-              <li><tt class="varname">steof    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
-				 :: <span class="emphasis"><em> Space-window-mode array of EOFs</em></span></li>
-              <li><tt class="varname">stpc    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
-				 :: <span class="emphasis"><em>  Time-mode array of PCs</em></span></li>
-              <li><tt class="varname">ev    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
-				 :: <span class="emphasis"><em>    Mode array of eigen values (variances)</em></span></li>
-              <li><tt class="varname">bLargeMatrix    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
-				 :: <span class="emphasis"><em> Use ssyevd instead of ssyev (faster for large matrices, but uses more workspace) </em></span></li>
+              <li><code class="varname">steof    </code><code class="option"><span class="ARGspec">    </span></code> 
+				 :: <span class="emphasis"><em>  Space-window-mode array of EOFs</em></span></li>
+              <li><code class="varname">stpc    </code><code class="option"><span class="ARGspec">    </span></code> 
+				 :: <span class="emphasis"><em>   Time-mode array of PCs</em></span></li>
+              <li><code class="varname">ev    </code><code class="option"><span class="ARGspec">    </span></code> 
+				 :: <span class="emphasis"><em>     Mode array of eigen values (variances)</em></span></li>
+              <li><code class="varname">ev_sum    </code><code class="option"><span class="ARGspec">    </span></code> 
+				 :: <span class="emphasis"><em></em></span></li>
+              <li><code class="varname">bLargeMatrix    </code><code class="option"><span class="ARGspec">    </span></code> 
+				 :: <span class="emphasis"><em> Use ssyevd instead of ssyev (faster for large matrices, </em></span></li>
             </ul>
           </div>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3012439"/>Dependencies</h5>
+                <h5 class="title"><a id="id2583919"></a>Dependencies</h5>
               </div>
             </div>
-            <div/>
           </div>
           <p>
-<tt class="literal">la_syev(LAPACK95) la_syevd(LAPACK95)</tt>
+<code class="literal">la_syev(LAPACK95) la_syevd(LAPACK95)</code>
 		</p>
         </div>
       </div>
-      <div class="sect3" lang="en">
+      <div class="sect3" lang="en" xml:lang="en">
         <div class="titlepage">
           <div>
             <div>
-              <h4 class="title"><a id="sl_mssa_getec"/>3.2.5. Computes MSSA expansion coefficients
+              <h4 class="title"><a id="sl_mssa_getec"></a>3.2.5.Â Computes MSSA expansion coefficients
 Get an expansion coefficients from a space-time field
 and a set of ST-EOFs computed by MSSA. If the input
 space-time field is the same as the one used to computes
-input ST-EOFs, these expansion coincide with the: <tt class="literal">sl_mssa_getec</tt></h4>
+input ST-EOFs, these expansion coincide with the: <code class="literal">sl_mssa_getec</code></h4>
             </div>
           </div>
-          <div/>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3012475"/>Usage</h5>
+                <h5 class="title"><a id="id2583947"></a>Usage</h5>
               </div>
             </div>
-            <div/>
           </div>
           <pre class="programlisting">call <span class="HLpersonalised">sl_mssa_getec</span>(<span class="HLpersonalised">ff</span>, <span class="HLpersonalised">steof</span>, <span class="HLpersonalised">nwindow</span>, <span class="HLpersonalised">stec</span>)</pre>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3012522"/>Dependencies</h5>
+                <h5 class="title"><a id="id2583982"></a>Dependencies</h5>
               </div>
             </div>
-            <div/>
           </div>
           <p>
-<tt class="literal">[sd]gemm(BLAS)</tt>
+<code class="literal">[sd]gemm(BLAS)</code>
 		</p>
         </div>
       </div>
-      <div class="sect3" lang="en">
+      <div class="sect3" lang="en" xml:lang="en">
         <div class="titlepage">
           <div>
             <div>
-              <h4 class="title"><a id="sl_mssa_rec"/>3.2.6. Reconstruction of a set of MSSA components: <tt class="literal">sl_mssa_rec</tt></h4>
+              <h4 class="title"><a id="sl_mssa_rec"></a>3.2.6.Â Reconstruction of a set of MSSA components: <code class="literal">sl_mssa_rec</code></h4>
             </div>
           </div>
-          <div/>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3012553"/>Usage</h5>
+                <h5 class="title"><a id="id2584007"></a>Usage</h5>
               </div>
             </div>
-            <div/>
           </div>
           <pre class="programlisting">call <span class="HLpersonalised">sl_mssa_rec</span>(<span class="HLpersonalised">steof</span>, <span class="HLpersonalised">stpc</span>, <span class="HLpersonalised">nwindow</span>, <span class="HLpersonalised">ffrec</span>, istart=<span class="HLpersonalised">istart</span>, iend=<span class="HLpersonalised">iend</span>)</pre>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3012614"/>Description</h5>
+                <h5 class="title"><a id="id2584053"></a>Description</h5>
               </div>
             </div>
-            <div/>
           </div>
           <p>
 Same as for the reconstruction of PCA components, but for MSSA.
 		</p>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3012628"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id2584064"></a>Necessary arguments</h5>
               </div>
             </div>
-            <div/>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt class="varname">steof    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+              <li><code class="varname">steof    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>   SpaceXwindow-mode array of EOFs</em></span></li>
-              <li><tt class="varname">stpc    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+              <li><code class="varname">stpc    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>    Time-mode array of PCs</em></span></li>
-              <li><tt class="varname">nwindow    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+              <li><code class="varname">nwindow    </code><code class="option"><span class="ARGspec">[intent:input, type:integer]    </span></code> 
 				 :: <span class="emphasis"><em> Window size</em></span></li>
-              <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+              <li><code class="varname">ffrec    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>   Space-time array of the reconstructed field</em></span></li>
             </ul>
           </div>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3012736"/>Optional arguments</h5>
+                <h5 class="title"><a id="id2584147"></a>Optional arguments</h5>
               </div>
             </div>
-            <div/>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt class="varname">istart    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+              <li><code class="varname">istart    </code><code class="option"><span class="ARGspec">[intent:input, type:integer]    </span></code> 
 				 :: <span class="emphasis"><em> Index of the first component to use</em></span></li>
-              <li><tt class="varname">iend    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integer]    </span></tt> 
+              <li><code class="varname">iend    </code><code class="option"><span class="ARGspec">[intent:input, type:integer]    </span></code> 
 				 :: <span class="emphasis"><em>   Index of the last component to use</em></span></li>
             </ul>
           </div>
         </div>
       </div>
-      <div class="sect3" lang="en">
+      <div class="sect3" lang="en" xml:lang="en">
         <div class="titlepage">
           <div>
             <div>
-              <h4 class="title"><a id="sl_phasecomp"/>3.2.7. Phase composites: <tt class="literal">sl_phasecomp</tt></h4>
+              <h4 class="title"><a id="sl_phasecomp"></a>3.2.7.Â Phase composites: <code class="literal">sl_phasecomp</code></h4>
             </div>
           </div>
-          <div/>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3082201"/>Usage</h5>
+                <h5 class="title"><a id="id2584206"></a>Usage</h5>
               </div>
             </div>
-            <div/>
           </div>
           <pre class="programlisting">call <span class="HLpersonalised">sl_phasecomp</span>(<span class="HLpersonalised">ffrec</span>, <span class="HLpersonalised">np</span>, <span class="HLpersonalised">phases</span>, <span class="HLpersonalised">weights</span>, <span class="HLpersonalised">offset</span>, <span class="HLpersonalised">firstphase</span>)</pre>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3082263"/>Description</h5>
+                <h5 class="title"><a id="id2584252"></a>Description</h5>
               </div>
             </div>
-            <div/>
           </div>
           <p>
 Performs phase composites of S-T oscillatory field.
@@ -475,69 +450,67 @@ in the 360 degrees phase diagram circle: zero means the
 the first phase conincides with the maximmum.
 		</p>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3082285"/>Necessary arguments</h5>
+                <h5 class="title"><a id="id2584271"></a>Necessary arguments</h5>
               </div>
             </div>
-            <div/>
           </div>
           <div class="itemizedlist">
             <ul type="disc">
-              <li><tt class="varname">ffrec    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+              <li><code class="varname">ffrec    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em> Space-time array</em></span></li>
-              <li><tt class="varname">np    </tt><tt class="option"><span class="ARGspec">[intent:input, type:integerdefault:<span class="HLpersonalised">8</span>]    </span></tt> 
+              <li><code class="varname">np    </code><code class="option"><span class="ARGspec">[intent:input, type:integerdefault:<span class="HLpersonalised">8</span>]    </span></code> 
 				 :: <span class="emphasis"><em>    Number of requested phases over the 360 degrees cycle </em></span></li>
-              <li><tt class="varname">phases    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
-				 :: <span class="emphasis"><em/></span></li>
-              <li><tt class="varname">weights    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+              <li><code class="varname">phases    </code><code class="option"><span class="ARGspec">    </span></code> 
+				 :: <span class="emphasis"><em></em></span></li>
+              <li><code class="varname">weights    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>    Space array of weights</em></span></li>
-              <li><tt class="varname">offset    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+              <li><code class="varname">offset    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em>     Minimal normalized amplitude of the index </em></span></li>
-              <li><tt class="varname">firstphase    </tt><tt class="option"><span class="ARGspec">    </span></tt> 
+              <li><code class="varname">firstphase    </code><code class="option"><span class="ARGspec">    </span></code> 
 				 :: <span class="emphasis"><em> Value in degrees of the first phase </em></span></li>
             </ul>
           </div>
         </div>
-        <div class="simplesect" lang="en">
+        <div class="simplesect" lang="en" xml:lang="en">
           <div class="titlepage">
             <div>
               <div>
-                <h5 class="title"><a id="id3082446"/>Dependencies</h5>
+                <h5 class="title"><a id="id2584395"></a>Dependencies</h5>
               </div>
             </div>
-            <div/>
           </div>
           <p>
-			<span class="HLpersonalised"><tt class="literal"><a href="doc_f90_sub.html#sl_pca" title="3.2.1. : sl_pca">sl_pca</a></tt></span>
+			<span class="HLpersonalised"><code class="literal"><a href="doc_f90_sub.html#sl_pca" title="3.2.1.Â : sl_pca">sl_pca</a></code></span>
 		</p>
         </div>
       </div>
     </div>
     <div class="navfooter">
-      <hr/>
+      <hr />
       <table width="100%" summary="Navigation footer">
         <tr>
-          <td width="40%" align="left"><a accesskey="p" href="doc_f90.html">Prev</a> </td>
+          <td width="40%" align="left"><a accesskey="p" href="doc_f90.html">Prev</a>Â </td>
           <td width="20%" align="center">
             <a accesskey="u" href="doc_f90.html">Up</a>
           </td>
-          <td width="40%" align="right"> <a accesskey="n" href="doc_f90_exa.html">Next</a></td>
+          <td width="40%" align="right">Â <a accesskey="n" href="doc_f90_exa.html">Next</a></td>
         </tr>
         <tr>
-          <td width="40%" align="left" valign="top">3. The Fortran 90 library </td>
+          <td width="40%" align="left" valign="top">3.Â The Fortran 90 libraryÂ </td>
           <td width="20%" align="center">
             <a accesskey="h" href="index.html">Home</a>
           </td>
-          <td width="40%" align="right" valign="top"> 3.3. Fortran 90 examples</td>
+          <td width="40%" align="right" valign="top">Â 3.3.Â Fortran 90 examples</td>
         </tr>
       </table>
     </div>
-    <a xmlns="" xmlns:fo="http://www.w3.org/1999/XSL/Format" href="http://sourceforge.net">
-      <img src="http://sflogo.sourceforge.net/sflogo.php?group_id=168272&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo"/>
+    <a xmlns="" href="http://sourceforge.net">
+      <img src="http://sflogo.sourceforge.net/sflogo.php?group_id=168272&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo" />
     </a>
-    <div xmlns="" xmlns:fo="http://www.w3.org/1999/XSL/Format" class="generated">This document was generated using xsltproc and perl.</div>
+    <div xmlns="" class="generated">This document was generated using xsltproc and perl.</div>
   </body>
 </html>

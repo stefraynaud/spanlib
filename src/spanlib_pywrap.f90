@@ -18,7 +18,7 @@
 ! License along with this library; if not, write to the Free Software
 ! Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-subroutine pca(ff, ns, nt, nkeep, xeof, pc, ev, weights, useteof)
+subroutine pca(ff, ns, nt, nkeep, xeof, pc, ev, ev_sum, weights, useteof)
 
 	use spanlib, only: sl_pca
 	use spanlib_precision
@@ -33,10 +33,11 @@ subroutine pca(ff, ns, nt, nkeep, xeof, pc, ev, weights, useteof)
 	real(wp),intent(out) :: pc(nt,nkeep), xeof(ns,nkeep), ev(nkeep)
 	real(wp),intent(in)  :: weights(ns)
 	integer, intent(in)  :: useteof
+	real,    intent(out) :: ev_sum
 
 	! Call to original subroutine
 	! ---------------------------
-	call sl_pca(ff, nkeep, xeof=xeof, pc=pc, ev=ev, &
+	call sl_pca(ff, nkeep, xeof=xeof, pc=pc, ev=ev, ev_sum=ev_sum,&
 	 & weights=weights, useteof=useteof)
 
 end subroutine pca
@@ -83,7 +84,7 @@ end subroutine pca_rec
 
 
 
-subroutine mssa(ff, nchan, nt, nwindow, nkeep, steof, stpc, ev)
+subroutine mssa(ff, nchan, nt, nwindow, nkeep, steof, stpc, ev, ev_sum)
 
 	use spanlib, only: sl_mssa
 	use spanlib_precision
@@ -96,10 +97,12 @@ subroutine mssa(ff, nchan, nt, nwindow, nkeep, steof, stpc, ev)
 	real(wp),intent(in)  :: ff(nchan,nt)
 	real(wp),intent(out) :: steof(nchan*nwindow,nkeep), &
 	 & stpc(nt-nwindow+1,nkeep), ev(nkeep)
+	real,    intent(out) :: ev_sum
 
 	! Call to original subroutine
 	! ---------------------------
-	call sl_mssa(ff, nwindow, nkeep, steof=steof, stpc=stpc, ev=ev)
+	call sl_mssa(ff, nwindow, nkeep, steof=steof, stpc=stpc, ev=ev, &
+	 & ev_sum=ev_sum)
 
 end subroutine mssa
 
