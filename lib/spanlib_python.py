@@ -121,6 +121,7 @@ def unStackData(din,weights,masks,axes):
         ns2=len(axes[i][-2])
         up=spanlib_fort.unpack3d(m,data,1.e20)
         unpacked = MV.transpose(MV.array(up))
+        unpacked = MV.masked_where(Numeric.equal(Numeric.resize(Numeric.transpose(m),unpacked.shape),0),unpacked)
         unpacked.setAxisList(axes[i])
         istart+=mlen
         dout.append(unpacked)
@@ -403,6 +404,7 @@ class SpAn(object):
 
             if self.mask[i] is not None:
                 teof = MV.transpose(MV.array(spanlib_fort.unpack3d(self.mask[i],nteof,1.e20)))
+                teof = MV.masked_where(Numeric.equal(Numeric.resize(Numeric.transpose(self.mask[i]),teof.shape),0),teof)
                 teof.id='eof'
                 teof.name = teof.id
                 teof.standard_name='Empirical Orthogonal Functions'
