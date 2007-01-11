@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Source of python module</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.69.1" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id2962555"></a>SpanLib - Source of python module</h1></div></div><hr /></div><pre class="programlisting"><span class="HLcomments">#################################################################################</span>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>SpanLib - Source of python module</title><link rel="stylesheet" href="spanlib.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.69.1" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id2919820"></a>SpanLib - Source of python module</h1></div></div><hr /></div><pre class="programlisting"><span class="HLcomments">#################################################################################</span>
 <span class="HLcomments"># File: spanlib_python.py</span>
 <span class="HLcomments">#</span>
 <span class="HLcomments"># This file is part of the SpanLib library.</span>
@@ -835,6 +835,7 @@ class <span class="HLpersonalised">SpAn</span>(object):
         <span class="HLcommands">for</span> i <span class="HLcommands">in</span> range(nloop):
             <span class="HLcommands">if</span> <span class="HLspecial">self</span>.mask[i] <span class="HLcommands">is</span> not <span class="HLspecial">None</span>:
                 ffrec[i] = MV.transpose(spanlib_fort.unpack3d(<span class="HLspecial">self</span>.mask[i],ffrec[i],<span class="HLdigits">1</span>.e20))
+                ffrec[i] = MV.masked_where(Numeric.equal(Numeric.resize(Numeric.transpose(<span class="HLspecial">self</span>.mask[i]),ffrec[i].shape),<span class="HLdigits">0</span>),ffrec[i])
             <span class="HLcommands">else</span>:
                 ffrec[i] = MV.transpose(ffrec[i])
             ffrec[i].setAxisList(axes[i])

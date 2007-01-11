@@ -833,6 +833,7 @@ class SpAn(object):
         for i in range(nloop):
             if self.mask[i] is not None:
                 ffrec[i] = MV.transpose(spanlib_fort.unpack3d(self.mask[i],ffrec[i],1.e20))
+                ffrec[i] = MV.masked_where(Numeric.equal(Numeric.resize(Numeric.transpose(self.mask[i]),ffrec[i].shape),0),ffrec[i])
             else:
                 ffrec[i] = MV.transpose(ffrec[i])
             ffrec[i].setAxisList(axes[i])
