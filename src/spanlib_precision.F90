@@ -1,4 +1,4 @@
-! File: spanlib_precision.f90
+! File: spanlib_precision.F90
 !
 ! This file is part of the SpanLib library.
 ! Copyright (C) 2006  Stephane Raynaud
@@ -20,7 +20,7 @@
 
 module spanlib_precision
 
-	use la_precision
+	use spanlib_lapack95, only: sp,dp
 
 	implicit none
 

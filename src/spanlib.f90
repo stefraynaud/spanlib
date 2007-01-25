@@ -55,17 +55,17 @@ contains
 	!  - ev_sum:   Sum of all egein values (even thoses not returned)
 	!	- weights:	Space array of weights
 	!	- useteof:	To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]
-	!	- bLargeMatrix: Use la_syevd instead of la_syev (faster for large 
+	!	- bLargeMatrix: Use syevd instead of syev (faster for large 
 	!                  matrices, but uses more workspace) [default:.true.]
 	!
 	! Dependencies:
-	!	[sd]gemm(BLAS) [sd]syrk(BLAS) la_syev(LAPACK95) la_syevd(LAPACK95)
+	!	[sd]gemm(BLAS) [sd]syrk(BLAS) syev(LAPACK95) syevd(LAPACK95)
 
 
 	! Declarations
 	! ============
 
-	use f95_lapack, only: la_syevd, la_syev
+	use spanlib_lapack95, only: syevd, syev
 
 	implicit none
 
@@ -190,9 +190,9 @@ contains
 
 		! Diagonalising (cov: input=cov, output=eof)
 		if(zbLargeMatrix)then
-			call la_syevd(cov,zev,jobz='V')
+			call syevd(cov,zev,jobz='V')
 		else
-			call la_syev(cov,zev,jobz='V')
+			call syev(cov,zev,jobz='V')
 		end if
 
 		! Back to S-EOFs
@@ -241,9 +241,9 @@ contains
 
 		! Diagonalisation (cov: input=cov, output=eof)
 		if(zbLargeMatrix)then
-			call la_syevd(cov,zev,jobz='V')
+			call syevd(cov,zev,jobz='V')
 		else
-			call la_syev(cov,zev,jobz='V')
+			call syev(cov,zev,jobz='V')
 		end if
 
 		! Formatting S-EOFs
@@ -486,13 +486,13 @@ contains
 	!                  but uses more workspace) [default:.true.]
 	!
 	! Dependencies:
-	!	la_syev(LAPACK95) la_syevd(LAPACK95)
+	!	syev(LAPACK95) syevd(LAPACK95)
 
 
 	! Declarations
 	! ============
 
-	use f95_lapack, only: la_syevd, la_syev
+	use spanlib_lapack95, only: syevd, syev
 
 	implicit none
 
@@ -571,9 +571,9 @@ contains
 	! ===============
 	allocate(zev(nsteof))
 	if(zbLargeMatrix)then
-		call la_syevd(cov,zev,jobz='V')
+		call syevd(cov,zev,jobz='V')
 	else
-		call la_syev(cov,zev,jobz='V')
+		call syev(cov,zev,jobz='V')
 	end if
 
 
@@ -841,16 +841,16 @@ contains
 	!	- ev:    Eigen values
 	!	- lw:    Left weights
 	!	- rw:    Right weights
-	!	- bLargeMatrix: Use la_sgesdd instead of la_sgesvd (faster for large matrices, but uses more workspace) [default:.false.]
+	!	- bLargeMatrix: Use gesdd instead of gesvd (faster for large matrices, but uses more workspace) [default:.false.]
 	!
 	! Dependencies:
-	!	[sd]gemm(BLAS) la_gesvd(LAPACK95) la_gesdd(LAPACK95)
+	!	[sd]gemm(BLAS) gesvd(LAPACK95) gesdd(LAPACK95)
 
 
 	! Declarations
 	! ============
 
-	use f95_lapack, only: la_gesdd, la_gesvd
+	use spanlib_lapack95, only: gesdd, gesvd 
 
 	implicit none
 
@@ -905,8 +905,8 @@ contains
 		return
 	end if
 
-	! Use ssyevd?
-	! -----------
+	! Use divide/conquer algo?
+	! ------------------------
 	if(.not.present(bLargeMatrix))then
 		zbLargeMatrix = .false.
 	else
@@ -964,9 +964,10 @@ contains
 	! ---
 	allocate(zleof(nsr,ns), zev(ns))
 	if(zbLargeMatrix)then
-		call la_gesdd(cov, zev, u=zleof, job='V')
+		! FIXME: problem with gesdd
+		call gesvd(cov, zev, u=zleof, job='V')
 	else
-		call la_gesvd(cov, zev, u=zleof, job='V')
+		call gesvd(cov, zev, u=zleof, job='V')
 	end if
 
 
@@ -995,28 +996,10 @@ contains
 	! ---
 	if(present(lpc))then
 		call sl_pca_getec(zll,leof,lpc,weights=zlw)
-! 		if(present(lw))then
-! 			do i=1, nt
-! 				zll(:,i) = zll(:,i) * zlw
-! 			end do
-! 		end if
-! 		lpc = matmul(transpose(zll), leof)
-! 		do i = 1, nkeep
-! 			lpc(:,i) = lpc(:,i) / sum(leof(:,i)**2 * zlw)
-! 		end do
 		deallocate(zll)
 	end if
 	if(present(rpc))then
 		call sl_pca_getec(zrr,reof,rpc,weights=zrw)
-! 		if(present(rw))then
-! 			do i=1, nt
-! 				zrr(:,i) = zrr(:,i) * zlw
-! 			end do
-! 		end if
-! 		rpc = matmul(transpose(zrr), reof)
-! 		do i = 1, nkeep
-! 			rpc(:,i) = rpc(:,i) / sum(reof(:,i)**2 * zrw)
-! 		end do
 		deallocate(zrr)
 	end if
 
@@ -1028,11 +1011,11 @@ contains
 	!############################################################
 
 
-	subroutine sl_svd_model_build(ll,rr,lPcaEof,rPcaEof,&
+	subroutine sl_svd_model_setup(ll,rr,lPcaEof,rPcaEof,&
 		& lSvdEof,rSvdEof,l2r,lPcaPc,rPcaPc,lSvdPc,rSvdPc)
 
 	! Title:
-	!	SVD statistical model - Build part
+	!	SVD statistical model - Setup part
 	!
 	! Description:
 	!	Build a SVD-based statistical model to deduce right field
@@ -1061,6 +1044,7 @@ contains
 	implicit none
 
 	! External
+	! --------
 	real(wp), intent(in) :: ll(:,:), rr(:,:)
 	real(wp), intent(out) ::lPcaEof(:,:), rPcaEof(:,:),&
 	 & lsvdEof(:,:), rSvdEof(:,:), l2r(:)
@@ -1105,7 +1089,7 @@ contains
 		 &             (sum(lSvdPc(:,i))/nsl)**2))
 	end do
 
-	end subroutine sl_svd_model_build
+	end subroutine sl_svd_model_setup
 
 
 	!############################################################
@@ -1113,11 +1097,11 @@ contains
 	!############################################################
 
 
-	subroutine sl_svd_model_use(ll,rr,&
+	subroutine sl_svd_model_run(ll,rr,&
 		& lPcaEof,rPcaEof,lSvdEof,rSvdEof,l2r)
 
  	! Title:
-	!	SVD statistical model - Use part
+	!	SVD statistical model - Run part
 	!
 	! Description:
 	!	SVD-based statistical model to deduce right field
@@ -1190,7 +1174,7 @@ contains
 	rr = zrr(:,1)
 	deallocate(zrr,zrPcaPc)
 
-	end subroutine sl_svd_model_use
+	end subroutine sl_svd_model_run
 
 
   ! ############################################################

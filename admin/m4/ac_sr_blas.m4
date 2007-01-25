@@ -136,6 +136,23 @@ AC_ARG_WITH(lapack95,
 AS_VAR_SET_IF([LAPACK95],[AS_VAR_SET(LIBS,"$LAPACK95 $LIBS")])
 AC_MSG_RESULT(AS_VAR_GET(LAPACK95))
 
+# Is it a MKL (Intel) library?
+AC_MSG_CHECKING([weither it is MKL library from intel])
+AS_IF([test "x`echo AS_VAR_GET(LAPACK95) | grep -i mkl`" = "x"],
+	[
+		AS_VAR_SET(USE_MKL_LAPACK95,no)
+		AS_VAR_SET(lapack95_mod,f95_lapack)
+		AS_VAR_SET(lapack95_pre,la_precision)
+		AS_VAR_SET(lapack95_sub,la_syev)
+	],[
+		AS_VAR_SET(USE_MKL_LAPACK95,yes)
+		AS_VAR_SET(lapack95_mod,mkl95_lapack)
+		AS_VAR_SET(lapack95_pre,mkl95_precision)
+		AS_VAR_SET(lapack95_sub,syev)	
+	]
+)
+AC_MSG_RESULT(AS_VAR_GET(USE_MKL_LAPACK95))
+
 # Library dir name or FCFLAGS for Lapack95 
 AC_MSG_CHECKING([for lapack95 library location flag])
 AC_ARG_VAR(LAPACK95_LIB,Location of the LAPACK95 library (compile-time))
@@ -153,6 +170,20 @@ AS_VAR_SET_IF([LAPACK95_LIB],[
 	AS_VAR_SET(FCFLAGS,"$LAPACK95_LIB $FCFLAGS")
 ])
 AC_MSG_RESULT(AS_VAR_GET(LAPACK95_LIB))
+
+## F95 module name
+#AC_MSG_CHECKING([for lapack f95 module name])
+#AC_ARG_VAR(LAPACK95_MOD,LAPACK95 module name)
+#AC_ARG_WITH(lapack95_mod,
+#	AC_HELP_STRING([--with-lapack95-mod=MODNAME],
+#		[LAPACK95 module name]),
+#	[case AS_VAR_GET(with_lapack_mod) in
+#		no|yes)AS_VAR_SET(LAPACK95_MOD,f95_lapack);;
+#		*)AS_VAR_SET(LAPACK95_MOD,AS_VAR_GET(with_lapack95_mod));;
+#	esac] 
+#)
+#AS_VAR_SET_IF([LAPACK95_MOD],,AS_VAR_SET(LAPACK95_MOD,f95_lapack))
+#AC_MSG_RESULT(AS_VAR_GET(LAPACK95_MOD))
 
 # Directory where to find the lapack95 modules or include flag
 AC_MSG_CHECKING([for lapack95 include flag])
@@ -186,10 +217,10 @@ AC_CACHE_CHECK([for la_syev of the lapack95 library],ac_cv_lapackok,
 	[
 		AC_LINK_IFELSE(
 			[program conftest_routine
-	use f95_lapack, only: la_syev
-	use la_precision, only: wp => AS_VAR_GET(WP)
+	use AS_VAR_GET(lapack95_mod), only: AS_VAR_GET(lapack95_sub)
+	use AS_VAR_GET(lapack95_pre), only: wp => AS_VAR_GET(WP)
 	real :: c(1,1),e(1)
-	call la_syev(c,e)
+	call AS_VAR_GET(lapack95_sub)(c,e)
 end program conftest_routine],
 			AS_VAR_SET(ac_cv_lapackok,yes),
 			AS_VAR_SET(ac_cv_lapackok,no))
@@ -218,8 +249,9 @@ AC_SUBST(BLAS)
 AC_SUBST(BLAS_LIB)
 AC_SUBST(LAPACK)
 AC_SUBST(LAPACK95)
+AC_SUBST(USE_MKL_LAPACK95)
 AC_SUBST(LAPACK_LIB)
 AC_SUBST(LAPACK_INC)
 
-])dnl AC_SR_LAPACKLAPACK
+])dnl AC_SR_BLASLAPACK
 ################################################################################

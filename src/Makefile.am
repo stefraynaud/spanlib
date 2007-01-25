@@ -3,40 +3,63 @@
 ######################################################################
 
 lib_LIBRARIES = libspanlib.a
-nodist_include_HEADERS=spanlib_precision.mod spanlib.mod
-nodist_libspanlib_a_SOURCES=spanlib_precision.f90
+nodist_include_HEADERS=spanlib_precision.mod spanlib_lapack95.mod \
+ spanlib.mod
+nodist_libspanlib_a_SOURCES=spanlib_precision.f90 spanlib_lapack95.f90
 dist_libspanlib_a_SOURCES=spanlib.f90
 noinst_PROGRAMS = getf90precision
 getf90precision_SOURCES = getf90precision.f90
-CLEANFILES=*.pyf setup.py setup.cfg *.mod spanlib_precision.f90
-EXTRA_DIST=spanlib_pywrap.f90
-AM_FCFLAGS = $(LAPACK95_INC)
+CLEANFILES=*.pyf setup.cfg *.mod $nodist_libspanlib_a_SOURCES
+AM_FCFLAGS=$(LAPACK95_INC)
 
-WRAPPER = $(PACKAGE)_pywrap.f90
+WRAPPER=spanlib_pywrap.f90
 if WITH_PYTHON
-PYTHON_LIBRARY_DIR = $(srcdir)/build/$(F2PY_BUILD_DIR)/$(PACKAGE)
-PYTHON_LIBRARY = $(PYTHON_LIBRARY_DIR)/$(PACKAGE)_fort.so
+PYTHON_LIBRARY_DIR = $(srcdir)/build/$(F2PY_BUILD_DIR)/spanlib
+PYTHON_LIBRARY = $(PYTHON_LIBRARY_DIR)/spanlib_fort.so
 endif
+
+EXTRA_DIST=$(WRAPPER)
 
 ######################################################################
 ######################################################################
 
 all-local: check-precision $(LIBRARIES) $(HEADERS) $(PYTHON_LIBRARY)
 
-spanlib.o: spanlib_precision.mod
+spanlib.o: spanlib_lapack95.mod spanlib_precision.mod
 
 spanlib_precision.mod: spanlib_precision.o
 
+spanlib_lapack95.mod: spanlib_lapack95.o
+
 spanlib_precision.f90: check-precision
 
-check-precision: spanlib_precision.F90
+spanlib_lapack95.f90: check-lapack95
+
+check-precision: check-lapack95 spanlib_precision.F90
 	@echo "Checking precision..."
 	@test -f spanlib_precision.f90 || cp $^ spanlib_precision.f90
 	@precision=`grep "wp *= *sp" spanlib_precision.f90 | cut -d\  -f6` ; \
 	test "$$precision" = "$(WP)" || \
-	( rm -f spanlib_precision.f90 && sed "s/wp *= *sp/wp = $(WP)/" $^ > spanlib_precision.f90 && \
+	( rm -f spanlib_precision.f90 && sed "s/wp = sp/wp = $(WP)/" $^ > spanlib_precision.f90 && \
 	echo "Switched to $(PRECISION) precision" )
-	
+
+check-lapack95: spanlib_lapack95.F90
+	@echo "Checking lapack95 config..."
+	@test -f spanlib_lapack95.f90  || cp $^ spanlib_lapack95.f90
+	@use_mkl_lapack95=`grep "use .*mkl95_lapack" spanlib_lapack95.f90`  ; \
+	if test "x$$use_mkl_lapack95" = "x" -a "$(USE_MKL_LAPACK95)" = "yes" ; then \
+      rm -f spanlib_lapack95.f90 ; \
+      sed -e "s/use la_precision/use mkl95_precision/" \
+          -e "s/use f95_lapack/use mkl95_lapack/" \
+          -e "s/ => [_a-z]*//g" \
+          $^ > spanlib_lapack95.f90 ; \
+      echo "Switched to MKL (intel) lapack95 config" ; \
+   elif test "x$$use_mkl_lapack95" != "x" -a "$(USE_MKL_LAPACK95)" = "no" ; then \
+      rm -f spanlib_lapack95.f90 ; \
+      cp $^ spanlib_lapack95.f90 ; \
+      echo "Switched back to default lapack95 config" ; \
+   fi
+ 	
 if WITH_PYTHON
 install-exec-hook:
 if LOCAL_PYTHON_INSTALL
@@ -53,10 +76,11 @@ uninstall-hook:
 	-rm -rf $(PYTHONDIR)/spanlib*
 
 clean-local:
-	$(PYTHON) setup.py clean
-	-rm -rf build $(PACKAGE).pyf
+	-test ! -f setup.py || $(PYTHON) setup.py clean
+	-rm -rf build $(PACKAGE).pyf setup.py 
 
-$(PYTHON_LIBRARY): $(HEADERS) setup.py setup.cfg $(PACKAGE).pyf $(WRAPPER) $(LIBRARIES) $(top_srcdir)/lib/__init__.py $(top_srcdir)/lib/spanlib_python.py
+$(PYTHON_LIBRARY): $(HEADERS) setup.py setup.cfg $(PACKAGE).pyf $(WRAPPER) \
+   $(LIBRARIES) $(top_srcdir)/lib/__init__.py $(top_srcdir)/lib/spanlib_python.py
 	$(PYTHON) setup.py build
 
 $(PACKAGE).pyf: $(top_srcdir)/scripts/genpyf.pl $(WRAPPER) getf90precision
