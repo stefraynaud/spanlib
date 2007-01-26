@@ -71,8 +71,8 @@ contains
 
 	! External
 	! --------
-	real(wp), intent(in)           :: ff(:,:)
-	integer,  intent(in)	         :: nkeep
+	real(wp), intent(in)            :: ff(:,:)
+	integer,  intent(in)	        :: nkeep
 	real(wp), intent(out), optional :: pc(size(ff,2),nkeep), &
 	&                                xeof(size(ff,1),nkeep), ev(nkeep)
 	real(wp), intent(in),  optional :: weights(:)
@@ -82,12 +82,12 @@ contains
 
 	! Internal
 	! --------
-	integer           :: ns,nt
+	integer               :: ns,nt
 	real(wp), allocatable :: cov(:,:), subcov(:,:)
 	real(wp), allocatable :: wff(:,:), ww(:), zeof(:,:), zff(:,:)
 	real(wp), allocatable :: zev(:)
-	integer           :: zuseteof, znkeepmax, i
-	logical           :: zbLargeMatrix
+	integer               :: zuseteof, znkeepmax, i
+	logical               :: zbLargeMatrix
 
 	! Setups
 	! ======
@@ -857,21 +857,21 @@ contains
 	! External
 	! --------
 	real(wp), intent(in)           :: ll(:,:),rr(:,:)
-	integer,       intent(in)	         :: nkeep
+	integer,  intent(in)           :: nkeep
 	real(wp), intent(in), optional :: lw(:), rw(:)
 	real(wp), intent(out),optional :: lpc(size(ll,2),nkeep), &
 		& leof(size(ll,1),nkeep), rpc(size(rr,2),nkeep), &
-		&  reof(size(rr,1),nkeep),ev(nkeep)
-	logical, intent(in), optional :: bLargeMatrix
+		& reof(size(rr,1),nkeep),ev(nkeep)
+	logical, intent(in),  optional :: bLargeMatrix
 
 	! Internal
 	! --------
-	integer           :: ns,nsl,nsr,nt
+	integer               :: ns,nsl,nsr,nt
 	real(wp), allocatable :: zll(:,:), zrr(:,:), cov(:,:), &
-		& zlw(:), zrw(:)
+		&                    zlw(:), zrw(:)
 	real(wp), allocatable :: zev(:), zleof(:,:)
-	integer           :: znkeepmax, i
-	logical           :: zbLargeMatrix
+	integer               :: znkeepmax, i
+	logical               :: zbLargeMatrix
 
 
 	! Sizes

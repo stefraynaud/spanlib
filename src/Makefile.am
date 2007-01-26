@@ -82,6 +82,8 @@ clean-local:
 $(PYTHON_LIBRARY): $(HEADERS) setup.py setup.cfg $(PACKAGE).pyf $(WRAPPER) \
    $(LIBRARIES) $(top_srcdir)/lib/__init__.py $(top_srcdir)/lib/spanlib_python.py
 	$(PYTHON) setup.py build
+	@echo "Adding tmp lib dir"
+	-rm -f build/tmp_lib ; ln -s $(F2PY_BUILD_DIR) build/tmp_lib
 
 $(PACKAGE).pyf: $(top_srcdir)/scripts/genpyf.pl $(WRAPPER) getf90precision
 	@echo Creating $@

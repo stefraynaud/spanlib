@@ -18,6 +18,9 @@
 ! License along with this library; if not, write to the Free Software
 ! Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
+! Interface to f90
+! ================
+
 subroutine pca(ff, ns, nt, nkeep, xeof, pc, ev, ev_sum, weights, useteof)
 
 	use spanlib, only: sl_pca
@@ -176,59 +179,6 @@ end subroutine phasecomp
 
 
 
-subroutine pack3d(ff3d, mask, ns1, ns2, nt, ff2d, ns)
-
-	use spanlib_precision
-
-	implicit none
-
-	! External
-	! --------
-	integer, intent(in)  :: ns1, ns2, nt, ns
-	real(wp),intent(in)  :: ff3d(ns1,ns2,nt)
-	integer, intent(in)  :: mask(ns1,ns2)
-	real(wp),intent(out) :: ff2d(ns,nt)
-
-	! Internal
-	! --------
-	integer :: it
-
-	! Call to pack
-	! ------------
-	do it = 1, nt
-		ff2d(:,it) = pack(ff3d(:,:,it), mask==1)
-	end do
-
-end subroutine pack3d
-
-
-subroutine unpack3d(ff3d, mask, ns1, ns2, nt, ff2d, ns, &
-  & missing_value)
-
-	use spanlib_precision
-
-	implicit none
-
-	! External
-	! --------
-	integer, intent(in)  :: ns1, ns2, nt, ns
-	real(wp),intent(out) :: ff3d(ns1,ns2,nt)
-	integer, intent(in)  :: mask(ns1,ns2)
-	real(wp),intent(in)  :: ff2d(ns,nt),missing_value
-
-	! Internal
-	! --------
-	integer :: it
-
-	! Call to pack
-	! ------------
-	do it = 1, nt
-		ff3d(:,:,it) = unpack(ff2d(:,it), mask==1, missing_value)
-	end do
-
-end subroutine unpack3d
-
-
 subroutine svd(ll, nsl, rr, nsr, nt, nkeep, leof, reof, lpc, rpc, ev, lweights, rweights)
 
 	use spanlib, only: sl_svd
@@ -250,3 +200,60 @@ subroutine svd(ll, nsl, rr, nsr, nt, nkeep, leof, reof, lpc, rpc, ev, lweights, 
 	call sl_svd(ll,rr,nkeep,leof,reof,lpc,rpc,ev,lweights,rweights)
 
 end subroutine svd
+
+
+! Utilities
+! =========
+
+subroutine chan_pack(ff3d, mask, nstot, nt, ff2d, ns)
+
+	use spanlib_precision
+
+	implicit none
+
+	! External
+	! --------
+	integer, intent(in)  :: nstot, nt, ns
+	real(wp),intent(in)  :: ff3d(nstot,nt)
+	integer, intent(in)  :: mask(nstot)
+	real(wp),intent(out) :: ff2d(ns,nt)
+
+	! Internal
+	! --------
+	integer :: it
+
+	! Call to pack
+	! ------------
+	do it = 1, nt
+		ff2d(:,it) = pack(ff3d(:,it), mask==1)
+	end do
+
+end subroutine chan_pack
+
+
+subroutine chan_unpack(ff3d, mask, nstot, nt, ff2d, ns, &
+  & missing_value)
+
+	use spanlib_precision
+
+	implicit none
+
+	! External
+	! --------
+	integer, intent(in)  :: nstot, nt, ns
+	real(wp),intent(out) :: ff3d(nstot,nt)
+	integer, intent(in)  :: mask(nstot)
+	real(wp),intent(in)  :: ff2d(ns,nt),missing_value
+
+	! Internal
+	! --------
+	integer :: it
+
+	! Call to pack
+	! ------------
+	do it = 1, nt
+		ff3d(:,it) = unpack(ff2d(:,it), mask==1, missing_value)
+	end do
+
+end subroutine chan_unpack
+

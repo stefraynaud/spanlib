@@ -60,7 +60,6 @@ AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
 You need perl, BLAS/LAPACK, f2py and Numeric, MV python modules from CDAT.])]
 	)
 
-
 	# So, for the examples...
 	AS_IF(AS_VAR_TEST_SET(WITH_PYTHON_EXAMPLE),,
 		AC_SR_WARNING([You wont be able to run the python examples.
