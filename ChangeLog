@@ -6,4 +6,11 @@ Version 1.1 [sep 19, 2006]
 Version 1.2
 - Python module: now uses f2py instead of pyfort
 - F90 library: Singular value decomposition added + SVD model subroutine
-- Python module: added support for multivariables + SVD + EV sum
+- Python module: added support for multivariables
+- Python module: added SVD
+- Python module: added EV sum
+- Python module: added support any number of space dimensions
+- Python module: cleaned meta information of variables
+- Python module: now use local spanlib module for examples
+- Python module: added getPairs
+- Python module: added SVDModel class

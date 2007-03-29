@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Tasks SYSTEM "Tasks-3.8.dtd">
+<!-- Tasks file for project SpanLib -->
+<!-- Saved: 2007-03-29, 15:18:56 -->
+<Tasks version="3.8">
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO: finish the svd model man !</Description>
+    <Created>2007-03-29, 15:18:33</Created>
+    <Resource>
+      <Filename>
+        <Dir>lib</Dir>
+        <Name>spanlib_python.py</Name>
+      </Filename>
+      <Linenumber>968</Linenumber>
+    </Resource>
+  </Task>
+</Tasks>
