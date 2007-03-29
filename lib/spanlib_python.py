@@ -23,6 +23,7 @@
 import spanlib_fort
 import MV
 import Numeric as N
+import genutil.statistics
 
 
 def stackData(*data):
@@ -225,6 +226,55 @@ def pack(data,weights=None):
 	return packed_data,packed_weights,mask
 
 
+def getPairs(pcs,minCorr=0.95,maxDistance=3):
+	""" Get pairs in MSSA results
+
+	Description:::
+	  This function detects pairs of mode in principal
+	  components (typical from MSSA). Modes of a pair
+	  have their PCs (and EOFs) in phase quadrature in time.
+	  The algorithm uses correlations between a pc and the 
+	  derivative of the other pc.
+	:::
+
+	Usage:::
+	pairs = getPairs(pcs)
+
+	  pcs         :: Principal components [modes,time]
+	  minCorr     :: Minimal correlation [default:0.95]
+	  maxDistance :: Maximal difference of indices between a pair of modes [default: 3]
+	:::
+
+	Output:::
+	  pairs :: List of two-element lists if indices
+	:::
+	"""
+	
+	pairs = []
+	flat = []
+	minCorr = N.clip(0.,1.)
+	maxDistance = N.clip(1,len(pcs)-1)
+	for i in xrange(len(pcs)):
+		if i in flat:
+			continue
+		ii = [i]
+		for j in xrange(1,maxDistance+1):
+			ii.append(i+j)
+			corr = 0.
+			for k in 0,1:
+				pc = pcs[ii[k],1:-1]
+				dpc = pcs[ii[1-k],2:] - pcs[ii[1-k],:-2]
+				corr += float(genutil.statistics.correlation(pc,dpc))
+			if corr >= 2*minCorr:
+				break
+		else:
+			continue
+		pairs.append([i,j])
+		flat.extend([i,j])
+			
+	return pairs
+
+
 def computePhases(data,nphases=8,offset=.5,firstphase=0):
 	""" Phase composites for oscillatory fields
 
@@ -251,18 +301,7 @@ def computePhases(data,nphases=8,offset=.5,firstphase=0):
 	:::
 	"""
 
-	ns=data.shape[0]
-	nt=data.shape[1]
-	w = MV.ones((ns),typecode='f')
-	phases = MV.array(spanlib_fort.phasecomp(data, nphases, w, offset, firstphase))
-	axes = MV.array(data).getAxisList()
-	phases.id = 'phases'
-	ax = phases.getAxis(1)
-	ax[:]=ax[:]*360./nphases+firstphase
-	ax.id = 'phases'
-	axes[1] = ax
-	phases.setAxisList(axes)
-	return phases
+
 
 class SpAn(object):
 	def __init__(self,data,weights=None,npca=None,window=None,nmssa=None,nsvd=None,relative=False):
@@ -894,10 +933,21 @@ class SpAn(object):
 		else:
 			return ffrec
 
+	def clean(self):
+		self.pc=[]
+		self.eof=[]
+		self.stpc=[]
+		self.steof=[]
+		self.svdpc=[]
+		self.svdeof=[]
+		self.l2r=[]
 
 
-	def svd_model_setup(self,nsvd=None,pca=None):
-		""" Setup an SVD model """
+class SVDModel(SpAn):
+	
+	def __init__(self,data,**kwargs):
+		
+		SpAn.__init__(self,data,**kwargs)
 
 		# Perform an SVD between the first two datasets
 		self.svd(nsvd=None,pca=None)
@@ -908,27 +958,17 @@ class SpAn(object):
 									(N.average(self.svdpc[1]**2)/nsr - \
 									 (N.average(self.svdpc[1])/nsl)**2))
 
-		return self.scale_factors
 
-
-	def svd_model_run(self,data,nsvdrun=None):
+	def __call__(self,data,nsvdrun=None):
 		""" Run the SVD model """
-
+		
 		if nsvdrun is not None:
 			self.nsvdrun = nsvdrun
 		
-			
+		#TODO: finish the svd model man !
+		print 'missing code'
 
 
-
-	def clean(self):
-		self.pc=[]
-		self.eof=[]
-		self.stpc=[]
-		self.steof=[]
-		self.svdpc=[]
-		self.svdeof=[]
-		self.l2r=[]
 
 
 
