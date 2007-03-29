@@ -20,10 +20,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #################################################################################
 
-import spanlib_fort
-import MV
-import Numeric as N
-import genutil.statistics
+import spanlib_fort,MV,Numeric as N,genutil.statistics
 
 
 def stackData(*data):
@@ -162,7 +159,7 @@ def pack(data,weights=None):
 	data = MV.array(data)
 	nt = data.shape[0]
 	nstot = N.multiply.reduce(data.shape[1:])
-	
+
 	# Is it already packed? Check the mask...
 	mask = data.mask()
 	if not N.sum(mask.flat):
@@ -174,7 +171,7 @@ def pack(data,weights=None):
 		packed_weights = N.ravel(weights)
 		mask = None
 		return packed_data,packed_weights,mask
-		
+
 	sh=list(data.shape)
 
 	# Weights ?
@@ -212,7 +209,7 @@ def pack(data,weights=None):
 	# and reduce dimensions
 	data_to_pack = N.transpose(N.reshape(data.filled(1.e20),
 													 (nt,nstot)))
-	
+
 	# Dummy 1D for time for tmask
 	# - Pack data
 	packed_data = spanlib_fort.chan_pack(data_to_pack,mask,ns)
@@ -249,7 +246,7 @@ def getPairs(pcs,minCorr=0.95,maxDistance=3):
 	  pairs :: List of two-element lists if indices
 	:::
 	"""
-	
+
 	pairs = []
 	flat = []
 	minCorr = N.clip(0.,1.)
@@ -271,7 +268,7 @@ def getPairs(pcs,minCorr=0.95,maxDistance=3):
 			continue
 		pairs.append([i,j])
 		flat.extend([i,j])
-			
+
 	return pairs
 
 
@@ -335,7 +332,7 @@ class SpAn(object):
 		  analysis_object :: SpAn object created for further analysis
 		:::
 		"""
-		
+
 		## Sets all values to None
 		self.clean()
 
@@ -375,7 +372,7 @@ class SpAn(object):
 
 		## Figures out length of time dimension
 		self.nt = data[0].shape[0]
-		
+
 		for d in data:
 			if d.shape[0] != self.nt:
 				raise Exception, 'Error your dataset are not all consistent in time length'
@@ -388,12 +385,12 @@ class SpAn(object):
 		self.ns=[]
 		for p in self.pdata:
 			self.ns.append(p.shape[0])
-			
+
 		if nmssa is None:
 			self.nmssa = 4
 		else:
 			self.nmssa = nmssa
-			
+
 		if nsvd is None:
 			self.nsvd = 10
 		else:
@@ -438,7 +435,7 @@ class SpAn(object):
 
 		if npca is not None:
 			self.npca = npca
-			
+
 
 		## Calls Fortran pca
 		self.eof=[]
@@ -518,7 +515,7 @@ class SpAn(object):
 			ret.append(self.ev_sum)
 
 		return ret
-	
+
 
 	def mssa(self,nmssa=None,pca=None,window=None,get_ev_sum=False,relative=False):
 		""" MultiChannel Singular Spectrum Analysis (MSSA)
@@ -585,7 +582,8 @@ class SpAn(object):
 		ev=[]
 		pc=[]
 		self.stev_sum=[]
-		
+		self.pairs = []
+
 		for i in range(len(self.pdata)):
 			if pca is True: # Pre-PCA case
 				ntsteof, ntstpc, ntstev, ntev_sum = \
@@ -619,25 +617,27 @@ class SpAn(object):
 			ax3 = tpc.getAxis(1)
 			ax3.id='time'
 			ax3.standard_name = 'Time'
-			
+
 			tev = MV.array(ntstev,id=self.varname[i]+'_mssa_ev',axes=[ax0])
 			tev.standard_name = 'MSSA Eigen Values'
 			if relative:
 				tev[:] = tev[:] * 100. / ntev_sum
 				tev.units = '%'
-			
+
 			for var in teof,tpc,tev,ax0,ax1,ax2,ax3:
 				var.name = var.id
 				var.long_name = var.standard_name
 
 			self.stpc.append(ntstpc)
 			self.steof.append(ntsteof)
+			self.pairs.append(getPairs(tpc))
 			eof.append(teof)
 			pc.append(tpc)
 			ev.append(tev)
 			self.stev_sum.append(ntev_sum)
 
 		if len(eof)==1:
+			self.pairs = self.pairs[0]
 			ret = [eof[0],pc[0],ev[0]]
 			self.stev_sum = self.stev_sum[0]
 		else:
@@ -647,7 +647,7 @@ class SpAn(object):
 			ret.append(self.ev_sum)
 
 		return ret
-	
+
 
 	def svd(self,nsvd=None,pca=None):
 		""" Singular Value Decomposition (SVD)
@@ -680,7 +680,7 @@ class SpAn(object):
 		## At the moment we will not use any more variable
 		if len(self.pdata)<2:
 			raise Exception,'Error you need at least (most) 2 datasets to run svd, otherwise use pca and mssa'
-		
+
 		## Check for default values for mssa and pca if not passed by user
 		if pca is None:
 			if self.pc ==[] and max(0,self.ns) > 30: # Pre-PCA needed
@@ -704,11 +704,11 @@ class SpAn(object):
 
 		if pca is True: # Pre-PCA case
 			lneof, rneof, lnpc, rnpc, nev = \
-				   spanlib_fort.svd(N.transpose(self.pc[0]), \
-									N.transpose(self.pc[1]), self.nsvd)
+			  spanlib_fort.svd(N.transpose(self.pc[0]), 
+			    N.transpose(self.pc[1]), self.nsvd)
 		else: # Direct SVD case
 			lneof, rneof, lnpc, rnpc, nev = \
-				   spanlib_fort.svd(self.pdata[0], self.pdata[1], self.nsvd)
+			  spanlib_fort.svd(self.pdata[0], self.pdata[1], self.nsvd)
 
 		self.svdeof = [lneof,rneof]
 		self.svdpc = [lnpc,rnpc]
@@ -734,7 +734,7 @@ class SpAn(object):
 			tpc.id=self.varname[i]+'_svd_pc'
 			tpc.standard_name='SVD Principal Components'
 			tpc.setAxis(0,ax0)
-			
+
 			ax3 = tpc.getAxis(1)
 			ax3.id='time'
 
@@ -746,8 +746,41 @@ class SpAn(object):
 
 		return eof[0],pc[0],eof[1],pc[1],ev
 
+	def _reconstruct(self,function,imode,reof,rpc,rns,rnt,rwin=False):
 
-	def reconstruct(self,start=1,end=None,mssa=None,pca=None,phases=False,nphases=8,offset=.5,firstphase=0,svd=None):
+		# Rearrange modes ([1,3,4,5,9] -> [1,1],[3,5],[9,9])
+		imode.sort()
+		imodes = []
+		while im1 < len(imode):
+			imode1 = imode2 = last_imode = imode[im1]
+			im2 = im1
+			imt = im2+1
+			while imt < len(imode):
+				if (last_imode-imode[imt]) < 2:
+					last_imode = imode[imt]
+					continue
+				else:
+					break
+			if last_imode != imode2:
+				imode2 = last_imode
+			imodes.append([imode1,imode2])
+		
+		ffrec=[]
+		for i in range(len(self.pdata)):
+			args = [reof[i],rpc[i],rns[i],rnt]
+			if rwin: args.append(rwin)
+			for j,ims in enumerate(imodes):
+				args.extend(ims)
+				this_ffrec = function(*args)
+				if not j:
+					ffrec = this_ffrec
+				else:
+					ffrec += this_ffrec
+				del this_ffrec
+		return ffrec
+
+
+	def reconstruct(self,imode=None,mssa=None,pca=None,phases=False,nphases=8,offset=.5,firstphase=0,svd=None):
 		""" Reconstruct results from mssa or pca
 
 		Description:::
@@ -762,9 +795,13 @@ class SpAn(object):
 		:::
 
 		Usage:::
-		ffrec = reconstruct(start,end,mssa,pca)
+		ffrec = reconstruct(imode,mssa,pca)
 
-		  start :: First mode
+		  imode :: Selection of modes [default: None]. If:
+		    - None: all modes
+		    - positive integer: only this mode
+		    - negative integer: all modes until abs(imode)
+		    - list of modes: use it directly
 		  end   :: Last mode
 		  mssa  :: Reconstruct MSSA if True
 		  pca   :: Reconstruct PCA if True
@@ -775,8 +812,14 @@ class SpAn(object):
 		  ffrec :: Reconstructed field
 		:::
 		"""
-		n1=start
-		n2=end
+
+		if type(imode) is type(1):
+			if imode < 0:
+				imode = range(-imode)
+			else:
+				imode = [imode-1,]
+		imode = (N.array(imode)+1).tolist()
+
 		ntimes=self.nt
 		comments = 'Reconstructed from'
 		axes=list(self.axes)
@@ -786,14 +829,14 @@ class SpAn(object):
 
 		if svd is True and self.svdeof == []:
 			raise Exception, 'Error you did not run SVD yet'
-			
+
 		## Check for svd
 		if svd is None:
 			if self.svdeof == []:
 				svd = False
 			elif self.steof==[]:
 				svd = True
-				
+
 		## Check for default values for mssa and pca if not passed by user
 		if mssa is None:
 			if self.steof ==[]:
@@ -823,14 +866,11 @@ class SpAn(object):
 				nspace=[]
 				for i in range(len(self.pdata)):
 					nspace.append(self.pdata[i].shape[0])
+			if imode is None:
+				imode=range(1,self.nmssa+1)
+			ffrec = self._reconstruct(spanlib_fort.mssa_rec,imode,
+			  self.steof,self.stpc,nspace,self.nt, self.window)
 
-			if n2 is None:
-				n2=self.nmssa
-
-			ffrec=[]
-			for i in range(len(self.pdata)):
-				ffrec.append(spanlib_fort.mssa_rec(self.steof[i], self.stpc[i], \
-												   nspace[i], self.nt, self.window, n1, n2))
 		# SVD Reconstruction
 		if svd:
 			comments+=' SVD '
@@ -840,19 +880,15 @@ class SpAn(object):
 				nspace=[]
 				for i in range(2):
 					nspace.append(self.pdata[i].shape[0])
-				
-			if n2 is None:
-				n2=self.nsvd
+			if imode is None:
+				imode = range(1,self.nsvd+1)
+			ffrec = self._reconstruct(spanlib_fort.pca_rec,imode,
+			  self.svdeof,self.svdpc,nspace,self.nt)
 
-			ffrec=[]
-			for i in range(2):
-				ffrec.append(spanlib_fort.pca_rec(self.svdeof[i], self.svdpc[i], \
-												  nspace[i], self.nt, n1, n2))
 		# Phase composites reconstuction
 		if phases:
 			comments+=' Phases'
 			if mssa:
-				
 				for i in range(len(self.pdata)):
 					ffrec[i] = computePhases(ffrec[i],nphases,offset,firstphase)
 			else:
@@ -874,7 +910,7 @@ class SpAn(object):
 			nloop=2
 		else:
 			nloop = len(self.pdata)
-		
+
 		if pca:
 			comments+=' PCA'
 			if mssa is True or phases is True or svd is True:
@@ -884,17 +920,9 @@ class SpAn(object):
 				del(ffrec)
 			else:
 				pcreconstruct = self.pc
-
-			if mssa:
-			   n1 = 1
-			   n2 = self.npca
-			elif n2 is None:
-			   n2 = self.npca
-
-			ffrec=[]
-			for i in range(nloop):
-				ffrec.append(spanlib_fort.pca_rec(self.eof[i], pcreconstruct[i], \
-												  n1, n2))
+			if mssa or imode is None:
+				imode = range(1,self.npca+1)
+			ffrec = self._reconstruct(spanlib_fort.pca_rec,imode,self.eof,pcreconstruct)
 
 
 		# Add meta information to output field
@@ -920,11 +948,12 @@ class SpAn(object):
 			for att in 'units','long_name':
 				if att in self.attributes[i].keys():
 					if att is 'long_name':
-						ffrec[i].attributes[att] = 'Reconstruction of '+self.attributes[i][att]
+						ffrec[i].attributes[att] = \
+						  'Reconstruction of '+self.attributes[i][att]
 					else:
 						ffrec[i].attributes[att] = self.attributes[i][att]
 			ffrec[i].comment=comments
-			ffrec[i].mode_range = [start,end]
+			ffrec[i].modes = imode
 			if not svd:
 				ffrec[i].setGrid(self.grids[i])
 
@@ -941,12 +970,13 @@ class SpAn(object):
 		self.svdpc=[]
 		self.svdeof=[]
 		self.l2r=[]
+		self.pairs = []
 
 
 class SVDModel(SpAn):
-	
+
 	def __init__(self,data,**kwargs):
-		
+
 		SpAn.__init__(self,data,**kwargs)
 
 		# Perform an SVD between the first two datasets
@@ -958,13 +988,12 @@ class SVDModel(SpAn):
 									(N.average(self.svdpc[1]**2)/nsr - \
 									 (N.average(self.svdpc[1])/nsl)**2))
 
-
 	def __call__(self,data,nsvdrun=None):
 		""" Run the SVD model """
-		
+
 		if nsvdrun is not None:
 			self.nsvdrun = nsvdrun
-		
+
 		#TODO: finish the svd model man !
 		print 'missing code'
 

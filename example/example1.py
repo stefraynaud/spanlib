@@ -33,14 +33,18 @@ print "#################################################"
 
 
 # Needed modules
+print 'Importing needed modules...'
 import sys
 import cdms
-import spanlib
 import vcs
 import MV
 import Numeric
 import cdutil
 import genutil
+
+# Current version of spanlib is prioritary
+sys.path.insert(0,'../src/build/tmp_lib')
+import spanlib
 
 # We tell cdms that we have longitude, latitude and time
 cdms.axis.latitude_aliases.append('Y')
@@ -70,7 +74,7 @@ steof,stpc,stev = SP.mssa()
 
 # Phase composites of first two MSSA modes
 print 'Phase composites...'
-out = SP.reconstruct(phases=True,nphases=6,end=2)
+out = SP.reconstruct(phases=True,nphases=6,imode=-2)
 
 # Plot 1 phase over two, then a time series
 print "Now, plot!"

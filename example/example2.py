@@ -31,9 +31,12 @@ print "##############################################"
 
 # Needed modules
 import cdms
-import spanlib
 import MV
 import vcs
+
+# Current version of spanlib is prioritary
+sys.path.insert(0,'../src/build/tmp_lib')
+import spanlib
 
 # We tell cdms that we have longitude, latitude and time
 cdms.axis.latitude_aliases.append('Y')
@@ -63,7 +66,7 @@ print "PCA+MSSA..."
 steof,stpc,stev = SP.mssa(pca=True)
 
 # Recontructed the filtered field
-print "Reconstructing selected modes"
+print "Reconstructing all modes"
 ffrec = SP.reconstruct()
 
 # Unstacking
