@@ -9,10 +9,13 @@ example2_SOURCES = example2.f90
 example3_SOURCES = example3.f90
 endif
 
-LOCAL_LIB=$(top_srcdir)/src/libspanlib.a
+LOCAL_LIB_F90=$(top_srcdir)/src/libspanlib.a
+LOCAL_LIB_PY=$(top_srcdir)/src/build/tmp_lib/spanlib/spanlib_fort.so
+SRC_F90=$(top_srcdir)/src/spanlib.f90
+SRC_PY=$(SRC_F90) $(top_srcdir)/lib/spanlib_fortran.py $(top_srcdir)/src/spanlib_pywrap.py
 AM_FCFLAGS = -I$(top_srcdir)/src $(NETCDF_INC) $(LAPACK95_INC)
 AM_LDFLAGS = -L$(top_srcdir)/src $(NETCDF_LIB) $(LAPACK95_LIB) $(LAPACK_LIB) $(BLAS_LIB)
-LDADD = -lnetcdf $(LOCAL_LIB) $(LAPACK95) $(LAPACK) $(BLAS)
+LDADD = -lnetcdf $(LOCAL_LIB_F90) $(LAPACK95) $(LAPACK) $(BLAS)
 URL = http://stefdeperou.free.fr/pub
 NCINPUT = data2.cdf
 
@@ -113,9 +116,9 @@ endif
 
 ## gmake > 3.80
 ##$(foreach fid,$(FORTRANS),$(eval $(call fortran_view_rule,$(fid))))
-fortran1: $(NCINPUT) $(LOCAL_LIB) output_fortran1.nc ; $(call fortran_view)
-fortran2: $(NCINPUT) $(LOCAL_LIB) output_fortran2.nc ; $(call fortran_view)
-fortran3: $(NCINPUT) $(LOCAL_LIB) output_fortran3.nc ; $(call fortran_view)
+fortran1: $(NCINPUT) $(LOCAL_LIB_F90) output_fortran1.nc ; $(call fortran_view)
+fortran2: $(NCINPUT) $(LOCAL_LIB_F90) output_fortran2.nc ; $(call fortran_view)
+fortran3: $(NCINPUT) $(LOCAL_LIB_F90) output_fortran3.nc ; $(call fortran_view)
 
 output_fortran%.nc: example%
 	@rm -f $@
@@ -125,8 +128,8 @@ output_fortran%.nc: example%
 	-./$^
 	-@test -f $@ || echo "No netcdf file created"
 
-$(LOCAL_LIB):
-	cd ../src && make
+$(LOCAL_LIB_F90): $(SRC_F90)
+	cd $(top_srcdir)/src && make
 
 
 ####################
@@ -134,11 +137,13 @@ $(LOCAL_LIB):
 ####################
 
 if WITH_PYTHON_EXAMPLE
-$(PYTHONS): $(NCINPUT)
+$(PYTHONS): $(NCINPUT) $(LOCAL_LIB_F90) $(LOCAL_LIB_PY)
 	@echo "###########################################################"
 	@echo "# Running the python example `echo $@ |cut -c7` program..."
 	@echo "###########################################################"
 	$(PYTHON) example`echo $@ |cut -c7`.py
+$(LOCAL_LIB_PY): $(SRC_PY)
+	cd $(top_srcdir)/src && make
 else
 $(PYTHONS):
 	@echo "###########################################################"

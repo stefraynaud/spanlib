@@ -145,25 +145,25 @@ program example3
 
 	! First, we build the model
 	! -------------------------
-	print*,'[sl_svd_model_build] Building the SVD model...'
+	print*,'[sl_svd_model_build] Seting up the SVD model...'
 	allocate(pcaEofs1(ns1, pcaNkeep),pcaPcs1(nt,pcaNkeep))
 	allocate(pcaEofs2(ns2, pcaNkeep),pcaPcs2(nt,pcaNkeep))
 	allocate(svdEofs1(pcaNkeep,svdNkeep))
 	allocate(svdEofs2(pcaNkeep,svdNkeep))
 	allocate(svdPcs1(nt,svdNkeep),svdPcs2(nt,svdNkeep))
 	allocate(l2r(svdNkeep))
-	call sl_svd_model_build(packed_sst1,packed_sst2,&
+	call sl_svd_model_setup(packed_sst1,packed_sst2,&
 		& pcaEofs1,pcaEofs2,svdEofs1,svdEofs2,l2r, &
 		& lPcaPc = pcaPcs1, rPcaPc = pcaPcs2,&
 		& lSvdPc = svdPcs1, rSvdPc = svdPcs2)
 
 	! Second, we loop on time to estimate sst2 from sst1
 	! --------------------------------------------------
-	print*,'[sl_svd_model_use] Using the SVD model at each time step...'
+	print*,'[sl_svd_model_use] Running the SVD model at each time step...'
 	allocate(packed_svdSst2(ns2,nt),packed_sstNow1(ns1),packed_svdSstNow2(ns2))
 	do i = 1, nt
 		packed_sstNow1 = packed_sst1(:,i)
-		call sl_svd_model_use(packed_sstNow1,packed_svdSstNow2,&
+		call sl_svd_model_run(packed_sstNow1,packed_svdSstNow2,&
 			& pcaEofs1,pcaEofs2,svdEofs1,svdEofs2,l2r)
 		packed_svdSst2(:,i) = packed_svdSstNow2
 	end do

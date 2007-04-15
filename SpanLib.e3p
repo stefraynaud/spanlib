@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-3.9.dtd">
 <!-- Project file for project SpanLib -->
-<!-- Saved: 2007-03-29, 14:15:26 -->
+<!-- Saved: 2007-04-06, 17:58:42 -->
 <!-- Copyright (C) 2007 Stephane Raynaud, Charles Doutriaux, stephane.raynaud@gmail.com -->
 <Project version="3.9">
   <ProgLanguage mixed="0">Python</ProgLanguage>
@@ -107,6 +107,26 @@
       <Dir>lib</Dir>
       <Name>__init__.py</Name>
     </Source>
+    <Source>
+      <Dir></Dir>
+      <Dir>home2</Dir>
+      <Dir>amzer</Dir>
+      <Dir>raynaud</Dir>
+      <Dir>misc</Dir>
+      <Dir>sea_level</Dir>
+      <Dir>maps</Dir>
+      <Name>myeof.py</Name>
+    </Source>
+    <Source>
+      <Dir></Dir>
+      <Dir>soft</Dir>
+      <Dir>cdat</Dir>
+      <Dir>lib</Dir>
+      <Dir>python2.4</Dir>
+      <Dir>site-packages</Dir>
+      <Dir>spanlib</Dir>
+      <Name>spanlib_python.py</Name>
+    </Source>
   </Sources>
   <Forms>
   </Forms>
@@ -177,9 +197,9 @@ s.</VcsOtherData>
   </Vcs>
   <FiletypeAssociations>
     <FiletypeAssociation pattern="*.ui.h" type="FORMS" />
-    <FiletypeAssociation pattern="*.ui" type="FORMS" />
-    <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
-    <FiletypeAssociation pattern="*.py" type="SOURCES" />
     <FiletypeAssociation pattern="*.ptl" type="SOURCES" />
+    <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
+    <FiletypeAssociation pattern="*.ui" type="FORMS" />
+    <FiletypeAssociation pattern="*.py" type="SOURCES" />
   </FiletypeAssociations>
 </Project>

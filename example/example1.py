@@ -77,6 +77,7 @@ print 'Phase composites...'
 out = SP.reconstruct(phases=True,nphases=6,imode=-2)
 
 # Plot 1 phase over two, then a time series
+# TODO: we must do something nicer!!
 print "Now, plot!"
 x=vcs.init()
 #x.open()

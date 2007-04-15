@@ -30,9 +30,7 @@ print "# Then reconstructions and plots.            #"
 print "##############################################"
 
 # Needed modules
-import cdms
-import MV
-import vcs
+import cdms,MV,vcs,sys
 
 # Current version of spanlib is prioritary
 sys.path.insert(0,'../src/build/tmp_lib')
@@ -51,6 +49,9 @@ f=cdms.open('data2.cdf')
 print "Read two different regions"
 s2=f('ssta',latitude=(-10,10),longitude=(110,180))
 s1=f('ssta',latitude=(-15,15),longitude=(210,250))
+s1[:,0:10,0:4]=MV.masked
+s2[:,0:5,0:6]=MV.masked
+print MV.average(s1.flat),MV.average(s2.flat)
 
 # Stack the two dataset to have only one dataset
 print "Stacking data"
@@ -75,6 +76,7 @@ out = spanlib.unStackData(ffrec,res[1],res[2],res[3])
 
 # Plot a timeseries taken from our two
 # recontructed datasets
+# TODO: we must do something nicer!!
 print "Time series for the two filtered regions"
 x=vcs.init()
 x.plot(out[1][:,5,5])
