@@ -24,7 +24,7 @@ AC_DEFUN([AC_SR_SPANLIB_EXAMPLE],[
 	#################################################################
 	# Python example
 	#################################################################
-	AS_VAR_SET_IF(WITH_PYTHON_EXAMPLE,[
+	AS_VAR_SET_IF(WITH_PYTHON,[
 		AS_VAR_SET(PYTHON_EXAMPLE_TEXT,["To run the first python example, type from here '"AS_VAR_GET([NORMAL])"make python1"AS_VAR_GET(GREEN)"'."])
 	])
 
@@ -74,7 +74,7 @@ you will have to download yourself the input data file to run the example]))
 
 	# Quick python viewer
 	AS_VAR_SET_IF(NCVIEWER,,[
-		AS_IF(AS_VAR_GET(WITH_PYTHON_EXAMPLE),[
+		AS_IF([test AS_VAR_GET(WITH_PYTHON) = "yes",[
 			AS_VAR_SET(NCVIEWER,[AS_VAR_GET(PYTHON) ../scripts/quickplot.py])
 			for id in AS_VAR_GET(f90exlist) ; do
 				AS_VAR_SET(NCVIEWER_ARGS_fortran$id,[["]output_fortran$id.nc ['\$(VARIABLE_python]AS_VAR_GET(id)[)']["]])
