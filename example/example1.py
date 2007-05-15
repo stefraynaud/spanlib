@@ -31,16 +31,13 @@ print "# - 1 phase over 2                              #"
 print "# - 1 time series                               #"
 print "#################################################"
 
+###############################################
+# Initialize and get data
+###############################################
 
 # Needed modules
 print 'Importing needed modules...'
-import sys
-import cdms
-import vcs
-import MV
-import Numeric
-import cdutil
-import genutil
+import sys,cdms,MV,Numeric as N,cdutil,genutil
 
 # Current version of spanlib is prioritary
 sys.path.insert(0,'../src/build/tmp_lib')
@@ -59,6 +56,11 @@ f=cdms.open('data2.cdf')
 print "Read the whole dataset"
 s=f('ssta')
 
+
+###############################################
+# Use spanlib
+###############################################
+
 # Create the analysis object
 print "Creating SpAn object"
 SP=spanlib.SpAn(s)
@@ -66,56 +68,88 @@ SP=spanlib.SpAn(s)
 # Perform a preliminary PCA+MSSA
 # (equivalent to simple use SP.mssa(pca=True) later)
 print "PCA..."
-eof,pc,ev = SP.pca()
+SP.pca()
+print SP.pca_eof().info()
+raise 'a'
 
 # MSSA on PCA results
 print 'MSSA...'
-steof,stpc,stev = SP.mssa()
+SP.mssa()
 
 # Phase composites of first two MSSA modes
 print 'Phase composites...'
-out = SP.reconstruct(phases=True,nphases=6,imode=-2)
+composites = SP.reconstruct(phases=True,nphases=6,imode=-2)
 
-# Plot 1 phase over two, then a time series
-# TODO: we must do something nicer!!
+
+###############################################
+# Plots
+###############################################
+
 print "Now, plot!"
-x=vcs.init()
-#x.open()
-slices = range(0,out.shape[0])
-nslices = len(slices)
-import EzTemplate
-columns = 3
-rows = (nslices-1)/columns+1
-print 'R,C',rows,columns
-T=EzTemplate.Multi(rows=rows,columns=columns) # Nrow added 1 for original data row
-#templ = T.get()
-mn,mx=-1,1
-print 'Min, max:',mn,mx,vcs.minmax(out)
-levels = vcs.mkscale(mn,mx)
-levels.insert(0,-1.e20) # extension left side
-levels.append(1.e20) # extension right side
-colors = vcs.getcolors(levels)
-iso = x.createisofill('spanlib')
-iso.levels = levels
-iso.fillareacolors = colors
-#iso.list()
-#x.plot(s,templ,iso,ratio='autot')
-#templ=T.get() # dummy space
-#templ=T.get() # dummy space
-f=cdms.open('tmp.nc','w')
-f.write(out,id='out',typecode='f')
-f.close()
-for i in slices:
-    print i
-    templ = T.get(font=0)
-    #templ.data.list()
-    x.plot(out[i],templ,iso,ratio='autot',bg=1,title="Phase composites of the first MSSA oscillation")
-##     raw_input('map out %i/%i ok?' % ( i+1 , out.shape[0]))
-##     x.clear()
-x.postscript('crap')
-x.showbg()
-raw_input('map out ok?')
-x.clear()
-x.plot(out[:,30,80],title="Cycle of the ocillation")
-raw_input('Time series at center of bassin ok?')
-x.clear()
+nslice = composites.shape[0]
+ncol = 3
+nrow = (nslice-1)/ncol+1
+
+# Try matplotlib because it is nicer and easier than vcs
+try:
+	from pylab import *
+	from matplotlib.toolkits.basemap import Basemap
+
+	def bwr():
+		cdict = {'red': ((0.,)*3,(.5,1.,1.),(1.,1.,1.)),
+			'green': ((0.,)*3,(.5,1.,1.),(1.,0.,0.)),
+			'blue': ((0.,1.,1.),(.5,1.,1.),(1.,0.,0.))}
+		return matplotlib.colors.LinearSegmentedColormap('bwr',cdict,256)
+
+	figure(figsize=(8,8))
+	subplot(ncol,nrow,nslice)
+	for i in xrange(nslice):
+		lon = composites.getLongitude()
+		lat = composites.getLatitude()
+		xx,yy = meshgrid(lon,lat)
+		m = Basemap(resolution='l',lat_0=N.average(lat),lon_0=N.average(lon),
+			llcrnrlon=min(lon),llcrnrlat=min(lat),
+			urcrnrlon=max(lon),urcrnrlat=max(lat))
+		levels = vcs.mkscale(genutil.minmax(composites))
+		m.contourf(lon,lat,composites[i],levels=levels,cmap=bwr)
+		clabel(m.contour(lon,lat,composites[i],levels=levels))
+		title("Phase %i/%i" (i+1,6))
+		m.drawcoastlines()
+		m.drawcountries()
+		m.fillcontinents(color='coral')
+		m.drawparallels(vcs.mkscale(genutil.minmax(lat)),labels=[1,0,0,0])
+		m.drawmeridians(vcs.mkscale(genutil.minmax(lon)),labels=[0,0,0,1])
+	figtext(.5,1.,"\n%s [%s]" % ("El Nino phase composites\nSea surface temperature", composites.units))
+	savefig(sys.argv[0].replace(".py",".png"))
+	show()
+	
+
+# Fall back to vcs because we have it!
+except:
+	# Plot 1 phase over two, then a time series
+	# TODO: we must do something nicer!!
+	import vcs,EzTemplate
+	x=vcs.init()
+	T=EzTemplate.Multi(rows=nrow,columns=ncol) # Nrow added 1 for original data row
+	mn,mx=-1,1
+	levels = vcs.mkscale(mn,mx)
+	levels.insert(0,-1.e20) # extension left side
+	levels.append(1.e20) # extension right side
+	colors = vcs.getcolors(levels)
+	iso = x.createisofill('spanlib')
+	iso.levels = levels
+	iso.fillareacolors = colors
+	f=cdms.open('tmp.nc','w')
+	f.write(out,id='composites',typecode='f')
+	f.close()
+	for i in xrange(nslice):
+		print i
+		templ = T.get(font=0)
+		x.plot(out[i],templ,iso,ratio='autot',bg=1,title="Phase composites of the first MSSA oscillation")
+	x.postscript('crap')
+	x.showbg()
+	raw_input('map out ok?')
+	x.clear()
+	x.plot(out[:,30,80],title="Cycle of the ocillation")
+	raw_input('Time series at center of bassin ok?')
+	x.clear()

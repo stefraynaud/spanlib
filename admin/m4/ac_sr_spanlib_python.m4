@@ -6,17 +6,17 @@ AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
 	# Tools
 	AC_CHECK_PROG(PERL,perl,perl,no)
 	AC_PROG_CC()
-	
+
 	# Default conditionals
 	AM_CONDITIONAL(HAS_F2PY,false)
 	AM_CONDITIONAL(LOCAL_PYTHON_INSTALL,false)
-	
+
 	# Basic python
 	AX_WITH_PYTHON(2.4,no)
 
 	# We have python
 	AS_IF([test "AS_VAR_GET(PYTHON)" != "no"],[
-	
+
 		# Current python
 		AS_VAR_SET(MYPYTHONPATH,[`AS_DIRNAME(AS_VAR_GET(PYTHON))`])
 
@@ -31,16 +31,16 @@ AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
 			AS_VAR_SET(HAS_CDAT,"no")
 		)
 		AC_MSG_RESULT(AS_VAR_GET(HAS_CDAT))
-	
+
 		# Matplotlib for viewing
 		AC_MSG_CHECKING([for Matplotlib support])
-		AS_VAR_GET(PYTHON) -c ["import pylab"] 2> /dev/null
+		AS_VAR_GET(PYTHON) -c ["import matplotlib.figure"] 2> /dev/null
 		AS_IF([test "$?" = "0"],
 			AS_VAR_SET(HAS_MPL,"yes"),
 			AS_VAR_SET(HAS_MPL,"no")
 		)
 		AC_MSG_RESULT(AS_VAR_GET(HAS_MPL))
-	
+
 		# Vcdat
 		AC_CHECK_PROG([VCDAT],vcdat,vcdat,no,[AS_VAR_GET(MYPYTHONPATH)])
 
@@ -50,7 +50,7 @@ AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
 		AS_VAR_SET(HAS_MPL,no)
 		AS_VAR_SET(VCDAT,yes)
 	])
-	
+
 
 	# So, for python...
 	AS_IF([test "AS_VAR_GET(HAS_CDAT)" != "no"  -a "AS_VAR_GET(F2PY)" != "no" -a \

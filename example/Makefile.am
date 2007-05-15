@@ -12,7 +12,7 @@ endif
 LOCAL_LIB_F90=$(top_srcdir)/src/libspanlib.a
 LOCAL_LIB_PY=$(top_srcdir)/src/build/tmp_lib/spanlib/spanlib_fort.so
 SRC_F90=$(top_srcdir)/src/spanlib.f90
-SRC_PY=$(SRC_F90) $(top_srcdir)/lib/spanlib_fortran.py $(top_srcdir)/src/spanlib_pywrap.py
+SRC_PY=$(SRC_F90) $(top_srcdir)/lib/spanlib_python.py $(top_srcdir)/src/spanlib_pywrap.f90
 AM_FCFLAGS = -I$(top_srcdir)/src $(NETCDF_INC) $(LAPACK95_INC)
 AM_LDFLAGS = -L$(top_srcdir)/src $(NETCDF_LIB) $(LAPACK95_LIB) $(LAPACK_LIB) $(BLAS_LIB)
 LDADD = -lnetcdf $(LOCAL_LIB_F90) $(LAPACK95) $(LAPACK) $(BLAS)
@@ -39,7 +39,7 @@ echo "# - sst_model_box2:  right SST from SVD model"
 endef
 
 ######################################################################
-if WITH_PYTHON_EXAMPLE
+if WITH_PYTHON
 VARIABLE_python1 = pair1
 VARIABLE_python2 = eof_box1
 VARIABLE_python3 = sst_model_box2
@@ -136,7 +136,7 @@ $(LOCAL_LIB_F90): $(SRC_F90)
 ## Python example ##
 ####################
 
-if WITH_PYTHON_EXAMPLE
+if WITH_PYTHON
 $(PYTHONS): $(NCINPUT) $(LOCAL_LIB_F90) $(LOCAL_LIB_PY)
 	@echo "###########################################################"
 	@echo "# Running the python example `echo $@ |cut -c7` program..."

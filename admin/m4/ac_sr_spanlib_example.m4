@@ -67,14 +67,12 @@ you will have to download yourself the input data file to run the example]))
 
 	# VCDAT
 	AS_VAR_SET_IF(NCVIEWER,,[
-		AS_IF([test "AS_VAR_GET(VCDAT)" != "no"],[
-			AS_VAR_SET(NCVIEWER,AS_VAR_GET(VCDAT))
-		])
+		AS_IF([test "AS_VAR_GET(VCDAT)" != "no"], [AS_VAR_SET(NCVIEWER,AS_VAR_GET(VCDAT))])
 	])
 
-	# Quick python viewer
+	# Quick vcs (cdat) or matplotlib viewer
 	AS_VAR_SET_IF(NCVIEWER,,[
-		AS_IF([test AS_VAR_GET(WITH_PYTHON) = "yes",[
+		AS_IF([test AS_VAR_GET(HAS_CDAT) = "yes" -o AS_VAR_GET(HAS_MPL) = "yes"],[
 			AS_VAR_SET(NCVIEWER,[AS_VAR_GET(PYTHON) ../scripts/quickplot.py])
 			for id in AS_VAR_GET(f90exlist) ; do
 				AS_VAR_SET(NCVIEWER_ARGS_fortran$id,[["]output_fortran$id.nc ['\$(VARIABLE_python]AS_VAR_GET(id)[)']["]])
