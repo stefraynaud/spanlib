@@ -4,7 +4,7 @@
 AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
 
 	# Tools
-	AC_CHECK_PROG(PERL,perl,perl,no)
+# 	AC_CHECK_PROG(PERL,perl,perl,no)
 	AC_PROG_CC()
 
 	# Default conditionals
@@ -23,7 +23,7 @@ AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
 		# F2py support
 		AC_SR_F2PY()
 
-		# Python modules for spanlib
+		# CDAT support
 		AC_MSG_CHECKING([for CDAT support])
 		AS_VAR_GET(PYTHON) -c ["import cdms"] 2> /dev/null
 		AS_IF([test "$?" = "0"],
@@ -32,7 +32,10 @@ AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
 		)
 		AC_MSG_RESULT(AS_VAR_GET(HAS_CDAT))
 
-		# Matplotlib for viewing
+		# Vcdat for viewing netcdf
+		AC_CHECK_PROG([VCDAT],vcdat,vcdat,no,[AS_VAR_GET(MYPYTHONPATH)])
+
+		# Matplotlib for plotting
 		AC_MSG_CHECKING([for Matplotlib support])
 		AS_VAR_GET(PYTHON) -c ["import matplotlib.figure"] 2> /dev/null
 		AS_IF([test "$?" = "0"],
@@ -41,20 +44,17 @@ AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
 		)
 		AC_MSG_RESULT(AS_VAR_GET(HAS_MPL))
 
-		# Vcdat
-		AC_CHECK_PROG([VCDAT],vcdat,vcdat,no,[AS_VAR_GET(MYPYTHONPATH)])
-
 	],[
 		AS_VAR_SET(F2PY,no)
 		AS_VAR_SET(HAS_CDAT,no)
 		AS_VAR_SET(HAS_MPL,no)
-		AS_VAR_SET(VCDAT,yes)
+		AS_VAR_SET(VCDAT,no)
 	])
 
 
 	# So, for python...
 	AS_IF([test "AS_VAR_GET(HAS_CDAT)" != "no"  -a "AS_VAR_GET(F2PY)" != "no" -a \
-			"AS_VAR_GET(PERL)" != "no" -a "AS_VAR_GET(HAS_BLASLAPACK)" != "no"],
+			    "AS_VAR_GET(HAS_BLASLAPACK)" != "no"],
 			[AS_VAR_SET(WITH_PYTHON,"yes")])
 	AM_CONDITIONAL([WITH_PYTHON],AS_VAR_TEST_SET(WITH_PYTHON))
 	AS_IF(AS_VAR_TEST_SET(WITH_PYTHON),,

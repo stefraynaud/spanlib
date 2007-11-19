@@ -30,10 +30,11 @@ print "# Then reconstructions and plots.            #"
 print "##############################################"
 
 # Needed modules
-import cdms,MV,vcs,sys
-
-# Current version of spanlib is prioritary
-sys.path.insert(0,'../src/build/tmp_lib')
+print 'Importing needed modules...'
+# - base
+import cdms,MV,vcs,sys,os
+# - current version of spanlib is prioritary
+if os.path.exists('../src/build/tmp_lib'):sys.path.insert(0,'../src/build/tmp_lib')
 import spanlib
 
 # We tell cdms that we have longitude, latitude and time

@@ -127,7 +127,7 @@ import spanlib_fort,MV,Numeric as N,genutil.statistics,genutil.filters,cdms
 			#sh.append(len(ax))
 		#unpacked = MV.reshape(unpacked,sh)
 		#unpacked.setMissing(missing_value)
-		
+
 		##unpacked = MV.masked_where(N.equal(N.resize(N.transpose(m),unpacked.shape),0),unpacked,copy=0)
 		#unpacked.setAxisList(axes[i])
 		#istart+=mlen
@@ -191,7 +191,7 @@ def _pack(data,weights=None):
 	else:
 		if cdms.isVariable(weights):
 			weights = weights.filled(1.e20)
-	
+
 	# Mask
 	# - First from data
 	mask = N.sum(MV.getmaskarray(data),axis=0) # no time
@@ -212,7 +212,7 @@ def _pack(data,weights=None):
 	del data_to_pack
 	# - Pack weights
 	packed_weights = spanlib_fort.chan_pack(weights.flat,mask.flat,ns)[:,0].astype('f')
-	
+
 	return packed_data,packed_weights,mask
 
 
@@ -241,7 +241,7 @@ def getPairs(pcs,minCorr=0.9,maxDistance=2,smooth=5):
 	  pairs :: List of two-element tuples of indices
 	:::
 	"""
-	
+
 	pcs = MV.filled(pcs)
 	nst = pcs.shape[1]
 	if nst < 4:
@@ -373,6 +373,9 @@ class SpAn(object):
 		# We start from a list
 		if not isinstance(datasets,(list,tuple)):
 			datasets = [datasets]
+			self._input_map = 0
+		else:
+			self._input_map = len(datasets)
 
 		# Check if we are in a serial analysis mode
 		for d in datasets:
@@ -381,6 +384,14 @@ class SpAn(object):
 				break
 		if not serial: # Convert to serial mode
 			datasets = [datasets]
+		else:
+			input_map = []
+			for iset in xrange(len(datasets)):
+				if isinstance(datasets[iset],(list,tuple)):
+					input_map[iset] = len(datasets[iset])
+				else:
+					input_map[iset] = 0
+			self._input_map = input_map
 
 		# Weights in the same form as datasets, filling with Nones
 		if not isinstance(weights,(list,tuple)):
@@ -396,25 +407,42 @@ class SpAn(object):
 			if iset == len(weights)-1:
 				weights.extend([None]*(len(datasets)-len(weights)))
 				break
-		
+
 		# We stack and pack data
 		for iset,d in enumerate(datasets):
 			self._stack(d,weights[iset])
 		self._ndataset = len(datasets)
-		
+
 		# Save arguments
-		for param in 'npca','nmssa','nsvd','serial':
+		for param in 'npca','nmssa','nsvd','serial','window':
 			setattr(self,'_'+param,eval(param))
 
 
-	def _mode_axis(self,mode_type):
-		"""Get the mode mode axis according to the type of modes (pca, mssa, svd)"""
-		if not self._mode_axes.has_key(mode_type):
-			self._mode_axes[mode_type] = cdms.createAxis(N.arange(getattr(self,'_n'+mode_type))*1.)
-			self._mode_axes[mode_type].id = mode_type+'_mode'
-			self._mode_axes[mode_type].standard_name = self._mode_axes[mode_type].id
-			self._mode_axes[mode_type].long_name = mode_type.upper()+' modes in decreasing order'
-		return self._mode_axes[mode_type]
+	def _mode_axis(self,analysis_type):
+		"""Get a mode mode axis according to the type of modes (pca, mssa, svd)"""
+		if not self._mode_axes.has_key(analysis_type):
+			self._mode_axes[analysis_type] = cdms.createAxis(N.arange(1,getattr(self,'_n'+analysis_type)+1))
+			self._mode_axes[analysis_type].id = analysis_type+'_mode'
+			self._mode_axes[analysis_type].long_name = analysis_type.upper()+' modes in decreasing order'
+		return self._mode_axes[analysis_type]
+
+	def _window_axis(self):
+		"""Get the window axis for mssa"""
+		if self._window_axis is None:
+			self._window_axis = cdms.createAxis(N.arange(self._nwindow))
+			self._window_axis.id = 'mssa_window'
+			self._window_axis.long_name = 'MSSA window time'
+		return self._window_axis
+
+	def _channel_axis(self,analysis_type):
+		"""Get a channel axis  for pca/mssa/svd"""
+		if not self._channe_axes.has_key(analysis_type)e:
+			self._channel_axes[analysis_type] = cdms.createAxis(N.arange(self,'_n'+analysis_type))
+			self._channel_axes[analysis_type].id = analysis_type+'_channel'
+			self._channel_axes[analysis_type].long_name = analysis_type.upper()+' channels'
+		return self._channel_axis[analysis_type]
+
+		
 
 	def pca(self,npca=None,get_ev_sum=False,relative=False):
 		""" Principal Components Analysis (PCA)
@@ -450,13 +478,13 @@ class SpAn(object):
 				raw_pc = pdata
 				raw_ev = genutil.statistics.variance(raw_pc)
 				ev_sum = ev
-				
+
 			else: # Several channels
 				weights = self._stack_info[iset]['weights']
 				raw_eof,raw_pc,raw_ev,ev_sum = spanlib_fort.pca(pdata,self._npca,weights,1)	
 
 			# Append results
-			self._pca_raw_pc.append(raw_pc)
+			self._pca_raw_pc.append(N.transpose(raw_pc)) # Mode axis must be first (CF)
 			self._pca_raw_eof.append(raw_eof)
 			self._pca_raw_ev.append(raw_ev)
 			self._pca_ev_sum.append(ev_sum)
@@ -464,14 +492,14 @@ class SpAn(object):
 
 	def pca_eof(self,*args,**kwargs):
 		"""Get EOFs from current PCA decomposition
-		
+
 		If PCA was not performed, it is done with all parameters sent to pca()
 		"""
-		
+
 ##		# Already available
 ##		if self._pca_fmt_eof != []:
 ##			return self._pca_fmt_eof
-		
+
 		# PCA still not performed
 		if self._pca_raw_eof == []: self.pca(*args,**kwargs)
 		del self._pca_fmt_eof
@@ -480,7 +508,7 @@ class SpAn(object):
 		# Of, let's format the variable
 		for iset,raw_eof in enumerate(self._pca_raw_eof):
 			self._pca_fmt_eof.append(self._unstack(iset,raw_eof,'pca'))
-			for idata,eof in enumerate(self._pca_fmt_eof):
+			for idata,eof in enumerate(self._pca_fmt_eof[-1]):
 				if not self._stack_info[iset]['ids'][idata].find('variable_'):
 					eof.id = self._stack_info[iset]['ids'][idata]+'_pca_eof'
 				else:
@@ -488,24 +516,25 @@ class SpAn(object):
 				eof.name = eof.id
 				eof.standard_name = 'empirical_orthogonal_functions_of_pca'
 				eof.long_name = 'PCA empirical orthogonal functions'
-				if 'long_name' in self._stack_info[iset]['atts']:
-					eof.long_name += ' of '+self._stack_info[iset]['atts']['long_name']
-				if 'units' in self._stack_info[iset]['atts']:
+				atts = self._stack_info[iset]['atts'][idata]
+				if atts.has_key('long_name'):
+					eof.long_name += ' of '+atts['long_name']
+				if atts.has_key('units'):
 					del eof.units
-		
+
 		return self._return(self._pca_fmt_eof)		
 
 
 	def pca_pc(self,*args,**kwargs):
 		"""Get PCs from current PCA decomposition
-		
+
 		If PCA was not performed, it is done with all parameters sent to pca()
 		"""
 
 ##		# Already available
 ##		if self._pca_fmt_pc is not None:
 ##			return self._pca_fmt_pc
-		
+
 		# PCA still not performed
 		if self._pca_raw_pc == []: self.pca(*args,**kwargs)
 		del self._pca_fmt_pc
@@ -514,37 +543,35 @@ class SpAn(object):
 		# Of, let's format the variable
 		pc = []
 		for iset,raw_pc in enumerate(self._pca_raw_pc):
-			self._pca_fmt_eof[iset] = []
-			for idata in self._ndata[iset]:
-				pc = cdms.createVariable(raw_pc[idata],
-					axes=[self._stack_info[iset]['taxis'],self._mode_axis('pca')])
-				if not self._stack_info[iset]['ids'][idata].find('variable_'):
-					pc.id = self._stack_info[iset]['ids'][idata]+'_pca_pc'
-				else:
-					pc.id = 'pca_pc'
-				pc.name = pc.id
-				pc.standard_name = 'principal_components_of_pca'
-				pc.long_name = 'PCA principal components'
-				if 'long_name' in self._stack_info[iset]['atts']:
-					pc.long_name += ' of '+self._stack_info[iset]['atts']['long_name']
-				if 'units' in self._stack_info[iset]['atts']:
-					pc.units = self._stack_info[iset]['atts']['units']
-				self._pca_fmt_pc.append(pc)
-				
+			idata = 0 # Reference is first data
+			pc = cdms.createVariable(raw_pc,
+				axes=[self._mode_axis('pca'),self._stack_info[iset]['taxes'][idata]])
+			if not self._stack_info[iset]['ids'][idata].find('variable_'):
+				pc.id = self._stack_info[iset]['ids'][idata]+'_pca_pc'
+			else:
+				pc.id = 'pca_pc'
+			pc.name = pc.id
+			pc.standard_name = 'principal_components_of_pca'
+			pc.long_name = 'PCA principal components'
+			atts = self._stack_info[iset]['atts'][idata]
+			if atts.has_key('long_name'): pc.long_name += ' of '+atts['long_name']
+			if atts.has_key('units'):     pc.units = atts['units']
+			self._pca_fmt_pc.append(pc)
+
 		return self._return(self._pca_fmt_pc)		
 
 
 	def pca_ev(self,relative=False,sum=False):
 		"""Get eigen values from current PCA decomposition
-		
+
 		Inputs:
 		  relative :: Return percentage of variance
 		  sum :: Return the sum of eigen values (total variance)
 		"""
-		
+
 		# PCA still not performed
 		if self._pca_raw_ev == []: self.pca()
-		
+
 		if sum:
 			res = self._ev_sum
 		else:
@@ -558,25 +585,26 @@ class SpAn(object):
 				ev.name = ev.id
 				ev.standard_name = 'eigen_values_of_pca'
 				ev.long_name = 'PCA eigen values'
-				if 'long_name' in self._stack_info[iset]['atts']:
-					ev.long_name += ' of '+self._stack_info[iset]['atts']['long_name']
+				atts = self._stack_info[iset]['atts'][idata]
+				if atts.has_key('long_name'):
+					ev.long_name += ' of '+atts['long_name']
 				if relative:
 					ev.units = '%'
-				elif 'units' in self._stack_info[iset]['atts']:
-					ev.units = self._stack_info[iset]['atts']['units']
+				elif atts.has_key('units'):
+					ev.units = atts['units']
 					for ss in ['^','**',' ']:
 						if ev.units.find(ss) != -1:
 							ev.units = '(%s)2' % ev.units
 							break
 				res.append(ev)
-				
+
 		return self._return(res)		
 
 
-	def mssa(self,nmssa=None,pca=None,window=None, get_ev_sum=False,relative=False,npca=None):
+	def mssa(self,nmssa=None,pca=None,window=None, get_ev_sum=False,relative=False,**kwargs):
 		""" MultiChannel Singular Spectrum Analysis (MSSA)
 
-		Descriptions:::
+		Description:::
 		  This function performs a MSSA on the analysis objects
 		  and returns EOF, PC and eigen values.
 		  Unless pca parameter is set to false, a pre
@@ -609,28 +637,21 @@ class SpAn(object):
 		"""
 
 		# Check for default values for mssa and pca if not passed by user
-		
 		if pca is None:
-			if self._pca_raw_pc ==[] and max(self.ns) > 30: # Pre-PCA needed
+			if self._pca_raw_pc == [] and max(self._ns) > 30: # Pre-PCA needed
 				print '[mssa] The number of valid points is greater than',30,' so we perform a pre-PCA'
 				pca = True
-			elif self._pca_raw_pc is not None:
+			elif self._pca_raw_pc != []:
 				pca = True
 			else:
 				pca = False
+		if pca is True and self._pca_raw_pc ==[]: # Still no PCA done
+				self.pca(**kwargs)
 
-		if pca is True: # From PCA to MSSA
-			nspace = [self._npca,]*len(self._pdata)
-			if self._pca_raw_pc ==[]: # Still no PCA done
-				self.pca()
-		else:
-			nspace = self._ns
-
-		# Other parameters
+		# Parameters
 		for param in ['nmssa','npca','window']:
 			if eval(param) is not None:
-				setattr(self,param,eval(param))
-		self.window = N.clip(self.window,2,self.nt)
+				setattr(self,'_'+param,eval(param))
 		print 'mssa params',self._nmssa,self._npca,self.window
 
 		# Initializations of data
@@ -638,16 +659,26 @@ class SpAn(object):
 			setattr(self,'_mssa_'+att,[])
 
 		# Loop on datasets
-		for i,pdata in enumerate(self._pdata):
-			
+		for iset,pdata in enumerate(self._pdata):
+
+			self._window = N.clip(self._window,2,self._nt[iset])
+
 			if pca is True : # Pre-PCA case
-				ntsteof, ntstpc, ntstev, ntev_sum = \
-				  spanlib_fort.mssa(N.transpose(self._pca_raw_pc[i]), self.window, self._nmssa)
+				raw_eof, raw_pc, raw_ev, raw_ev_sum = \
+				  spanlib_fort.mssa(N.transpose(self._pca_raw_pc[i]), self._window, self._nmssa)
 			else: # Direct MSSA case
-				ntsteof, ntstpc, ntstev, ntev_sum = \
-				  spanlib_fort.mssa(pdata, self.window, self._nmssa)
+				raw_eof, raw_pc, raw_ev, raw_ev_sum = \
+				  spanlib_fort.mssa(pdata, self._window, self._nmssa)
+
+			# Append results
+			self._mssa_raw_pc.append(N.transpose(raw_pc)) # Mode axis must be first (CF)
+			self._mssa_raw_eof.append(raw_eof)
+			self._mssa_raw_ev.append(raw_ev)
+			self._mssa_ev_sum.append(ev_sum)
 
 
+			#FIXME:
+			"""
 			teof = MV.transpose(MV.reshape(ntsteof,(self.window,nspace[i],self._nmssa)))
 			teof.id=self.varname[i]+'_mssa_steof'
 			teof.standard_name='Empirical Orthogonal Functions'
@@ -686,14 +717,14 @@ class SpAn(object):
 			self._mssa_pc.append(ntstpc)
 			self._mssa_eof.append(ntsteof)
 
-##			self.pairs.append(getPairs(tpc))
+			#self.pairs.append(getPairs(tpc))
 			eof.append(teof)
 			pc.append(tpc)
 			ev.append(tev)
 			self._mssa_ev_sum.append(ntev_sum)
 
 		if len(eof)==1:
-##			self.pairs = self.pairs[0]
+			#self.pairs = self.pairs[0]
 			ret = [eof[0],pc[0],ev[0]]
 			self._mssa_ev_sum = self._mssa_ev_sum[0]
 		else:
@@ -703,6 +734,50 @@ class SpAn(object):
 			ret.append(self._pca_ev_sum)
 
 		return ret
+		"""
+
+
+	def mssa_eof(self,*args,**kwargs):
+		"""Get EOFs from current MSSA decomposition
+
+		If MSSA was not performed, it is done with all parameters sent to mssa()
+		"""
+
+		# MSSA still not performed
+		if self._mssa_raw_eof == []: self.mssa(*args,**kwargs)
+		del self._mssa_fmt_eof
+		self._mssa_fmt_eof = []
+
+		# Of, let's format the variable
+		#FIXME: USE _RECONSTRUCT TO COME FROM PCA SPACE
+
+		pure = kwargs.pop('pure',False)
+		if not self._mssa_with_pca: pure = True
+		
+		for iset,raw_eof in enumerate(self._mssa_raw_eof):
+			if pure:
+				if self._mssa_with_pca:
+					self._mssa_fmt_eof.append(self._unstack(iset,raw_eof,AXESSSSSSS))
+				else:
+					self._mssa_fmt_eof.append(raw_eof WITH AXES)
+			else:
+				proj_eof = self._projection(-self._nmssa,self._mssa_raw_eof,self._pca_raw_pc BLABLA)
+				self._mssa_fmt_eof.append(self._unstack(iset,proj_eof,AXESSSSSSS))
+			for idata,eof in enumerate(self._mssa_fmt_eof[-1]):
+				if not self._stack_info[iset]['ids'][idata].find('variable_'):
+					eof.id = self._stack_info[iset]['ids'][idata]+'_mssa_eof'
+				else:
+					eof.id = 'mssa_eof'
+				eof.name = eof.id
+				eof.standard_name = 'empirical_orthogonal_functions_of_mssa'
+				eof.long_name = 'MSSA empirical orthogonal functions'
+				atts = self._stack_info[iset]['atts'][idata]
+				if atts.has_key('long_name'):
+					eof.long_name += ' of '+atts['long_name']
+				if atts.has_key('units'):
+					del eof.units
+
+		return self._return(self._mssa_fmt_eof)
 
 
 	def svd(self,nsvd=None,pca=None):
@@ -802,7 +877,7 @@ class SpAn(object):
 		return eof[0],pc[0],eof[1],pc[1],ev
 
 
-	def _reconstruct_modes(self,imode,reof,rpc,ns=None,nt=None,nw=None):
+	def _projection(self,imode,reof,rpc,ns=None,nt=None,nw=None):
 		"""Generic raw construction of modes for pure PCA, MSSA or SVD, according to EOFs and PCs"""
 
 		# Rearrange modes (imode=[1,3,4,5,9] -> [1,1],[3,5],[9,9])
@@ -834,24 +909,24 @@ class SpAn(object):
 		print 'imodes',imodes
 
 		ffrec=[]
-		for i in range(len(self._pdata)):
+		for iset,pdata in enumerate(self._pdata):
 			# Arguments
-			args = [reof[i],rpc[i]]
-			nmode = len(reof[i])
-			print '_reco',nmode
+			args = [reof[iset],rpc[iset]]
+			nmode = len(reof[iset])
+			print '_proj',nmode
 			kwargs = {}
 			if nw is not None:
 				# MSSA
-				args.extend([ns[i],nt,nw])
+				args.extend([ns[iset],nt,nw])
 			else:
 				# PCA
 				if ns is not None:
-					kwargs['ns'] = ns[i]
+					kwargs['ns'] = ns[iset]
 				else:
-					kwargs['ns'] = ns
+					kwargs['ns'] = 1
 				if kwargs['ns'] == 1: # Single space point
 					print '_reco',single
-					ffrec.append(self._pdata[i])
+					ffrec.append(pdata)
 					continue
 				if nt is not None:
 					kwargs['nt'] = nt
@@ -1047,7 +1122,7 @@ class SpAn(object):
 
 			# Unstack data for this dataset
 			ffrec[iset] = self._unstack(iset,ffrec_raw[iset],'pca')
-			
+
 			# Check some properties
 			for this_rec in ffrec[iset]:
 				if not ffrec[i].id.find('variable_'):
@@ -1089,30 +1164,39 @@ class SpAn(object):
 				ffrec[i].setGrid(self.grids[i])
 
 		return self._return(ffrec)
-			
+
 	def _return(self,dataset):
 		"""Return dataset as input dataset"""
-		if not self._serial:
-			if len(dataset) > 1:
-				return dataset
-			else:
+		print 'dataset',dataset
+		# Single variable
+		if self._input_map == 0:
+			if cdms.isVariable(dataset[0]):
 				return dataset[0]
-		else:
-			for iset in xrange(len(dataset)):
-				if len(dataset[iset]) == 1:
-					dataset[iset] = dataset[iset][0]
-			return dataset
+			return dataset[0][0]
+		# A single list of stacked variable (not serial mode)
+		if type(self._input_map) is type(1):
+			return dataset[0]
+		# Full case
+		for map,iset in enumerate(type(self._input_map)):
+			if not cdms.isVariable(dataset[iset]) and map == 0:
+				dataset[iset] = dataset[iset][0]
+		return dataset
 
 	def clean(self):
-		for att in ['_pca_pc','_pca_eof','_mssa_pc','_mssa_eof','_svd_pc','_svd_eof',
-			'_mssa_pairs','_stack_info','_svd_l2r','_stack_info',
-			'_pca_fmt_eof','_mssa_fmt_eof','_svd_fmt_eof','_pdata',
-			'_pca_fmt_pc','_mssa_fmt_pc','_svd_fmt_pc','_nt','_ns','_ndata'] :
+		atts = []
+		for bb in 'pca','mssa','svd':
+			for aa in 'raw','fmt':
+				for cc in 'eof','pc':
+					atts.append('_%s_%s_%s'%(aa,bb,cc))
+		atts.extend('_mssa_pairs','_stack_info','_svd_l2r','_stack_info','_nt','_ns','_ndata','_mode_axes','_channel_axes','_window_axis')
+		for att in atts:
 			if att in dir(self):
 				obj = getattr(self,att)
 				del obj
 			setattr(self,att,[])
 		self._mode_axes = {}
+		self._window_axis = None
+		self._channel_axes = {}
 		self._ndataset = 0
 
 
@@ -1146,7 +1230,7 @@ class SpAn(object):
 
 		# Loop on datasets
 		for idata,data in enumerate(dataset):
-			
+
 			# We must work on an cdms variable
 			if not cdms.isVariable(data):
 				data = cdms.createVariable(data,copy=0)
@@ -1202,7 +1286,7 @@ class SpAn(object):
 
 	def _unstack(self,iset,pdata,pack_type):
 		"""Return a list of variables in the physical space, for ONE dataset.
-		
+
 		pack_type in ['pca','mssa','svd','rec','phase']
 		"""
 
@@ -1218,17 +1302,17 @@ class SpAn(object):
 		istart = 0
 		unstacked = []
 		for idata in xrange(len(self._stack_info[iset]['ids'])):
-			
+
 			# Get needed stuff
 			for vname in self._stack_info[iset].keys():
 				if vname[-1] == 's':
 					exec "%s = self._stack_info[iset]['%s'][idata]" % (vname[:-1],vname)
-			
+
 			# Unpack data
 			mlen = int(N.sum(mask.flat))
 			iend = istart + mlen
 			up = spanlib_fort.chan_unpack(mask.flat,pdata[:,istart:iend],mv)
-			unpacked = MV.transpose(MV.masked_array(up))
+			unpacked = MV.transpose(MV.masked_object(up,mv))
 
 			# Format variable (axes, grid, attributes)
 			if isinstance(first_axis,list):
@@ -1251,7 +1335,7 @@ class SpAn(object):
 			# Clean
 			del up,unpacked,reshaped
 			istart += mlen
-			
+
 		return unstacked
 
 

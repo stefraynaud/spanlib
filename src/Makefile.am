@@ -3,8 +3,7 @@
 ######################################################################
 
 lib_LIBRARIES = libspanlib.a
-nodist_include_HEADERS=spanlib_precision.mod spanlib_lapack95.mod \
- spanlib.mod
+nodist_include_HEADERS=spanlib_precision.mod spanlib_lapack95.mod spanlib.mod
 nodist_libspanlib_a_SOURCES=spanlib_precision.f90 spanlib_lapack95.f90
 dist_libspanlib_a_SOURCES=spanlib.f90
 noinst_PROGRAMS = getf90precision

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-3.9.dtd">
 <!-- Project file for project SpanLib -->
-<!-- Saved: 2007-04-06, 17:58:42 -->
+<!-- Saved: 2007-05-16, 14:48:09 -->
 <!-- Copyright (C) 2007 Stephane Raynaud, Charles Doutriaux, stephane.raynaud@gmail.com -->
 <Project version="3.9">
   <ProgLanguage mixed="0">Python</ProgLanguage>
@@ -127,6 +127,10 @@
       <Dir>spanlib</Dir>
       <Name>spanlib_python.py</Name>
     </Source>
+    <Source>
+      <Dir>example</Dir>
+      <Name>example3.py</Name>
+    </Source>
   </Sources>
   <Forms>
   </Forms>
@@ -197,9 +201,9 @@ s.</VcsOtherData>
   </Vcs>
   <FiletypeAssociations>
     <FiletypeAssociation pattern="*.ui.h" type="FORMS" />
-    <FiletypeAssociation pattern="*.ptl" type="SOURCES" />
-    <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
     <FiletypeAssociation pattern="*.ui" type="FORMS" />
+    <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
+    <FiletypeAssociation pattern="*.ptl" type="SOURCES" />
     <FiletypeAssociation pattern="*.py" type="SOURCES" />
   </FiletypeAssociations>
 </Project>

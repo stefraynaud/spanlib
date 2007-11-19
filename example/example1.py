@@ -37,10 +37,10 @@ print "#################################################"
 
 # Needed modules
 print 'Importing needed modules...'
-import sys,cdms,MV,Numeric as N,cdutil,genutil
-
-# Current version of spanlib is prioritary
-sys.path.insert(0,'../src/build/tmp_lib')
+# - base
+import sys,cdms,MV,Numeric as N,cdutil,genutil,os
+# - current version of spanlib is prioritary
+if os.path.exists('../src/build/tmp_lib'):sys.path.insert(0,'../src/build/tmp_lib')
 import spanlib
 
 # We tell cdms that we have longitude, latitude and time
@@ -69,9 +69,11 @@ SP=spanlib.SpAn(s)
 # (equivalent to simple use SP.mssa(pca=True) later)
 print "PCA..."
 SP.pca()
-print SP.pca_eof().info()
-raise 'a'
+from actimar.misc.plot import map,curve
+#map(SP.pca_eof()[0],resolution='c')
+curve(SP.pca_pc()[0])
 
+sys.exit()
 # MSSA on PCA results
 print 'MSSA...'
 SP.mssa()
