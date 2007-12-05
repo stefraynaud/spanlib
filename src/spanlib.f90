@@ -45,18 +45,18 @@ contains
 	!	than the time dimension. This default behavior can be overridden.
 	!
 	! Necessary arguments:
-	!	- ff:			Space-time array
-	!	- nkeep:		Maximum number of modes to keep in outputs
+	!	- ff: Space-time array
+	!	- nkeep: Maximum number of modes to keep in outputs
 	!
 	! Optional arguments:
-	!	- xeof:		Space-mode array of EOFs
-	!	- pc:			Time-mode array of PCs
-	!	- ev:			Mode array of eigen values (variances)
-	!  - ev_sum:   Sum of all egein values (even thoses not returned)
-	!	- weights:	Space array of weights
-	!	- useteof:	To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]
+	!	- xeof: Space-mode array of EOFs
+	!	- pc: Time-mode array of PCs
+	!	- ev: Mode array of eigen values (variances)
+	!	- ev_sum: Sum of all egein values (even thoses not returned)
+	!	- weights: Space array of weights
+	!	- useteof: To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]
 	!	- bLargeMatrix: Use syevd instead of syev (faster for large 
-	!                  matrices, but uses more workspace) [default:.true.]
+	!         matrices, but uses more workspace) [default:.true.]
 	!
 	! Dependencies:
 	!	[sd]gemm(BLAS) [sd]syrk(BLAS) syev(LAPACK95) syevd(LAPACK95)
@@ -65,7 +65,7 @@ contains
 	! Declarations
 	! ============
 
-	use spanlib_lapack95, only: syevd, syev
+	use spanlib_lapack95, only: syevd=>la_syevd, syev=>la_syev
 
 	implicit none
 
@@ -492,7 +492,7 @@ contains
 	! Declarations
 	! ============
 
-	use spanlib_lapack95, only: syevd, syev
+	use spanlib_lapack95, only: syevd=>la_syevd, syev=>la_syev
 
 	implicit none
 
@@ -850,7 +850,9 @@ contains
 	! Declarations
 	! ============
 
-	use spanlib_lapack95, only: gesdd, gesvd 
+	use spanlib_lapack95, only: gesdd=>la_gesdd, gesvd=>la_gesvd
+!	use spanlib_lapack95, only: gesdd, gesvd
+!	use f95_lapack, only: gesdd => la_gesdd, gesvd => la_gesvd
 
 	implicit none
 

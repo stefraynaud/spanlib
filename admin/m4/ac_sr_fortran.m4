@@ -25,7 +25,7 @@ AC_DEFUN([AC_SR_FORTRAN],
 
 	# Main program
 	AC_LANG(Fortran)
-	AC_PROG_FC(ifort efc ifc gfortran f90 f95 g95 xlf90 pgf90 epcf90 pathf90 xlf95 lf95 fort sxf90)
+	AC_PROG_FC(gfortran ifort efc ifc f90 f95 g95 xlf90 pgf90 epcf90 pathf90 xlf95 lf95 fort sxf90)
 	AS_VAR_SET_IF(FC,,
 		AC_SR_ERROR([No Fortran 90 compiler available on this machine.
 Please use FC to specify it or update your environnement variable PATH or
@@ -120,26 +120,26 @@ install a Fortran 90 compiler.])
 				debug)
 					AC_MSG_NOTICE([**** DEBUGGING OPTIONS are SELECTED *****])
 					FCFLAGS="-g -O0 -132 -no_cpprt -check all -traceback -auto -warn all -warn unused -debug variable_locations -inline_debug_info"
-					LDFLAGS="-g -O0 -132 -no_cpprt -check all -traceback -auto -inline_debug_info"
+					LDFLAGS=""
 					;;
 				aggressive)
 					AC_MSG_NOTICE([**** AGGRESSIVE COMPILER OPTIONS are SELECTED *****])
-					FCFLAGS="-fast -132"
+					FCFLAGS=""
 					LDFLAGS="-fast -132"
 					;;
 				normal|*)
 					AC_MSG_NOTICE([**** NORMAL MODE *****])
 					# Taken from google, special for ifort/blas/lapack:
-					FCFLAGS="-O3 -mp -tpp6 -132 -ip -ftz-"
+					FCFLAGS="-O3 -mp -132 -ip -ftz-"
 					AC_CHECK_FILE([/opt/intel_fc_80/lib],
-						[LDFLAGS="-O3 -Wl,-R/opt/intel_fc_80/lib"],
-						[LDFLAGS="-O3"])
+						[LDFLAGS="-Wl,-R/opt/intel_fc_80/lib"],
+						[LDFLAGS=""])
 					;;
 			esac
 			if test "$enable_prof" = "yes" ; then
 				 AC_MSG_NOTICE([**** PROFILING is SELECTED (gprof) *****])
 				 FCFLAGS="-pg $FCFLAGS"
-				 LDFLAGS="-pg $LDFLAGS"
+				 LDFLAGS=""
 			fi
 			;;
 		##	 IBM FORTRAN COMPILER on AIX OPERATING SYSTEM
@@ -188,7 +188,7 @@ install a Fortran 90 compiler.])
 				debug)
 					AC_MSG_NOTICE([**** DEBUGGING OPTIONS are SELECTED *****])
 					FCFLAGS="$FCFLAGS -g -O0 -Wall -Wunset-vars -Wunused-vars -fbounds-check "
-					FCFLAGS="$FCFLAGS -g -Wall"
+					LDFLAGS="$FCFLAGS -Wall"
 					;;
 				aggressive)
 					AC_MSG_NOTICE([**** AGGRESSIVE COMPILER OPTIONS are SELECTED *****])
@@ -232,6 +232,6 @@ install a Fortran 90 compiler.])
 	AC_MSG_RESULT(AS_VAR_GET(PRECISION))
 	AC_SUBST(PRECISION)
 	AC_SUBST(WP)
-
+	AC_PROG_FC_UPPERCASE_MOD
 
 ])

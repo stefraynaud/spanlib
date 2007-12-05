@@ -1,7 +1,7 @@
 ! File: spanlib_lapack95.F90
 !
 ! This file is part of the SpanLib library.
-! Copyright (C) 2006  Stephane Raynaud
+! Copyright (C) 2006-2007  Stephane Raynaud
 ! Contact: stephane dot raynaud at gmail dot com
 !
 ! This library is free software; you can redistribute it and/or
@@ -25,10 +25,10 @@ module spanlib_lapack95
 
 	! Subroutines
 	use f95_lapack, only: &
-		& syev  => la_syev, &
-		& syevd => la_syevd, &
-		& gesvd => la_gesvd, &
-		& gesdd => la_gesdd
+		& la_syev  => syev, &
+		& la_syevd => syevd, &
+		& la_gesvd => gesvd, &
+		& la_gesdd => gesdd 
 
 end module spanlib_lapack95
 

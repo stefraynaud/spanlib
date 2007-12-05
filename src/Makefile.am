@@ -1,15 +1,20 @@
 ######################################################################
-## SpanLib, Raynaud 2006
+## SpanLib, Raynaud 2006-2007
 ######################################################################
 
 lib_LIBRARIES = libspanlib.a
+if UPPER_CASE_MOD
+nodist_include_HEADERS=SPANLIB_PRECISION.mod SPANLIB_LAPACK95.mod SPANLIB.mod
+else
 nodist_include_HEADERS=spanlib_precision.mod spanlib_lapack95.mod spanlib.mod
+endif
 nodist_libspanlib_a_SOURCES=spanlib_precision.f90 spanlib_lapack95.f90
 dist_libspanlib_a_SOURCES=spanlib.f90
 noinst_PROGRAMS = getf90precision
 getf90precision_SOURCES = getf90precision.f90
 CLEANFILES=*.pyf setup.cfg *.mod $nodist_libspanlib_a_SOURCES
 AM_FCFLAGS=$(LAPACK95_INC)
+AM_F90FLAGS=$(AM_FCFLAGS)
 
 WRAPPER=spanlib_pywrap.f90
 if WITH_PYTHON
@@ -24,17 +29,21 @@ EXTRA_DIST=$(WRAPPER)
 
 all-local: check-precision $(LIBRARIES) $(HEADERS) $(PYTHON_LIBRARY)
 
+if UPPER_CASE_MOD
+spanlib.o: SPANLIB_LAPACK95.mod spanlib_precision.mod
+SPANLIB_PRECISION.mod: spanlib_precision.o
+SPANLIB_LAPACK95.mod: spanlib_lapack95.o
+else
 spanlib.o: spanlib_lapack95.mod spanlib_precision.mod
-
 spanlib_precision.mod: spanlib_precision.o
-
 spanlib_lapack95.mod: spanlib_lapack95.o
-
+endif
 spanlib_precision.f90: check-precision
 
-spanlib_lapack95.f90: check-lapack95
+# spanlib_lapack95.f90: check-lapack95
 
-check-precision: check-lapack95 spanlib_precision.F90
+# check-precision: check-lapack95 spanlib_precision.F90
+check-precision: spanlib_lapack95.f90 spanlib_precision.F90
 	@echo "Checking precision..."
 	@test -f spanlib_precision.f90 || cp $^ spanlib_precision.f90
 	@precision=`grep "wp *= *sp" spanlib_precision.f90 | cut -d\  -f6` ; \
@@ -42,23 +51,38 @@ check-precision: check-lapack95 spanlib_precision.F90
 	( rm -f spanlib_precision.f90 && sed "s/wp = sp/wp = $(WP)/" $^ > spanlib_precision.f90 && \
 	echo "Switched to $(PRECISION) precision" )
 
-check-lapack95: spanlib_lapack95.F90
-	@echo "Checking lapack95 config..."
+# check-lapack95: spanlib_lapack95.F90
+spanlib_lapack95.f90: spanlib_lapack95.F90
+	@echo "Updating lapack95 config..."
 	@test -f spanlib_lapack95.f90  || cp $^ spanlib_lapack95.f90
-	@use_mkl_lapack95=`grep "use .*mkl95_lapack" spanlib_lapack95.f90`  ; \
-	if test "x$$use_mkl_lapack95" = "x" -a "$(USE_MKL_LAPACK95)" = "yes" ; then \
+	@if test "$(USE_MKL_LAPACK95)" = "yes" ; then \
       rm -f spanlib_lapack95.f90 ; \
       sed -e "s/use la_precision/use mkl95_precision/" \
           -e "s/use f95_lapack/use mkl95_lapack/" \
-          -e "s/ => [_a-z]*//g" \
           $^ > spanlib_lapack95.f90 ; \
       echo "Switched to MKL (intel) lapack95 config" ; \
-   elif test "x$$use_mkl_lapack95" != "x" -a "$(USE_MKL_LAPACK95)" = "no" ; then \
+   else  \
       rm -f spanlib_lapack95.f90 ; \
-      cp $^ spanlib_lapack95.f90 ; \
+      sed "s/ => [_a-z]*//g" $^ > spanlib_lapack95.f90 ; \
       echo "Switched back to default lapack95 config" ; \
    fi
  	
+# check-lapack95: spanlib_lapack95.F90
+# 	@echo "Checking lapack95 config..."
+# 	@test -f spanlib_lapack95.f90  || cp $^ spanlib_lapack95.f90
+# 	@use_mkl_lapack95=`grep "use .*mkl95_lapack" spanlib_lapack95.f90`  ; \
+# 	if test "x$$use_mkl_lapack95" = "x" -a "$(USE_MKL_LAPACK95)" = "yes" ; then \
+#       rm -f spanlib_lapack95.f90 ; \
+#       sed -e "s/use la_precision/use mkl95_precision/" \
+#           -e "s/use f95_lapack/use mkl95_lapack/" \
+#           $^ > spanlib_lapack95.f90 ; \
+#       echo "Switched to MKL (intel) lapack95 config" ; \
+#    elif test "x$$use_mkl_lapack95" != "x" -a "$(USE_MKL_LAPACK95)" = "no" ; then \
+#       rm -f spanlib_lapack95.f90 ; \
+#       sed "s/ => [_a-z]*//g" $^ > spanlib_lapack95.f90 ; \
+#       echo "Switched back to default lapack95 config" ; \
+#    fi
+
 if WITH_PYTHON
 install-exec-hook:
 if LOCAL_PYTHON_INSTALL

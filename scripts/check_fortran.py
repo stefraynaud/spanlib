@@ -1,27 +1,27 @@
 #!/usr/bin/env python
 import sys
 
-id2fc =  {	'gfortran':	('gfortran'),
-		'intel':	('ifort','ifc'),
-		'intelv':	('ifl'),
-		'intele':	('efort','efc','ifort'),
-		'intelev':	('efl'),
-		'pg':		('pgf90'),
-		'lahey':	('lf95'),
-		'ibm':	('xlf90'),
-		'compaqv':	('DF'),
-		'nag':	('f95'),
-		'compaq':	('fort','f90'),
-		'absoft':	('f90'),
-		'mips':	('f90'),
-		'sun':	('f90'),
-		'vast':	('f90'),
-		'hpux':	('f90')
- }
+id2fc =  (	('gnu95',	('gfortran')),
+		('intel',	('ifort','ifc')),
+		('intelv',	('ifl')),
+		('intele',	('efort','efc','ifort')),
+		('intelev',	('efl')),
+		('pg',		('pgf90')),
+		('lahey',	('lf95')),
+		('ibm',	('xlf90')),
+		('compaqv',	('DF')),
+		('nag',	('f95')),
+		('compaq',	('fort','f90')),
+		('absoft',	('f90')),
+		('mips',	('f90')),
+		('sun',	('f90')),
+		('vast',	('f90')),
+		('hpux',	('f90'))
+ )
 
 myId = ""
-for id in id2fc.keys():
-	if sys.argv[1] in id2fc[id]:
+for id,fcs in id2fc:
+	if sys.argv[1] in fcs:
 		myId = id
 		break
 

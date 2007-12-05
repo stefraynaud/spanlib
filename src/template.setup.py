@@ -23,7 +23,7 @@ author_email = 'stephane.raynaud@gmail.com'
 url="http://spanlib.sf.net"
 description
 ## scypy_distutils Script
-from scipy_distutils.core import setup, Extension
+from numpy.distutils.core import setup, Extension
 
 # Some useful directories.  
 ## from distutils.sysconfig import get_python_inc, get_python_lib

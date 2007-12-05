@@ -24,8 +24,8 @@ AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
 		AC_SR_F2PY()
 
 		# CDAT support
-		AC_MSG_CHECKING([for CDAT support])
-		AS_VAR_GET(PYTHON) -c ["import cdms"] 2> /dev/null
+		AC_MSG_CHECKING([for CDAT support with numpy])
+		AS_VAR_GET(PYTHON) -c ["import cdms2"] 2> /dev/null
 		AS_IF([test "$?" = "0"],
 			AS_VAR_SET(HAS_CDAT,"yes"),
 			AS_VAR_SET(HAS_CDAT,"no")
@@ -37,7 +37,7 @@ AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
 
 		# Matplotlib for plotting
 		AC_MSG_CHECKING([for Matplotlib support])
-		AS_VAR_GET(PYTHON) -c ["import matplotlib.figure"] 2> /dev/null
+		AS_VAR_GET(PYTHON) -c ["from matplotlib import use"] 2> /dev/null
 		AS_IF([test "$?" = "0"],
 			AS_VAR_SET(HAS_MPL,"yes"),
 			AS_VAR_SET(HAS_MPL,"no")
@@ -55,12 +55,14 @@ AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
 	# So, for python...
 	AS_IF([test "AS_VAR_GET(HAS_CDAT)" != "no"  -a "AS_VAR_GET(F2PY)" != "no" -a \
 			    "AS_VAR_GET(HAS_BLASLAPACK)" != "no"],
-			[AS_VAR_SET(WITH_PYTHON,"yes")])
+			[AS_VAR_SET(WITH_PYTHON,"yes")],
+			[AC_SR_WARNING([You wont be able to build the python module.
+You need perl, BLAS/LAPACK, f2py and CDAT.])])
 	AM_CONDITIONAL([WITH_PYTHON],AS_VAR_TEST_SET(WITH_PYTHON))
-	AS_IF(AS_VAR_TEST_SET(WITH_PYTHON),,
-		[AC_SR_WARNING([You wont be able to build the python module.
-You need perl, BLAS/LAPACK, f2py and CDAT.])]
-	)
+# 	AS_IF(AS_VAR_TEST_SET(WITH_PYTHON),,
+# 		[AC_SR_WARNING([You wont be able to build the python module.
+# You need perl, BLAS/LAPACK, f2py and CDAT.])]
+# 	)
 
 
 

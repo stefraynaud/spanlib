@@ -56,7 +56,7 @@ you will have to download yourself the input data file to run the example]))
 	# Fortran examples
 	AS_VAR_SET(f90exlist,"1 2 3 4 5 5 6 7 8 9")
 
-	# Ncview
+	# Ncview...
 	AC_CHECK_PROG(NCVIEW,ncview,ncview,no)
 	AS_IF([test "AS_VAR_GET(NCVIEW)" != "no"],[
 		AS_VAR_SET(NCVIEWER,AS_VAR_GET(NCVIEW))
@@ -65,12 +65,12 @@ you will have to download yourself the input data file to run the example]))
 		done
 	])
 
-	# VCDAT
+	# ...or VCDAT...
 	AS_VAR_SET_IF(NCVIEWER,,[
 		AS_IF([test "AS_VAR_GET(VCDAT)" != "no"], [AS_VAR_SET(NCVIEWER,AS_VAR_GET(VCDAT))])
 	])
 
-	# Quick vcs (cdat) or matplotlib viewer
+	# ...or  quick vcs (cdat) or matplotlib viewer
 	AS_VAR_SET_IF(NCVIEWER,,[
 		AS_IF([test AS_VAR_GET(HAS_CDAT) = "yes" -o AS_VAR_GET(HAS_MPL) = "yes"],[
 			AS_VAR_SET(NCVIEWER,[AS_VAR_GET(PYTHON) ../scripts/quickplot.py])
