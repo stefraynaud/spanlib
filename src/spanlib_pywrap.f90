@@ -216,7 +216,7 @@ subroutine chan_pack(ff3d, mask, nstot, nt, ff2d, ns)
 	integer, intent(in)  :: nstot, nt, ns
 	real(wp),intent(in)  :: ff3d(nt,nstot)
 	integer, intent(in)  :: mask(nstot)
-	real(wp),intent(out) :: ff2d(nt,ns)
+	real(wp),intent(out) :: ff2d(ns,nt)
 
 	! Internal
 	! --------
@@ -225,7 +225,7 @@ subroutine chan_pack(ff3d, mask, nstot, nt, ff2d, ns)
 	! Call to pack
 	! ------------
 	do it = 1, nt
-		ff2d(it,:) = pack(ff3d(it,:), mask==1)
+		ff2d(:,it) = pack(ff3d(it,:), mask==1)
 	end do
 
 end subroutine chan_pack
@@ -243,7 +243,7 @@ subroutine chan_unpack(ff3d, mask, nstot, nt, ff2d, ns, &
 	integer, intent(in)  :: nstot, nt, ns
 	real(wp),intent(out) :: ff3d(nt,nstot)
 	integer, intent(in)  :: mask(nstot)
-	real(wp),intent(in)  :: ff2d(nt,ns),missing_value
+	real(wp),intent(in)  :: ff2d(ns,nt),missing_value
 
 	! Internal
 	! --------
@@ -252,7 +252,7 @@ subroutine chan_unpack(ff3d, mask, nstot, nt, ff2d, ns, &
 	! Call to pack
 	! ------------
 	do it = 1, nt
-		ff3d(it,:) = unpack(ff2d(it,:), mask==1, missing_value)
+		ff3d(it,:) = unpack(ff2d(:,it), mask==1, missing_value)
 	end do
 
 end subroutine chan_unpack

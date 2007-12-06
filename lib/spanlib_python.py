@@ -60,8 +60,8 @@ def _pack_(data,weights=None):
 	sh=list(data.shape)
 
 	# Is it already packed? Check the mask...
-	mask = data.mask()
-	if mask is None:
+	#FIXME: fix all .mask()
+	if data.mask is False:
 		if weights is None:
 			weights = npy.ones(nstot,dtype='f')
 		else:
@@ -73,19 +73,19 @@ def _pack_(data,weights=None):
 
 	# Weights ?
 	if weights is None:
-		if data.rank() == 3 and \
+		if data.ndim == 3 and \
 			data.getAxis(-1).isLongitude() and data.getAxis(-2).isLatitude():
 			import cdutil
 			weights = cdutil.area_weights(data[0]).raw_data() # Geographic weights
 		else:
-			weights=npy.reshape(npy.ones(nstot,dtype='f'),sh[1:])
+			weights = npy.ones(nstot,dtype='f').reshape(sh[1:])
 	else:
 		if cdms.isVariable(weights):
 			weights = weights.filled(0.)
 
 	# Mask
 	# - First from data
-	mask = npy.array(npy.sum(MV.getmaskarray(data),axis=0),copy=0,savespace=1,dtype='i') # no time
+	mask = npy.asarray(npy.sum(MV.getmaskarray(data),axis=0),dtype='i') # no time
 	# - Now add the ones from the weights
 	mask[:] = mask+npy.equal(weights,0.)
 	# - >=1 means masked, Fortran "mask": 1 means data ==> 1-mask
@@ -98,12 +98,14 @@ def _pack_(data,weights=None):
 
 	# Pack space
 	# - Pack numeric data array
-	data_to_pack = npy.reshape(data.filled(1.e20),(nt,nstot)) 
-	print data_to_pack.shape,len(mask.flat)
-	packed_data = spanlib_fort.chan_pack(data_to_pack,mask.flat,ns)
+	data_to_pack = data.filled(1.e20).reshape((nt,nstot)) 
+	packed_data = npy.asarray(spanlib_fort.chan_pack(data_to_pack,mask.flat,ns),
+		dtype='f',order='F')
 	del data_to_pack
 	# - Pack weights
-	packed_weights = spanlib_fort.chan_pack(weights.flat,mask.flat,ns)[:,0].astype('f')
+	weights = weights.reshape((1,nstot))
+	packed_weights = npy.asarray(spanlib_fort.chan_pack(weights,mask.flat,ns)[:,0],
+		dtype='f')
 
 	return packed_data,packed_weights,mask
 
@@ -393,10 +395,10 @@ class SpAn(object):
 		for iset,pdata in enumerate(self._pdata):
 
 			# Compute PCA
-			if len(pdata.shape) == 1: # One single channel, so result is itself
+			if pdata.ndim == 1: # One single channel, so result is itself
 				raw_eof = npy.ones(1,dtype=pdata.dtype)
 				raw_pc = pdata
-				raw_ev = genutil.statistics.variance(raw_pc)
+				raw_ev = raw_pc.var()
 				ev_sum = ev
 
 			else: # Several channels
@@ -421,7 +423,7 @@ class SpAn(object):
 
 		# Already available
 		if self._pca_fmt_eof != [] and not update:
-			return self._return(self._pca_fmt_eof)
+			return self._return_(self._pca_fmt_eof)
 
 		# PCA still not performed
 		if self._pca_raw_eof == [] or update: self.pca(*args,**kwargs)
@@ -431,7 +433,7 @@ class SpAn(object):
 		# Of, let's format the variable
 		for iset,raw_eof in enumerate(self._pca_raw_eof):
 			# Get raw data back to physical space
-			self._pca_fmt_eof.append(self._unstack(iset,raw_eof,self._mode_axis_('pca')))
+			self._pca_fmt_eof.append(self._unstack_(iset,raw_eof,self._mode_axis_('pca')))
 			# Set attributes
 			for idata,eof in enumerate(self._pca_fmt_eof[-1]):
 				if not self._stack_info[iset]['ids'][idata].startswith('variable_'):
@@ -447,7 +449,7 @@ class SpAn(object):
 				if atts.has_key('units'):
 					del eof.units
 
-		return self._return(self._pca_fmt_eof)		
+		return self._return_(self._pca_fmt_eof)		
 
 
 	def pca_pc(self,update=False,*args,**kwargs):
@@ -483,7 +485,7 @@ class SpAn(object):
 			if atts.has_key('units'):     pc.units = atts['units']
 			self._pca_fmt_pc.append(pc)
 
-		return self._return(self._pca_fmt_pc)		
+		return self._return_(self._pca_fmt_pc)		
 
 
 	def pca_ev(self,relative=False,sum=False,update=False):
@@ -523,7 +525,7 @@ class SpAn(object):
 							break
 				res.append(ev)
 
-		return self._return(res)		
+		return self._return_(res)		
 
 	def pca_rec(self,imode=None):
 		
@@ -534,7 +536,7 @@ class SpAn(object):
 
 		for iset,raw_rec in enumerate(self._projection(imode,self._pca_raw_eof,self._pca_fmt_pc)):
 			# Get raw data back to physical space
-			self._pca_fmt_rec.append(self._unstack(iset,raw_rec,self._time_axis_(iset)))
+			self._pca_fmt_rec.append(self._unstack_(iset,raw_rec,self._time_axis_(iset)))
 			del  raw_rec
 			# Set attributes
 			for idata,rec in enumerate(self._pca_fmt_rec[-1]):
@@ -549,7 +551,7 @@ class SpAn(object):
 				if atts.has_key('long_name'):
 					rec.long_name += ' for '+atts['long_name']
 					
-		return self._return(self._pca_fmt_rec)	
+		return self._return_(self._pca_fmt_rec)	
 	
 	
 
@@ -712,7 +714,7 @@ class SpAn(object):
 		for iset,raw_eof in enumerate(self._mssa_raw_eof): # (nwindow*nchan,nmssa)
 			# Get raw data back to physical space
 			if not self._mssa_prepca: # No pre-PCA performed
-				self._mssa_fmt_eof.append(self._unstack(iset,raw_eof.transpose(),
+				self._mssa_fmt_eof.append(self._unstack_(iset,raw_eof.transpose(),
 					(self._mode_axis_('mssa'),self._mssa_window_axis_(iset))))
 			elif pure:
 				self._mssa_fmt_eof.append([cdms.createVariable(raw_eof.transpose())])
@@ -721,9 +723,9 @@ class SpAn(object):
 			else:
 				nm = self._nmssa ; nw = self._nwindow ; nc = self._npca
 				proj_eof = self._projection(-self._nmssa,self._pca_raw_eof[iset],
-					npy.swapaxes(raw_eof,0,1).reshape((nw*nc,nm)),
+					npy.swapaxes(raw_eof,0,1).reshape((nw*nc,nm),order='F'),
 					nt=self._nwindow*self._nmssa)
-				self._mssa_fmt_eof.append(self._unstack(iset,proj_eof,
+				self._mssa_fmt_eof.append(self._unstack_(iset,proj_eof,
 					(self._mode_axis_('mssa'),self._mssa_window_axis_(iset))))
 			# Set attributes
 			for idata,eof in enumerate(self._mssa_fmt_eof[-1]):
@@ -740,7 +742,7 @@ class SpAn(object):
 				if atts.has_key('units'):
 					del eof.units
 		gc.collect()
-		return self._return(self._mssa_fmt_eof)
+		return self._return_(self._mssa_fmt_eof)
 
 	def mssa_pc(self,update=False,*args,**kwargs):
 		"""Get PCs from current MSSA decomposition
@@ -776,7 +778,7 @@ class SpAn(object):
 			if atts.has_key('units'):     pc.units = atts['units']
 			self._mssa_fmt_pc.append(pc)
 
-		return self._return(self._mssa_fmt_pc)		
+		return self._return_(self._mssa_fmt_pc)		
 			
 
 	def mssa_ev(self,relative=False,sum=False,update=False):
@@ -816,7 +818,7 @@ class SpAn(object):
 							break
 				res.append(ev)
 
-		return self._return(res)		
+		return self._return_(res)		
 
 
 	def mssa_rec(self,imode=None,pure=False):
@@ -830,7 +832,7 @@ class SpAn(object):
 		for iset,(raw_eof,raw_pc) in enumerate(zip(self._mssa_raw_eof,self._mssa_raw_pc)):
 			raw_rec = self._projection(imode,raw_eof,raw_pc).transpose() # (nt,nchan)
 			if not self._mssa_prepca: # No pre-PCA performed
-				self._mssa_fmt_rec.append(self._unstack(iset,raw_rec,self._time_axis_(iset)))
+				self._mssa_fmt_rec.append(self._unstack_(iset,raw_rec,self._time_axis_(iset)))
 			elif pure: # Force direct result from MSSA
 				self._mssa_fmt_rec.append([cdms.createVariable(raw_rec)])
 				self._mssa_fmt_rec[-1][0].setAxisList(0,
@@ -838,7 +840,7 @@ class SpAn(object):
 			else: # With pre-pca
 				proj_rec = self._projection(-self._npca,
 					self._pca_raw_eof[iset], raw_rec, nt=self._nwindow*self._nmssa)
-				self._mssa_fmt_eof.append(self._unstack(iset,proj_rec,
+				self._mssa_fmt_eof.append(self._unstack_(iset,proj_rec,
 					(self._mode_axis_('pca'),self._mssa_window_axis_(iset))))
 			smodes = raw_rec.smodes
 			del  raw_rec
@@ -1225,7 +1227,7 @@ class SpAn(object):
 		for iset in xrange(ndataset):
 
 			# Unstack data for this dataset
-			ffrec[iset] = self._unstack(iset,ffrec_raw[iset],'pca')
+			ffrec[iset] = self._unstack_(iset,ffrec_raw[iset],'pca')
 
 			# Check some properties
 			for this_rec in ffrec[iset]:
@@ -1243,7 +1245,7 @@ class SpAn(object):
 			# Back to physical space
 			sh = [ffrec[i].shape[1],]
 			sh.extend(self.shapes[i][1:])
-			if self.mask[i] is not None:
+			if self.mask[i] is not False:
 				print ffrec[i].shape
 				ffrec[i] = MV.transpose(spanlib_fort.chan_unpack(self.mask[i],ffrec[i],1.e20))
 				ffrec.setMissing(1.e20)
@@ -1267,7 +1269,7 @@ class SpAn(object):
 			if not svd:
 				ffrec[i].setGrid(self.grids[i])
 
-		return self._return(ffrec)
+		return self._return_(ffrec)
 
 	def _return_(self,dataset,grouped=False):
 		"""Return dataset as input dataset"""
@@ -1289,13 +1291,13 @@ class SpAn(object):
 
 	def clean(self):
 		atts = []
-		for bb in 'pca','mssa','svd':
-			for aa in 'raw','fmt':
+		for aa in 'pca','mssa','svd':
+			for bb in 'raw','fmt':
 				for cc in 'eof','pc':
 					atts.append('_%s_%s_%s'%(aa,bb,cc))
-		atts.extend('_mssa_pairs','_stack_info','_svd_l2r','_stack_info','_nt','_ns','_ndata','_mode_axes','_channel_axes','_window_axis')
+		atts.extend(['_mssa_pairs','_stack_info','_svd_l2r','_stack_info','_nt','_ns','_ndata','_mode_axes','_channel_axes','_window_axis','_pdata'])
 		for att in atts:
-			if att in dir(self):
+			if hasattr(self,att):
 				obj = getattr(self,att)
 				del obj
 			setattr(self,att,[])
@@ -1306,6 +1308,7 @@ class SpAn(object):
 		self._svd_channel_axes = {}
 		self._ndataset = 0
 		self._last_analysis_type = None
+		gc.collect()
 
 
 	def _stack(self,dataset,dweights):
@@ -1344,17 +1347,13 @@ class SpAn(object):
 				data = cdms.createVariable(data,copy=0)
 
 			# Check time
-			t = data.getTime()
-			if t is None:
-				t = d.getAxis(0)
-				t.designateTime()
-				data.setAxis(0,t)
+			if data.getTime() is not None:
+				# If a proper time axis is found, bring it to front
+				data = data(order='t...')
 			if len_time is None:
-				len_time=len(t)
-			elif len_time!=len(t):
+				len_time = data.shape[0]
+			elif len_time != len(data.getAxis(0)):
 				raise 'Error all datasets must have the same time length!!!!'
-			if data.getAxis(0) != t:
-				data=data(order='t...')
 
 			# Append info
 			taxes.append(data.getAxis(0))
@@ -1409,7 +1408,8 @@ class SpAn(object):
 		# Loop on stacked data
 		istart = 0
 		unstacked = []
-		axes = list(firstaxes)
+		if not isinstance(firstaxes,list):
+			firstaxes = [firstaxes]
 		for idata in xrange(len(self._stack_info[iset]['ids'])):
 
 			# Get needed stuff
@@ -1417,19 +1417,18 @@ class SpAn(object):
 				if vname[-1] == 's':
 					exec "%s = self._stack_info[iset]['%s'][idata]" % (vname[:-1],vname)
 
-			# Axes and shape
-
 			# Unpack data
-			mlen = int(npy.sum(mask.flat))
+			mlen = int(mask.sum())
 			iend = istart + mlen
 			unpacked = spanlib_fort.chan_unpack(mask.flat,pdata[:,istart:iend],mv)
+			unpacked = npy.asarray(unpacked,order='C')
 
-			# Check shape
+			# Check axes and shape
 			axes = list(firstaxes)
-			if len(shape) > 1: axes.extend(saxes)
+			if len(shape) > 1: axes.extend(saxe)
 			shape = tuple([len(axis) for axis in axes])
 			if unpacked.shape != shape:
-				unpacked = npy.reshape(unpacked,fullshape)
+				unpacked = unpacked.reshape(fullshape,order='C')
 				
 			# Mask and set attributes
 			masked = MV.masked_object(unpacked,mv) ; del unpacked
