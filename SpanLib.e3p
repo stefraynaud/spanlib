@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-3.9.dtd">
 <!-- Project file for project SpanLib -->
-<!-- Saved: 2007-05-16, 14:48:09 -->
+<!-- Saved: 2007-12-04, 16:47:00 -->
 <!-- Copyright (C) 2007 Stephane Raynaud, Charles Doutriaux, stephane.raynaud@gmail.com -->
 <Project version="3.9">
   <ProgLanguage mixed="0">Python</ProgLanguage>
@@ -139,6 +139,26 @@
   <Interfaces>
   </Interfaces>
   <Others>
+    <Other>
+      <Dir>src</Dir>
+      <Name>spanlib.f90</Name>
+    </Other>
+    <Other>
+      <Dir>src</Dir>
+      <Name>spanlib_precision.F90</Name>
+    </Other>
+    <Other>
+      <Dir>src</Dir>
+      <Name>spanlib.pyf</Name>
+    </Other>
+    <Other>
+      <Dir>src</Dir>
+      <Name>spanlib_pywrap.f90</Name>
+    </Other>
+    <Other>
+      <Dir>src</Dir>
+      <Name>template.setup.cfg</Name>
+    </Other>
   </Others>
   <Vcs>
     <VcsType>Subversion</VcsType>
@@ -200,10 +220,10 @@ I1
 s.</VcsOtherData>
   </Vcs>
   <FiletypeAssociations>
-    <FiletypeAssociation pattern="*.ui.h" type="FORMS" />
-    <FiletypeAssociation pattern="*.ui" type="FORMS" />
-    <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
-    <FiletypeAssociation pattern="*.ptl" type="SOURCES" />
     <FiletypeAssociation pattern="*.py" type="SOURCES" />
+    <FiletypeAssociation pattern="*.ui.h" type="FORMS" />
+    <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
+    <FiletypeAssociation pattern="*.ui" type="FORMS" />
+    <FiletypeAssociation pattern="*.ptl" type="SOURCES" />
   </FiletypeAssociations>
 </Project>

@@ -4,18 +4,17 @@ if os.path.exists('../src/build/tmp_lib'):
 import spanlib,cdms2 as cdms,MV2 as MV,numpy as npy,pylab as P
 
 
-
 var = npy.zeros((50,100),'f')
 nt,nx = var.shape
 
 xx = npy.arange(nx,dtype='f')
 tt = npy.arange(nt,dtype='f')
 
-xfreq = 3
-tfreq = 2
-for ifreq in 1,2:
-	tvar = npy.cos(npy.pi * xfreq*ifreq * tt/(nt-1)).reshape((nt,1))
-	xvar = npy.cos(npy.pi * xfreq*ifreq * xx/(nx-1)).reshape((1,nx))
+xfreq = 2
+tfreq = 3
+for ifreq in .5,3:
+	tvar = (npy.cos(2*npy.pi * tfreq * tt/(nt-1))*tt/(nt-1)).reshape((nt,1))
+	xvar = npy.cos(2*npy.pi * xfreq*ifreq * xx/(nx-1)).reshape((1,nx))
 	var += npy.multiply(tvar,xvar)
 
 
@@ -32,18 +31,36 @@ var.units = 'm'
 var.long_name = 'My variable'
 var.setAxisList([time,lon])
 
+f=cdms.open('var.nc','w')
+f.write(var)
+f.close()
 
-span = spanlib.SpAn(var,npca=2)
+nmode = 6
+span = spanlib.SpAn(var,npca=nmode)
 eof = span.pca_eof()
 print 'SHAPE EOF',eof.shape
-eof.info()
+pc = span.pca_pc()
 
-#pc = span.pca_pc()
+
+pc.setAxis(1,var.getAxis(0))
+print 'VAR',var.getTime()
+print 'PC',pc.getTime()
 
 f=cdms.open('out.nc','w')
+f.write(var,extend=False)
 f.write(eof)
+f.write(pc)
 f.close()
-P.pcolor(eof)
+
+P.figure(figsize=(8,10))
+for im in xrange(nmode):
+	P.subplot(nmode*2,2,im*2+1)
+	P.plot(eof[im].filled())
+	P.title('EOF %i'%(im+1))
+	P.subplot(nmode*2,2,im*2+2)
+	P.plot(pc[im].filled())
+	P.title('PC %i'%(im+1))
 P.savefig('out.png')
+
 
 

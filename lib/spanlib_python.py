@@ -436,11 +436,12 @@ class SpAn(object):
 			self._pca_fmt_eof.append(self._unstack_(iset,raw_eof,self._mode_axis_('pca')))
 			# Set attributes
 			for idata,eof in enumerate(self._pca_fmt_eof[-1]):
+				print 'ok id eof?',self._stack_info[iset]['ids'][idata]
 				if not self._stack_info[iset]['ids'][idata].startswith('variable_'):
 					eof.id = self._stack_info[iset]['ids'][idata]+'_pca_eof'
 				else:
 					eof.id = 'pca_eof'
-				eof.name = eof.id
+				eof.name = pc.eof
 				eof.standard_name = 'empirical_orthogonal_functions_of_pca'
 				eof.long_name = 'PCA empirical orthogonal functions'
 				atts = self._stack_info[iset]['atts'][idata]
@@ -470,10 +471,11 @@ class SpAn(object):
 		# Of, let's format the variable
 		for iset,raw_pc in enumerate(self._pca_raw_pc):
 			idata = 0 # Reference is first data
-			pc = cdms.createVariable(raw_pc)
+			pc = cdms.createVariable(npy.asarray(raw_pc.transpose(),order='C'))
 			pc.setAxis(0,self._mode_axis_('pca'))
 			pc.setAxis(1,self._time_axis_(iset,idata))
-			if self._stack_info[iset]['ids'][idata].startswith('variable_'):
+			print 'ok id pc?',self._stack_info[iset]['ids'][idata]
+			if not self._stack_info[iset]['ids'][idata].startswith('variable_'):
 				pc.id = self._stack_info[iset]['ids'][idata]+'_pca_pc'
 			else:
 				pc.id = 'pca_pc'
@@ -763,10 +765,10 @@ class SpAn(object):
 		# Of, let's format the variable
 		for iset,raw_pc in enumerate(self._mssa_raw_pc):
 			idata = 0 # Reference is first data
-			pc = cdms.createVariable(raw_pc)
+			pc = cdms.createVariable(npy.asarray(raw_pc.transpose(),order='C'))
 			pc.setAxis(0,self._mode_axis_('mssa'))
 			pc.setAxis(1,self._mssa_pctime_axis_(iset,idata))
-			if self._stack_info[iset]['ids'][idata].startswith('variable_'):
+			if not self._stack_info[iset]['ids'][idata].startswith('variable_'):
 				pc.id = self._stack_info[iset]['ids'][idata]+'_mssa_pc'
 			else:
 				pc.id = 'mssa_pc'
@@ -1273,7 +1275,6 @@ class SpAn(object):
 
 	def _return_(self,dataset,grouped=False):
 		"""Return dataset as input dataset"""
-		print 'dataset',dataset
 		# Single variable
 		if self._input_map == 0:
 			if cdms.isVariable(dataset[0]):

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Tasks SYSTEM "Tasks-3.8.dtd">
 <!-- Tasks file for project SpanLib -->
-<!-- Saved: 2007-05-16, 14:48:09 -->
+<!-- Saved: 2007-12-04, 16:47:00 -->
 <Tasks version="3.8">
   <Task priority="1" completed="0" bugfix="0">
     <Description>TODO: finish the svd model man !</Description>
@@ -70,7 +70,7 @@
   </Task>
   <Task priority="1" completed="0" bugfix="0">
     <Description>TODO: we must do something nicer!!</Description>
-    <Created>2007-05-16, 12:22:13</Created>
+    <Created>2007-12-03, 09:32:31</Created>
     <Resource>
       <Filename>
         <Dir>example</Dir>
@@ -81,7 +81,7 @@
   </Task>
   <Task priority="1" completed="0" bugfix="0">
     <Description>TODO: we must do something nicer!!</Description>
-    <Created>2007-05-16, 14:28:22</Created>
+    <Created>2007-12-03, 12:01:29</Created>
     <Resource>
       <Filename>
         <Dir>example</Dir>
@@ -91,25 +91,58 @@
     </Resource>
   </Task>
   <Task priority="1" completed="0" bugfix="1">
-    <Description>FIXME: missing value</Description>
-    <Created>2007-05-16, 14:44:41</Created>
+    <Description>FIXME:</Description>
+    <Created>2007-12-04, 16:46:18</Created>
     <Resource>
       <Filename>
         <Dir>lib</Dir>
         <Name>spanlib_python.py</Name>
       </Filename>
-      <Linenumber>122</Linenumber>
+      <Linenumber>632</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="1">
+    <Description>FIXME: do we keep it?</Description>
+    <Created>2007-12-04, 16:46:18</Created>
+    <Resource>
+      <Filename>
+        <Dir>lib</Dir>
+        <Name>spanlib_python.py</Name>
+      </Filename>
+      <Linenumber>851</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="1">
+    <Description>FIXME: check that ok for ns=1</Description>
+    <Created>2007-12-04, 16:46:18</Created>
+    <Resource>
+      <Filename>
+        <Dir>lib</Dir>
+        <Name>spanlib_python.py</Name>
+      </Filename>
+      <Linenumber>1021</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="0" bugfix="0">
     <Description>TODO: finish the svd model man !</Description>
-    <Created>2007-05-16, 14:44:41</Created>
+    <Created>2007-12-04, 16:46:18</Created>
     <Resource>
       <Filename>
         <Dir>lib</Dir>
         <Name>spanlib_python.py</Name>
       </Filename>
-      <Linenumber>1295</Linenumber>
+      <Linenumber>1482</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="1">
+    <Description>FIXME: missing value</Description>
+    <Created>2007-12-04, 16:46:18</Created>
+    <Resource>
+      <Filename>
+        <Dir>lib</Dir>
+        <Name>spanlib_python.py</Name>
+      </Filename>
+      <Linenumber>1653</Linenumber>
     </Resource>
   </Task>
 </Tasks>
