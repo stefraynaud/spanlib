@@ -403,7 +403,7 @@ class SpAn(object):
 
 			else: # Several channels
 				weights = self._stack_info[iset]['weights']
-				raw_eof,raw_pc,raw_ev,ev_sum = spanlib_fort.pca(pdata,self._npca,weights,1)	
+				raw_eof,raw_pc,raw_ev,ev_sum = spanlib_fort.pca(pdata,self._npca,weights,-1)	
 
 			# Append results
 			self._pca_raw_pc.append(raw_pc) # Mode axis must be first (CF)
@@ -436,12 +436,11 @@ class SpAn(object):
 			self._pca_fmt_eof.append(self._unstack_(iset,raw_eof,self._mode_axis_('pca')))
 			# Set attributes
 			for idata,eof in enumerate(self._pca_fmt_eof[-1]):
-				print 'ok id eof?',self._stack_info[iset]['ids'][idata]
 				if not self._stack_info[iset]['ids'][idata].startswith('variable_'):
 					eof.id = self._stack_info[iset]['ids'][idata]+'_pca_eof'
 				else:
 					eof.id = 'pca_eof'
-				eof.name = pc.eof
+				eof.name = eof.id
 				eof.standard_name = 'empirical_orthogonal_functions_of_pca'
 				eof.long_name = 'PCA empirical orthogonal functions'
 				atts = self._stack_info[iset]['atts'][idata]
@@ -474,7 +473,6 @@ class SpAn(object):
 			pc = cdms.createVariable(npy.asarray(raw_pc.transpose(),order='C'))
 			pc.setAxis(0,self._mode_axis_('pca'))
 			pc.setAxis(1,self._time_axis_(iset,idata))
-			print 'ok id pc?',self._stack_info[iset]['ids'][idata]
 			if not self._stack_info[iset]['ids'][idata].startswith('variable_'):
 				pc.id = self._stack_info[iset]['ids'][idata]+'_pca_pc'
 			else:
@@ -502,19 +500,21 @@ class SpAn(object):
 		if self._pca_raw_ev == [] or update: self.pca()
 
 		if sum:
-			res = self._ev_sum
+			res = self._pca_ev_sum
 		else:
 			res = []
-			for iset,raw_ev in enumerate(self._ev):
+			for iset,raw_ev in enumerate(self._pca_raw_ev):
 				if relative: 
-					ev = cdms.createVariable(100.*raw_ev/self._ev_sum[iset])
+					ev = cdms.createVariable(100.*raw_ev/self._pca_ev_sum[iset])
+					ev.id = ev.name = 'pca_ev_rel'
+					ev.long_name = 'PCA eigen values'
 				else:
 					ev = cdms.createVariable(raw_ev)
-				ev.setAxisList([self.mode_axis('pca')])
-				ev.name = ev.id
+					ev.id = ev.name = 'pca_ev'
+					ev.long_name = 'PCA relative eigen values'
+				ev.setAxisList([self._mode_axis_('pca')])
 				ev.standard_name = 'eigen_values_of_pca'
-				ev.long_name = 'PCA eigen values'
-				atts = self._stack_info[iset]['atts'][idata]
+				atts = self._stack_info[iset]['atts'][0]
 				if atts.has_key('long_name'):
 					ev.long_name += ' of '+atts['long_name']
 				if relative:
@@ -523,20 +523,20 @@ class SpAn(object):
 					ev.units = atts['units']
 					for ss in ['^','**',' ']:
 						if ev.units.find(ss) != -1:
-							ev.units = '(%s)2' % ev.units
+							ev.units = '(%s)^2' % ev.units
 							break
 				res.append(ev)
 
 		return self._return_(res)		
 
-	def pca_rec(self,imode=None):
+	def pca_rec(self,imode=None,update=False):
 		
 		# PCA still not performed
 		if self._pca_raw_pc == [] or update: self.pca(*args,**kwargs)
 		del self._pca_fmt_rec
 		self._pca_fmt_rec = []
 
-		for iset,raw_rec in enumerate(self._projection(imode,self._pca_raw_eof,self._pca_fmt_pc)):
+		for iset,raw_rec in enumerate(self._project_(self._pca_raw_eof,self._pca_fmt_pc,imode)):
 			# Get raw data back to physical space
 			self._pca_fmt_rec.append(self._unstack_(iset,raw_rec,self._time_axis_(iset)))
 			del  raw_rec
@@ -724,7 +724,7 @@ class SpAn(object):
 					[self._mode_axis_('mssa'),self._mssa_channel_axis_(iset)])
 			else:
 				nm = self._nmssa ; nw = self._nwindow ; nc = self._npca
-				proj_eof = self._projection(-self._nmssa,self._pca_raw_eof[iset],
+				proj_eof = self._project_(self._pca_raw_eof[iset],
 					npy.swapaxes(raw_eof,0,1).reshape((nw*nc,nm),order='F'),
 					nt=self._nwindow*self._nmssa)
 				self._mssa_fmt_eof.append(self._unstack_(iset,proj_eof,
@@ -832,7 +832,7 @@ class SpAn(object):
 		
 		# Loop on datasets
 		for iset,(raw_eof,raw_pc) in enumerate(zip(self._mssa_raw_eof,self._mssa_raw_pc)):
-			raw_rec = self._projection(imode,raw_eof,raw_pc).transpose() # (nt,nchan)
+			raw_rec = self._project_(raw_eof,raw_pc,imode).transpose() # (nt,nchan)
 			if not self._mssa_prepca: # No pre-PCA performed
 				self._mssa_fmt_rec.append(self._unstack_(iset,raw_rec,self._time_axis_(iset)))
 			elif pure: # Force direct result from MSSA
@@ -840,8 +840,8 @@ class SpAn(object):
 				self._mssa_fmt_rec[-1][0].setAxisList(0,
 					[self._time_axis_(iset),self._mode_axis_('mssa')])
 			else: # With pre-pca
-				proj_rec = self._projection(-self._npca,
-					self._pca_raw_eof[iset], raw_rec, nt=self._nwindow*self._nmssa)
+				proj_rec = self._project_(self._pca_raw_eof[iset], raw_rec, 
+					nt=self._nwindow*self._nmssa)
 				self._mssa_fmt_eof.append(self._unstack_(iset,proj_rec,
 					(self._mode_axis_('pca'),self._mssa_window_axis_(iset))))
 			smodes = raw_rec.smodes
@@ -963,12 +963,12 @@ class SpAn(object):
 		return eof[0],pc[0],eof[1],pc[1],ev
 
 
-	def _projection(self,iset,imode,reof,rpc,ns=None,nt=None,nw=None):
+	def _project_(self,iset,reof,rpc,imode=None,ns=None,nt=None,nw=None):
 		"""Generic raw construction of modes for pure PCA, MSSA or SVD, according to EOFs and PCs, for ONE DATASET"""
 
 		# Which modes
 		if imode is None:
-			imode = npy.arange(reof.shape[-1])
+			imode = npy.arange(reof.shape[-1])+1
 		else:
 			if type(imode) is type(1):
 				if imode < 0:
@@ -1277,7 +1277,8 @@ class SpAn(object):
 		"""Return dataset as input dataset"""
 		# Single variable
 		if self._input_map == 0:
-			if cdms.isVariable(dataset[0]):
+#			if cdms.isVariable(dataset[0]):
+			if not isinstance(dataset[0],list):
 				return dataset[0]
 			return dataset[0][0]
 		# A single list of stacked variable (not serial mode)
@@ -1285,7 +1286,9 @@ class SpAn(object):
 			return dataset[0]
 		# Full case
 		for map,iset in enumerate(self._input_map):
-			if (map== 0 and not cdms.isVariable(dataset[iset])) or grouped:
+#			if (map== 0 and not cdms.isVariable(dataset[iset])) or grouped:
+			print isinstance(dataset[iset],list)
+			if (map== 0 and isinstance(dataset[iset],list)) and not grouped:
 				dataset[iset] = dataset[iset][0]
 		gc.collect()
 		return dataset
@@ -1428,8 +1431,9 @@ class SpAn(object):
 			axes = list(firstaxes)
 			if len(shape) > 1: axes.extend(saxe)
 			shape = tuple([len(axis) for axis in axes])
+			print 'HAAAAAAA',unpacked.shape,shape
 			if unpacked.shape != shape:
-				unpacked = unpacked.reshape(fullshape,order='C')
+				unpacked = unpacked.reshape(shape,order='C')
 				
 			# Mask and set attributes
 			masked = MV.masked_object(unpacked,mv) ; del unpacked

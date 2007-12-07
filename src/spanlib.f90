@@ -115,7 +115,7 @@ contains
 	! -----------------------------------------
 	zuseteof = -1
 	if(present(useteof))zuseteof = useteof
-	if(zuseteof<=0)then
+	if(zuseteof<0)then
 		if(ns>nt)then
 			zuseteof=1
 		else
