@@ -38,7 +38,7 @@ print "#################################################"
 # Needed modules
 print 'Importing needed modules...'
 # - base
-import sys,cdms,MV,Numeric as N,cdutil,genutil,os
+import sys,cdms2 as cdms,MV2 as MV,numpy as N,cdutil,genutil,os
 # - current version of spanlib is prioritary
 if os.path.exists('../src/build/tmp_lib'):sys.path.insert(0,'../src/build/tmp_lib')
 import spanlib
@@ -63,12 +63,43 @@ s=f('ssta')
 
 # Create the analysis object
 print "Creating SpAn object"
-SP=spanlib.SpAn(s)
+npca=4
+SP=spanlib.SpAn(s,npca=npca)
 
 # Perform a preliminary PCA+MSSA
 # (equivalent to simple use SP.mssa(pca=True) later)
 print "PCA..."
 SP.pca()
+eof = SP.pca_eof()
+pc = SP.pca_pc()
+ev = SP.pca_ev()
+
+
+f=cdms.open('out.nc','w')
+f.write(s,extend=False)
+f.write(eof)
+f.write(pc)
+f.write(ev)
+f.close()
+
+import pylab as P
+P.figure(figsize=(8,10))
+for im in xrange(npca):
+	P.subplot(npca*2,2,im*2+1)
+	P.plot(eof[im].filled())
+	P.title('EOF %i'%(im+1))
+	P.subplot(npca*2,2,im*2+2)
+	P.plot(pc[im].filled())
+	P.title('PC %i'%(im+1))
+P.savefig('out.png')
+
+
+
+
+
+
+raise 'a'
+
 from actimar.misc.plot import map,curve
 #map(SP.pca_eof()[0],resolution='c')
 curve(SP.pca_pc()[0])

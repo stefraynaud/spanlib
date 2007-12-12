@@ -25,7 +25,7 @@ import copy,gc
 MV = cdms.MV
 
 
-def _pack_(data,weights=None):
+def _pack_(data,weights=None,norm=None):
 	""" Pack a dataset and its weights according to its mask
 
 	Description:::
@@ -52,24 +52,32 @@ def _pack_(data,weights=None):
 	"""
 
 	# Total number of channels
+	packed = {}
 	if not cdms.isVariable(data):
 		data = cdms.createVariable(data,copy=0)
+		if npy.core.ma.isMa(data):
+			packed['type'] = 'ma'
+		else:
+			packed['type'] = 'numpy'
+	else:
+		packed['type'] = 'cdms'
 	nt = data.shape[0]
 	nstot = npy.multiply.reduce(data.shape[1:])
 	print 'pack data shape',data.shape
 	sh=list(data.shape)
+	packed['norm'] = norm
 
 	# Is it already packed? Check the mask...
-	#FIXME: fix all .mask()
 	if data.mask is False:
 		if weights is None:
 			weights = npy.ones(nstot,dtype='f')
 		else:
 			weights = npy.array(weights)
-		packed_data = data.filled().reshape((nt,nstot)).transpose()
-		packed_weights = weights.ravel()
-		mask = npy.ones(nstot)
-		return packed_data,packed_weights,mask
+		packed['data'] = data.filled().reshape((nt,nstot)).transpose()
+		packed['weights'] = weights.ravel()
+		packed['mask'] = npy.ones(nstot)
+		check_norm(packed)
+		return packed
 
 	# Weights ?
 	if weights is None:
@@ -89,26 +97,63 @@ def _pack_(data,weights=None):
 	# - Now add the ones from the weights
 	mask[:] = mask+npy.equal(weights,0.)
 	# - >=1 means masked, Fortran "mask": 1 means data ==> 1-mask
-##	mask = 1-MV.masked_greater_equal(mask,1).filled(1)
 	mask[:] = 1-npy.clip(mask,0,1)
-##	mask[:] = npy.clip((mask*2).astype('i'),0,1)
+	packed['mask'] = mask
 
 	# Number of valid points in spatial dimension
-	ns = long(npy.sum(mask))
+	ns = long(mask.sum())
 
 	# Pack space
 	# - Pack numeric data array
 	data_to_pack = data.filled(1.e20).reshape((nt,nstot)) 
-	packed_data = npy.asarray(spanlib_fort.chan_pack(data_to_pack,mask.flat,ns),
+	packed['data'] = npy.asarray(spanlib_fort.chan_pack(data_to_pack,mask.flat,ns),
 		dtype='f',order='F')
+	if normalize:
+		packed['norm'] = packed['data'].std()
+		packed['data'][:] /= packed['norm']
 	del data_to_pack
 	# - Pack weights
 	weights = weights.reshape((1,nstot))
-	packed_weights = npy.asarray(spanlib_fort.chan_pack(weights,mask.flat,ns)[:,0],
+	packed['weights'] = npy.asarray(spanlib_fort.chan_pack(weights,mask.flat,ns)[:,0],
 		dtype='f')
 
-	return packed_data,packed_weights,mask
+	check_norm(packed)
+	return packed
 
+def _sort_modes_(mode1,mode2):
+	return npy.sign(abs(mode2)-abs(mode1))
+	
+def _check_shape_(inputs,datasets,fillvalue):
+	"""Return input as datasets *shape*"""
+	if not isinstance(inputs,(list,tuple)):
+		inputs = [[inputs]]
+	inputs = _check_length_(inputs,len(datasets),fillvalue)
+	for iset,dataset in enumerate(datasets):
+		if not isinstance(inputs[iset],(list,tuple)):
+			inputs[iset] = [inputs[iset]]
+		inputs[iset] = _check_length_(inputs[iset],len(dataset),fillvalue)
+
+def _check_length_(input,mylen,fillvalue):
+	dlen = mylen-len(input)
+	if dlen < 0:
+		return input[:mylen]
+	elif dlen > 0:
+			input.extend([fillvalue]*dlen)
+	else:
+		return input
+
+def _check_norm_(packed):
+	if packed['norm'] in [True,None]:
+		packed['norm'] = data.std() # Standard norm
+		packed['data'] /= packed['norm']
+	elif packed['norm'] is not False:
+		if packed['norm'] <0: # Relative norm, else strict norm
+			packed['norm'] = packed['norm']*data.std()
+		packed['data'] /= packed['norm']
+	else:
+		packed['norm'] = 1.
+			
+	
 
 def get_pairs(pcs,mincorr=0.9,maxdistance=2,smooth=5):
 	""" Get pairs in MSSA results
@@ -230,7 +275,7 @@ def compute_phases(data,nphases=8,offset=.5,firstphase=0):
 
 class SpAn(object):
 
-	def __init__(self, datasets, serial=False, weights=None, npca=10, window=None, nmssa=4, nsvd=10):
+	def __init__(self, datasets, serial=False, weights=None, norms=None, npca=10, window=None, nmssa=4, nsvd=10):
 		""" Prepare the Spectral Analysis Object
 
 		Description:::
@@ -287,24 +332,14 @@ class SpAn(object):
 					input_map[iset] = 0
 			self._input_map = input_map
 
-		# Weights in the same form as datasets, filling with Nones
-		if not isinstance(weights,(list,tuple)):
-			weights = [[weights]]
-		for iset,dataset in enumerate(datasets):
-			if not isinstance(weights[iset],(list,tuple)):
-				weights[iset] = [weights[iset]]
-			if len(weights[iset]) != len(dataset):
-				if len(weights[iset]) > len(dataset):
-					weights[iset] = weights[iset][:len(dataset)]
-				else:
-					weights[iset].extend([None]*(len(dataset)-len(weights[iset])))
-			if iset == len(weights)-1:
-				weights.extend([None]*(len(datasets)-len(weights)))
-				break
+		# Weights and norms in the same form as datasets
+		if norms is None:	norms = 1.
+		norms = _check_shape_(norms,datasets,1.)
+		weights = _check_shape_(weigths,datasets,1.)
 
 		# We stack and pack data
 		for iset,d in enumerate(datasets):
-			self._stack(d,weights[iset])
+			self._stack_(d,weights[iset],norms[iset])
 		self._ndataset = len(datasets)
 
 		# Save arguments
@@ -313,11 +348,13 @@ class SpAn(object):
 
 
 	#################################################################
-	## Axes
+	## Get datasets info
 	#################################################################
 
-	def _time_axis_(self,iset,idata):
+	def _time_axis_(self,iset,idata=None):
 		"""Get the time axis of data variable of a dataset"""
+		if idata is None:
+			return tuple(self._stack_info[iset]['taxes'])
 		return self._stack_info[iset]['taxes'][idata]
 
 	def _space_axis_(self,iset,idata,iaxis=None):
@@ -360,7 +397,11 @@ class SpAn(object):
 			self._mssa_pctime_axes[iset].long_name = 'MSSA PC time for dataset #%i'%i
 		return self._mssa_pctime_axes[iset]
 
+	def _norm_(self,iset,idata):
+		return self._stack_info[iset]['norms'][idata]
 		
+	def _type_(self,iset,idata):
+		return self._stack_info[iset]['types'][idata]
 
 	#################################################################
 	## PCA
@@ -406,8 +447,10 @@ class SpAn(object):
 				raw_eof,raw_pc,raw_ev,ev_sum = spanlib_fort.pca(pdata,self._npca,weights,-1)	
 
 			# Append results
-			self._pca_raw_pc.append(raw_pc) # Mode axis must be first (CF)
+			self._pca_raw_pc.append(raw_pc) 
+			print 'pc shape',raw_pc.shape
 			self._pca_raw_eof.append(raw_eof)
+			print 'eof shape',raw_eof.shape
 			self._pca_raw_ev.append(raw_ev)
 			self._pca_ev_sum.append(ev_sum)
 
@@ -457,7 +500,7 @@ class SpAn(object):
 
 		If PCA was not performed, it is done with all parameters sent to pca()
 		"""
-
+		#FIXME: fix id and long_name of PC because it should be dataset OR variable dependant
 		# Already available
 		if self._pca_fmt_pc != [] and not update:
 			return self._pca_fmt_pc
@@ -488,7 +531,7 @@ class SpAn(object):
 		return self._return_(self._pca_fmt_pc)		
 
 
-	def pca_ev(self,relative=False,sum=False,update=False):
+	def pca_ev(self,relative=False,sum=False,cumsum=False,update=False):
 		"""Get eigen values from current PCA decomposition
 
 		Inputs:
@@ -504,14 +547,20 @@ class SpAn(object):
 		else:
 			res = []
 			for iset,raw_ev in enumerate(self._pca_raw_ev):
+				id = 'pca_ev'
+				long_name = []
+				if cumsum:
+					raw_ev = raw_ev.cumsum()
+					id += '_cumsum'
+					long_name.append('cumulative')
 				if relative: 
-					ev = cdms.createVariable(100.*raw_ev/self._pca_ev_sum[iset])
-					ev.id = ev.name = 'pca_ev_rel'
-					ev.long_name = 'PCA eigen values'
-				else:
-					ev = cdms.createVariable(raw_ev)
-					ev.id = ev.name = 'pca_ev'
-					ev.long_name = 'PCA relative eigen values'
+					raw_ev = 100.*raw_ev/self._pca_ev_sum[iset]
+					id += '_rel'
+					long_name.append('relative')
+				ev = cdms.createVariable(raw_ev)
+				ev.id = ev.name = id
+				long_name.append('PCA eigen values')
+				ev.long_name = ' '.join(long_name).title()
 				ev.setAxisList([self._mode_axis_('pca')])
 				ev.standard_name = 'eigen_values_of_pca'
 				atts = self._stack_info[iset]['atts'][0]
@@ -530,30 +579,39 @@ class SpAn(object):
 		return self._return_(res)		
 
 	def pca_rec(self,imode=None,update=False):
+		"""Reconstruct a set of modes from PCA decomposition
+
+		Inputs:
+		  imode :: Selection of Modes. Can be like [1,3,-5] -> modes [1,3,4,5], or None -> all [default: None].
+		  update :: Rerun the PCA.
+		"""
 		
 		# PCA still not performed
 		if self._pca_raw_pc == [] or update: self.pca(*args,**kwargs)
-		del self._pca_fmt_rec
-		self._pca_fmt_rec = []
+		pca_fmt_rec = []
 
-		for iset,raw_rec in enumerate(self._project_(self._pca_raw_eof,self._pca_fmt_pc,imode)):
+		for iset in xrange(self._ndataset):
 			# Get raw data back to physical space
-			self._pca_fmt_rec.append(self._unstack_(iset,raw_rec,self._time_axis_(iset)))
+			raw_rec,smodes = self._project_(iset,self._pca_raw_eof,self._pca_raw_pc,imode)
+			pca_fmt_rec.append(self._unstack_(iset,raw_rec,self._time_axis_(iset)))
 			del  raw_rec
-			# Set attributes
-			for idata,rec in enumerate(self._pca_fmt_rec[-1]):
+			# Set attributes and scale
+			for idata,rec in enumerate(pca_fmt_rec[-1]):
+				rec[:] *= self._norm_(iset,idata) # Scale
 				if not self._stack_info[iset]['ids'][idata].startswith('variable_'):
 					rec.id = self._stack_info[iset]['ids'][idata]+'_pca_rec'
 				else:
 					rec.id = 'pca_rec'
 				rec.name = rec.id
+				if imode is not None:
+					rec.id += smodes
 				rec.standard_name = 'recontruction_of_pca_modes'
 				rec.long_name = 'Reconstruction of PCA modes'
 				atts = self._stack_info[iset]['atts'][idata]
 				if atts.has_key('long_name'):
-					rec.long_name += ' for '+atts['long_name']
+					rec.long_name += ' of '+atts['long_name']
 					
-		return self._return_(self._pca_fmt_rec)	
+		return self._return_(pca_fmt_rec)	
 	
 	
 
@@ -724,7 +782,7 @@ class SpAn(object):
 					[self._mode_axis_('mssa'),self._mssa_channel_axis_(iset)])
 			else:
 				nm = self._nmssa ; nw = self._nwindow ; nc = self._npca
-				proj_eof = self._project_(self._pca_raw_eof[iset],
+				proj_eof = self._project_(iset,self._pca_raw_eof[iset],
 					npy.swapaxes(raw_eof,0,1).reshape((nw*nc,nm),order='F'),
 					nt=self._nwindow*self._nmssa)
 				self._mssa_fmt_eof.append(self._unstack_(iset,proj_eof,
@@ -832,7 +890,7 @@ class SpAn(object):
 		
 		# Loop on datasets
 		for iset,(raw_eof,raw_pc) in enumerate(zip(self._mssa_raw_eof,self._mssa_raw_pc)):
-			raw_rec = self._project_(raw_eof,raw_pc,imode).transpose() # (nt,nchan)
+			raw_rec = self._project_(iset,raw_eof,raw_pc,imode).transpose() # (nt,nchan)
 			if not self._mssa_prepca: # No pre-PCA performed
 				self._mssa_fmt_rec.append(self._unstack_(iset,raw_rec,self._time_axis_(iset)))
 			elif pure: # Force direct result from MSSA
@@ -840,7 +898,7 @@ class SpAn(object):
 				self._mssa_fmt_rec[-1][0].setAxisList(0,
 					[self._time_axis_(iset),self._mode_axis_('mssa')])
 			else: # With pre-pca
-				proj_rec = self._project_(self._pca_raw_eof[iset], raw_rec, 
+				proj_rec = self._project_(iset,self._pca_raw_eof[iset], raw_rec, 
 					nt=self._nwindow*self._nmssa)
 				self._mssa_fmt_eof.append(self._unstack_(iset,proj_rec,
 					(self._mode_axis_('pca'),self._mssa_window_axis_(iset))))
@@ -852,12 +910,13 @@ class SpAn(object):
 					rec.id = self._stack_info[iset]['ids'][idata]+'_mssa_rec'
 				else:
 					rec.id = 'mssa_rec'
-				rec.id += smodes #FIXME: do we keep it?
+				if imode is not None:
+					rec.id += smodes #FIXME: do we keep it?
 				rec.standard_name = 'recontruction_of_mssa_modes'
 				rec.long_name = 'Reconstruction of MSSA modes'
 				atts = self._stack_info[iset]['atts'][idata]
 				if atts.has_key('long_name'):
-					rec.long_name += ' for '+atts['long_name']
+					rec.long_name += ' of '+atts['long_name']
 					
 		return self._return_(self._mssa_fmt_rec,grouped=pure)	
 	
@@ -967,34 +1026,35 @@ class SpAn(object):
 		"""Generic raw construction of modes for pure PCA, MSSA or SVD, according to EOFs and PCs, for ONE DATASET"""
 
 		# Which modes
+		imodemax = reof[iset].shape[-1]
 		if imode is None:
-			imode = npy.arange(reof.shape[-1])+1
+			imode = range(1,imodemax+1)
+		elif isinstance(imode,slice):
+			imode = range(imode.start,imode.stop,imode.step)
 		else:
-			if type(imode) is type(1):
+			if isinstance(imode,int):
 				if imode < 0:
 					imode = range(-imode)
 				else:
 					imode = [imode-1,]
-			imode = (npy.array(imode)+1).tolist()
+			imode = [im+1 for im in imode]
 
 		# Rearrange modes (imode=[1,3,4,5,9] -> [1,1],[3,5],[9,9])
-		imode.sort()
+		imode = [im for im in imode if im > 0 and im < imodemax]
+		imode.sort(_sort_modes_)
 		imodes = []
 		im = 0
 		while im < len(imode):
-			print im,len(imode)
 			imode1 = imode2 = last_imode = imode[im]
 			for imt in xrange(im+1,len(imode)):
-				if (last_imode-imode[imt]) < 2:
-					last_imode = imode[imt]
-					continue
-				else:
+				if imode[imt] > 0  and (abs(imode[imt])-imode2) > 1: # Group
+					im = imt-1
 					break
-			if last_imode != imode2:
-				imode2 = last_imode
-				im = imt +1
+				imode2 = abs(imode[imt])
+				continue
 			else:
 				im = imt
+			im += 1
 			imodes.append((imode1,imode2))
 
 		# Function of reconstruction
@@ -1016,12 +1076,13 @@ class SpAn(object):
 		if nw is not None:
 			# MSSA
 			args.extend([ns[iset],nt,nw])
-		else:
-			# PCA
-			if ns is not None:
-				kwargs['ns'] = ns[iset]
-			else:
-				kwargs['ns'] = 1
+##		else:
+			pass
+##			# PCA
+##			if ns is not None:
+##				kwargs['ns'] = ns[iset]
+##			else:
+##				kwargs['ns'] = 1
 			#FIXME: check that ok for ns=1
 ##			if kwargs['ns'] == 1: # Single space point
 ##				print '_reco',single
@@ -1032,26 +1093,22 @@ class SpAn(object):
 				kwargs['nt'] = nt
 		# Loop modes
 		smodes = []
+		ffrec = 0.
 		for j,ims in enumerate(imodes):
 			if ims[0] > nmode: break
 			if ims[1] > nmode: ims[1] = nmode
 			print 'rec',ims
 			args.extend(ims)
-			print 'args',args
-			this_ffrec = function(*args,**kwargs) # (nc,nt)
+			print kwargs,'ims',ims,'reof',reof[iset].shape,'rpc',rpc[iset].shape
+			ffrec += function(*args,**kwargs) # (nc,nt)
 			if ims[0] == ims[1]:
 				smode = str(ims[0])
 			else:
 				smode = '%i-%i'%tuple(ims)
-			if not j:
-				ffrec.append(this_ffrec)
-			else:
-				ffrec[iset] += this_ffrec
 			smodes.append(smode)
-			del this_ffrec
-			ffrec.smodes = '+'.join(smodes)
-		print 'rec shape',ffrec.shape
-		return ffrec
+		print 'rec shape',ffrec[-1].shape
+		return ffrec,'+'.join(smodes)
+
 
 
 	def reconstruct(self,imode=None,mssa=None,pca=None,phases=False,nphases=8,offset=.5,firstphase=0,svd=None,ipair=None):
@@ -1315,7 +1372,7 @@ class SpAn(object):
 		gc.collect()
 
 
-	def _stack(self,dataset,dweights):
+	def _stack_(self,dataset,dweights,dnorms):
 		""" Takes several data files, of same time and stacks them up together
 
 		Description:::
@@ -1342,6 +1399,8 @@ class SpAn(object):
 		grids = []
 		mvs = []
 		masks = []
+		norms = []
+		types = []
 
 		# Loop on datasets
 		for idata,data in enumerate(dataset):
@@ -1349,6 +1408,12 @@ class SpAn(object):
 			# We must work on an cdms variable
 			if not cdms.isVariable(data):
 				data = cdms.createVariable(data,copy=0)
+				if npy.core.ma.isMa(data):
+					types.append('ma')
+				else:
+					types.append('numpy')
+			else:
+				types.append('cdms')
 
 			# Check time
 			if data.getTime() is not None:
@@ -1371,21 +1436,24 @@ class SpAn(object):
 			mvs.append(data.missing_value)
 
 			# Pack 
-			pdata,pweights,pmask = _pack_(data,dweights[idata])
+			packed = _pack_(data,dweights[idata],dnorms[idata])
 
 			# Create or concatenate
 			if not idata:
-				stacked = pdata
-				weights = pweights
+				stacked = packed['data']
+				weights = packed['weights']
 			else:
-				stacked = npy.concatenate((stacked,pdata))
-				weights = npy.concatenate((weights,pweights))
-			del pdata,pweights
-			masks.append(pmask)
+				stacked = npy.concatenate((stacked,packed['data']))
+				weights = npy.concatenate((weights,packed['weights']))
+			norms.append(packed)
+			masks.append(packed['mask'])
+			del packed
+			gc.collect()
 
 		# Store data and information
 		self._stack_info.append(dict(ids=ids,taxes=taxes,saxes=saxes,masks=masks,
-			weights=weights,atts=atts,shapes=shapes,grids=grids,mvs=mvs))
+			weights=weights,atts=atts,shapes=shapes,grids=grids,
+			mvs=mvs,types=types,norms=norms))
 		self._ndata.append(len(ids))
 		self._pdata.append(stacked)
 		self._nt.append(stacked.shape[0])
@@ -1424,15 +1492,21 @@ class SpAn(object):
 			# Unpack data
 			mlen = int(mask.sum())
 			iend = istart + mlen
-			unpacked = spanlib_fort.chan_unpack(mask.flat,pdata[:,istart:iend],mv)
+			unpacked = spanlib_fort.chan_unpack(mask.flat,pdata[istart:iend,:],mv)
 			unpacked = npy.asarray(unpacked,order='C')
 
 			# Check axes and shape
-			axes = list(firstaxes)
+			axes = []
+			for fa in firstaxes:
+				if isinstance(fa,tuple):
+					axes.append(fa[idata])
+				else:
+					axes.append(fa)
 			if len(shape) > 1: axes.extend(saxe)
 			shape = tuple([len(axis) for axis in axes])
 			print 'HAAAAAAA',unpacked.shape,shape
 			if unpacked.shape != shape:
+				print unpacked.shape,shape
 				unpacked = unpacked.reshape(shape,order='C')
 				
 			# Mask and set attributes
@@ -1477,8 +1551,11 @@ class SVDModel(SpAn):
 									(npy.average(self._svd_pc[1]**2)/nsr - \
 									 (npy.average(self._svd_pc[1])/nsl)**2))
 
-	def __call__(self,data,nsvdrun=None):
-		""" Run the SVD model """
+	def __call__(self,data,nsvdrun=None,method='regre'):
+		"""Run the SVD model 
+		
+		@keyparam method: Method of reconstruction [default: 'regre']. 'direct' assumes that left and normalized expansion coefficients are equal (Syu and Neelin 1995). 'regre' does not use right EOFs but regression coefficients (Harrisson et al 2002)
+		"""
 
 		if nsvdrun is not None:
 			self._nsvdrun = nsvdrun
@@ -1487,8 +1564,10 @@ class SVDModel(SpAn):
 		print 'missing code'
 
 
-	def _svd_clean(self):
-		self.clean()
+	def clean(self):
+		SpAn.clean(self)
+		self._regre_ = None
+		gc.collect()
 
 
 

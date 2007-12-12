@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-3.9.dtd">
 <!-- Project file for project SpanLib -->
-<!-- Saved: 2007-12-04, 16:47:00 -->
+<!-- Saved: 2007-12-10, 14:19:25 -->
 <!-- Copyright (C) 2007 Stephane Raynaud, Charles Doutriaux, stephane.raynaud@gmail.com -->
 <Project version="3.9">
   <ProgLanguage mixed="0">Python</ProgLanguage>
@@ -50,20 +50,6 @@
     <Source>
       <Dir>src</Dir>
       <Name>setup.py</Name>
-    </Source>
-    <Source>
-      <Dir>src</Dir>
-      <Dir>build</Dir>
-      <Dir>lib.linux-i686-2.4</Dir>
-      <Dir>spanlib</Dir>
-      <Name>spanlib_python.py</Name>
-    </Source>
-    <Source>
-      <Dir>src</Dir>
-      <Dir>build</Dir>
-      <Dir>lib.linux-i686-2.4</Dir>
-      <Dir>spanlib</Dir>
-      <Name>__init__.py</Name>
     </Source>
     <Source>
       <Dir>src</Dir>
@@ -130,6 +116,10 @@
     <Source>
       <Dir>example</Dir>
       <Name>example3.py</Name>
+    </Source>
+    <Source>
+      <Dir>test</Dir>
+      <Name>test_pca_base.py</Name>
     </Source>
   </Sources>
   <Forms>
@@ -220,10 +210,10 @@ I1
 s.</VcsOtherData>
   </Vcs>
   <FiletypeAssociations>
-    <FiletypeAssociation pattern="*.py" type="SOURCES" />
     <FiletypeAssociation pattern="*.ui.h" type="FORMS" />
-    <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
     <FiletypeAssociation pattern="*.ui" type="FORMS" />
+    <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
+    <FiletypeAssociation pattern="*.py" type="SOURCES" />
     <FiletypeAssociation pattern="*.ptl" type="SOURCES" />
   </FiletypeAssociations>
 </Project>
