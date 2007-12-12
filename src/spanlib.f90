@@ -32,7 +32,7 @@ contains
 	! ############################################################
 	! ############################################################
 
-	subroutine sl_pca(ff,nkeep,xeof,pc,ev,ev_sum,weights,useteof, bLargeMatrix)
+	subroutine sl_pca(var,nkeep,xeof,pc,ev,ev_sum,weights,useteof, bLargeMatrix)
 
 	!	Principal Component Analysis
 	!
@@ -45,7 +45,7 @@ contains
 	!	than the time dimension. This default behavior can be overridden.
 	!
 	! Necessary arguments:
-	!	- ff: Space-time array
+	!	- var: Space-time array
 	!	- nkeep: Maximum number of modes to keep in outputs
 	!
 	! Optional arguments:
@@ -71,10 +71,10 @@ contains
 
 	! External
 	! --------
-	real(wp), intent(in)            :: ff(:,:)
+	real(wp), intent(in)            :: var(:,:)
 	integer,  intent(in)	        :: nkeep
-	real(wp), intent(out), optional :: pc(size(ff,2),nkeep), &
-	&                                xeof(size(ff,1),nkeep), ev(nkeep)
+	real(wp), intent(out), optional :: pc(size(var,2),nkeep), &
+	&                                xeof(size(var,1),nkeep), ev(nkeep)
 	real(wp), intent(in),  optional :: weights(:)
 	integer,  intent(in),  optional :: useteof
 	logical,  intent(in),  optional :: bLargeMatrix
@@ -84,7 +84,7 @@ contains
 	! --------
 	integer               :: ns,nt
 	real(wp), allocatable :: cov(:,:), subcov(:,:)
-	real(wp), allocatable :: wff(:,:), ww(:), zeof(:,:), zff(:,:)
+	real(wp), allocatable :: wvar(:,:), ww(:), zeof(:,:), zvar(:,:)
 	real(wp), allocatable :: zev(:)
 	integer               :: zuseteof, znkeepmax, i
 	logical               :: zbLargeMatrix
@@ -94,8 +94,8 @@ contains
 
 	! Sizes
 	! -----
-	ns = size(ff,1)
-	nt = size(ff,2)
+	ns = size(var,1)
+	nt = size(var,2)
 	znkeepmax = 100
 	if(nkeep>znkeepmax)then
 		print*,'[pca] You want to keep a number of PCs '//&
@@ -147,23 +147,23 @@ contains
 
 	! Remove the mean
 	! ---------------
-	allocate(zff(ns,nt))
-	zff = ff - spread(sum(ff,dim=2)/real(nt,kind=wp), ncopies=nt, dim=2)
+	allocate(zvar(ns,nt))
+	zvar = var - spread(sum(var,dim=2)/real(nt,kind=wp), ncopies=nt, dim=2)
 
 
 	! Default weights = 1.
 	! --------------------
 	allocate(ww(ns))
-	allocate(wff(ns,nt))
+	allocate(wvar(ns,nt))
 	ww = 1.
 	if(present(weights))then
 		ww(:) = weights * real(ns,kind=wp) / sum(weights)
 		where(ww==0.)ww = 1.
 		do i = 1, nt
-			wff(:,i) = zff(:,i) * sqrt(ww)
+			wvar(:,i) = zvar(:,i) * sqrt(ww)
 		end do
 	else
-		wff = zff
+		wvar = zvar
 	end if
 
 
@@ -181,12 +181,12 @@ contains
 		allocate(zev(nt))
 		cov=0.
 		if(wp==dp)then
-			call dsyrk('U','T',nt,ns,1.,wff,ns, 0.,cov,nt)
+			call dsyrk('U','T',nt,ns,1.,wvar,ns, 0.,cov,nt)
 		else
-			call ssyrk('U','T',nt,ns,1.,wff,ns, 0.,cov,nt)
+			call ssyrk('U','T',nt,ns,1.,wvar,ns, 0.,cov,nt)
 		end if
 		cov = cov / float(ns)
-		deallocate(wff)
+		deallocate(wvar)
 
 		! Diagonalising (cov: input=cov, output=eof)
 		if(zbLargeMatrix)then
@@ -202,10 +202,10 @@ contains
 			subcov = cov(:,nt:nt-nkeep+1:-1)
 			deallocate(cov)
 			if(wp==dp)then
-				call dgemm('N','N',ns,nkeep,nt,1.,zff,ns, &
+				call dgemm('N','N',ns,nkeep,nt,1.,zvar,ns, &
 				& subcov,nt,0.,zeof,ns)
 			else
-				call sgemm('N','N',ns,nkeep,nt,1.,zff,ns, &
+				call sgemm('N','N',ns,nkeep,nt,1.,zvar,ns, &
 					& subcov,nt,0.,zeof,ns)
 			end if
 			deallocate(subcov)
@@ -232,12 +232,12 @@ contains
 		allocate(zev(ns))
 		cov = 0.
 		if(wp==dp)then
-			call dsyrk('U','N',ns,nt,1.,wff,ns, 0.,cov,ns)
+			call dsyrk('U','N',ns,nt,1.,wvar,ns, 0.,cov,ns)
 		else
-			call ssyrk('U','N',ns,nt,1.,wff,ns, 0.,cov,ns)
+			call ssyrk('U','N',ns,nt,1.,wvar,ns, 0.,cov,ns)
 		end if
 		cov = cov / float(nt)
-		deallocate(wff)
+		deallocate(wvar)
 
 		! Diagonalisation (cov: input=cov, output=eof)
 		if(zbLargeMatrix)then
@@ -276,9 +276,9 @@ contains
 	! ===============
 	if(present(pc))then
 		if(present(weights))then
-			call sl_pca_getec(zff,zeof,pc,weights=ww)
+			call sl_pca_getec(zvar,zeof,pc,weights=ww)
 		else
-			call sl_pca_getec(zff,zeof,pc)
+			call sl_pca_getec(zvar,zeof,pc)
 		end if
 	end if
 
@@ -290,7 +290,7 @@ contains
 	!############################################################
 
 
-	subroutine sl_pca_getec(ff, xeof, ec, weights)
+	subroutine sl_pca_getec(var, xeof, ec, weights)
 
 	! Title:
 	!	Compute PCA expansion coefficients
@@ -303,7 +303,7 @@ contains
 	! associated principal components.
 	!
 	! Necessary arguments:
-	!	- ff:   Space-time field
+	!	- var:   Space-time field
 	!	- xeof: Spatial EOFs
 	!	- ec:   Time-mode array of expansion coefficients
 	!
@@ -317,13 +317,13 @@ contains
 
 	! External
 	! --------
-	real(wp), intent(in)           :: ff(:,:), xeof(:,:)
-	real(wp), intent(out)          :: ec(size(ff,2),size(xeof,2))
+	real(wp), intent(in)           :: var(:,:), xeof(:,:)
+	real(wp), intent(out)          :: ec(size(var,2),size(xeof,2))
 	real(wp), intent(in), optional :: weights(:)
 
 	! Internal
 	! --------
-	real(wp) :: zweights(size(ff,1)), zff(size(ff,1),size(ff,2))
+	real(wp) :: zweights(size(var,1)), zvar(size(var,1),size(var,2))
 	integer :: ns,nt,nkeep,i
 
 	! Computations
@@ -332,27 +332,27 @@ contains
 	! Initialisations
 	! ---------------
 
-	ns = size(ff,1)
-	nt = size(ff,2)
+	ns = size(var,1)
+	nt = size(var,2)
 	nkeep = size(xeof,2)
 
 	if(present(weights))then
 		zweights = weights
 		do i=1, nt
-			zff(:,i) = ff(:,i) * zweights
+			zvar(:,i) = var(:,i) * zweights
 		end do
 	else
 		zweights = 1.
-		zff = ff
+		zvar = var
 	end if
 
 	! Main stuff
 	! ----------
-	! ec = matmul( transpose(ff), xeof)
+	! ec = matmul( transpose(var), xeof)
 	if(wp==dp)then
-		call dgemm('T','N',nt,nkeep,ns,1.,zff,ns,xeof,ns,0.,ec,nt)
+		call dgemm('T','N',nt,nkeep,ns,1.,zvar,ns,xeof,ns,0.,ec,nt)
 	else
-		call sgemm('T','N',nt,nkeep,ns,1.,zff,ns,xeof,ns,0.,ec,nt)
+		call sgemm('T','N',nt,nkeep,ns,1.,zvar,ns,xeof,ns,0.,ec,nt)
 	end if
 	do i = 1, nkeep
 		ec(:,i) = ec(:,i) / dot_product(xeof(:,i)**2, zweights)
@@ -366,7 +366,7 @@ contains
 	!############################################################
 
 
-	subroutine sl_pca_rec(xeof, pc, ffrec, istart, iend)
+	subroutine sl_pca_rec(xeof, pc, varrec, istart, iend)
 
 	! Title:
 	!	Reconstruction of a set of PCA components
@@ -380,7 +380,7 @@ contains
 	! Necessary arguments:
 	!	- xeof:		Space-mode array of EOFs
 	!	- pc:		Time-mode array of PCs
-	!	- ffrec:	Space-time array of the reconstructed field
+	!	- varrec:	Space-time array of the reconstructed field
 	!
 	! Optional arguments:
 	!	- istart:	Index of the first component to use
@@ -395,7 +395,7 @@ contains
 	! External
 	! --------
 	real(wp),	intent(in)     :: xeof(:,:), pc(:,:)
-	real(wp),	intent(out)    :: ffrec(size(xeof,1),size(pc,1))
+	real(wp),	intent(out)    :: varrec(size(xeof,1),size(pc,1))
 	integer,intent(in),	optional	:: istart, iend
 
 	! Internal
@@ -434,17 +434,17 @@ contains
 
 	! Computation
 	! ===========
-	ffrec = 0.
+	varrec = 0.
 	if(nt<ns) then
 		do i = 1, nt
-			ffrec(:, i) = ffrec(:, i) + &
+			varrec(:, i) = varrec(:, i) + &
 				&	matmul(xeof(:, zistart:ziend), pc(i, zistart:ziend))
 		end do
 	else
 		allocate(zpc(ziend-zistart+1, nt))
 		zpc = transpose(pc(:, zistart:ziend))
 		do i = 1, ns
-			ffrec(i, :) = ffrec(i, :) + &
+			varrec(i, :) = varrec(i, :) + &
 				&	matmul(xeof(i, zistart:ziend), zpc)
 		end do
 		deallocate(zpc)
@@ -461,7 +461,7 @@ contains
   !############################################################
   !############################################################
 
-	subroutine sl_mssa(ff, nwindow, nkeep, steof, stpc, ev, ev_sum, bLargeMatrix)
+	subroutine sl_mssa(var, nwindow, nkeep, steof, stpc, ev, ev_sum, bLargeMatrix)
 
 	! Title:
 	!	Multi-channel Singular Spectrum Analysis
@@ -473,7 +473,7 @@ contains
 	!	parameter.
 	!
 	! Necessary arguments:
-	!	- ff:      Space-time array
+	!	- var:      Space-time array
 	!	- nwindow: Window size
 	!	- nkeep:   Maximum number of modes to keep in outputs
 	!
@@ -498,18 +498,18 @@ contains
 
 	! External
 	! --------
-	real(wp), intent(in)            :: ff(:,:)
+	real(wp), intent(in)            :: var(:,:)
 	integer,  intent(in)            :: nwindow, nkeep
 	real(wp), intent(out), optional :: &
-		& steof(size(ff,1)*nwindow, nkeep), &
-		& stpc(size(ff,2)-nwindow+1, nkeep), ev(nkeep)
+		& steof(size(var,1)*nwindow, nkeep), &
+		& stpc(size(var,2)-nwindow+1, nkeep), ev(nkeep)
 	logical,  intent(in),  optional :: bLargeMatrix
 	real(wp), intent(out), optional :: ev_sum
 
 	! Internal
 	! --------
 	real(wp), allocatable :: cov(:,:), zev(:), &
-		& zff(:,:), zsteof(:,:)
+		& zvar(:,:), zsteof(:,:)
 	integer :: nchan, nsteof, nt, znkeepmax
 	integer :: iw, iw1, iw2, i1, i2, ic1, ic2
 	logical :: zbLargeMatrix
@@ -520,9 +520,9 @@ contains
 
 	! Sizes
 	! -----
-	nchan = size(ff,1)
+	nchan = size(var,1)
 	nsteof = nchan * nwindow
-	nt = size(ff,2)
+	nt = size(var,2)
 	znkeepmax = 100
 	if(nkeep>znkeepmax)then
 		print*,'[mssa] You want to keep a number of PCs '//&
@@ -544,8 +544,8 @@ contains
 
 	! Remove the mean
 	! ---------------
-	allocate(zff(nchan, nt))
-	zff = ff - spread(sum(ff,dim=2)/real(nt,kind=wp), ncopies=nt, dim=2)
+	allocate(zvar(nchan, nt))
+	zvar = var - spread(sum(var,dim=2)/real(nt,kind=wp), ncopies=nt, dim=2)
 
 	! Set the block-Toeplitz covariance matrix
 	! ========================================
@@ -558,8 +558,8 @@ contains
 					i2 = (ic2-1) * nwindow + iw2
 					iw = iw2 - iw1 + 1
 					cov(i1,i2) = &
-						& dot_product(zff(ic1, 1  : nt-iw+1),  &
-						&             zff(ic2, iw : nt	 )) / &
+						& dot_product(zvar(ic1, 1  : nt-iw+1),  &
+						&             zvar(ic2, iw : nt	 )) / &
 						& real(nt-iw+1,kind=wp)
 					cov(i2,i1) = cov(i1,i2)
 				end do
@@ -601,8 +601,8 @@ contains
 
 	! Get ST-PCs
 	! ==========
-	if(present(stpc)) call sl_mssa_getec(zff,steof,nwindow,stpc)
-	deallocate(zff)
+	if(present(stpc)) call sl_mssa_getec(zvar,steof,nwindow,stpc)
+	deallocate(zvar)
 
 	end subroutine sl_mssa
 
@@ -612,7 +612,7 @@ contains
 	!############################################################
 
 
-	subroutine sl_mssa_getec(ff, steof, nwindow, stec)
+	subroutine sl_mssa_getec(var, steof, nwindow, stec)
 
 	! Title:
 	!	Computes MSSA expansion coefficients
@@ -625,7 +625,7 @@ contains
 	! associated principal components.
 	!
 	! Necessary arguments:
-	!	- ff:   Space-time field
+	!	- var:   Space-time field
 	!	- steof: Space-window-mode EOFs
 	!	- stec:  Time-mode array of expansion coefficients
 	!
@@ -639,16 +639,16 @@ contains
 
 	! External
 	! --------
-	real(wp), intent(in)  :: ff(:,:), steof(:,:)
-	real(wp), intent(out) :: stec(size(ff,2)-nwindow+1,&
+	real(wp), intent(in)  :: var(:,:), steof(:,:)
+	real(wp), intent(out) :: stec(size(var,2)-nwindow+1,&
 		& size(steof,2))
 	integer,       intent(in)  :: nwindow
 
 	! Internal
 	! --------
 	integer :: nt,nkeep,im,iw,nchan
-	real(wp) :: wpc(size(ff,2)-nwindow+1),substeof(size(ff,1)),&
-		& subff(size(ff,1),size(ff,2)-nwindow+1)
+	real(wp) :: wpc(size(var,2)-nwindow+1),substeof(size(var,1)),&
+		& subvar(size(var,1),size(var,2)-nwindow+1)
 
 	! Computations
 	! ------------
@@ -656,8 +656,8 @@ contains
 	! Initialisations
 	! ---------------
 	stec = 0.
-	nchan = size(ff,1)
-	nt = size(ff,2)
+	nchan = size(var,1)
+	nt = size(var,2)
 	nkeep = size(steof,2)
 
 	! Main stuff
@@ -665,18 +665,18 @@ contains
 	do im = 1, nkeep
 		if(wp==dp)then
 			do iw = 1, nwindow
-				subff = ff(:,iw:iw+nt-nwindow)
+				subvar = var(:,iw:iw+nt-nwindow)
 				substeof = steof(iw:iw+(nchan-1)*nwindow:nwindow, im)
 				call dgemm('T','N', nt-nwindow+1, 1, nchan, 1.,&
-					& subff, nchan, substeof, nchan, 0., wpc, nt-nwindow+1)
+					& subvar, nchan, substeof, nchan, 0., wpc, nt-nwindow+1)
 					stec(:, im)  =  stec(:, im) + wpc
 			end do
 		else
 			do iw = 1, nwindow
-				subff = ff(:,iw:iw+nt-nwindow)
+				subvar = var(:,iw:iw+nt-nwindow)
 				substeof = steof(iw:iw+(nchan-1)*nwindow:nwindow, im)
 				call sgemm('T','N', nt-nwindow+1, 1, nchan, 1.,&
-					& subff, nchan, substeof, nchan, 0., wpc, nt-nwindow+1)
+					& subvar, nchan, substeof, nchan, 0., wpc, nt-nwindow+1)
 					stec(:, im)  =  stec(:, im) + wpc
 			end do
 		end if
@@ -691,7 +691,7 @@ contains
 	!############################################################
 
 
-	subroutine sl_mssa_rec(steof, stpc, nwindow, ffrec, istart, iend)
+	subroutine sl_mssa_rec(steof, stpc, nwindow, varrec, istart, iend)
 
 	! Title:
 	!	Reconstruction of a set of MSSA components
@@ -703,7 +703,7 @@ contains
 	!	- steof:   SpaceXwindow-mode array of EOFs
 	!	- stpc:    Time-mode array of PCs
 	!	- nwindow: Window size
-	!	- ffrec:   Space-time array of the reconstructed field
+	!	- varrec:   Space-time array of the reconstructed field
 	!
 	! Optional arguments:
 	!	- istart: Index of the first component to use
@@ -718,7 +718,7 @@ contains
 	! External
 	! --------
 	real(wp),   intent(in)  :: steof(:,:), stpc(:,:)
-	real(wp),   intent(out) :: ffrec(size(steof, 1)/nwindow,&
+	real(wp),   intent(out) :: varrec(size(steof, 1)/nwindow,&
 	 &                                    size(stpc, 1)+nwindow-1)
 	integer,intent(in)           :: nwindow
 	integer,intent(in), optional :: istart, iend
@@ -741,7 +741,7 @@ contains
 	nkept = size(steof, 2)
 	allocate(reof(nwindow))
 	allocate(epc(nwindow, ntpc-nwindow+1))
-	ffrec = 0.
+	varrec = 0.
 
 	! Range
 	! -----
@@ -771,7 +771,7 @@ contains
 
 	! Computation
 	! ===========
-	ffrec = 0.
+	varrec = 0.
 	do im = zistart, ziend ! sum over the selection of modes
 
 		! (ntpc-nwindow+1) length slices
@@ -785,18 +785,18 @@ contains
 			reof = steof(nwindow+(ic-1)*nwindow : 1+(ic-1)*nwindow : -1, im)
 
 			! * middle * [nwindow length projections]
-			ffrec(ic, nwindow : ntpc) =  ffrec(ic, nwindow : ntpc) + &
+			varrec(ic, nwindow : ntpc) =  varrec(ic, nwindow : ntpc) + &
 				& matmul(reof, epc) / real(nwindow,kind=wp)
 
 			do iw = 1, nwindow-1
 
 			 ! * beginning * [iw length projections]
-			 ffrec(ic, iw) = ffrec(ic, iw) + &
+			 varrec(ic, iw) = varrec(ic, iw) + &
 				  & dot_product(reof(nwindow-iw+1:nwindow), &
 				  &	stpc(1:iw, im)           ) / real(iw)
 !
 			 ! * end * [iw length projections]
-			 ffrec(ic, nt-iw+1) = ffrec(ic, nt-iw+1) + &
+			 varrec(ic, nt-iw+1) = varrec(ic, nt-iw+1) + &
 				  & dot_product(reof(1:iw), &
 				  &	stpc(ntpc-iw+1:ntpc, im) ) / real(iw)
 
@@ -1185,7 +1185,7 @@ contains
   ! ############################################################
   ! ############################################################
 
-	subroutine sl_phasecomp(ffrec,np,phases,weights,offset,firstphase)
+	subroutine sl_phasecomp(varrec,np,phases,weights,offset,firstphase)
 
 	! Title:
 	!	Phase composites
@@ -1204,7 +1204,7 @@ contains
 	!
 	!
 	! Necessary arguments:
-	!	- ffrec: Space-time array
+	!	- varrec: Space-time array
 	!	- np:    Number of requested phases over the 360 degrees cycle [default:8]
 	!
 	! Optional arguments:
@@ -1224,30 +1224,30 @@ contains
 	! External
 	! --------
 	integer,       intent(in)           :: np
-	real(wp), intent(in)           :: ffrec(:,:)
+	real(wp), intent(in)           :: varrec(:,:)
 	real(wp), intent(in), optional :: weights(:)
 	real(wp), intent(in), optional :: offset, firstphase
-	real(wp), intent(out)          :: phases(size(ffrec, 1),np)
+	real(wp), intent(out)          :: phases(size(varrec, 1),np)
 
 	! Internal
 	! --------
 	real(wp), allocatable :: pc(:,:)
-	real(wp) :: dpc(size(ffrec,2)), amp(size(ffrec,2))
+	real(wp) :: dpc(size(varrec,2)), amp(size(varrec,2))
 	integer :: nt, iphase
-	real(wp) :: angles(np), projection(size(ffrec,2))
+	real(wp) :: angles(np), projection(size(varrec,2))
 	real(wp) :: pi, deltarad, pcos, psin, zoffset, zfirstphase
-	logical :: select_amplitude(size(ffrec,2)), &
-	 &         select_phase(size(ffrec,2))
-	integer :: itime(size(ffrec,2)), nsel, i, ns
+	logical :: select_amplitude(size(varrec,2)), &
+	 &         select_phase(size(varrec,2))
+	integer :: itime(size(varrec,2)), nsel, i, ns
 	integer, allocatable :: isel(:)
 
 
 	! Setup
 	! =====
-	nt = size(ffrec,2)
+	nt = size(varrec,2)
 	pi = acos(-1.)
 	itime = (/ (i, i=1, nt) /)
-	ns = size(ffrec, 1)
+	ns = size(varrec, 1)
 	if(present(offset))then
 		zoffset=offset
 	else
@@ -1257,7 +1257,7 @@ contains
 	! Find the first PC and its derivative
 	! ====================================
 	allocate(pc(nt,1))
-	call sl_pca(ffrec, 1, pc=pc, weights=weights)
+	call sl_pca(varrec, 1, pc=pc, weights=weights)
 	pc = pc * sqrt(real(nt,kind=wp)/sum(pc**2))
 	dpc = 0.5 * (eoshift(pc(:,1),  1, pc(nt,1)) - &
 	 &           eoshift(pc(:,1), -1, pc(1,1)))
@@ -1294,7 +1294,7 @@ contains
 			nsel = count(select_phase)
 			allocate(isel(nsel))
 			isel = pack(itime, select_phase)
-			phases(:,iphase) = sum(ffrec(:,isel), dim=2) / &
+			phases(:,iphase) = sum(varrec(:,isel), dim=2) / &
 				& real(nsel,kind=wp)
 			deallocate(isel)
 		end if
