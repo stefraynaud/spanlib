@@ -72,7 +72,7 @@ def _pack_(data,weights=None,norm=None):
 		if weights is None:
 			weights = npy.ones(nstot,dtype='f')
 		else:
-			weights = npy.array(weights)
+			weights = npy.asarray(weights)
 		packed['data'] = data.filled().reshape((nt,nstot)).transpose()
 		packed['weights'] = weights.ravel()
 		packed['mask'] = npy.ones(nstot)
@@ -108,16 +108,13 @@ def _pack_(data,weights=None,norm=None):
 	data_to_pack = data.filled(1.e20).reshape((nt,nstot)) 
 	packed['data'] = npy.asarray(spanlib_fort.chan_pack(data_to_pack,mask.flat,ns),
 		dtype='f',order='F')
-	if normalize:
-		packed['norm'] = packed['data'].std()
-		packed['data'][:] /= packed['norm']
 	del data_to_pack
 	# - Pack weights
 	weights = weights.reshape((1,nstot))
 	packed['weights'] = npy.asarray(spanlib_fort.chan_pack(weights,mask.flat,ns)[:,0],
 		dtype='f')
 
-	check_norm(packed)
+	_check_norm_(packed)
 	return packed
 
 def _sort_modes_(mode1,mode2):
@@ -132,6 +129,7 @@ def _check_shape_(inputs,datasets,fillvalue):
 		if not isinstance(inputs[iset],(list,tuple)):
 			inputs[iset] = [inputs[iset]]
 		inputs[iset] = _check_length_(inputs[iset],len(dataset),fillvalue)
+	return inputs
 
 def _check_length_(input,mylen,fillvalue):
 	dlen = mylen-len(input)
@@ -139,12 +137,13 @@ def _check_length_(input,mylen,fillvalue):
 		return input[:mylen]
 	elif dlen > 0:
 			input.extend([fillvalue]*dlen)
+			return input
 	else:
 		return input
 
 def _check_norm_(packed):
 	if packed['norm'] in [True,None]:
-		packed['norm'] = data.std() # Standard norm
+		packed['norm'] = packed['data'].std() # Standard norm
 		packed['data'] /= packed['norm']
 	elif packed['norm'] is not False:
 		if packed['norm'] <0: # Relative norm, else strict norm
@@ -334,8 +333,8 @@ class SpAn(object):
 
 		# Weights and norms in the same form as datasets
 		if norms is None:	norms = 1.
-		norms = _check_shape_(norms,datasets,1.)
-		weights = _check_shape_(weigths,datasets,1.)
+		norms = _check_shape_(norms,datasets,1.) 
+		weights = _check_shape_(weights,datasets,1.)
 
 		# We stack and pack data
 		for iset,d in enumerate(datasets):
@@ -374,27 +373,32 @@ class SpAn(object):
 
 	def _mssa_window_axis_(self,iset):
 		"""Get the window axis for mssa for one dataset"""
-		if not _mssa_window_axes_.has_key(iset) or len(_mssa_window_axes_[iset]) != self._nwindow:
-			self._window_axes[iset] = cdms.createAxis(npy.arange(self._nwindow))
-			self._window_axes[iset].id = 'mssa_window%i'%iset
-			self._window_axes[iset].long_name = 'MSSA window time for dataset #%i'%i
-		return self._window_axes[iset]
+		if not self._mssa_window_axes.has_key(iset) or len(self._mssa_window_axes[iset]) != self._window[iset]:
+			self._mssa_window_axes[iset] = cdms.createAxis(npy.arange(self._window[iset]))
+			self._mssa_window_axes[iset].id = 'mssa_window%i'%iset
+			self._mssa_window_axes[iset].long_name = 'MSSA window time for dataset #%i'%iset
+		return self._mssa_window_axes[iset]
 
 	def _mssa_channel_axis_(self,iset):
 		"""Get the channel axis for mssa for one dataset"""
-		if not self._channel_axes.has_key(iset) or len(_mssa_window_axes_[iset]) != self._nmssa:
-			self._mssa_channel_axes[iset] = cdms.createAxis(npy.arange(self._nmssa))
+		if not self._channel_axes.has_key(iset) or len(self._mssa_channel_axes[iset]) != self._nmssa[iset]:
+			self._mssa_channel_axes[iset] = cdms.createAxis(npy.arange(self._nmssa[iset]))
 			self._mssa_channel_axes[iset].id = 'mssa_channel%i'%iset
-			self._mssa_channel_axes[iset].long_name = 'MSSA channels for dataset #%i'%i
+			self._mssa_channel_axes[iset].long_name = 'MSSA channels for dataset #%i'%iet
 		return self._mssa_channel_axes[iset]
 
-	def _mssa_pctime_axis_(self,iset):
+	def _mssa_pctime_axis_(self,iset,idata=0):
 		"""Get the channel axis for mssa for one dataset"""
-		nt = self._nt[iset] - self._nwindow + 1
-		if not self._channe_axes.has_key(iset) or len(_mssa_window_axes_[iset]) != nt:
+		nt = self._nt[iset] - self._window[iset] + 1
+		if not self._mssa_pctime_axes.has_key(iset) or len(self._mssa_pctime_axes[iset]) != nt:
 			self._mssa_pctime_axes[iset] = cdms.createAxis(npy.arange(nt))
 			self._mssa_pctime_axes[iset].id = 'mssa_pctime%i'%iset
-			self._mssa_pctime_axes[iset].long_name = 'MSSA PC time for dataset #%i'%i
+			self._mssa_pctime_axes[iset].long_name = 'MSSA PC time for dataset #%i'%iset
+			taxis = self._time_axis_(iset,idata)
+			if hasattr(taxis,'units') and taxis.units.split()[0].lower() in \
+				['seconds','minutes','hours','days','months','years']:
+				self._mssa_pctime_axes[iset].units = taxis.units.split()[0].lower() + ' since 0001-01-01'
+				self._mssa_pctime_axes[iset].designateTime()
 		return self._mssa_pctime_axes[iset]
 
 	def _norm_(self,iset,idata):
@@ -619,7 +623,7 @@ class SpAn(object):
 	# MSSA
 	#################################################################
 
-	def mssa(self,nmssa=None,prepca=None,window=None, **kwargs):
+	def mssa(self,nmssa=None,prepca=None,window=None,npca=None,**kwargs):
 		""" MultiChannel Singular Spectrum Analysis (MSSA)
 
 		Description:::
@@ -656,8 +660,11 @@ class SpAn(object):
 
 		# Check for default values for mssa and pca if not passed by user
 		if prepca is None: # Automatic
-			if self._pca_raw_pc == [] and max(self._ns) > 30: # Pre-PCA needed
-				print '[mssa] The number of valid points is greater than',30,' so we perform a pre-PCA'
+			if max(self._ns) > 30: # Pre-PCA needed
+				if self._pca_raw_pc == []:
+					print '[mssa] The number of valid points is greater than',30,' so we perform a pre-PCA'
+					prepca = True
+			elif npca is not None and self._npca != npca: # Number of pca modes changed
 				prepca = True
 		if prepca is True and self._pca_raw_pc ==[]: # Still no PCA done
 				self.pca(**kwargs)
@@ -667,23 +674,27 @@ class SpAn(object):
 		for param in ['nmssa','npca','window']:
 			if eval(param) is not None:
 				setattr(self,'_'+param,eval(param))
-		print 'mssa params',self._nmssa,self._npca,self.window
+		self._window = _check_length_(self._window,self._ndataset,None)
+		self._nmssa = _check_length_(self._nmssa,self._ndataset,None)
+		print 'mssa params',self._nmssa,self._npca,self._window
 
 		# Initializations of data
-		for att in 'raw_eof','raw_pc','raw_ev','pairs':
+		for att in 'raw_eof','raw_pc','raw_ev','pairs','ev_sum':
 			setattr(self,'_mssa_'+att,[])
 
 		# Loop on datasets
 		for iset,pdata in enumerate(self._pdata):
 
-			self._window = npy.clip(self._window,2,self._nt[iset])
+			# Parameters
+			self._nmssa[iset] = npy.clip(self._nmssa[iset],1,min(20,self._ns[iset]))
+			self._window[iset] = npy.clip(self._window,1,max(1,self._nt[iset]/3))
 
 			if prepca is True : # Pre-PCA case
-				raw_eof, raw_pc, raw_ev, raw_ev_sum = \
-				  spanlib_fort.mssa(self._pca_raw_pc[i].transpose(), self._window, self._nmssa)
+				raw_eof, raw_pc, raw_ev, ev_sum = \
+				  spanlib_fort.mssa(self._pca_raw_pc[iset].transpose(), self._window[iset], self._nmssa[iset])
 			else: # Direct MSSA case
-				raw_eof, raw_pc, raw_ev, raw_ev_sum = \
-				  spanlib_fort.mssa(pdata, self._window, self._nmssa)
+				raw_eof, raw_pc, raw_ev, ev_sum = \
+				  spanlib_fort.mssa(pdata, self._window[iset], self._nmssa[iset])
 
 			# Append results
 			self._mssa_raw_pc.append(raw_pc)
@@ -771,7 +782,7 @@ class SpAn(object):
 		self._mssa_fmt_eof = []
 
 		# Of, let's format the variable
-		for iset,raw_eof in enumerate(self._mssa_raw_eof): # (nwindow*nchan,nmssa)
+		for iset,raw_eof in enumerate(self._mssa_raw_eof): # (window*nchan,nmssa)
 			# Get raw data back to physical space
 			if not self._mssa_prepca: # No pre-PCA performed
 				self._mssa_fmt_eof.append(self._unstack_(iset,raw_eof.transpose(),
@@ -781,10 +792,9 @@ class SpAn(object):
 				self._mssa_fmt_eof[-1][0].setAxisList(
 					[self._mode_axis_('mssa'),self._mssa_channel_axis_(iset)])
 			else:
-				nm = self._nmssa ; nw = self._nwindow ; nc = self._npca
-				proj_eof = self._project_(iset,self._pca_raw_eof[iset],
-					npy.swapaxes(raw_eof,0,1).reshape((nw*nc,nm),order='F'),
-					nt=self._nwindow*self._nmssa)
+				nm = self._nmssa[iset] ; nw = self._window[iset] ; nc = self._npca
+				proj_eof,smodes = self._project_(iset,self._pca_raw_eof[iset],
+					npy.swapaxes(raw_eof,0,1).reshape((nw*nc,nm),order='F'),nt=nw*nm)
 				self._mssa_fmt_eof.append(self._unstack_(iset,proj_eof,
 					(self._mode_axis_('mssa'),self._mssa_window_axis_(iset))))
 			# Set attributes
@@ -825,7 +835,8 @@ class SpAn(object):
 			idata = 0 # Reference is first data
 			pc = cdms.createVariable(npy.asarray(raw_pc.transpose(),order='C'))
 			pc.setAxis(0,self._mode_axis_('mssa'))
-			pc.setAxis(1,self._mssa_pctime_axis_(iset,idata))
+			print 'mssa raw pc',raw_pc.shape
+			pc.setAxis(1,self._mssa_pctime_axis_(iset))
 			if not self._stack_info[iset]['ids'][idata].startswith('variable_'):
 				pc.id = self._stack_info[iset]['ids'][idata]+'_mssa_pc'
 			else:
@@ -890,7 +901,7 @@ class SpAn(object):
 		
 		# Loop on datasets
 		for iset,(raw_eof,raw_pc) in enumerate(zip(self._mssa_raw_eof,self._mssa_raw_pc)):
-			raw_rec = self._project_(iset,raw_eof,raw_pc,imode).transpose() # (nt,nchan)
+			raw_rec,smodes = self._project_(iset,raw_eof,raw_pc,imode).transpose() # (nt,nchan)
 			if not self._mssa_prepca: # No pre-PCA performed
 				self._mssa_fmt_rec.append(self._unstack_(iset,raw_rec,self._time_axis_(iset)))
 			elif pure: # Force direct result from MSSA
@@ -899,10 +910,9 @@ class SpAn(object):
 					[self._time_axis_(iset),self._mode_axis_('mssa')])
 			else: # With pre-pca
 				proj_rec = self._project_(iset,self._pca_raw_eof[iset], raw_rec, 
-					nt=self._nwindow*self._nmssa)
+					nt=self._window[iset]*self._nmssa[iset])
 				self._mssa_fmt_eof.append(self._unstack_(iset,proj_rec,
 					(self._mode_axis_('pca'),self._mssa_window_axis_(iset))))
-			smodes = raw_rec.smodes
 			del  raw_rec
 			# Set attributes
 			for idata,rec in enumerate(self._mssa_fmt_rec[-1]):
