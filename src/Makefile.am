@@ -55,7 +55,7 @@ check-precision: spanlib_precision.F90 spanlib_lapack95.f90
 spanlib_lapack95.f90: spanlib_lapack95.F90
 	@echo "Updating lapack95 config..."
 	@test -f spanlib_lapack95.f90  || cp $^ spanlib_lapack95.f90
-	@if test "$(USE_MKL_LAPACK95)" = "yes" ; then \
+	@if test "$(USE_MKL)" = "yes" ; then \
       rm -f spanlib_lapack95.f90 ; \
       sed -e "s/use la_precision/use mkl95_precision/" \
           -e "s/use f95_lapack/use mkl95_lapack/" \
