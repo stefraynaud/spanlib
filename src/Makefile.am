@@ -43,10 +43,10 @@ spanlib_precision.f90: check-precision
 # spanlib_lapack95.f90: check-lapack95
 
 # check-precision: check-lapack95 spanlib_precision.F90
-check-precision: spanlib_lapack95.f90 spanlib_precision.F90
+check-precision: spanlib_precision.F90 spanlib_lapack95.f90
 	@echo "Checking precision..."
-	@test -f spanlib_precision.f90 || cp $^ spanlib_precision.f90
-	@precision=`grep "wp *= *sp" spanlib_precision.f90 | cut -d\  -f6` ; \
+	test -f spanlib_precision.f90 || cp spanlib_precision.F90 spanlib_precision.f90
+	precision=`grep "wp *= *sp" spanlib_precision.f90 | cut -d\  -f6` ; \
 	test "$$precision" = "$(WP)" || \
 	( rm -f spanlib_precision.f90 && sed "s/wp = sp/wp = $(WP)/" $^ > spanlib_precision.f90 && \
 	echo "Switched to $(PRECISION) precision" )
