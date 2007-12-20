@@ -12,7 +12,7 @@ AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
 	AM_CONDITIONAL(LOCAL_PYTHON_INSTALL,false)
 
 	# Basic python
-	AX_WITH_PYTHON(2.4,no)
+	AX_WITH_PYTHON(2.5,no)
 
 	# We have python
 	AS_IF([test "AS_VAR_GET(PYTHON)" != "no"],[
