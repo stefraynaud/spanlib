@@ -39,6 +39,14 @@ esac
 AS_VAR_SET(LIBS,"$BLAS $LIBS")
 AC_MSG_RESULT(AS_VAR_GET(BLAS))
 
+# Is it a MKL (Intel) library?
+AC_MSG_CHECKING([weither it is MKL library from intel])
+AS_IF([test "x`echo AS_VAR_GET(BLAS) | grep -i mkl`" = "x"],
+	[AS_VAR_SET(USE_MKL,no)],[AS_VAR_SET(USE_MKL,yes)]
+)
+AC_MSG_RESULT(AS_VAR_GET(USE_MKL))
+	
+
 # Directory where to find the library
 AC_MSG_CHECKING([for blas library location flag])
 AC_ARG_VAR(BLAS_LIB,[Location of the BLAS library (compile-time)])
@@ -75,6 +83,12 @@ AC_CACHE_CHECK([for AS_VAR_GET(subroutine) of the blas library],ac_cv_blasok,
 # LAPACK
 #################################
 
+# Default value
+AS_IF([test AS_VAR_GET(USE_MKL) = "yes"],
+	[AS_VAR_SET(LAPACK_DEFAULT,"-lmkl_lapack")],
+	[AS_VAR_SET(LAPACK_DEFAULT,"-llapack")]
+)	
+
 # F77 library name or LIBS
 AC_MSG_CHECKING([for lapack f77 library flag])
 AC_ARG_VAR(LAPACK,F77 library name or LIBS flag(s))
@@ -83,7 +97,7 @@ AC_ARG_WITH(lapack,
 		[F77 library name or LIBS flag(s)]),
 	[case AS_VAR_GET(with_lapack) in
 		no)AC_SR_ERROR([You cant disable lapack]);;
-		yes)AS_VAR_SET(LAPACK,-llapack);;
+		yes)AS_VAR_SET(LAPACK,AS_VAR_GET(LAPACK_DEFAULT));;
 		*)AS_VAR_SET(LAPACK,$with_lapack);;
 	esac] 
 )
@@ -113,6 +127,14 @@ AS_VAR_SET_IF([LAPACK_LIB],[
 ])
 AC_MSG_RESULT(AS_VAR_GET(LAPACK_LIB))
 
+
+
+# Default value
+AS_IF([test AS_VAR_GET(USE_MKL) = "yes"],
+	[AS_VAR_SET(LAPACK95_DEFAULT,"-lmkl_lapack95")],
+	[AS_VAR_SET(LAPACK95_DEFAULT,"-llapack95")]
+)	
+
 # F95 library name or LIBS
 AC_MSG_CHECKING([for lapack f95 library flag])
 AC_ARG_VAR(LAPACK95,LAPACK95 library name or LIBS flag(s))
@@ -122,7 +144,7 @@ AC_ARG_WITH(lapack95,
 	[
 		case AS_VAR_GET(with_lapack95) in
 			no):;;
-			yes)AS_VAR_SET(LAPACK95,-llapack95);;
+			yes)AS_VAR_SET(LAPACK95,AS_VAR_GET(LAPACK95_DEFAULT));;
 			*)AS_VAR_SET(LAPACK95,$with_lapack95);;
 		esac
 		AS_VAR_SET_IF([LAPACK95],[
@@ -137,21 +159,19 @@ AS_VAR_SET_IF([LAPACK95],[AS_VAR_SET(LIBS,"$LAPACK95 $LIBS")])
 AC_MSG_RESULT(AS_VAR_GET(LAPACK95))
 
 # Is it a MKL (Intel) library?
-AC_MSG_CHECKING([weither it is MKL library from intel])
-AS_IF([test "x`echo AS_VAR_GET(LAPACK95) | grep -i mkl`" = "x"],
+AS_IF([test AS_VAR_GET(USE_MKL) = "yes"],
 	[
 		AS_VAR_SET(USE_MKL_LAPACK95,no)
-		AS_VAR_SET(lapack95_mod,f95_lapack)
-		AS_VAR_SET(lapack95_pre,la_precision)
-		AS_VAR_SET(lapack95_sub,la_syev)
-	],[
-		AS_VAR_SET(USE_MKL_LAPACK95,yes)
 		AS_VAR_SET(lapack95_mod,mkl95_lapack)
 		AS_VAR_SET(lapack95_pre,mkl95_precision)
 		AS_VAR_SET(lapack95_sub,syev)	
+	],[
+		AS_VAR_SET(USE_MKL_LAPACK95,yes)
+		AS_VAR_SET(lapack95_mod,f95_lapack)
+		AS_VAR_SET(lapack95_pre,la_precision)
+		AS_VAR_SET(lapack95_sub,la_syev)
 	]
 )
-AC_MSG_RESULT(AS_VAR_GET(USE_MKL_LAPACK95))
 
 # Library dir name or FCFLAGS for Lapack95 
 AC_MSG_CHECKING([for lapack95 library location flag])
