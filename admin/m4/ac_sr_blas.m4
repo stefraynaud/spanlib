@@ -101,7 +101,7 @@ AC_ARG_WITH(lapack,
 		*)AS_VAR_SET(LAPACK,$with_lapack);;
 	esac] 
 )
-AS_VAR_SET_IF([LAPACK],,[AS_VAR_SET(LAPACK,-llapack)])
+AS_VAR_SET_IF([LAPACK],,[AS_VAR_SET(LAPACK,AS_VAR_GET(LAPACK_DEFAULT))])
 case AS_VAR_GET(LAPACK) in
 	-l* | */* | *.a | *.so | *.so.* | *.o):;;
 	*)AS_VAR_SET(LAPACK,"-l$LAPACK");;
@@ -155,8 +155,9 @@ AC_ARG_WITH(lapack95,
 		])
 	]
 )
-AS_VAR_SET_IF([LAPACK95],[AS_VAR_SET(LIBS,"$LAPACK95 $LIBS")])
+AS_VAR_SET_IF([LAPACK95],,[AS_VAR_SET(LAPACK95,AS_VAR_GET(LAPACK95_DEFAULT))])
 AC_MSG_RESULT(AS_VAR_GET(LAPACK95))
+AS_VAR_SET(LIBS,"$LAPACK95 $LIBS")
 
 # Is it a MKL (Intel) library?
 AS_IF([test AS_VAR_GET(USE_MKL) = "yes"],
