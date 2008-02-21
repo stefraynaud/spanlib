@@ -75,7 +75,7 @@ def _pack_(data,weights=None,norm=None):
 		packed['data'] = data.filled().reshape((nt,nstot)).transpose()
 		packed['weights'] = weights.ravel()
 		packed['mask'] = npy.ones(nstot)
-		check_norm(packed)
+		_check_norm_(packed)
 		return packed
 
 	# Weights ?
@@ -118,7 +118,7 @@ def _pack_(data,weights=None,norm=None):
 
 def _sort_modes_(mode1,mode2):
 	return npy.sign(abs(mode2)-abs(mode1))
-	
+
 def _check_shape_(inputs,datasets,fillvalue):
 	"""Return input as datasets *shape*"""
 	inputs = _check_length_(inputs,len(datasets),fillvalue)
@@ -137,6 +137,7 @@ def _check_length_(input,mylen,fillvalue):
 	return input
 
 def _check_norm_(packed):
+	"""Setup the normalisation factor of a packed dataset"""
 	if packed['norm'] in [True,None]:
 		packed['norm'] = packed['data'].std() # Standard norm
 		packed['data'] /= packed['norm']
@@ -149,7 +150,9 @@ def _check_norm_(packed):
 			
 	
 
-def get_pairs(pcs,mincorr=0.9,maxdistance=2,smooth=5):
+
+
+def get_pairs(pcs, mincorr=0.9, maxdistance=2, deltaper=10., smooth=5):
 	""" Get pairs in MSSA results
 
 	Description:::
@@ -179,43 +182,54 @@ def get_pairs(pcs,mincorr=0.9,maxdistance=2,smooth=5):
 	nst = pcs.shape[1]
 	if nst < 4:
 		return []
-	smooth = npy.clip(smooth,1,max([1,nst-3]))
+		
+#	smooth = npy.clip(smooth,1,max([1,nst-3]))
 	pairs = []
 	found = []
-	minCorr = npy.clip(minCorr,0.,1.)
-	maxDistance = npy.clip(maxDistance,1,len(pcs)-1)
+	mincorr = npy.clip(mincorr,0.,1.)
+	nt = len(pcs[0])
+
+	# Lags
+	lags = npy.arange(-nt+2,nt-1) # middle = nt-1
+	nlag = len(lags) # 2nt-3
+	imid = nlag/2
+	
+	maxdistance = npy.clip(maxdistance,1,len(pcs)-1)
+
+	# Compute lagged autocorrelations to find dominant periods
+	periods = []
+	idx = npy.arange(nt-2)
+	for ip in xrange(len(pcs)-1):
+		lac = genutil.statistics.laggedcorrelation(pcs[ip], pcs[ip], lags)
+		c1, c2 = _max_corrs_(pcs[ip], lags=lags)
+		periods.append(min(c1[0], c2[0])) # Keep lowest period
+		print 'period %i = %g'%(i, periods[-1])
+			
+	# Now the lagged cross correlations to check phase quadrature	
 	for ip1 in xrange(len(pcs)-1):
-##		print 'ipc',i
-##		print 'found',found
+		
 		# Mode already found
-		if ip1 in found:
-			continue
+		if ip1 in found: continue
+		
 		# Scan next maxDistance modes to find a possible pair
-		for ip2 in xrange(ip1+1,min([ip1+maxDistance+1,len(pcs)])):
-##			print 'TRY',ip1,ip2
+		for ip2 in xrange(ip1+1,min([ip1+maxdistance+1,len(pcs)])):
+
 			ip = [ip1,ip2]
-			corr = 0.
-			for k in 0,1:
-				# PC without extreme bounds
-				pc = pcs[ip[k],1:-1]
-				if smooth > 1:
-					pc = genutil.filters.runningaverage(pc,smooth)
-				# Derivative
-				dpc = pcs[ip[1-k],2:] - pcs[ip[1-k],:-2]
-				if smooth > 1:
-					dpc = genutil.filters.runningaverage(dpc,smooth)				
-				# Increment correlation
-				corr += float(npy.absolute(genutil.statistics.correlation(pc,dpc,axis=0)))
-##			print 'ssssCORRELATION',float(genutil.statistics.correlation(pc,dpc,axis=0))
-##			import vcs
-##			v1,v2=vcs.init(),vcs.init()
-##			v1.plot(pc)
-##			v2.plot(dpc)
-##			raw_input('map out ok?')
-			if corr >= 2*minCorr:
-				# We got a pair!
-				print 'We got a pair!'
-				break
+			
+			# Lag correlations
+			(c1, l1), (c2, l2) = min(_max_corrs_(pcs[ip1], pcs[ip2], lags=lags))
+			
+			# Check correlation strengths
+			imax = N.argmax([c1, c2])
+			if [c1, c2][imax] < mincorr: continue
+			
+			# Check period
+			per = [l1, l2][imax]
+			if l1 < per*(1.-deltaper/100.) or l2 > per(1.+deltaper/100.): continue
+			
+			print 'We got a pair:', ip1, ip2
+			break
+
 		else:
 			# No pair found
 			continue
@@ -224,8 +238,32 @@ def get_pairs(pcs,mincorr=0.9,maxdistance=2,smooth=5):
 
 	return pairs
 
+def _max_corrs_(pc1, pc2=None, lags=None):
+	if lags is None:
+		nt = len(pc1)
+		lags = npy.arange(-nt+2,nt-1) # middle = nt-1
+	nlag = len(lags) # 2nt-3
+	imid = nlag/2
+	if pc2 is None:
+		pc2 = pc1
+	lc = genutil.statistics.laggedcorrelation(p1, pc2, lags)
+	imaxima = []
+	for i1,istep in 1, -1:
+		halflags = lc[imid:None,istep]
+		dbefore = npy.diff(halflags[:-1])
+		dafter = npy.diff(halflags[1:])
+		maxima = npy.logical_and(npy.greater(dbefore, 0), npy.less_equal(dafter, 0))
+		imax = n.compress(maxima,idx)
+		if len(neg):
+			im = imid+istep*imax[0]+1, dafter[imax]
+		else:
+			im = -1, -1
+		imaxima.append(im)
+	return imaxima
 
-def compute_phases(data,nphases=8,offset=.5,firstphase=0):
+
+
+def get_phases(data,nphases=8,minamp=.5,firstphase=0):
 	""" Phase composites for oscillatory fields
 
 	Description:::
@@ -238,32 +276,60 @@ def compute_phases(data,nphases=8,offset=.5,firstphase=0):
 	:::
 
 	Usage:::
-	phases = computePhases(data,nphases,offset,firstphase)
+	phases = get_phases(data,nphases,offset,firstphase)
 
-	  data	   :: Space-time data oscillatory in time data.shape is rank 2 and dim 0 is space
+	  data	   :: Time-channel data oscillatory in time data.shape is rank 2 and dim 0 is space
 	  nphases	:: Number of phases (divisions of the cycle)
-	  offset	 :: Normalised offset to keep higher values only [default:
+	  minamp	 :: Normalised offset to keep higher values only [default:
 	  firstphase :: Position of the first phase in the 360 degree cycle
 	:::
 
 	Output:::
-	  phases :: Space-phase array
+	  phases :: Phase-channel array
 	:::
 	"""
-
-	ns=data.shape[0]
-	nt=data.shape[1]
-	w = MV.ones((ns),dtype='f')
-	phases = MV.array(spanlib_fort.phasecomp(data, nphases, w, offset, firstphase))
-	axes = MV.array(data).getAxisList()
-	phases.id = 'Phase composites'
-	ax = phases.getAxis(1)
-	ax[:]=ax[:]*360./nphases+firstphase
-	ax.id = 'phases'
-	ax.long_name = 'Phases'
-	ax.units = 'degrees'
-	axes[1] = ax
+	
+	# Get the first PC and its smoothed derivative
+	pc = SpAn(data).pca_pc(npca=1)[0]
+	pc[:] /= pc.std()
+	dpc = npy.gradient(pc)
+	if len(dpc) > 2: # 1,2,1 smooth
+		dpc[1:-1] = npy.convolve(dpc, [.25, .5, .25])
+	dpc[:] = dpc/dpc.std()
+	
+	# Get amplitude and phase indexes
+	amplitudes = npy.hypot(pc, dpc)
+	angles = npy.arctan2(dpc, pc)
+	dphase = 2*npy.pi/nphase
+	angles[:] = npy.where(npy.greater_equal(angles, 2*npy.pi-dphase*.5), angles-dphase*.5, angles)
+	
+	# Selection according to amplitudes 
+	good = npy.greater_equal(amplitudes, minamp)
+	pc = npy.compress(good, pc, axis=0)
+	dpc = npy.compress(good, dpc, axis=0)
+	itaxis = npy.clip(data.getOrder().find('t'), 0, data.ndim-1)
+	cdata = data.compress(good, axis=itaxis)
+	
+	# Initialize output variable
+	sl = [slice(None)]*data.ndim
+	sl[itaxis] = slice(0, 1)
+	phases = MV.repeat(MV.take(data, (0, ), itaxis), nphase, itaxis)
+	paxis = cdms.createAxis(npy.arange(nphase)*dphase, id='phases')
+	paxis.long_name = 'Circular phases'
+	paxis.units = 'degrees'
+	axes = data.getAxisList()
+	axes[itaxis] = paxis
 	phases.setAxisList(axes)
+	
+	# Loop on circular bins to make composites
+	marks = dphase * (npy.arange(nphase) - .5) + firstphase*npy.pi/360.
+	slices = [slice(None), ]*phases.ndim
+	idx = npy.arange(data.shape[itaxis])
+	for iphase in xrange(len(marks-1)):
+		slices[itaxis] = iphase
+		inbin = npy.logical_and(npy.geater_equal(angles, marks[iphase]), npy.less(angles, marks[iphase+1]))
+		phases[tuple(slices)] = MV.average(data.compress(inbin, axis=itaxis))
+
 	return phases
 
 
@@ -1388,7 +1454,7 @@ class SpAn(object):
 
 		# Phase reconstruction for pca or mssa
 		if phases and not pca and not mssa:
-			raise 'Error you did not do any PCA or MSSA!\n To do a phases analysis only use the function %s in this module.\n%s' % ('computePhases',computePhases.__doc__)
+			raise 'Error you did not do any PCA or MSSA!\n To do a phases analysis only use the function %s in this module.\n%s' % ('get_phases',get_phases.__doc__)
 
 		# MSSA reconstruction
 		if mssa:
@@ -1433,12 +1499,12 @@ class SpAn(object):
 			comments+=' Phases'
 			if mssa:
 				for i in xrange(len(self._pdata)):
-					print 'yo',ffrec,computePhases(ffrec[i],nphases,offset,firstphase)
-					ffrec[i] = computePhases(ffrec[i],nphases,offset,firstphase)
+					print 'yo',ffrec,get_phases(ffrec[i],nphases,offset,firstphase)
+					ffrec[i] = get_phases(ffrec[i],nphases,offset,firstphase)
 			else:
 				ffrec=[]
 				for i in xrange(len(self._pdata)):
-					ffrec.append(computePhases(npy.transpose(self._pca_raw_pc[i]),
+					ffrec.append(get_phases(npy.transpose(self._pca_raw_pc[i]),
 						nphases,offset,firstphase))
 
 			# Replace time axis with phases axis
@@ -1632,7 +1698,7 @@ class SpAn(object):
 			else:
 				stacked = npy.concatenate((stacked,packed['data']))
 				weights = npy.concatenate((weights,packed['weights']))
-			norms.append(packed)
+			norms.append(packed['norm'])
 			masks.append(packed['mask'])
 			del packed
 			gc.collect()
@@ -1656,14 +1722,6 @@ class SpAn(object):
 		firstaxes: MUST be a tuple
 		"""
 
-		## Expansion axis (first axis)
-		#if pack_type == 'rec': # Normal time reconstruction
-			#first_axis = self._stack_info[iset]['taxes']
-		#elif pack_type == 'phase': # Time is phases
-			#first_axis = pdata[0].getAxis(0)
-		#else: # Reconstruction along pca, mssa or svd modes
-			#first_axis = self._mode_axis(pack_type)
-
 		# Loop on stacked data
 		istart = 0
 		unstacked = []
@@ -1685,12 +1743,12 @@ class SpAn(object):
 			# Check axes and shape
 			axes = []
 			for fa in firstaxes:
-				if isinstance(fa,tuple):
+				if isinstance(fa,tuple): # Time
 					axes.append(fa[idata])
-				elif isinstance(fa,dict):
+				elif isinstance(fa,dict): # MODE
 					axes.append(fa[iset])
 				else:
-					axes.append(fa)
+					axes.append(fa) # WINDOW
 			if len(shape) > 1: axes.extend(saxe)
 			shape = tuple([len(axis) for axis in axes])
 			if unpacked.shape != shape:
@@ -1703,6 +1761,9 @@ class SpAn(object):
 			masked.setGrid(grid)
 			for attn,attv in att.items():
 				setattr(masked,attn,attv)
+
+			# Unnormalize
+			masked[:] /= norm
 
 			# Append to output
 			unstacked.append(masked)
