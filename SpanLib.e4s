@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Session SYSTEM "Session-4.0.dtd">
+<!-- eric4 session file for project SpanLib -->
+<!-- This file was generated automatically, do not edit. -->
+<!-- Saved: 2008-03-04, 14:08:47 -->
+<Session version="4.0">
+  <Filenames>
+    <Filename cline="1265" cindex="32">/home/raynaud/soft/spanlib/trunk/src/spanlib.f90</Filename>
+    <Filename cline="1339" cindex="32">/home/raynaud/soft/spanlib/trunk/lib/spanlib_python.py</Filename>
+    <Filename cline="69" cindex="9">/home/raynaud/soft/spanlib/trunk/test/test_pca_base.py</Filename>
+    <Filename cline="1578" cindex="49">/home/raynaud/soft/spanlib/trunk/src/build/tmp_lib/spanlib/spanlib_python.py</Filename>
+  </Filenames>
+  <ActiveWindow cline="1339" cindex="32">/home/raynaud/soft/spanlib/trunk/lib/spanlib_python.py</ActiveWindow>
+  <Breakpoints>
+  </Breakpoints>
+  <Watchpoints>
+  </Watchpoints>
+  <DebugInfo>
+    <CommandLine></CommandLine>
+    <WorkingDirectory></WorkingDirectory>
+    <Environment></Environment>
+    <ReportExceptions value="True" />
+    <Exceptions>
+    </Exceptions>
+    <AutoClearShell value="True" />
+    <TracePython value="False" />
+    <AutoContinue value="True" />
+    <CovexcPattern></CovexcPattern>
+  </DebugInfo>
+  <Bookmarks>
+  </Bookmarks>
+</Session>

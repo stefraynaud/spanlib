@@ -582,15 +582,15 @@ class SpAn(object):
 		It can be a list, and it is returned as a list.
 		if an iset is invalid, it is removed from the output list.
 		"""
-		if iset is not None and not isinstance(iset,(list,tuple)):
+		if iset is None: return None
+		if not isinstance(iset,(list,tuple)):
 			isets = [iset]
 		else:
 			isets = iset
-		if isets is not None:
-			for i,iset in enumerate(isets):
-				if iset < 0 or iset > self._ndataset:
-					warn('Invalid dataset id: %i. Valid id are < %i'%(iset,self._ndataset))
-					del isets[i]
+		for i,iset in enumerate(isets):
+			if iset < 0 or iset > self._ndataset:
+				warn('Invalid dataset id: %i. Valid id are < %i'%(iset,self._ndataset))
+				del isets[i]
 		return isets
 
 
@@ -675,7 +675,7 @@ class SpAn(object):
 		fmt_eof = {}
 		for iset in xrange(self._ndataset):
 			
-			# Check dataset
+			# Operate only on selected datasets
 			if isets is not None and iset not in isets:
 				continue
 				
@@ -712,22 +712,19 @@ class SpAn(object):
 		return self._return_(fmt_eof)		
 
 
-	def pca_pc(self,update=False,*args,**kwargs):
+	def pca_pc(self,update=False,iset=None,*args,**kwargs):
 		"""Get PCs from current PCA decomposition
 
 		If PCA was not performed, it is done with all parameters sent to pca()
 		"""
-		# Dataset selection
-		if not isinstance(iset,(list,tuple)):
-			isets = [iset]
-		else:
-			isets = iset
+		# Check on which dataset to operate
+		isets = self._check_isets_(iset)
 
 		# Of, let's format the variable
 		fmt_pc = {}
 		for iset,raw_pc in self._pca_raw_pc.items():
 			
-			# Check dataset
+			# Operate only on selected datasets
 			if isets is not None and iset not in isets:
 				continue
 				
@@ -761,7 +758,7 @@ class SpAn(object):
 		return self._return_(fmt_pc)		
 
 
-	def pca_ev(self,relative=False,sum=False,cumsum=False,update=False,*args,**kwargs):
+	def pca_ev(self,iset=None,relative=False,sum=False,cumsum=False,update=False,*args,**kwargs):
 		"""Get eigen values from current PCA decomposition
 
 		Inputs:
@@ -769,22 +766,18 @@ class SpAn(object):
 		  sum :: Return the sum of eigen values (total variance)
 		"""
 
-		# Dataset selection
-		if not isinstance(iset,(list,tuple)):
-			isets = [iset]
-		else:
-			isets = iset
-			
+		# Check on which dataset to operate
+		isets = self._check_isets_(iset)
+
 		# Loop on dataset
 		res = {}
 		for iset in xrange(self._ndataset):
 			
-			# Check dataset
-			if isets is not None and iset not in isets:
-				continue
+			# Operate only on selected datasets
+			if isets is not None and iset not in isets: continue
 				
 			# Should we rerun PCA for this dataset?
-			if not self._pca_ev.has_key(iset) or update:
+			if not self._pca_raw_ev.has_key(iset) or update:
 				self.pca(iset=iset,*args,**kwargs)
 
 			# We only want the sum
@@ -833,19 +826,15 @@ class SpAn(object):
 		  update :: Rerun the PCA.
 		"""
 		
-		# Dataset selection
-		if not isinstance(iset,(list,tuple)):
-			isets = [iset]
-		else:
-			isets = iset
+		# Check on which dataset to operate
+		isets = self._check_isets_(iset)
 			
 		# Loop on datasets
 		pca_fmt_rec = {}
 		for iset in xrange(self._ndataset):
 			
-			# Check dataset
-			if isets is not None and iset not in isets:
-				continue
+			# Operate only on selected datasets
+			if isets is not None and iset not in isets: continue
 				
 			# Should we rerun PCA for this dataset?
 			if not self._pca_raw_eof.has_key(iset) or update:
@@ -1587,11 +1576,9 @@ class SpAn(object):
 		"""Return dataset as input dataset"""
 		# Single variable
 		if self._input_map == 0:
-#			if cdms.isVariable(dataset[0]):
-			print dataset
-			if not isinstance(dataset[0],list):
-				return dataset[0]
-			return dataset[0][0]
+			while isinstance(dataset, (list, tuple, dict)):
+				dataset = dataset[0]
+			return dataset
 		# A single list of stacked variable (not serial mode)
 		if isinstance(self._input_map,int):
 			return dataset[0]
@@ -1599,7 +1586,7 @@ class SpAn(object):
 		for map,iset in enumerate(self._input_map):
 #			if (map== 0 and not cdms.isVariable(dataset[iset])) or grouped:
 			print isinstance(dataset[iset],list)
-			if (map== 0 and isinstance(dataset[iset],list)) and not grouped:
+			if (map== 0 and isinstance(dataset[iset],(list, dict))) and not grouped:
 				dataset[iset] = dataset[iset][0]
 		gc.collect()
 		return dataset
