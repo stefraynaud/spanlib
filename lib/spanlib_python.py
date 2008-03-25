@@ -49,7 +49,7 @@ def _pack_(data,weights=None,norm=None):
 	  mask		     :: Mask that were guessed or used
 	:::
 	"""
-
+	print 'WEIGHTS',weights
 	# Total number of channels
 	packed = {}
 	if not cdms.isVariable(data):
@@ -67,13 +67,15 @@ def _pack_(data,weights=None,norm=None):
 	packed['norm'] = norm
 
 	# Is it already packed? Check the mask...
-	if data.mask is False:
+	if data.mask is MV.nomask:
 		if weights is None:
 			weights = npy.ones(nstot,dtype='f')
 		else:
-			weights = npy.asarray(weights)
-		packed['data'] = data.filled().reshape((nt,nstot)).transpose()
+			weights = npy.asarray(weights,dtype='f')
 		packed['weights'] = weights.ravel()
+		if len(packed['weights']) != nstot:
+			packed['weights'] = npy.resize(packed['weights'], (nstot,))
+		packed['data'] = data.filled().reshape((nt,nstot)).transpose()
 		packed['mask'] = npy.ones(nstot)
 		_check_norm_(packed)
 		return packed
@@ -86,9 +88,10 @@ def _pack_(data,weights=None,norm=None):
 			weights = cdutil.area_weights(data[0]).raw_data() # Geographic weights
 		else:
 			weights = npy.ones(nstot,dtype='f').reshape(sh[1:])
+	elif cdms.isVariable(weights):
+		weights = weights.filled(0.)
 	else:
-		if cdms.isVariable(weights):
-			weights = weights.filled(0.)
+		weights = npy.asarray(weights,dtype='f')
 
 	# Mask
 	# - First from data
@@ -105,13 +108,11 @@ def _pack_(data,weights=None,norm=None):
 	# Pack space
 	# - Pack numeric data array
 	data_to_pack = data.filled(1.e20).reshape((nt,nstot)) 
-	packed['data'] = npy.asarray(spanlib_fort.chan_pack(data_to_pack,mask.flat,ns),
-		dtype='f',order='F')
+	packed['data'] = npy.asarray(spanlib_fort.chan_pack(data_to_pack,mask.flat,ns),dtype='f',order='F')
 	del data_to_pack
 	# - Pack weights
 	weights = weights.reshape((1,nstot))
-	packed['weights'] = npy.asarray(spanlib_fort.chan_pack(weights,mask.flat,ns)[:,0],
-		dtype='f')
+	packed['weights'] = npy.asarray(spanlib_fort.chan_pack(weights,mask.flat,ns)[:,0],dtype='f')
 
 	_check_norm_(packed)
 	return packed
@@ -120,15 +121,24 @@ def _sort_modes_(mode1,mode2):
 	return npy.sign(abs(mode2)-abs(mode1))
 
 def _check_shape_(inputs,datasets,fillvalue):
-	"""Return input as datasets *shape*"""
+	"""Return input as datasets (tree) *shape*"""
 	inputs = _check_length_(inputs,len(datasets),fillvalue)
 	for iset,dataset in enumerate(datasets):
 		inputs[iset] = _check_length_(inputs[iset],len(dataset),fillvalue)
 	return inputs
 
 def _check_length_(input,mylen,fillvalue):
+	# A single value
+	if mylen == 0:
+		if isinstance(input,(list,tuple)):
+			if not input: return None
+			return input[0]
+		return input
+	# Multiple values as a list (or tuple)
 	if not isinstance(input,(list,tuple)):
 		input = [input]
+	if isinstance(input,tuple):
+		input = list(input)
 	dlen = mylen-len(input)
 	if dlen < 0:
 		input = input[:mylen]
@@ -159,8 +169,7 @@ def get_pairs(pcs, mincorr=0.9, maxdistance=2, deltaper=10., smooth=5):
 	  This function detects pairs of mode in principal
 	  components (typical from MSSA). Modes of a pair
 	  have their PCs (and EOFs) in phase quadrature in time.
-	  The algorithm uses correlations between a pc and the 
-	  derivative of the other pc.
+	  The algorithm detects quadratures using lag correlations.
 	:::
 
 	Usage:::
@@ -341,7 +350,7 @@ class SpAn(object):
 	_nmssa_max = _nsvd_max = 20
 	_window_default = 1/3. # Relative to time length
 
-	def __init__(self, datasets, serial=False, weights=None, norms=None, npca=None, prepca=None, window=None, nmssa=None, nsvd=None):
+	def __init__(self, datasets, serial=False, weights=None, norms=None, **kwargs):
 		""" Prepare the Spectral Analysis Object
 
 		Description:::
@@ -366,6 +375,7 @@ class SpAn(object):
 		  nmssa   :: Number of MSSA modes retained [default: 4]
 		  nsvd	:: Number of SVD modes retained [default: 10]
 		  window  :: MSSA window parameter [default: time_length/3.]
+		  serial :: If we have a list (or tuple) of variables as "datasets", they are analysed independantly (serial analyses in opposition to parallel analyses) if serial is True [default: False]. If False, they are packed before being analysed.
 		:::
 
 		Output:::
@@ -380,36 +390,46 @@ class SpAn(object):
 			datasets = [datasets]
 			self._input_map = 0
 		else:
+			if isinstance(datasets,tuple):
+				datasets = list(datasets)
 			self._input_map = len(datasets)
 
-		# Check if we are in a serial analysis mode
+		# Check if we are forced to be in serial analysis mode
 		for d in datasets:
 			if isinstance(d,(list,tuple)):
 				serial = True
 				break
-		if not serial: # Convert to serial mode
+		if not serial: # Convert to serial like mode
 			datasets = [datasets]
 		else:
+			print len(datasets)
 			input_map = []
 			for iset in xrange(len(datasets)):
 				if isinstance(datasets[iset],(list,tuple)):
-					input_map[iset] = len(datasets[iset])
+					if isinstance(datasets[iset],tuple):
+						datasets[iset] = list(datasets[iset])
+					input_map.append(len(datasets[iset]))
 				else:
-					input_map[iset] = 0
+					datasets[iset] = [datasets[iset]]
+					input_map.append(0)
 			self._input_map = input_map
+
+		print 'input map',self._input_map
 
 		# Weights and norms in the same form as datasets
 		if norms is None:	norms = 1.
-		norms = _check_shape_(norms,datasets,1.) 
-		weights = _check_shape_(weights,datasets,1.)
+		norms = _check_shape_(norms,datasets,1.)
+		weights = _check_shape_(weights,datasets,None)
 
 		# We stack and pack data
 		for iset,d in enumerate(datasets):
 			self._stack_(d,weights[iset],norms[iset])
 		self._ndataset = len(datasets)
 
+
 		# Check and save parameters
-		self._update_params_(npca=npca,window=window,nmssa=nmssa,nsvd=nsvd,prepca=prepca)
+		self._update_params_(**kwargs)
+#		self._update_params_(npca=npca,window=window,nmssa=nmssa,nsvd=nsvd,prepca=prepca)
 
 
 	#################################################################
@@ -433,19 +453,22 @@ class SpAn(object):
 		"""Get a mode axis according to the type of modes (pca, mssa, svd)"""
 		if not self._mode_axes.has_key(analysis_type):
 			self._mode_axes[analysis_type] = {}
+		single = False
 		if isets is None: 
 			isets = xrange(self._ndataset)
-		else:
+		elif not isinstance(isets,(list,tuple)):
 			isets = [isets]
+			single = True
+		out = []
 		for iset in isets:
 			if not self._mode_axes[analysis_type].has_key(iset):
 				self._mode_axes[analysis_type][iset] = cdms.createAxis(npy.arange(1,getattr(self,'_n'+analysis_type)[iset]+1))
 				self._mode_axes[analysis_type][iset].id = analysis_type+'_mode'
 				self._mode_axes[analysis_type][iset].long_name = analysis_type.upper()+' modes in decreasing order'
-				self._check_dataset_tag_('_mssa_mode_axes',iset,analysis_type)
-		if isinstance(isets,list):
-			return self._mode_axes[analysis_type][iset]
-		return self._mode_axes[analysis_type]
+				self._check_dataset_tag_('_mode_axes',iset,analysis_type)
+			out.append(self._mode_axes[analysis_type][iset])
+		if single: return out[0]
+		return out
 
 	def _mssa_window_axis_(self,iset):
 		"""Get the window axis for mssa for one dataset"""
@@ -493,7 +516,7 @@ class SpAn(object):
 				targetset = targetset[key]
 			target = targetset[iset]
 			if id: 
-				target.id += str(iset)
+				target.id += '_set%i'%iset
 			if long_name:
 				target.long_name += ' for dataset #%i'%iset
 
@@ -508,8 +531,13 @@ class SpAn(object):
 	def _changed_param_(self,old,param):
 		"""Check if a parameter is changed for all datasets.
 		Return a list of booleans.
+		@param old: Dictionary of name and value of parameters
+		@param param: Parameter name.
 		"""
-		return [old[param][iset]==getattr(self,'_'+name)[iset] for iset in xrange(self._ndataset)]
+		if isinstance(old[param],(list,tuple)):
+			return [old[param][iset]!=getattr(self,'_'+param)[iset] for iset in xrange(self._ndataset)]
+		else:
+			return old[param] != getattr(self,'_'+param)
 		
 	def _update_params_(self,**kwargs):
 		"""Update and check requested statistical paremeters.
@@ -517,36 +545,50 @@ class SpAn(object):
 		"""
 		old = {}
 		changed = {}
+		verbose = kwargs.pop('verbose', False)
+		req_params = kwargs.keys()
 		for param in 'npca','nmssa','window','prepca','nsvd':
-			changed[param] = [False]*self._ndataset # Init
+			changed[param] = [False]*self._ndataset # Init changed flag
+			# Get old values , defaults to None and set new value
 			if kwargs.has_key(param):
-				old[param] = getattr(self,'_'+param,None)
-				if param != 'nsvd':
-					setattr(self,'_'+param,_check_length_(kwargs.pop(param),self._ndataset,None))
+				if param == 'nsvd':  # Single value for all datasets
+					old[param] = getattr(self,'_'+param,None)
+					setattr(self,'_'+param,_check_length_(kwargs.pop(param),0,None))
 				else:
-					setattr(self,'_'+param,kwargs.pop(param))
+					old[param] = getattr(self,'_'+param,[None]*self._ndataset)
+					setattr(self,'_'+param,_check_length_(kwargs.pop(param),self._ndataset,None))
 					
 		# Number of PCA modes		
-		if kwargs.has_key('npca'):
+		if 'npca' in req_params:
 			for iset in xrange(self._ndataset):
-				if self._npca[iset] is None: self._npca[iset] = SpAn._npca_default # Default value
+				if self._npca[iset] is None:
+					# Guess a value
+					if iset:
+						self._npca[iset] = self._npca[iset-1] # From last dataset
+					else:
+						self._npca[iset] = SpAn._npca_default # Default value
 				self._npca[iset] = npy.clip(self._npca[iset],1,
 					min(SpAn._npca_max,self._ns[iset])) # Max
 			changed['npca'] = self._changed_param_(old,'npca')
 			
 		# Should we perform pre-PCA before MSSA or SVD?
-		if kwargs.has_key('prepca'):
+		if 'prepca' in req_params:
 			for iset in xrange(self._ndataset):
 				if self._prepca[iset] is None: # Default: pre-pca needed over max (for MSSA and SVD)
 					self._prepca[iset] = self._ns[iset] > SpAn._npca_max
-					if self._prepca[iset]:
+					if verbose and self._prepca[iset]:
 						print '[mssa] The number of valid points of one of the datasets is greater than %i, so we perform a pre-PCA'%SpAn._npca_max
 			changed['prepca'] = self._changed_param_(old,'npca')
 			
 		# Number of MSSA modes
-		if kwargs.has_key('nmssa'):
+		if 'nmssa' in req_params:
 			for iset in xrange(self._ndataset):
-				if self._nmssa[iset] is None: self._nmssa[iset] = SpAn._nmssa_default # Default value
+				if self._nmssa[iset] is None:
+					# Guess a value
+					if iset:
+						self._nmssa[iset] = self._nmssa[iset-1] # From last dataset
+					else:
+						self._nmssa[iset] = SpAn._nmssa_default # Default value
 				if self._prepca[iset]:
 					nchanmax = self._npca[iset] # Input channels are from PCA
 				else:
@@ -556,25 +598,25 @@ class SpAn(object):
 			changed['nmssa'] = self._changed_param_(old,'nmssa')
 			
 		# Window extension of MSSA
-		if kwargs.has_key('window'):
+		if 'window' in req_params:
 			for iset in xrange(self._ndataset):
 				if self._window[iset] is None:self._window[iset] = int(self._nt[iset]*SpAn._window_default)
 				self._window[iset] = npy.clip(self._window,1,max(1,self._nt[iset]))
 			changed['window'] = self._changed_param_(old,'window')
 			
 		# Number of SVD modes
-		if kwargs.has_key('nsvd'):
+		if 'nsvd' in req_params:
 			if self._nsvd is None: self._nsvd = SpAn._nsvd_default # Default value
 			for iset in xrange(self._ndataset):
 				if self._prepca[iset]:
 					nchanmax = self._npca[iset] # Input channels are from PCA
 				else:
 					nchanmax = self._ns[iset] # Input channels are from real space
-				self._nsvd = npy.clip(self._nsvd,1,
-					min(SpAn._nsvd_max,nchanmax)) # Max
+				self._nsvd = npy.clip(self._nsvd,1, min(SpAn._nsvd_max,nchanmax)) # Max
 			changed['nsvd'] = self._changed_param_(old,'nsvd')
 			
 		# Inform which params have been modified for each dataset
+		print '12321',changed
 		return changed
 
 	def _check_isets_(self,iset):
@@ -627,7 +669,7 @@ class SpAn(object):
 
 		# Loop on datasets
 		for iset,pdata in enumerate(self._pdata):
-			print '   ',iset
+			print '   pca: iset=',iset
 			
 			# Operate only on selected datasets
 			if isets is not None and iset not in isets: continue
@@ -691,7 +733,7 @@ class SpAn(object):
 			
 			# Get raw data back to physical space
 			self._pca_fmt_eof[iset] = \
-				self._unstack_(iset,self._pca_raw_eof[iset],self._mode_axis_('pca'))
+				self._unstack_(iset,self._pca_raw_eof[iset],self._mode_axis_('pca',iset))
 			
 			# Set attributes
 			for idata,eof in enumerate(self._pca_fmt_eof[iset]):
@@ -1573,7 +1615,8 @@ class SpAn(object):
 		return self._return_(ffrec)
 
 	def _return_(self,dataset,grouped=False):
-		"""Return dataset as input dataset"""
+		"""Return dataset as input dataset (depth and shapes)"""
+		#FIXME: deep eofs and co
 		# Single variable
 		if self._input_map == 0:
 			while isinstance(dataset, (list, tuple, dict)):
@@ -1585,7 +1628,7 @@ class SpAn(object):
 		# Full case
 		for map,iset in enumerate(self._input_map):
 #			if (map== 0 and not cdms.isVariable(dataset[iset])) or grouped:
-			print isinstance(dataset[iset],list)
+			print '_return_',isinstance(dataset[iset],list)
 			if (map== 0 and isinstance(dataset[iset],(list, dict))) and not grouped:
 				dataset[iset] = dataset[iset][0]
 		gc.collect()
@@ -1714,6 +1757,8 @@ class SpAn(object):
 		unstacked = []
 		if not isinstance(firstaxes,list):
 			firstaxes = [firstaxes]
+		print firstaxes
+		print '---'
 		for idata in xrange(len(self._stack_info[iset]['ids'])):
 
 			# Get needed stuff
