@@ -461,8 +461,10 @@ class SpAn(object):
 			single = True
 		out = []
 		for iset in isets:
-			if not self._mode_axes[analysis_type].has_key(iset):
-				self._mode_axes[analysis_type][iset] = cdms.createAxis(npy.arange(1,getattr(self,'_n'+analysis_type)[iset]+1))
+			nn = getattr(self,'_n'+analysis_type)[iset]
+			if not self._mode_axes[analysis_type].has_key(iset) or \
+				len(self._mode_axes[analysis_type][iset]) != nn:
+				self._mode_axes[analysis_type][iset] = cdms.createAxis(npy.arange(1,nn+1))
 				self._mode_axes[analysis_type][iset].id = analysis_type+'_mode'
 				self._mode_axes[analysis_type][iset].long_name = analysis_type.upper()+' modes in decreasing order'
 				self._check_dataset_tag_('_mode_axes',iset,analysis_type)
@@ -470,7 +472,7 @@ class SpAn(object):
 		if single: return out[0]
 		return out
 
-	def _mssa_window_axis_(self,iset):
+	def _mssa_window_axis_(self,iset, update=False):
 		"""Get the window axis for mssa for one dataset"""
 		if not self._mssa_window_axes.has_key(iset) or len(self._mssa_window_axes[iset]) != self._window[iset]:
 			self._mssa_window_axes[iset] = cdms.createAxis(npy.arange(self._window[iset]))
@@ -616,7 +618,6 @@ class SpAn(object):
 			changed['nsvd'] = self._changed_param_(old,'nsvd')
 			
 		# Inform which params have been modified for each dataset
-		print '12321',changed
 		return changed
 
 	def _check_isets_(self,iset):
@@ -711,9 +712,9 @@ class SpAn(object):
 
 		# Update params
 		changed =  self._update_params_(**kwargs)['npca']
-		print 'eof changed',changed
+		print 'pca eof changed',changed
 
-		# Of, let's format the variable
+		# Of, let's format the variables
 		fmt_eof = {}
 		for iset in xrange(self._ndataset):
 			
@@ -762,6 +763,10 @@ class SpAn(object):
 		# Check on which dataset to operate
 		isets = self._check_isets_(iset)
 
+		# Update params
+		changed =  self._update_params_(**kwargs)['npca']
+		print 'pca pc changed',changed
+		
 		# Of, let's format the variable
 		fmt_pc = {}
 		for iset,raw_pc in self._pca_raw_pc.items():
@@ -776,7 +781,7 @@ class SpAn(object):
 				continue
 			
 			# Should we rerun PCA for this dataset?
-			if not self._pca_raw_pc.has_key(iset) or update:
+			if not self._pca_raw_pc.has_key(iset) or update or changed[iset]:
 				self.pca(iset=iset,*args,**kwargs)
 			if self._pca_fmt_eof.has_key(iset): del self._pca_fmt_eof[iset]
 
@@ -811,6 +816,10 @@ class SpAn(object):
 		# Check on which dataset to operate
 		isets = self._check_isets_(iset)
 
+		# Update params
+		changed =  self._update_params_(**kwargs)['npca']
+		print 'pca ev changed',changed
+
 		# Loop on dataset
 		res = {}
 		for iset in xrange(self._ndataset):
@@ -819,7 +828,7 @@ class SpAn(object):
 			if isets is not None and iset not in isets: continue
 				
 			# Should we rerun PCA for this dataset?
-			if not self._pca_raw_ev.has_key(iset) or update:
+			if not self._pca_raw_ev.has_key(iset) or update or changed[iset]:
 				self.pca(iset=iset,*args,**kwargs)
 
 			# We only want the sum
@@ -1622,14 +1631,12 @@ class SpAn(object):
 			while isinstance(dataset, (list, tuple, dict)):
 				dataset = dataset[0]
 			return dataset
-		# A single list of stacked variable (not serial mode)
+		# A single list of stacked variables (not serial mode)
 		if isinstance(self._input_map,int):
 			return dataset[0]
 		# Full case
-		for map,iset in enumerate(self._input_map):
-#			if (map== 0 and not cdms.isVariable(dataset[iset])) or grouped:
-			print '_return_',isinstance(dataset[iset],list)
-			if (map== 0 and isinstance(dataset[iset],(list, dict))) and not grouped:
+		for iset,map in enumerate(self._input_map):
+			if (map== 0 and isinstance(dataset[iset],(list, dict))):# and not grouped:
 				dataset[iset] = dataset[iset][0]
 		gc.collect()
 		return dataset
@@ -1757,8 +1764,6 @@ class SpAn(object):
 		unstacked = []
 		if not isinstance(firstaxes,list):
 			firstaxes = [firstaxes]
-		print firstaxes
-		print '---'
 		for idata in xrange(len(self._stack_info[iset]['ids'])):
 
 			# Get needed stuff
