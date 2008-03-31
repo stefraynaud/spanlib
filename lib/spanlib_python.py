@@ -617,6 +617,9 @@ class SpAn(object):
 				self._nsvd = npy.clip(self._nsvd,1, min(SpAn._nsvd_max,nchanmax)) # Max
 			changed['nsvd'] = self._changed_param_(old,'nsvd')
 			
+		# FIXME: must add dependency rules (MSSA  and SVD on PCA when pre-PCA)
+			
+			
 		# Inform which params have been modified for each dataset
 		return changed
 
@@ -641,7 +644,7 @@ class SpAn(object):
 	## PCA
 	#################################################################
 
-	def pca(self,get_ev_sum=False,relative=False,iset=None,**kwargs):
+	def pca(self,relative=False,iset=None,**kwargs):
 		""" Principal Components Analysis (PCA)
 
 		Descriptions:::
@@ -655,7 +658,6 @@ class SpAn(object):
 
 		  iset	:: Dataset selection. If None, all are analysed [default: None]
 		  npca	:: Number of principal components to return [default: 10]
-		  get_ev_sum  :: Also return sum of all eigen values [default: False]
 		  relative :: Egein values are normalized to their sum (%) [default: False]
 
 		:::
@@ -674,6 +676,11 @@ class SpAn(object):
 			
 			# Operate only on selected datasets
 			if isets is not None and iset not in isets: continue
+			
+			# Check if old results can be used when npca is lower
+			if getattr(self,'_pca_raw_pc').has_key(iset) and \
+				getattr(self,'_pca_raw_pc')[iset].shape[-1] > self._npca[iset]:
+				continue
 			
 			# Remove old results
 			for att in 'raw_eof','raw_pc','raw_ev','ev_sum':
@@ -701,10 +708,10 @@ class SpAn(object):
 		self._last_analysis_type = 'pca'
 
 
-	def pca_eof(self,update=False,iset=None,*args,**kwargs):
+	def pca_eof(self,iset=None,update=False,*args,**kwargs):
 		"""Get EOFs from current PCA decomposition
 
-		If PCA was not performed ro if update is True, it is done with all parameters sent to pca()
+		If PCA was not performed or if update is True, it is done with all parameters sent to pca()
 		"""
 	
 		# Dataset selection
@@ -734,7 +741,7 @@ class SpAn(object):
 			
 			# Get raw data back to physical space
 			self._pca_fmt_eof[iset] = \
-				self._unstack_(iset,self._pca_raw_eof[iset],self._mode_axis_('pca',iset))
+				self._unstack_(iset,self._pca_raw_eof[iset][:, :self._npca[iset]],self._mode_axis_('pca',iset))
 			
 			# Set attributes
 			for idata,eof in enumerate(self._pca_fmt_eof[iset]):
@@ -750,12 +757,13 @@ class SpAn(object):
 					eof.long_name += ' of '+atts['long_name']
 				if atts.has_key('units'):
 					del eof.units
+					
 			fmt_eof[iset] = self._pca_fmt_eof[iset]
 
 		return self._return_(fmt_eof)		
 
 
-	def pca_pc(self,update=False,iset=None,*args,**kwargs):
+	def pca_pc(self,iset=None,update=False,*args,**kwargs):
 		"""Get PCs from current PCA decomposition
 
 		If PCA was not performed, it is done with all parameters sent to pca()
@@ -769,7 +777,8 @@ class SpAn(object):
 		
 		# Of, let's format the variable
 		fmt_pc = {}
-		for iset,raw_pc in self._pca_raw_pc.items():
+#		for iset,raw_pc in self._pca_raw_pc.items():
+		for iset in xrange(self._ndataset):
 			
 			# Operate only on selected datasets
 			if isets is not None and iset not in isets:
@@ -787,13 +796,11 @@ class SpAn(object):
 
 			# Format the variable
 			idata = 0 # Reference is first data
-			pc = cdms.createVariable(npy.asarray(raw_pc.transpose(),order='C'))
+			pc = cdms.createVariable(npy.asarray(self._pca_raw_pc[iset][:,:self._npca[iset]].transpose(),order='C'))
 			pc.setAxis(0,self._mode_axis_('pca',iset))
 			pc.setAxis(1,self._time_axis_(iset,idata))
-			pc.id = 'pca_pc'
+			pc.id = pc.name = 'pca_pc'
 			pc.standard_name = 'principal_components_of_pca'
-			
-			pc.name = pc.id
 			pc.long_name = 'PCA principal components'
 			atts = self._stack_info[iset]['atts'][idata]
 			if atts.has_key('long_name'): pc.long_name += ' of '+atts['long_name']
@@ -839,7 +846,7 @@ class SpAn(object):
 			# Format the variable
 			id = 'pca_ev'
 			long_name = []
-			raw_ev = self._pca_raw_ev[iset]
+			raw_ev = self._pca_raw_ev[iset][:self._npca[iset]]
 			if cumsum:
 				raw_ev = raw_ev.cumsum()
 				id += '_cumsum'
@@ -892,7 +899,10 @@ class SpAn(object):
 				self.pca(iset=iset,*args,**kwargs)
 			
 			# Get raw data back to physical space
-			raw_rec,smodes = self._project_(iset,self._pca_raw_eof,self._pca_raw_pc,imode)
+			reof = self._pca_raw_eof[iset][:,:self._npca[iset]]
+			print 'hoho', isinstance(reof, (list, tuple, dict))
+			rpc = self._pca_raw_pc[iset][:,:self._npca[iset]]
+			raw_rec,smodes = self._project_(reof,rpc,iset,imode)
 			pca_fmt_rec[iset] = self._unstack_(iset,raw_rec,self._time_axis_(iset))
 			del  raw_rec
 			
@@ -920,7 +930,7 @@ class SpAn(object):
 	# MSSA
 	#################################################################
 
-	def mssa(self,**kwargs):
+	def mssa(self,iset=None, **kwargs):
 		""" MultiChannel Singular Spectrum Analysis (MSSA)
 
 		Description:::
@@ -955,13 +965,16 @@ class SpAn(object):
 		:::
 		"""
 
+		# Check on which dataset to operate
+		isets = self._check_isets_(iset)
+
 		# Parameters
 		self._update_params_(**kwargs)
 		print 'mssa params',self._nmssa,self._window,self._prepca
 
-		# Check if we need PCA. If needed for one dataset, it is performed for ALL!
-		if self._pre_pca_() and self._pca_raw_pc ==[]: # Still no PCA done
-				self.pca(**kwargs)
+#		# Check if we need PCA. If needed for one dataset, it is performed for ALL!
+#		if self._pre_pca_() and self._pca_raw_pc ==[]: # Still no PCA done
+#				self.pca(**kwargs)
 
 		# Initializations of data
 		for att in 'raw_eof','raw_pc','raw_ev','pairs','ev_sum':
@@ -970,11 +983,33 @@ class SpAn(object):
 		# Loop on datasets
 		for iset,pdata in enumerate(self._pdata):
 
+			# Operate only on selected datasets
+			if isets is not None and iset not in isets: continue
+			
+			# Check if old results can be used when npca is lower
+			if getattr(self,'_mssa_raw_pc').has_key(iset) and \
+				getattr(self,'_mssa_raw_pc')[iset].shape[-1] > self._mssa[iset]:
+				continue
+			
+			# Remove old results
+			for att in 'raw_eof','raw_pc','raw_ev','ev_sum':
+				dic = getattr(self,'_mssa_'+att)
+				if dic.has_key(iset): del dic[iset]
+
+			# Compute MSSA
 			if self._prepca[iset]: # Pre-PCA case
+				# Number of PC to use
+				if isinstance(self._prepca[iset], int) and self._prepca[iset] <= self._prepca[iset]:
+					npc = self._prepca[iset]
+				else:
+					npc = self._npca[iset]
+				# Pre-PCA
 				if not self._pca_raw_pc.has_key(iset):
 					self.pca(iset=iset,**kwargs)
+				# MSSA
 				raw_eof, raw_pc, raw_ev, ev_sum = \
-				  spanlib_fort.mssa(self._pca_raw_pc[iset].transpose(), self._window[iset], self._nmssa[iset])
+				  spanlib_fort.mssa(self._pca_raw_pc[iset][:, :npc].transpose(), 
+				  self._window[iset], self._nmssa[iset])
 			else: # Direct MSSA case
 				raw_eof, raw_pc, raw_ev, ev_sum = \
 				  spanlib_fort.mssa(pdata, self._window[iset], self._nmssa[iset])
@@ -1048,40 +1083,59 @@ class SpAn(object):
 
 
 
-	def mssa_eof(self,update=False,pure=False,*args,**kwargs):
+	def mssa_eof(self,iset=None,update=False,pure=False,*args,**kwargs):
 		"""Get EOFs from current MSSA decomposition
 
 		If MSSA was not performed, it is done with all parameters sent to mssa()
 		"""
 
-		# Already available
-		if self._mssa_fmt_pc != [] and not update:
-			return self._mssa_fmt_eof
+		# Dataset selection
+		isets = self._check_isets_(iset)
 
-		# MSSA still not performed
-		if self._mssa_raw_eof == [] or update:
-			self.mssa(*args,**kwargs)
-		del self._mssa_fmt_eof
-		self._mssa_fmt_eof = []
+		# Update params
+		#FIXME: treat dependency rules
+		changed =  self._update_params_(**kwargs)
+		print 'mssa eof: changed',changed
 
 		# Of, let's format the variable
-		for iset,raw_eof in enumerate(self._mssa_raw_eof): # (window*nchan,nmssa)
+		fmt_eof = {}
+		for iset in xrange(self._ndataset): # (window*nchan,nmssa)
+		
+			# Operate only on selected datasets
+			if isets is not None and iset not in isets:
+				continue
+		
+			# EOF already available 
+			if self._mssa_fmt_eof.has_key(iset) and not update:
+				fmt_eof[iset] = self._mssa_fmt_eof[iset]
+				continue
+				
+			# Should we rerun (pre-)PCA for this dataset?
+			if self._prepca[iset] and (not self._pca_raw_eof.has_key(iset) or update or changed[iset]['npca']):
+				self.pca(iset=iset,*args,**kwargs)
+				
+			# Should we rerun MSSA for this dataset?
+			if not self._mssa_raw_eof.has_key(iset) or update or changed[iset]['nmssa'] or changed[iset]['window']:
+				self.mssa(iset=iset,*args,**kwargs)
+			if self._mssa_fmt_eof.has_key(iset): del self._mssa_fmt_eof[iset]
+			
 			# Get raw data back to physical space
-			if not self._prepca[iset]:
-				self._mssa_fmt_eof.append(self._unstack_(iset,raw_eof.transpose(),
-					(self._mode_axis_('mssa',iset),self._mssa_window_axis_(iset))))
-			elif pure: # No pre-PCA performed
-				self._mssa_fmt_eof.append([cdms.createVariable(raw_eof.transpose())])
-				self._mssa_fmt_eof[-1][0].setAxisList(
+			if not self._prepca[iset]: # No pre-PCA performed
+				self._mssa_fmt_eof[iset] = self._unstack_(iset,raw_eof.transpose(),
+					(self._mode_axis_('mssa',iset),self._mssa_window_axis_(iset)))
+			elif pure: # Do not go back to physical space
+				self._mssa_fmt_eof[iset] = [cdms.createVariable(raw_eof.transpose())]
+				self._mssa_fmt_eof[iset][0].setAxisList(
 					[self._mode_axis_('mssa',iset),self._mssa_channel_axis_(iset)])
 			else:
 				nm = self._nmssa[iset] ; nw = self._window[iset] ; nc = self._npca[iset]
-				proj_eof,smodes = self._project_(iset,self._pca_raw_eof[iset],
-					npy.swapaxes(raw_eof,0,1).reshape((nw*nc,nm),order='F'),nt=nw*nm)
-				self._mssa_fmt_eof.append(self._unstack_(iset,proj_eof,
-					(self._mode_axis_('mssa',iset),self._mssa_window_axis_(iset))))
+				proj_eof,smodes = self._project_(self._pca_raw_eof[iset],
+					npy.swapaxes(raw_eof,0,1).reshape((nw*nc,nm),order='F'),iset, nt=nw*nm)
+				self._mssa_fmt_eof[iset] = self._unstack_(iset,proj_eof,
+					(self._mode_axis_('mssa',iset),self._mssa_window_axis_(iset)))
+					
 			# Set attributes
-			for idata,eof in enumerate(self._mssa_fmt_eof[-1]):
+			for idata,eof in enumerate(self._mssa_fmt_eof[iset]):
 				if not self._stack_info[iset]['ids'][idata].find('variable_'):
 					eof.id = self._stack_info[iset]['ids'][idata]+'_mssa_eof'
 				else:
@@ -1094,8 +1148,11 @@ class SpAn(object):
 					eof.long_name += ' of '+atts['long_name']
 				if atts.has_key('units'):
 					del eof.units
+					
+			fmt_eof[iset] = self._mssa_fmt_eof[iset]
+			
 		gc.collect()
-		return self._return_(self._mssa_fmt_eof)
+		return self._return_(fmt_eof)
 
 	def mssa_pc(self,update=False,*args,**kwargs):
 		"""Get PCs from current MSSA decomposition
@@ -1103,39 +1160,56 @@ class SpAn(object):
 		If MSSA was not performed, it is done with all parameters sent to mssa()
 		"""
 
-		# Already available
-		if self._mssa_fmt_pc != [] and not update:
-			return self._mssa_fmt_pc
+		# Dataset selection
+		isets = self._check_isets_(iset)
 
-		# MSSA still not performed
-		if self._mssa_raw_pc == [] or update:
-			self.mssa(*args,**kwargs)
-		del self._mssa_fmt_eof
-		self._mssa_fmt_eof = []
+		# Update params
+		#FIXME: treat dependency rules
+		changed =  self._update_params_(**kwargs)
+		print 'mssa pc: changed',changed
+
 
 		# Of, let's format the variable
+		fmt_pc = {}
 		for iset,raw_pc in enumerate(self._mssa_raw_pc):
+			
+			# Operate only on selected datasets
+			if isets is not None and iset not in isets:
+				continue
+		
+			# PC already available 
+			if self._mssa_fmt_pc.has_key(iset) and not update:
+				fmt_pc[iset] = self._mssa_fmt_pc[iset]
+				continue
+				
+			# Should we rerun (pre-)PCA for this dataset?
+			if self._prepca[iset] and (not self._pca_raw_eof.has_key(iset) or update or changed[iset]['npca']):
+				self.pca(iset=iset,*args,**kwargs)
+				
+			# Should we rerun MSSA for this dataset?
+			if not self._mssa_raw_pc.has_key(iset) or update or changed[iset]['nmssa'] or changed[iset]['window']:
+				self.mssa(iset=iset,*args,**kwargs)
+			if self._mssa_fmt_pc.has_key(iset): del self._mssa_fmt_pc[iset]
+			
+			# Format the variable
 			idata = 0 # Reference is first data
-			pc = cdms.createVariable(npy.asarray(raw_pc.transpose(),order='C'))
+			pc = cdms.createVariable(npy.asarray(self._mssa_raw_pc[:,:self._npca[iset]].transpose(),order='C'))
 			pc.setAxis(0,self._mode_axis_('mssa',iset))
-			print 'mssa raw pc',raw_pc.shape
 			pc.setAxis(1,self._mssa_pctime_axis_(iset))
-			if not self._stack_info[iset]['ids'][idata].startswith('variable_'):
-				pc.id = self._stack_info[iset]['ids'][idata]+'_mssa_pc'
-			else:
-				pc.id = 'mssa_pc'
-			pc.name = pc.id
+			pc.id = pc.name = 'mssa_pc'
 			pc.standard_name = 'principal_components_of_mssa'
 			pc.long_name = 'MSSA principal components'
 			atts = self._stack_info[iset]['atts'][idata]
 			if atts.has_key('long_name'): pc.long_name += ' of '+atts['long_name']
 			if atts.has_key('units'):     pc.units = atts['units']
-			self._mssa_fmt_pc.append(pc)
 
-		return self._return_(self._mssa_fmt_pc)		
+			fmt_pc[iset] = self._mssa_fmt_pc[iset] = pc
+			self._check_dataset_tag_('_mssa_fmt_pc',iset)
+
+		return self._return_(fmt_pc)		
 			
 
-	def mssa_ev(self,relative=False,sum=False,update=False):
+	def mssa_ev(self,iset=None,relative=False,sum=False,cumsum=False,update=False,*args,**kwargs):
 		"""Get eigen values from current MSSA decomposition
 
 		Inputs:
@@ -1143,34 +1217,57 @@ class SpAn(object):
 		  sum :: Return the sum of eigen values (total variance)
 		"""
 
-		# PCA still not performed
-		if self._mssa_raw_ev == [] or update: self.mssa()
+		# Check on which dataset to operate
+		isets = self._check_isets_(iset)
 
-		if sum:
-			res = self._ev_sum
-		else:
-			res = []
-			for iset,raw_ev in enumerate(self._ev):
-				if relative: 
-					ev = cdms.createVariable(100.*raw_ev/self._ev_sum[iset])
-				else:
-					ev = cdms.createVariable(raw_ev)
-				ev.setAxisList([self.mode_axis('mssa')])
-				ev.name = ev.id
-				ev.standard_name = 'eigen_values_of_mssa'
-				ev.long_name = 'MSSA eigen values'
-				atts = self._stack_info[iset]['atts'][idata]
-				if atts.has_key('long_name'):
-					ev.long_name += ' of '+atts['long_name']
-				if relative:
-					ev.units = '%'
-				elif atts.has_key('units'):
-					ev.units = atts['units']
-					for ss in ['^','**',' ']:
-						if ev.units.find(ss) != -1:
-							ev.units = '(%s)2' % ev.units
-							break
-				res.append(ev)
+		# Update params
+		changed =  self._update_params_(**kwargs)
+		print 'mssa ev: changed',changed
+
+		# Loop on dataset
+		res = {}
+		for iset in xrange(self._ndataset):
+			
+			# Operate only on selected datasets
+			if isets is not None and iset not in isets: continue
+			
+			# Should we rerun (pre-)PCA for this dataset?
+			if self._prepca[iset] and (not self._pca_raw_eof.has_key(iset) or update or changed[iset]['npca']):
+				self.pca(iset=iset,*args,**kwargs)
+				
+			# Should we rerun MSSA for this dataset?
+			if not self._mssa_raw_ev.has_key(iset) or update or changed[iset]['nmssa'] or changed[iset]['window']:
+				self.mssa(iset=iset,*args,**kwargs)
+
+			# We only want the sum
+			if sum:
+				res[iset] = self._mssa_ev_sum[iset]
+				continue
+
+			# Format the variable
+			id = 'pca_ev'
+			long_name = []
+			raw_ev = self._pca_raw_ev[iset][:self._npca[iset]]
+			if cumsum:
+				raw_ev = raw_ev.cumsum()
+				id += '_cumsum'
+				long_name.append('cumulative')
+			if relative: 
+				raw_ev = 100.*raw_ev/self._pca_ev_sum[iset]
+				id += '_rel'
+				long_name.append('relative')
+			ev = cdms.createVariable(raw_ev)
+			ev.id = ev.name = id
+			long_name.append('MSSA eigen values')
+			ev.long_name = ' '.join(long_name).title()
+			ev.setAxisList([self._mode_axis_('mssa',iset)])
+			ev.standard_name = 'eigen_values_of_mssa'
+			atts = self._stack_info[iset]['atts'][0]
+			if atts.has_key('long_name'):
+				ev.long_name += ' of '+atts['long_name']
+			if relative:
+				ev.units = '%'
+			res[iset] = ev
 
 		return self._return_(res)		
 
@@ -1184,7 +1281,7 @@ class SpAn(object):
 		
 		# Loop on datasets
 		for iset,(raw_eof,raw_pc) in enumerate(zip(self._mssa_raw_eof,self._mssa_raw_pc)):
-			raw_rec,smodes = self._project_(iset,raw_eof,raw_pc,imode).transpose() # (nt,nchan)
+			raw_rec,smodes = self._project_(raw_eof,raw_pc,iset,imode).transpose() # (nt,nchan)
 			if not self._prepca[iset]: # No pre-PCA performed
 				self._mssa_fmt_rec.append(self._unstack_(iset,raw_rec,self._time_axis_(iset)))
 			elif pure: # Force direct result from MSSA
@@ -1192,7 +1289,7 @@ class SpAn(object):
 				self._mssa_fmt_rec[-1][0].setAxisList(0,
 					[self._time_axis_(iset),self._mode_axis_('mssa',iset)])
 			else: # With pre-pca
-				proj_rec = self._project_(iset,self._pca_raw_eof[iset], raw_rec, 
+				proj_rec = self._project_(self._pca_raw_eof[iset], raw_rec, iset, 
 					nt=self._window[iset]*self._nmssa[iset])
 				self._mssa_fmt_eof.append(self._unstack_(iset,proj_rec,
 					(self._mode_axis_('pca',iset),self._mssa_window_axis_(iset))))
@@ -1315,13 +1412,21 @@ class SpAn(object):
 		return eof[0],pc[0],eof[1],pc[1],ev
 
 
-	def _project_(self,iset,reof,rpc,imode=None,ns=None,nt=None,nw=None):
+	def _project_(self,reof,rpc,iset=0,imode=None,ns=None,nt=None,nw=None):
 		"""Generic raw construction of modes for pure PCA, MSSA or SVD, according to EOFs and PCs, for ONE DATASET"""
 
+		# Get EOFs and PCs for one dataset
+		print 'HAAAAAAAAAAAAAAAA', isinstance(reof, (list, tuple, dict)), reof.shape
+		print 'HAAAAAAAAAAAAAAAA', isinstance(rpc, (list, tuple, dict)), rpc.shape
+		if isinstance(reof, (list, tuple, dict)): 
+			reof = reof[iset]
+			print 'ok project iset'
+		if isinstance(rpc, (list, tuple, dict)): rpc = rpc[iset]
+
 		# Which modes
-		imodemax = reof[iset].shape[-1]
+		nmode = reof.shape[-1]
 		if imode is None:
-			imode = range(1,imodemax+1)
+			imode = range(1,nmode+1)
 		elif isinstance(imode,slice):
 			imode = range(imode.start,imode.stop,imode.step)
 		else:
@@ -1333,7 +1438,7 @@ class SpAn(object):
 			imode = [im+1 for im in imode]
 
 		# Rearrange modes (imode=[1,3,4,5,9] -> [1,1],[3,5],[9,9])
-		imode = [im for im in imode if im > 0 and im < imodemax]
+		imode = [im for im in imode if im > 0 and im < nmode]
 		imode.sort(_sort_modes_)
 		imodes = []
 		im = 0
@@ -1349,6 +1454,7 @@ class SpAn(object):
 				im = imt
 			im += 1
 			imodes.append((imode1,imode2))
+		print 'imodes',imodes
 
 		# Function of reconstruction
 		if nw is not None:
@@ -1356,32 +1462,14 @@ class SpAn(object):
 		else:
 			function = spanlib_fort.pca_rec  # PCA/SVD
 
-		print 'imodes',imodes
 
-		# Loop on datasets
-##		ffrec=[]
-##		for iset,pdata in enumerate(self._pdata):
 		# Arguments
-		args = [reof[iset],rpc[iset]]
-		nmode = len(reof[iset])
-		print '_proj',nmode
+		args = [reof,rpc]
+		print '_proj nmode',nmode
 		kwargs = {}
 		if nw is not None:
 			# MSSA
 			args.extend([ns[iset],nt,nw])
-##		else:
-			pass
-##			# PCA
-##			if ns is not None:
-##				kwargs['ns'] = ns[iset]
-##			else:
-##				kwargs['ns'] = 1
-			#FIXME: check that ok for ns=1
-##			if kwargs['ns'] == 1: # Single space point
-##				print '_reco',single
-##				ffrec = self._pdata[iset]
-##				ffrec.smodes = ''
-##				return ffrec
 			if nt is not None:
 				kwargs['nt'] = nt
 		# Loop modes
@@ -1392,7 +1480,6 @@ class SpAn(object):
 			if ims[1] > nmode: ims[1] = nmode
 			print 'rec',ims
 			args.extend(ims)
-			print kwargs,'ims',ims,'reof',reof[iset].shape,'rpc',rpc[iset].shape
 			ffrec += function(*args,**kwargs) # (nc,nt)
 			if ims[0] == ims[1]:
 				smode = str(ims[0])
