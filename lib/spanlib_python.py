@@ -349,6 +349,11 @@ class SpAn(object):
 	_nmssa_default = _nsvd_default = 8
 	_nmssa_max = _nsvd_max = 20
 	_window_default = 1/3. # Relative to time length
+	_pca_params = ['npca', 'prepca']
+	_mssa_params = ['nmssa', 'window']
+	_svd_params = ['nsvd']
+	_params = dict(pca=_pca_params, mssa=_pca_params+_svd_params, svd=_pca_params+_mssa_params)
+	_all_params = _pca_params+_mssa_params+_svd_params
 
 	def __init__(self, datasets, serial=False, weights=None, norms=None, **kwargs):
 		""" Prepare the Spectral Analysis Object
@@ -428,8 +433,8 @@ class SpAn(object):
 
 
 		# Check and save parameters
-		self._update_params_(**kwargs)
-#		self._update_params_(npca=npca,window=window,nmssa=nmssa,nsvd=nsvd,prepca=prepca)
+		self.update(analysis_type=None, **kwargs)
+#		self.update(npca=npca,window=window,nmssa=nmssa,nsvd=nsvd,prepca=prepca)
 
 
 	#################################################################
@@ -473,7 +478,7 @@ class SpAn(object):
 		return out
 
 	def _mssa_window_axis_(self,iset, update=False):
-		"""Get the window axis for mssa for one dataset"""
+		"""Get the MSSA window axis for one dataset"""
 		if not self._mssa_window_axes.has_key(iset) or len(self._mssa_window_axes[iset]) != self._window[iset]:
 			self._mssa_window_axes[iset] = cdms.createAxis(npy.arange(self._window[iset]))
 			self._mssa_window_axes[iset].id = 'mssa_window'
@@ -482,16 +487,20 @@ class SpAn(object):
 		return self._mssa_window_axes[iset]
 
 	def _mssa_channel_axis_(self,iset):
-		"""Get the channel axis for mssa for one dataset"""
-		if not self._channel_axes.has_key(iset) or len(self._mssa_channel_axes[iset]) != self._nmssa[iset]:
-			self._mssa_channel_axes[iset] = cdms.createAxis(npy.arange(self._nmssa[iset]))
+		"""Get the MSSA channel axis for one dataset"""
+		if not self._prepca[iset]:
+			nchan = self._ns[iset]
+		else:
+			nchan = self._prepca[iset]
+		if not self._channel_axes.has_key(iset) or len(self._mssa_channel_axes[iset]) != nchan:
+			self._mssa_channel_axes[iset] = cdms.createAxis(npy.arange(nchan))
 			self._mssa_channel_axes[iset].id = 'mssa_channel'
 			self._mssa_channel_axes[iset].long_name = 'MSSA channels'
 			self._check_dataset_tag_('_mssa_channel_axes',iset)
 		return self._mssa_channel_axes[iset]
 
 	def _mssa_pctime_axis_(self,iset,idata=0):
-		"""Get the channel axis for mssa for one dataset"""
+		"""Get the MSSA PCs time axis for one dataset"""
 		nt = self._nt[iset] - self._window[iset] + 1
 		if not self._mssa_pctime_axes.has_key(iset) or len(self._mssa_pctime_axes[iset]) != nt:
 			self._mssa_pctime_axes[iset] = cdms.createAxis(npy.arange(nt))
@@ -530,97 +539,155 @@ class SpAn(object):
 		"""Get 'numpy', 'MA' or 'cdms' for one subdataset of one dataset"""
 		return self._stack_info[iset]['types'][idata]
 
-	def _changed_param_(self,old,param):
-		"""Check if a parameter is changed for all datasets.
-		Return a list of booleans.
-		@param old: Dictionary of name and value of parameters
-		@param param: Parameter name.
-		"""
-		if isinstance(old[param],(list,tuple)):
-			return [old[param][iset]!=getattr(self,'_'+param)[iset] for iset in xrange(self._ndataset)]
-		else:
-			return old[param] != getattr(self,'_'+param)
+#	def _changed_param_(self,old,param):
+#		"""Check if a parameter is changed for all datasets.
+#		Return a list of booleans.
+#		@param old: Dictionary of name and value of parameters
+#		@param param: Parameter name.
+#		"""
+#		if isinstance(old[param],(list,tuple)):
+#			return [old[param][iset] != getattr(self,'_'+param)[iset] for iset in xrange(self._ndataset)]
+#		else:
+#			return old[param] != getattr(self,'_'+param)
 		
-	def _update_params_(self,**kwargs):
-		"""Update and check requested statistical paremeters.
+	def update(self, analysis_type=None, verbose=False, **kwargs):
+		"""Initialize, update and check statistical paremeters.
 		A value of None is converted to an optimal value.
+		Analyses are re-ran if needed.
 		"""
+		# Filter parameter list according to analysis_type
+		if isinstance(analysis_type, str):
+			for param in kwargs.keys():
+				if param not in self._params[analysis_type]:
+					del kwargs[param]
+		req_params = kwargs.keys()
+			
+		# Initialize old values and defaults changed to False
 		old = {}
 		changed = {}
-		verbose = kwargs.pop('verbose', False)
-		req_params = kwargs.keys()
-		for param in 'npca','nmssa','window','prepca','nsvd':
-			changed[param] = [False]*self._ndataset # Init changed flag
+		init_all = [None]*self._ndataset
+		for param in self._all_params:
+#			if not req_params: continue
 			# Get old values , defaults to None and set new value
-			if kwargs.has_key(param):
-				if param == 'nsvd':  # Single value for all datasets
-					old[param] = getattr(self,'_'+param,None)
-					setattr(self,'_'+param,_check_length_(kwargs.pop(param),0,None))
-				else:
-					old[param] = getattr(self,'_'+param,[None]*self._ndataset)
-					setattr(self,'_'+param,_check_length_(kwargs.pop(param),self._ndataset,None))
+#			if kwargs.has_key(param):
+			if param == 'nsvd':  # Single value for all datasets
+				changed[param] = False
+				old[param] = getattr(self,'_'+param,None)
+				setattr(self,'_'+param,_check_length_(kwargs.pop(param, old[param]),0,None))
+			else:
+				changed[param] = [False]*self._ndataset
+				old[param] = getattr(self,'_'+param,init_all)
+				setattr(self,'_'+param,_check_length_(kwargs.pop(param, old[param]),self._ndataset,None))
+#		if not req_params: return changed
 					
 		# Number of PCA modes		
-		if 'npca' in req_params:
+		if 'npca' in req_params or self._npca == init_all:
 			for iset in xrange(self._ndataset):
 				if self._npca[iset] is None:
 					# Guess a value
-					if iset:
+					if self._prepca[iset] is not None:
+						self._npca[iset] = self._prepca[iset]
+					elif iset:
 						self._npca[iset] = self._npca[iset-1] # From last dataset
 					else:
 						self._npca[iset] = SpAn._npca_default # Default value
-				self._npca[iset] = npy.clip(self._npca[iset],1,
-					min(SpAn._npca_max,self._ns[iset])) # Max
-			changed['npca'] = self._changed_param_(old,'npca')
+				if self._prepca[iset] is not None:
+					self._npca[iset] = max(self._npca[iset], self._prepca[iset]) # Min
+				self._npca[iset] = npy.clip(self._npca[iset],1,min(SpAn._npca_max,self._ns[iset])) # Max
 			
-		# Should we perform pre-PCA before MSSA or SVD?
-		if 'prepca' in req_params:
+		# Number of pre-PCA modes before MSSA and SVD
+		if 'prepca' in req_params or self._prepca == init_all:
 			for iset in xrange(self._ndataset):
-				if self._prepca[iset] is None: # Default: pre-pca needed over max (for MSSA and SVD)
+				if self._prepca[iset] is None: # Default: pre-PCA needed over max (for MSSA and SVD)
 					self._prepca[iset] = self._ns[iset] > SpAn._npca_max
 					if verbose and self._prepca[iset]:
 						print '[mssa] The number of valid points of one of the datasets is greater than %i, so we perform a pre-PCA'%SpAn._npca_max
-			changed['prepca'] = self._changed_param_(old,'npca')
+				if self._prepca[iset] is True: # Defaults to the number of PCA modes
+					self._prepca[iset] = self._npca[iset]
+				else: # Max number of prepca modes is number of points
+					self._prepca[iset] = min(self._prepca[iset], self._ns[iset])
+				if self._prepca[iset] == 0:
+					self._prepca[iset] = False
+			
+		# Dependency rules between prepca and npca
+		for iset in xrange(self._ndataset):
+			if self._prepca[iset] and self._npca[iset] < self._prepca[iset]:
+				if verbose and self._prepca[iset]:
+						print 'The number of pre-PCA modes (%i) for dataset #%iis lower than the number of PCA modes (%i), so we adjust the latter.' % (self._prepca[iset],iset,self._npca[iset])
+				self._npca[iset] = self._prepca[iset]
 			
 		# Number of MSSA modes
-		if 'nmssa' in req_params:
-			for iset in xrange(self._ndataset):
-				if self._nmssa[iset] is None:
-					# Guess a value
-					if iset:
-						self._nmssa[iset] = self._nmssa[iset-1] # From last dataset
-					else:
-						self._nmssa[iset] = SpAn._nmssa_default # Default value
-				if self._prepca[iset]:
-					nchanmax = self._npca[iset] # Input channels are from PCA
+		for iset in xrange(self._ndataset):
+			if 'nmssa' not in req_params and not changed['prepca'][iset] and self._nmssa != init_all: continue
+			if self._nmssa[iset] is None: # Initialization
+				# Guess a value
+				if iset:
+					self._nmssa[iset] = self._nmssa[iset-1] # From last dataset
 				else:
-					nchanmax = self._ns[iset] # Input channels are from real space
-				self._nmssa[iset] = npy.clip(self._nmssa[iset],1,
-					min(SpAn._nmssa_max,nchanmax)) # Max
-			changed['nmssa'] = self._changed_param_(old,'nmssa')
+					self._nmssa[iset] = SpAn._nmssa_default # Default value
+			if self._prepca[iset]:
+				nchanmax = self._prepca[iset] # Input channels are from pre-PCA
+			else:
+				nchanmax = self._ns[iset] # Input channels are from real space
+			self._nmssa[iset] = npy.clip(self._nmssa[iset],1,
+				min(SpAn._nmssa_max,nchanmax)) # Max
 			
 		# Window extension of MSSA
-		if 'window' in req_params:
+		if 'window' in req_params or self._window == init_all:
 			for iset in xrange(self._ndataset):
-				if self._window[iset] is None:self._window[iset] = int(self._nt[iset]*SpAn._window_default)
-				self._window[iset] = npy.clip(self._window,1,max(1,self._nt[iset]))
-			changed['window'] = self._changed_param_(old,'window')
+				if self._window[iset] is None: # Initialization
+					self._window[iset] = int(self._nt[iset]*SpAn._window_default)
+				self._window[iset] = npy.clip(self._window[iset],1,max(1,self._nt[iset]))
 			
-		# Number of SVD modes
-		if 'nsvd' in req_params:
-			if self._nsvd is None: self._nsvd = SpAn._nsvd_default # Default value
-			for iset in xrange(self._ndataset):
-				if self._prepca[iset]:
-					nchanmax = self._npca[iset] # Input channels are from PCA
-				else:
-					nchanmax = self._ns[iset] # Input channels are from real space
-				self._nsvd = npy.clip(self._nsvd,1, min(SpAn._nsvd_max,nchanmax)) # Max
-			changed['nsvd'] = self._changed_param_(old,'nsvd')
+		# Number of SVD modes (special case)
+		if self._nsvd is None: # Initialization
+			self._nsvd = SpAn._nsvd_default # Default value
+		for iset in xrange(self._ndataset): # Check values
+			if 'nsvd' not in req_params and not changed['prepca'][iset]: continue
+			if self._prepca[iset]:
+				nchanmax = self._prepca[iset] # Input channels are from pre-PCA
+			else:
+				nchanmax = self._ns[iset] # Input channels are from real space
+			self._nsvd = npy.clip(self._nsvd,1, min(SpAn._nsvd_max,nchanmax)) # Max
 			
-		# FIXME: must add dependency rules (MSSA  and SVD on PCA when pre-PCA)
+#		# Check what changed
+#		for param in self._all_params:
+#			changed[param] = self._changed_param_(old,param)
 			
+		# Re-run analyses when needed
+#		if not kwargs: return changed # Just initializations (dry run to prevent not ending loop)
+		changed['nsvd'] = old['nsvd'] != self._nsvd
+		runsvd = False
+		for iset in xrange(self._ndataset):
 			
-		# Inform which params have been modified for each dataset
+			# Check what changed
+			for param in self._all_params:
+				if param !=  'nsvd':
+					changed[param][iset] = old[param][iset] != getattr(self,'_'+param)[iset]
+			
+			# Analyses
+			# - PCA
+			if (analysis_type == 'pca' or self._prepca[iset]) and \
+				(self._pca_raw_eof.has_key(iset) and changed['npca'][iset]):
+				print 'xxx', not self._pca_raw_eof.has_key(iset),  changed['npca'][iset]
+				self.pca(iset=iset)
+					
+			# - MSSA
+			if analysis_type == 'mssa' and \
+				(self._mssa_raw_eof.has_key(iset) and
+					(changed['nmssa'][iset] or changed['window'] or 
+					(self._prepca[iset] and changed['prepca'][iset]))):
+				self.mssa(iset=iset)
+			
+			# - SVD
+			if not runsvd and analysis_type == 'svd' and (changed['nsvd'] or \
+				(self._svd_raw_eof.has_key(iset) and
+					(self._prepca[iset] and changed['prepca'][iset]))):
+				runsvd = True
+		if runsvd:
+			self.svd()
+				
+		# Inform about which params have been modified for each dataset
 		return changed
 
 	def _check_isets_(self,iset):
@@ -644,7 +711,7 @@ class SpAn(object):
 	## PCA
 	#################################################################
 
-	def pca(self,relative=False,iset=None,**kwargs):
+	def pca(self,iset=None,**kwargs):
 		""" Principal Components Analysis (PCA)
 
 		Descriptions:::
@@ -667,7 +734,7 @@ class SpAn(object):
 		isets = self._check_isets_(iset)
 
 		# Update params
-		self._update_params_(**kwargs)
+		self.update(analysis_type='pca', **kwargs)
 		print 'doing pca'
 
 		# Loop on datasets
@@ -676,7 +743,7 @@ class SpAn(object):
 			
 			# Operate only on selected datasets
 			if isets is not None and iset not in isets: continue
-			
+						
 			# Check if old results can be used when npca is lower
 			if getattr(self,'_pca_raw_pc').has_key(iset) and \
 				getattr(self,'_pca_raw_pc')[iset].shape[-1] > self._npca[iset]:
@@ -703,12 +770,17 @@ class SpAn(object):
 			self._pca_raw_eof[iset] = raw_eof
 			self._pca_raw_ev[iset] = raw_ev
 			self._pca_ev_sum[iset] = ev_sum
+			
+			# Delete formmated variables
+			for vtype in 'pc', 'eof':
+				vfmt = getattr(self, '_pca_fmt_'+vtype)
+				if vfmt.has_key(iset): del vfmt[iset]
 			gc.collect()
 
 		self._last_analysis_type = 'pca'
 
 
-	def pca_eof(self,iset=None,update=False,*args,**kwargs):
+	def pca_eof(self,iset=None,scale=False,**kwargs):
 		"""Get EOFs from current PCA decomposition
 
 		If PCA was not performed or if update is True, it is done with all parameters sent to pca()
@@ -718,7 +790,7 @@ class SpAn(object):
 		isets = self._check_isets_(iset)
 
 		# Update params
-		changed =  self._update_params_(**kwargs)['npca']
+		changed =  self.update(**kwargs)['npca']
 		print 'pca eof changed',changed
 
 		# Of, let's format the variables
@@ -726,25 +798,24 @@ class SpAn(object):
 		for iset in xrange(self._ndataset):
 			
 			# Operate only on selected datasets
-			if isets is not None and iset not in isets:
-				continue
-				
+			if isets is not None and iset not in isets: continue
+			
 			# EOF already available 
-			if self._pca_fmt_eof.has_key(iset) and not update:
+			if self._pca_fmt_eof.has_key(iset):
 				fmt_eof[iset] = self._pca_fmt_eof[iset]
 				continue
 				
-			# Should we rerun PCA for this dataset?
-			if not self._pca_raw_eof.has_key(iset) or update or changed[iset]:
-				self.pca(iset=iset,*args,**kwargs)
-			if self._pca_fmt_eof.has_key(iset): del self._pca_fmt_eof[iset]
-			
+			# First PCA analysis?
+			if not self._pca_raw_eof.has_key(iset): self.pca(iset=iset)
+				
 			# Get raw data back to physical space
 			self._pca_fmt_eof[iset] = \
 				self._unstack_(iset,self._pca_raw_eof[iset][:, :self._npca[iset]],self._mode_axis_('pca',iset))
 			
-			# Set attributes
+			# Set attributes and scale
 			for idata,eof in enumerate(self._pca_fmt_eof[iset]):
+				
+				# Attributes
 				if not self._stack_info[iset]['ids'][idata].startswith('variable_'):
 					eof.id = self._stack_info[iset]['ids'][idata]+'_pca_eof'
 				else:
@@ -758,12 +829,18 @@ class SpAn(object):
 				if atts.has_key('units'):
 					del eof.units
 					
+				# Scaling
+				if scale:
+					if scale is True:
+						scale = self._norm_(iset,idata)*self._pca_raw_pc[iset].std()
+					eof[:] *= scale
+					
 			fmt_eof[iset] = self._pca_fmt_eof[iset]
 
 		return self._return_(fmt_eof)		
 
 
-	def pca_pc(self,iset=None,update=False,*args,**kwargs):
+	def pca_pc(self,iset=None,update=False,**kwargs):
 		"""Get PCs from current PCA decomposition
 
 		If PCA was not performed, it is done with all parameters sent to pca()
@@ -772,27 +849,23 @@ class SpAn(object):
 		isets = self._check_isets_(iset)
 
 		# Update params
-		changed =  self._update_params_(**kwargs)['npca']
+		changed =  self.update(**kwargs)['npca']
 		print 'pca pc changed',changed
 		
 		# Of, let's format the variable
 		fmt_pc = {}
-#		for iset,raw_pc in self._pca_raw_pc.items():
 		for iset in xrange(self._ndataset):
 			
 			# Operate only on selected datasets
-			if isets is not None and iset not in isets:
-				continue
+			if isets is not None and iset not in isets: continue
 				
 			# PC already available 
 			if self._pca_fmt_pc.has_key(iset) and not update:
 				fmt_pc[iset] = self._pca_fmt_pc[iset]
 				continue
 			
-			# Should we rerun PCA for this dataset?
-			if not self._pca_raw_pc.has_key(iset) or update or changed[iset]:
-				self.pca(iset=iset,*args,**kwargs)
-			if self._pca_fmt_eof.has_key(iset): del self._pca_fmt_eof[iset]
+			# First PCA analysis?
+			if not self._pca_raw_pc.has_key(iset): self.pca(iset=iset)
 
 			# Format the variable
 			idata = 0 # Reference is first data
@@ -812,7 +885,7 @@ class SpAn(object):
 		return self._return_(fmt_pc)		
 
 
-	def pca_ev(self,iset=None,relative=False,sum=False,cumsum=False,update=False,*args,**kwargs):
+	def pca_ev(self,iset=None,relative=False,sum=False,cumsum=False,update=False,**kwargs):
 		"""Get eigen values from current PCA decomposition
 
 		Inputs:
@@ -824,8 +897,7 @@ class SpAn(object):
 		isets = self._check_isets_(iset)
 
 		# Update params
-		changed =  self._update_params_(**kwargs)['npca']
-		print 'pca ev changed',changed
+		self.update(**kwargs)['npca']
 
 		# Loop on dataset
 		res = {}
@@ -834,10 +906,9 @@ class SpAn(object):
 			# Operate only on selected datasets
 			if isets is not None and iset not in isets: continue
 				
-			# Should we rerun PCA for this dataset?
-			if not self._pca_raw_ev.has_key(iset) or update or changed[iset]:
-				self.pca(iset=iset,*args,**kwargs)
-
+			# First PCA analysis?
+			if not self._pca_raw_eof.has_key(iset): self.pca(iset=iset)
+				
 			# We only want the sum
 			if sum:
 				res[iset] = self._pca_ev_sum[iset]
@@ -876,7 +947,7 @@ class SpAn(object):
 
 		return self._return_(res)		
 
-	def pca_rec(self,imode=None,update=False,iset=None):
+	def pca_rec(self,iset=None,imode=None,**kwargs):
 		"""Reconstruct a set of modes from PCA decomposition
 
 		Inputs:
@@ -887,6 +958,9 @@ class SpAn(object):
 		# Check on which dataset to operate
 		isets = self._check_isets_(iset)
 			
+		# Update params
+		self.update(**kwargs)['npca']
+
 		# Loop on datasets
 		pca_fmt_rec = {}
 		for iset in xrange(self._ndataset):
@@ -894,10 +968,9 @@ class SpAn(object):
 			# Operate only on selected datasets
 			if isets is not None and iset not in isets: continue
 				
-			# Should we rerun PCA for this dataset?
-			if not self._pca_raw_eof.has_key(iset) or update:
-				self.pca(iset=iset,*args,**kwargs)
-			
+			# First PCA analysis?
+			if not self._pca_raw_pc.has_key(iset): self.pca(iset=iset)
+
 			# Get raw data back to physical space
 			reof = self._pca_raw_eof[iset][:,:self._npca[iset]]
 			print 'hoho', isinstance(reof, (list, tuple, dict))
@@ -969,16 +1042,8 @@ class SpAn(object):
 		isets = self._check_isets_(iset)
 
 		# Parameters
-		self._update_params_(**kwargs)
+		self.update(**kwargs)
 		print 'mssa params',self._nmssa,self._window,self._prepca
-
-#		# Check if we need PCA. If needed for one dataset, it is performed for ALL!
-#		if self._pre_pca_() and self._pca_raw_pc ==[]: # Still no PCA done
-#				self.pca(**kwargs)
-
-		# Initializations of data
-		for att in 'raw_eof','raw_pc','raw_ev','pairs','ev_sum':
-			setattr(self,'_mssa_'+att,[])
 
 		# Loop on datasets
 		for iset,pdata in enumerate(self._pdata):
@@ -998,17 +1063,12 @@ class SpAn(object):
 
 			# Compute MSSA
 			if self._prepca[iset]: # Pre-PCA case
-				# Number of PC to use
-				if isinstance(self._prepca[iset], int) and self._prepca[iset] <= self._prepca[iset]:
-					npc = self._prepca[iset]
-				else:
-					npc = self._npca[iset]
-				# Pre-PCA
+				# PCA
 				if not self._pca_raw_pc.has_key(iset):
-					self.pca(iset=iset,**kwargs)
+					self.pca(iset=iset)
 				# MSSA
 				raw_eof, raw_pc, raw_ev, ev_sum = \
-				  spanlib_fort.mssa(self._pca_raw_pc[iset][:, :npc].transpose(), 
+				  spanlib_fort.mssa(self._pca_raw_pc[iset][:, :self._prepca[iset]].transpose(), 
 				  self._window[iset], self._nmssa[iset])
 			else: # Direct MSSA case
 				raw_eof, raw_pc, raw_ev, ev_sum = \
@@ -1020,64 +1080,11 @@ class SpAn(object):
 			self._mssa_raw_ev.append(raw_ev)
 			self._mssa_ev_sum.append(ev_sum)
 
-			#FIXME:
-			"""
-			teof = MV.transpose(MV.reshape(ntsteof,(self.window,nspace[i],self._nmssa)))
-			teof.id=self.varname[i]+'_mssa_steof'
-			teof.standard_name='Empirical Orthogonal Functions'
-
-			ax0=teof.getAxis(0)
-			ax0.id='mssa_chan'
-			ax0.standard_name='MSSA Channels'
-
-			ax1=teof.getAxis(1)
-			ax1.id='mssa_mode'
-			ax1.standard_name='MSSA Modes in decreasing order'
-
-			ax2=teof.getAxis(2)
-			ax2.id='mssa_window'
-			ax2.standard_name='MSSA Window Axis'
-
-			tpc=MV.transpose(MV.array(ntstpc))
-			tpc.id=self.varname[i]+'_stpc'
-			tpc.standard_name='MSSA Principal Components'
-			tpc.setAxis(0,ax0)
-
-			ax3 = tpc.getAxis(1)
-			ax3.id='time'
-			ax3.standard_name = 'Time'
-
-			tev = MV.array(ntstev,id=self.varname[i]+'_mssa_ev',axes=[ax0])
-			tev.standard_name = 'MSSA Eigen Values'
-			if relative:
-				tev[:] = tev[:] * 100. / ntev_sum
-				tev.units = '%'
-
-			for var in teof,tpc,tev,ax0,ax1,ax2,ax3:
-				var.name = var.id
-				var.long_name = var.standard_name
-
-			self._mssa_pc.append(ntstpc)
-			self._mssa_eof.append(ntsteof)
-
-			#self.pairs.append(getPairs(tpc))
-			eof.append(teof)
-			pc.append(tpc)
-			ev.append(tev)
-			self._mssa_ev_sum.append(ntev_sum)
-
-		if len(eof)==1:
-			#self.pairs = self.pairs[0]
-			ret = [eof[0],pc[0],ev[0]]
-			self._mssa_ev_sum = self._mssa_ev_sum[0]
-		else:
-			ret = [eof,pc,ev]
-
-		if get_ev_sum:
-			ret.append(self._pca_ev_sum)
-
-		return ret
-		"""
+			# Delete formmated variables
+			for vtype in 'pc', 'eof':
+				vfmt = getattr(self, '_mssa_fmt_'+vtype)
+				if vfmt.has_key(iset): del vfmt[iset]
+				
 		self._last_analysis_type = 'mssa'
 		gc.collect()
 
@@ -1093,8 +1100,7 @@ class SpAn(object):
 		isets = self._check_isets_(iset)
 
 		# Update params
-		#FIXME: treat dependency rules
-		changed =  self._update_params_(**kwargs)
+		changed =  self.update(**kwargs)
 		print 'mssa eof: changed',changed
 
 		# Of, let's format the variable
@@ -1102,22 +1108,16 @@ class SpAn(object):
 		for iset in xrange(self._ndataset): # (window*nchan,nmssa)
 		
 			# Operate only on selected datasets
-			if isets is not None and iset not in isets:
-				continue
+			if isets is not None and iset not in isets: continue
 		
 			# EOF already available 
 			if self._mssa_fmt_eof.has_key(iset) and not update:
 				fmt_eof[iset] = self._mssa_fmt_eof[iset]
 				continue
 				
-			# Should we rerun (pre-)PCA for this dataset?
-			if self._prepca[iset] and (not self._pca_raw_eof.has_key(iset) or update or changed[iset]['npca']):
-				self.pca(iset=iset,*args,**kwargs)
-				
-			# Should we rerun MSSA for this dataset?
-			if not self._mssa_raw_eof.has_key(iset) or update or changed[iset]['nmssa'] or changed[iset]['window']:
-				self.mssa(iset=iset,*args,**kwargs)
-			if self._mssa_fmt_eof.has_key(iset): del self._mssa_fmt_eof[iset]
+			# No analyses performed?
+			if not self._pca_raw_eof.has_key(iset): self.pca(iset=iset)
+			if not self._mssa_raw_eof.has_key(iset): self.mssa(iset=iset)
 			
 			# Get raw data back to physical space
 			if not self._prepca[iset]: # No pre-PCA performed
@@ -1165,7 +1165,7 @@ class SpAn(object):
 
 		# Update params
 		#FIXME: treat dependency rules
-		changed =  self._update_params_(**kwargs)
+		changed =  self.update(**kwargs)
 		print 'mssa pc: changed',changed
 
 
@@ -1174,23 +1174,17 @@ class SpAn(object):
 		for iset,raw_pc in enumerate(self._mssa_raw_pc):
 			
 			# Operate only on selected datasets
-			if isets is not None and iset not in isets:
-				continue
+			if isets is not None and iset not in isets: continue
 		
 			# PC already available 
-			if self._mssa_fmt_pc.has_key(iset) and not update:
+			if self._mssa_fmt_pc.has_key(iset):
 				fmt_pc[iset] = self._mssa_fmt_pc[iset]
 				continue
 				
-			# Should we rerun (pre-)PCA for this dataset?
-			if self._prepca[iset] and (not self._pca_raw_eof.has_key(iset) or update or changed[iset]['npca']):
-				self.pca(iset=iset,*args,**kwargs)
-				
-			# Should we rerun MSSA for this dataset?
-			if not self._mssa_raw_pc.has_key(iset) or update or changed[iset]['nmssa'] or changed[iset]['window']:
-				self.mssa(iset=iset,*args,**kwargs)
-			if self._mssa_fmt_pc.has_key(iset): del self._mssa_fmt_pc[iset]
-			
+			# No analyses performed?
+			if not self._pca_raw_eof.has_key(iset): self.pca(iset=iset)
+			if not self._mssaa_raw_eof.has_key(iset): self.mssa(iset=iset)
+						
 			# Format the variable
 			idata = 0 # Reference is first data
 			pc = cdms.createVariable(npy.asarray(self._mssa_raw_pc[:,:self._npca[iset]].transpose(),order='C'))
@@ -1221,7 +1215,7 @@ class SpAn(object):
 		isets = self._check_isets_(iset)
 
 		# Update params
-		changed =  self._update_params_(**kwargs)
+		changed =  self.update(**kwargs)
 		print 'mssa ev: changed',changed
 
 		# Loop on dataset
@@ -1231,13 +1225,9 @@ class SpAn(object):
 			# Operate only on selected datasets
 			if isets is not None and iset not in isets: continue
 			
-			# Should we rerun (pre-)PCA for this dataset?
-			if self._prepca[iset] and (not self._pca_raw_eof.has_key(iset) or update or changed[iset]['npca']):
-				self.pca(iset=iset,*args,**kwargs)
-				
-			# Should we rerun MSSA for this dataset?
-			if not self._mssa_raw_ev.has_key(iset) or update or changed[iset]['nmssa'] or changed[iset]['window']:
-				self.mssa(iset=iset,*args,**kwargs)
+			# No analyses performed?
+			if not self._pca_raw_eof.has_key(iset): self.pca(iset=iset)
+			if not self._mssa_raw_eof.has_key(iset): self.mssa(iset=iset)
 
 			# We only want the sum
 			if sum:

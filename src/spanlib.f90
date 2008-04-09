@@ -348,7 +348,7 @@ contains
 
 	! Main stuff
 	! ----------
-	! ec = matmul( transpose(var), xeof)
+	! ec = matmul( transpose(var), xeof) ! Not efficient
 	if(wp==dp)then
 		call dgemm('T','N',nt,nkeep,ns,1.,zvar,ns,xeof,ns,0.,ec,nt)
 	else
@@ -818,7 +818,7 @@ contains
   !############################################################
   !############################################################
 
-	subroutine sl_svd(ll,rr,nkeep,leof,reof,lpc,rpc,ev,lw,rw,&
+	subroutine sl_svd(ll,rr,nkeep,leof,reof,lpc,rpc,ev,lw,rw,usecorr,&
 		& bLargeMatrix)
 
 	! Title:
@@ -841,6 +841,7 @@ contains
 	!	- ev:    Eigen values
 	!	- lw:    Left weights
 	!	- rw:    Right weights
+	!	- usecorr:  Use correlations instead of covariances
 	!	- bLargeMatrix: Use gesdd instead of gesvd (faster for large matrices, but uses more workspace) [default:.false.]
 	!
 	! Dependencies:
@@ -864,16 +865,16 @@ contains
 	real(wp), intent(out),optional :: lpc(size(ll,2),nkeep), &
 		& leof(size(ll,1),nkeep), rpc(size(rr,2),nkeep), &
 		& reof(size(rr,1),nkeep),ev(nkeep)
-	logical, intent(in),  optional :: bLargeMatrix
+	logical, intent(in),  optional :: bLargeMatrix, usecorr
 
 	! Internal
 	! --------
 	integer               :: ns,nsl,nsr,nt
 	real(wp), allocatable :: zll(:,:), zrr(:,:), cov(:,:), &
-		&                    zlw(:), zrw(:)
+		&                    zlw(:), zrw(:), zls(:), zrs(:)
 	real(wp), allocatable :: zev(:), zleof(:,:)
 	integer               :: znkeepmax, i
-	logical               :: zbLargeMatrix
+	logical               :: zbLargeMatrix,zbcorr
 
 
 	! Sizes
@@ -906,6 +907,11 @@ contains
 		print*,'[svd] Nothing to do. Quit.'
 		return
 	end if
+	if(present(usecorr))then
+		zbcorr = usecorr
+	else
+		zbcorr = .false.
+	endif
 
 	! Use divide/conquer algo?
 	! ------------------------
@@ -931,6 +937,19 @@ contains
 	else
 		zrw = 1.
 	end if
+	
+	! Standard deviation for correlations
+	! -----------------------------------
+	allocate(zls(nsl),zrs(nsl))
+	if(zbcorr)then
+		zls = sqrt(sum(ll**2,dim=2))/nsl
+		zrs = sqrt(sum(rr**2,dim=2))/nsr
+		where(zls==0.) zls = 1.
+		where(zrs==0.) zrs = 1.
+	else
+		zls = 1.
+		zrs = 1.
+	end if
 
 
 	! Computations
@@ -946,8 +965,8 @@ contains
 	! Weighting
 	! ---------
 	do i = 1, nt
-		zll(:,i) = zll(:,i) * sqrt(zlw)
-		zrr(:,i) = zrr(:,i) * sqrt(zrw)
+		zll(:,i) = zll(:,i) * sqrt(zlw) / zls
+		zrr(:,i) = zrr(:,i) * sqrt(zrw) / zrs
 	end do
 
 	! Cross-covariances
@@ -959,8 +978,8 @@ contains
 		call sgemm('N','T',nsl,nsr,nt,1.,zll,nsl,zrr,nsr,0.,cov,nsl)
 	end if
 	cov = cov / float(nt)
-	if(.not.present(lpc)) deallocate(zll)
-	if(.not.present(rpc)) deallocate(zrr)
+	if(.not.present(lpc)) deallocate(zll,zls)
+	if(.not.present(rpc)) deallocate(zrr,zrs)
 
 	! SVD
 	! ---
@@ -997,12 +1016,20 @@ contains
 	! PCs
 	! ---
 	if(present(lpc))then
+		do i = 1, nt
+			zll(:,i) = zll(:,i) * zls ! Correlation case
+		end do
+		deallocate(zls)
 		call sl_pca_getec(zll,leof,lpc,weights=zlw)
-		deallocate(zll)
+		deallocate(zll,zlw)
 	end if
 	if(present(rpc))then
+		do i = 1, nt
+			zrr(:,i) = zrr(:,i) * zrs ! Correlation case
+		end do
+		deallocate(zrs)
 		call sl_pca_getec(zrr,reof,rpc,weights=zrw)
-		deallocate(zrr)
+		deallocate(zrr,zrw)
 	end if
 
 	end subroutine sl_svd
