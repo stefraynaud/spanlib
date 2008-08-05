@@ -34,31 +34,30 @@ if sys.platform=='darwin':
     extra_link_args += ['-bundle','-bundle_loader '+sys.prefix+'/bin/python']
 ## setup the python module
 setup(name="spanlib",
-      version=version,
-      description=description,
-      author=author,
-      author_email=author_email,
-      maintainer=author,
-      maintainer_email=author_email,
+	version=version,
+	description=description,
+	author=author,
+	author_email=author_email,
+	maintainer=author,
+	maintainer_email=author_email,
 
-      ## Build fortran wrappers, uses f2py
-      ## directories to search for libraries defined in setup.cfg
-      ext_modules = [Extension('spanlib.spanlib_fort',
-                              	files,
-                              	libraries=libs,
-                              	library_dirs=libDirs,
-			      	include_dirs=incDirs,
-				
-                               extra_link_args=extra_link_args,
-                               ),
-                     ],
-      license="GNU LGPL",
+	## Build fortran wrappers, uses f2py
+	## directories to search for libraries defined in setup.cfg
+	ext_modules = [
+		Extension('spanlib.spanlib_fort',
+			files,
+			libraries=libs,
+			library_dirs=libDirs,
+			include_dirs=incDirs,
+			extra_link_args=extra_link_args,
+		),],
+	license="GNU LGPL",
       
-     ## Install these to their own directory
-     package_dir={'spanlib':'../lib'},
-     packages = ["spanlib"],
+	## Install these to their own directory
+	package_dir={'spanlib':'../lib'},
+	packages = ["spanlib"],
       
-     )
+)
 
 
 

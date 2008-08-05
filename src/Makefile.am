@@ -42,17 +42,17 @@ spanlib_precision.f90: check-precision
 
 # spanlib_lapack95.f90: check-lapack95
 
-# check-precision: check-lapack95 spanlib_precision.F90
-check-precision: spanlib_precision.F90 spanlib_lapack95.f90
+# check-precision: check-lapack95 template.spanlib_precision.f90
+check-precision: template.spanlib_precision.f90 spanlib_lapack95.f90
 	@echo "Checking precision..."
-	test -f spanlib_precision.f90 || cp spanlib_precision.F90 spanlib_precision.f90
+	test -f spanlib_precision.f90 || cp template.spanlib_precision.f90 spanlib_precision.f90
 	@precision=`grep "wp *= *sp" spanlib_precision.f90 | cut -d\  -f6` ; \
 	test "$$precision" = "$(WP)" || \
 	( rm -f spanlib_precision.f90 && sed "s/wp = sp/wp = $(WP)/" $^ > spanlib_precision.f90 && \
 	echo "Switched to $(PRECISION) precision" )
 
-# check-lapack95: spanlib_lapack95.F90
-spanlib_lapack95.f90: spanlib_lapack95.F90
+# check-lapack95: template.spanlib_lapack95.f90
+spanlib_lapack95.f90: template.spanlib_lapack95.f90
 	@echo "Updating lapack95 config..."
 	@test -f spanlib_lapack95.f90  || cp $^ spanlib_lapack95.f90
 	@if test "$(USE_MKL)" = "yes" ; then \
@@ -129,10 +129,13 @@ setup.py: FORCE
 
 setup.cfg: FORCE
 	@test -f $@ || ( cp template.$@ $@ && echo "$@ created" )
-	@test x$(F2PY_FC_VENDOR) = x`grep "^fcompiler=" $@ | cut -f1 | cut -d= -f2` || \
+	@test x$(FC) = x`grep "^f90exec=" $@ | cut -f1 | cut -d= -f2` || \
 	( rm -f $@ && \
-	sed "s/_FCVENDOR_/$(F2PY_FC_VENDOR)/" template.$@ > $@  && \
+	sed -e "s/_FC_/$(FC)/" -e "s/_FCVENDOR_/$(F2PY_FC_VENDOR)/" template.$@ > $@  && \
 	echo "$@ updated" )
+
+##	sed "s/_FCVENDOR_/$(F2PY_FC_VENDOR)/" template.$@ > $@ 
+
 
 FORCE:
 
