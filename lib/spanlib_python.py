@@ -1102,13 +1102,15 @@ class SpAn(object):
 
 			# Compute MSSA
 			if self._prepca[iset]: # Pre-PCA case
+			
 				# PCA
-				if not self._pca_raw_pc.has_key(iset):
-					self.pca(iset=iset)
+				if not self._pca_raw_pc.has_key(iset): self.pca(iset=iset)
+				
 				# MSSA
 				raw_eof, raw_pc, raw_ev, ev_sum = \
 				  spanlib_fort.mssa(self._pca_raw_pc[iset][:, :self._prepca[iset]].transpose(), 
 				  self._window[iset], self._nmssa[iset])
+				  
 			else: # Direct MSSA case
 				raw_eof, raw_pc, raw_ev, ev_sum = \
 				  spanlib_fort.mssa(pdata, self._window[iset], self._nmssa[iset])
@@ -1129,7 +1131,7 @@ class SpAn(object):
 
 
 
-	def mssa_eof(self,iset=None,pure=False,**kwargs):
+	def mssa_eof(self,iset=None,raw=False,**kwargs):
 		"""Get EOFs from current MSSA decomposition
 
 		If MSSA was not performed, it is done with all parameters sent to mssa()
@@ -1156,28 +1158,29 @@ class SpAn(object):
 			# No analyses performed?
 #			if not self._pca_raw_eof.has_key(iset): self.pca(iset=iset)
 			if not self._mssa_raw_eof.has_key(iset): self.mssa(iset=iset)
-			raw_eof = self._mssa_raw_eof[iset].reshape((ns, nw, nm))
-			
-			
-			# Get raw data back to physical space
+			raw_eof = self._mssa_raw_eof[iset]
 			nm = self._nmssa[iset] ; nw = self._window[iset]
-			nc = self._npca[iset] ; ns = self._ns[iset]
-			if not self._prepca[iset]: # No pre-PCA performed
-				self._mssa_fmt_eof[iset] = self._unstack_(iset,
-					raw_eof.swapaxes(1,2).reshape((ns, nw*nm)), 
-					(self._mode_axis_('mssa',iset),self._mssa_window_axis_(iset)))
-					
-			elif pure: # Do not go back to physical space
+			nl = self._mssa_raw_eof[iset].shape[0]/nw
+			raw_eof = self._mssa_raw_eof[iset].reshape((nl, nw, nm))
+			
+			if raw: # Do not go back to physical space
 				self._mssa_fmt_eof[iset] = [cdms.createVariable(raw_eof.transpose())]
 				self._mssa_fmt_eof[iset][0].setAxisList(
 					[self._mode_axis_('mssa',iset),self._mssa_channel_axis_(iset)])
 					
-			else:
-				proj_eof,smodes = self._project_(self._pca_raw_eof[iset],
-					raw_eof.swapaxes(1,2),iset, nt=nw*nm)
-#					npy.swapaxes(raw_eof,0,1).reshape((nw*nc,nm),order='F'),iset, nt=nw*nm)
-				self._mssa_fmt_eof[iset] = self._unstack_(iset,proj_eof,
-					(self._mode_axis_('mssa',iset),self._mssa_window_axis_(iset)))
+			else: # Get raw data back to physical space
+#				raw_eof = raw_eof.swapaxes(1,2).reshape((nl, nm*nw),order='F')
+				raw_eof = raw_eof.reshape((nl, nm*nw),order='F')
+				
+				if not self._prepca[iset]: # No pre-PCA performed
+					self._mssa_fmt_eof[iset] = self._unstack_(iset,raw_eof, 
+						(self._mode_axis_('mssa',iset),self._mssa_window_axis_(iset)))
+						
+				else:
+					proj_eof,smodes = self._project_(self._pca_raw_eof[iset],raw_eof.transpose(),iset, nt=nm*nw)
+	#					npy.swapaxes(raw_eof,0,1).reshape((nw*nc,nm),order='F'),iset, nt=nw*nm)
+					self._mssa_fmt_eof[iset] = self._unstack_(iset,proj_eof,
+						(self._mode_axis_('mssa',iset),self._mssa_window_axis_(iset)))
 					
 			# Set attributes
 			for idata,eof in enumerate(self._mssa_fmt_eof[iset]):
@@ -1347,10 +1350,9 @@ class SpAn(object):
 					[self._time_axis_(iset),self._mode_axis_('mssa',iset)])
 					
 			else: # With pre-pca
-				proj_rec = self._project_(self._pca_raw_eof[iset], raw_rec.transpose(), iset, 
+				proj_rec, spcamodes = self._project_(self._pca_raw_eof[iset], raw_rec.transpose(), iset, 
 					nt=self._window[iset]*self._nmssa[iset])
-				mssa_fmt_rec[iset] = self._unstack_(iset,proj_rec,
-					(self._mode_axis_('pca',iset),self._mssa_window_axis_(iset)))
+				mssa_fmt_rec[iset] = self._unstack_(iset,proj_rec,(self._time_axis_(iset), ))
 			del  raw_rec
 			
 			# Set attributes
@@ -1483,10 +1485,11 @@ class SpAn(object):
 		"""
 
 		# Get EOFs and PCs for one dataset
-		if isinstance(reof, (list, tuple, dict)):
-			reof = reof[iset]
+		if isinstance(reof, (list, tuple, dict)): reof = reof[iset]
 		if isinstance(rpc, (list, tuple, dict)): rpc = rpc[iset]
-		if ns is None: ns = self._ns[iset]
+		if ns is None: 
+			ns = reof.shape[0]
+			if nw: ns /= nw
 		if nt is None: nt = self._nt[iset]
 
 		# Which modes
