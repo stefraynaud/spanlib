@@ -199,7 +199,7 @@ def _check_norm_(packed):
 
 
 
-def get_pairs(pcs, mincorr=0.9, maxdistance=2, deltaper=10., smooth=5):
+def get_pairs(pcs, mincorr=0.9, idxtol=2, pertol=.1, smooth=5, evs=None, evtol=.1):
 	""" Get pairs in MSSA results
 
 	Description:::
@@ -214,7 +214,7 @@ def get_pairs(pcs, mincorr=0.9, maxdistance=2, deltaper=10., smooth=5):
 
 	  pcs         :: Principal components [modes,time]
 	  mincorr     :: Minimal correlation [default:0.95]
-	  maxdistance :: Maximal difference of indices between a pair of modes [default: 3]
+	  idxtol :: Maximal difference of indices between a pair of modes [default: 3]
 	  smooth      :: Apply 'smooth'-running averages during scan [default: 5].
 	                 Not applied if smooth < 1.
 	:::
@@ -228,50 +228,52 @@ def get_pairs(pcs, mincorr=0.9, maxdistance=2, deltaper=10., smooth=5):
 	nst = pcs.shape[1]
 	if nst < 4:
 		return []
+	if evs is not None and len(evs) != pcs.shape[0]: evs = None
 		
 #	smooth = npy.clip(smooth,1,max([1,nst-3]))
 	pairs = []
 	found = []
 	mincorr = npy.clip(mincorr,0.,1.)
 	nt = len(pcs[0])
-
-	# Lags
-	lags = npy.arange(-nt+2,nt-1) # middle = nt-1
-	nlag = len(lags) # 2nt-3
-	imid = nlag/2
-	
-	maxdistance = npy.clip(maxdistance,1,len(pcs)-1)
+	idxtol = npy.clip(idxtol,1,len(pcs)-1)
 
 	# Compute lagged autocorrelations to find dominant periods
 	periods = []
 	idx = npy.arange(nt-2)
 	for ip in xrange(len(pcs)-1):
-		lac = genutil.statistics.laggedcorrelation(pcs[ip], pcs[ip], lags)
-		c1, c2 = _max_corrs_(pcs[ip], lags=lags)
-		periods.append(min(c1[0], c2[0])) # Keep lowest period
-		print 'period %i = %g'%(i, periods[-1])
+		lcs = zip(*_next_max_corrs_(pcs[ip]))
+		if not len(lcs): 
+			periods.append(-1)
+		else:
+			imax = npy.argmax(lcs[1])
+		periods.append(float(abs(lcs[0][imax])))
+		print 'period %i = %g'%(ip, periods[0])
 			
 	# Now the lagged cross correlations to check phase quadrature	
 	for ip1 in xrange(len(pcs)-1):
+		
+		# Trend
+		if periods[ip] == 0: continue
 		
 		# Mode already found
 		if ip1 in found: continue
 		
 		# Scan next maxDistance modes to find a possible pair
-		for ip2 in xrange(ip1+1,min([ip1+maxdistance+1,len(pcs)])):
+		for ip2 in xrange(ip1+1,min([ip1+idxtol+1,len(pcs)])):
 
-			ip = [ip1,ip2]
-			
 			# Lag correlations
-			(c1, l1), (c2, l2) = min(_max_corrs_(pcs[ip1], pcs[ip2], lags=lags))
+			lcs = _next_max_corrs_(pcs[ip1], pcs[ip2])
+			if len(lcs) < 2: continue
+			(l1, c1), (l2, c2) = lcs
 			
 			# Check correlation strengths
-			imax = N.argmax([c1, c2])
-			if [c1, c2][imax] < mincorr: continue
+			if max([c1, c2]) < mincorr: continue
 			
-			# Check period
-			per = [l1, l2][imax]
-			if l1 < per*(1.-deltaper/100.) or l2 > per(1.+deltaper/100.): continue
+			# Check closeness of periods
+			if abs((l2-l1)-periods[ip1])/periods[ip1] > pertol: continue
+			
+			# Check closeness of eigen values 
+			if evs is not None and (evs[ip1]-evs[ip2])/(evs[ip1]+evs[ip2]) > evtol: continue
 			
 			print 'We got a pair:', ip1, ip2
 			break
@@ -279,37 +281,37 @@ def get_pairs(pcs, mincorr=0.9, maxdistance=2, deltaper=10., smooth=5):
 		else:
 			# No pair found
 			continue
-		found.extend(ip)
-		pairs.append(tuple(ip))
+		found.extend([ip1, ip2])
+		pairs.append((ip1, ip2))
 
 	return pairs
 
-def _max_corrs_(pc1, pc2=None, lags=None):
-	if lags is None:
-		nt = len(pc1)
-		lags = npy.arange(-nt+2,nt-1) # middle = nt-1
-	nlag = len(lags) # 2nt-3
-	imid = nlag/2
+def _next_max_corrs_(pc1, pc2=None, maxlag=None, getfirsts=True):
+	"""left and right (-lag) max correlations"""
+	if maxlag is None:
+		maxlag = len(pc1)-2
+	right_lags = range(0, maxlag)
+	left_lags = range(0, -maxlag-1, -1)
 	if pc2 is None:
 		pc2 = pc1
-	lc = genutil.statistics.laggedcorrelation(p1, pc2, lags)
-	imaxima = []
-	for i1,istep in 1, -1:
-		halflags = lc[imid:None,istep]
-		dbefore = npy.diff(halflags[:-1])
-		dafter = npy.diff(halflags[1:])
-		maxima = npy.logical_and(npy.greater(dbefore, 0), npy.less_equal(dafter, 0))
-		imax = n.compress(maxima,idx)
-		if len(neg):
-			im = imid+istep*imax[0]+1, dafter[imax]
-		else:
-			im = -1, -1
-		imaxima.append(im)
-	return imaxima
+	right_corrs = genutil.statistics.laggedcorrelation(pc1[:], pc2[:], right_lags)
+	left_corrs = genutil.statistics.laggedcorrelation(pc1[:], pc2[:], left_lags)
+	maxima = ()
+	for lags, corrs in (left_lags, left_corrs), (right_lags, right_corrs):
+		dcorr = npy.diff(corrs)
+		mask = (dcorr[:-1]>0) & (dcorr[1:]<0)
+		if npy.any(mask):
+			mylags = npy.compress(mask, lags[1:])
+			mycorrs = corrs[1:].compress(mask)
+			if getfirsts:
+				maxima += ((mylags[0], mycorrs[0]), )
+			else:
+				maxima += ((mylags, mycorrs), )
+	return maxima
 
 
 
-def get_phases(data,nphases=8,minamp=.5,firstphase=0):
+def get_phases(data,nphase=8,minamp=.5,firstphase=0):
 	""" Phase composites for oscillatory fields
 
 	Description:::
@@ -336,7 +338,7 @@ def get_phases(data,nphases=8,minamp=.5,firstphase=0):
 	"""
 	
 	# Get the first PC and its smoothed derivative
-	pc = SpAn(data).pca_pc(npca=1)[0]
+	pc = SpAn(data).pca_pc(npca=1, quiet=True)[0]
 	pc[:] /= pc.std()
 	dpc = npy.gradient(pc)
 	if len(dpc) > 2: # 1,2,1 smooth
@@ -360,6 +362,7 @@ def get_phases(data,nphases=8,minamp=.5,firstphase=0):
 	sl = [slice(None)]*data.ndim
 	sl[itaxis] = slice(0, 1)
 	phases = MV.repeat(MV.take(data, (0, ), itaxis), nphase, itaxis)
+	phases[:] = MV.masked
 	paxis = cdms.createAxis(npy.arange(nphase)*dphase, id='phases')
 	paxis.long_name = 'Circular phases'
 	paxis.units = 'degrees'
@@ -392,7 +395,7 @@ class SpAn(object):
 	_params = dict(pca=_pca_params, mssa=_pca_params+_svd_params, svd=_pca_params+_mssa_params)
 	_all_params = _pca_params+_mssa_params+_svd_params
 
-	def __init__(self, datasets, serial=False, weights=None, norms=None, **kwargs):
+	def __init__(self, datasets, serial=False, weights=None, norms=None, quiet=False, **kwargs):
 		""" Prepare the Spectral Analysis Object
 
 		Description:::
@@ -425,6 +428,7 @@ class SpAn(object):
 		:::
 		"""
 
+		self._quiet = quiet
 		self.clean()
 
 		# We start from a list
@@ -444,7 +448,6 @@ class SpAn(object):
 		if not serial: # Convert to serial like mode
 			datasets = [datasets]
 		else:
-			print len(datasets)
 			input_map = []
 			for iset in xrange(len(datasets)):
 				if isinstance(datasets[iset],(list,tuple)):
@@ -455,8 +458,6 @@ class SpAn(object):
 					datasets[iset] = [datasets[iset]]
 					input_map.append(0)
 			self._input_map = input_map
-
-		print 'input map',self._input_map
 
 		# Weights and norms in the same form as datasets
 		if norms is None:	norms = 1.
@@ -587,7 +588,7 @@ class SpAn(object):
 #		else:
 #			return old[param] != getattr(self,'_'+param)
 		
-	def update(self, analysis_type=None, verbose=False, **kwargs):
+	def update(self, analysis_type=None, **kwargs):
 		"""Initialize, update and check statistical paremeters.
 		A value of None is converted to an optimal value.
 		Analyses are re-ran if needed by checking dependencies.
@@ -637,8 +638,7 @@ class SpAn(object):
 			for iset in xrange(self._ndataset):
 				if self._prepca[iset] is None: # Default: pre-PCA needed over max (for MSSA and SVD)
 					self._prepca[iset] = self._ns[iset] > SpAn._npca_max
-					print 'so prepca', self._prepca[iset] , 'because', self._ns[iset],  SpAn._npca_max
-					if verbose and self._prepca[iset]:
+					if not self._quiet and self._prepca[iset]:
 						print '[mssa] The number of valid points of one of the datasets is greater than %i, so we perform a pre-PCA'%SpAn._npca_max
 				if self._prepca[iset] is True: # Defaults to the number of PCA modes
 					self._prepca[iset] = self._npca[iset]
@@ -650,7 +650,7 @@ class SpAn(object):
 		# Dependency rules between prepca and npca
 		for iset in xrange(self._ndataset):
 			if self._prepca[iset] and self._npca[iset] < self._prepca[iset]:
-				if verbose and self._prepca[iset]:
+				if not self._quiet  and self._prepca[iset]:
 						print 'The number of pre-PCA modes (%i) for dataset #%iis lower than the number of PCA modes (%i), so we adjust the latter.' % (self._prepca[iset],iset,self._npca[iset])
 				self._npca[iset] = self._prepca[iset]
 			
@@ -1310,7 +1310,7 @@ class SpAn(object):
 		return self._return_(res)		
 
 
-	def mssa_rec(self,iset=None,modes=None,pure=False, **kwargs):
+	def mssa_rec(self,iset=None,modes=None,raw=False, phases=False, **kwargs):
 		
 		# Dataset selection
 		isets = self._check_isets_(iset)
@@ -1318,6 +1318,10 @@ class SpAn(object):
 		# Update params
 		changed =  self.update(**kwargs)
 		#print 'mssa rec: changed',changed
+		if phases in [True,None]:
+			phases = self._nphase
+		elif phases is not False:
+			self._nphase = phases
 		
 		# Loop on datasets
 		mssa_fmt_rec = {}
@@ -1327,32 +1331,32 @@ class SpAn(object):
 			# Operate only on selected datasets
 			if isets is not None and iset not in isets: continue
 		
-			## EOF already available 
-			#if self._mssa_fmt_eof.has_key(iset):
-				#fmt_eof[iset] = self._mssa_fmt_eof[iset]
-				#continue
-				
 			# No analyses performed?
 #			if not self._pca_raw_eof.has_key(iset): self.pca(iset=iset)
 			if not self._mssa_raw_eof.has_key(iset): self.mssa(iset=iset)
 			
-			# Get raw data back to physical space (nchan,nt)
-			print 'nw',self._window
+			# Projection
 			raw_rec,smodes = self._project_(self._mssa_raw_eof[iset],
 				self._mssa_raw_pc[iset],iset,modes,nw=self._window[iset])
 				
-			if not self._prepca[iset]: # No pre-PCA performed
-				mssa_fmt_rec[iset] = self._unstack_(iset,raw_rec,self._time_axis_(iset))
+			# Phases composites
+			if phases:
+				raw_rec = get_phases(raw_rec,phases)
+				taxis = raw_rec.getAxis(1)
+			else:
+				taxis = self._time_axis_(iset)
 				
-			elif pure: # Force direct result from MSSA
-				self._mssa_fmt_rec[iset] = [cdms.createVariable(raw_rec.transpose())]
-				self._mssa_fmt_rec[iset][0].setAxisList(0,
-					[self._time_axis_(iset),self._mode_axis_('mssa',iset)])
+			# Get raw data back to physical space (nchan,nt)
+			if not self._prepca[iset]: # No pre-PCA performed
+				mssa_fmt_rec[iset] = self._unstack_(iset,raw_rec,taxis)
+				
+			elif raw: # Force direct result from MSSA
+				mssa_fmt_rec[iset] = [cdms.createVariable(raw_rec.transpose())]
+				mssa_fmt_rec[iset][0].setAxisList(0,[taxis,self._mode_axis_('mssa',iset)])
 					
 			else: # With pre-pca
-				proj_rec, spcamodes = self._project_(self._pca_raw_eof[iset], raw_rec.transpose(), iset, 
-					nt=self._window[iset]*self._nmssa[iset])
-				mssa_fmt_rec[iset] = self._unstack_(iset,proj_rec,(self._time_axis_(iset), ))
+				proj_rec, spcamodes = self._project_(self._pca_raw_eof[iset],raw_rec.transpose(),iset,nt=len(taxis))
+				mssa_fmt_rec[iset] = self._unstack_(iset,proj_rec,taxis)
 			del  raw_rec
 			
 			# Set attributes
@@ -1372,7 +1376,7 @@ class SpAn(object):
 				if atts.has_key('long_name'):
 					rec.long_name += ' of '+atts['long_name']
 					
-		return self._return_(mssa_fmt_rec,grouped=pure)	
+		return self._return_(mssa_fmt_rec,grouped=raw)	
 	
 
 	#################################################################
@@ -1767,6 +1771,22 @@ class SpAn(object):
 		gc.collect()
 		return dataset
 
+	def nmssa(self, iset=None):
+		if iset is None: return self._nmssa
+		return self._nmssa[iset]
+		
+	def npca(self, iset=None):
+		if iset is None: return self._npca
+		return self._npca[iset]
+
+	def ns(self, iset=None, idata=None):
+		if iset is None: return self._ns
+		return self._ns[iset]
+		
+	def window(self, iset=None):
+		if iset is None: return self._window
+		return self._window[iset]
+
 	def clean(self):
 		"""(Re-)Initialization"""
 		dicts = []
@@ -1777,6 +1797,7 @@ class SpAn(object):
 					dicts.append('_%s_%s_%s'%(aa,bb,cc))
 		dicts.extend(['_mode_axes','_mssa_window_axes','_mssa_pctime_axes','_mssa_channel_axes','_svd_channel_axes'])
 		lists = ['_mssa_pairs','_stack_info','_svd_l2r','_nt','_ns','_ndata','_pdata']
+		self._nphase = 8
 		for ll,func in (dicts,dict),(lists,list):
 			for att in ll:
 				if hasattr(self,att):
@@ -1824,7 +1845,7 @@ class SpAn(object):
 			# We must work on an cdms variable
 			if not cdms.isVariable(data):
 				data = cdms.createVariable(data,copy=0)
-				if npy.core.ma.isMa(data):
+				if npy.ma.isMA(data):
 					types.append('ma')
 				else:
 					types.append('numpy')
@@ -1904,9 +1925,10 @@ class SpAn(object):
 			# For MSSA: pdata(nchan,window,nmssa) (other = window:nmssa)
 			mlen = int(mask.sum())
 			iend = istart + mlen
-			#MSSA: nchan*nwin,nmssa -> nchan, nwin*nmssa
-			print 'pdata',pdata.shape
-			unpacked = spanlib_fort.chan_unpack(mask.flat,pdata[istart:iend,:],mv)
+			indata = pdata[istart:iend,:]
+			if hasattr(pdata,'filled'):
+				indata = idata.filled(mv)
+			unpacked = spanlib_fort.chan_unpack(mask.flat,indata,mv)
 			unpacked = npy.asarray(unpacked,order='C')
 
 			# Check axes and shape
