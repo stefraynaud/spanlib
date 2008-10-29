@@ -818,7 +818,7 @@ contains
   !############################################################
   !############################################################
 
-	subroutine sl_svd(ll,rr,nkeep,leof,reof,lpc,rpc,ev,lw,rw,usecorr,&
+	subroutine sl_svd(ll,rr,nkeep,leof,reof,lpc,rpc,ev,ev_sum,lw,rw,usecorr,&
 		& bLargeMatrix)
 
 	! Title:
@@ -866,6 +866,7 @@ contains
 		& leof(size(ll,1),nkeep), rpc(size(rr,2),nkeep), &
 		& reof(size(rr,1),nkeep),ev(nkeep)
 	logical, intent(in),  optional :: bLargeMatrix, usecorr
+	real(wp), intent(out), optional :: ev_sum
 
 	! Internal
 	! --------
@@ -994,6 +995,10 @@ contains
 
 	! Get output arrays
 	! =================
+
+	! Sum of all eigenvalues (useful for percentils)
+	! ----------------------------------------------
+	if(present(ev_sum)) ev_sum = sum(zev)
 
 	! Eigen values
 	! ------------
