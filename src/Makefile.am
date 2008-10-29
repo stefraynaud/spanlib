@@ -86,10 +86,11 @@ spanlib_lapack95.f90: template.spanlib_lapack95.f90
 if WITH_PYTHON
 install-exec-hook:
 if LOCAL_PYTHON_INSTALL
-	test -z "$(PYTHONDIR)" || $(mkdir_p) $(PYTHONDIR)
-	@echo "Installing $(PACKAGE) python module in $(PYTHONDIR)"
-	$(INSTALL) -d -m 755 $(PYTHONDIR)/spanlib
-	$(INSTALL_DATA) $(PYTHON_LIBRARY_DIR)/* $(PYTHONDIR)/spanlib
+	$(PYTHON) setup.py install --install-purelib $(PYTHONDIR)
+# 	test -z "$(PYTHONDIR)" || $(mkdir_p) $(PYTHONDIR)
+# 	@echo "Installing $(PACKAGE) python module in $(PYTHONDIR)"
+# 	$(INSTALL) -d -m 755 $(PYTHONDIR)/spanlib
+# 	$(INSTALL_DATA) $(PYTHON_LIBRARY_DIR)/* $(PYTHONDIR)/spanlib
 else
 	$(PYTHON) setup.py install
 endif
@@ -129,7 +130,8 @@ setup.py: FORCE
 
 setup.cfg: FORCE
 	@test -f $@ || ( cp template.$@ $@ && echo "$@ created" )
-	@test x$(FC) = x`grep "^f90exec=" $@ | cut -f1 | cut -d= -f2` || \
+	@test x$(FC) = x$(grep "^f90exec=" $@ | cut -f1 | cut -d= -f2) -a \
+	x$(FC) = x$(grep "^f77exec=" $@ | cut -f1 | cut -d= -f2) || \
 	( rm -f $@ && \
 	sed -e "s/_FC_/$(FC)/" -e "s/_FCVENDOR_/$(F2PY_FC_VENDOR)/" template.$@ > $@  && \
 	echo "$@ updated" )
