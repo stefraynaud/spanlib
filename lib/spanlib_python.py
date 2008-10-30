@@ -2,7 +2,7 @@
 # File: spanlib_python.py
 #
 # This file is part of the SpanLib library.
-# Copyright (C) 2006-2008  Charles Doutriaux, Stephane Raynaud
+# Copyright (C) 2006-2008  Stephane Raynaud, Charles Doutriaux
 # Contact: stephane dot raynaud at gmail dot com
 #
 # This library is free software; you can redistribute it and/or
@@ -23,6 +23,45 @@
 import spanlib_fort,numpy as npy,genutil.statistics,genutil.filters,cdms2 as cdms,MV2 as MV
 import copy,gc
 from warnings import warn
+
+docs = dict(
+	npca = """*npca* : int | ``None``
+				Number of PCA modes to keep in analysis (defaults to 10).""", 
+	prepca = """*prepca* : int | bool | ``None``
+				Number of pre-PCA modes to keep before MSSA and SVD analyses (defaults to ``npca`` if ``True``).
+				If the number of input channels is greater than 30, it is automatically switch to ``True``.""", 
+	nmssa = """*nmssa* : int | ``None``
+				Number of MSSA modes to keep in analysis (defaults to 10).""", 
+	window = """*window* : int | ``None``
+				Size of the MSSA window parameter (defaults to 1/3 the time length).""", 
+	nsvd = """*nsvd* : int | ``None``
+				Number of SVD modes to keep in analysis (defaults to 10).""", 
+	iset = """*iset* : int | ``None``
+				Set it to an integer to perform reconstruction on one dataset.
+				If ``None``, all dataset are reconstructed.""", 
+	modes = """*modes* : int | list | tuple
+				If ``None``, all modes are summed. 
+				Example of other usages:
+				
+					- ``4`` or ``[4]`` or ``(4,)``: only mode 2
+					- ``-4``: modes 1 to 4
+					- ``(1,3,-5)``: modes 1, 3, 4 and 5 (``-`` means "until")""", 
+	raw = """*raw* : bool
+				When pre-PCA is used and ``raw`` is ``True``, it prevents from
+				going back to physical space (expansion to PCA EOFs space).""", 
+	scale = """*scale* : bool | float
+				Apply a factor to EOFs. This is essentially useful to add
+				a quantitative meaning. If ``True``, the standard deviation of
+				the corresponding PC is used. If a float is passed, it is
+				applied in addition to the deviation.""", 
+	relative = """*relative* : bool
+				Return percentage of variance instead of its absolute value.""", 
+	sum = """*sum* : bool
+				Return the sum of ALL (not only the selected modes) eigen values (total variance).""", 
+	cumsum = """*cumsum* : bool
+				Return the cumulated sum of eigen values.""", 
+)
+
 
 def _pack_(data,weights=None,norm=None):
 	""" Pack a dataset and its weights according to its mask
@@ -196,17 +235,14 @@ def _check_norm_(packed):
 def _get_pairs_(pcs, mincorr=0.85, idxtol=2, pertol=.1, smooth=5, evs=None, evtol=.1):
 	""" Get pairs in MSSA results
 
-	Description:::
 	  This function detects pairs of mode in principal
 	  components (typical from MSSA). Modes of a pair
 	  have their PCs (and EOFs) in phase quadrature in time.
 	  The algorithm detects quadratures using lag correlations.
-	:::
 
-	Usage:::
-	pairs = get_pairs(pcs)
-
-	  pcs         :: Principal components [modes,time]
+	:Parameters:
+		pcs : 
+			Principal components [modes,time]
 	  mincorr     :: Minimal correlation [default:0.95]
 	  idxtol :: Maximal difference of indices between a pair of modes [default: 3]
 	  smooth      :: Apply 'smooth'-running averages during scan [default: 5].
@@ -318,27 +354,27 @@ def _next_max_corrs_(pc1, pc2=None, maxlag=None, getfirsts=True, decorr=False):
 def get_phases(data,nphase=8,minamp=.5,firstphase=0):
 	""" Phase composites for oscillatory fields
 
-	Description:::
 	  This computes temporal phase composites of a spatio-temporal
 	  dataset. The dataset is expected to be oscillatory in time.
 	  It corresponds to a reoganisation of the time axis to
 	  to represents the dataset over its cycle in a arbitrary
 	  number of phases. It is useful, for example, to have a
 	  synthetic view of an reconstructed MSSA oscillation.
-	:::
 
-	Usage:::
-	phases = get_phases(data,nphases,offset,firstphase)
+	:Parameters:
+		data	 : array
+			A ``cdms2`` variable with a time axis over which
+			composites are computed.
+		nphase : int
+			Number of phases (divisions of the cycle)
+		minamp : float 
+			Minimal value of retained data, relative to standard deviation.
+		firstphase : float
+			Position of the first phase in the 360 degree cycle.
 
-	  data	   :: Time-channel data oscillatory in time data.shape is rank 2 and dim 0 is space
-	  nphases	:: Number of phases (divisions of the cycle)
-	  minamp	 :: Normalised offset to keep higher values only [default:
-	  firstphase :: Position of the first phase in the 360 degree cycle
-	:::
-
-	Output:::
-	  phases :: Phase-channel array
-	:::
+	:Returns:
+		A ``cdms2`` variable with phase axis (of length ``nphase``)
+		instead of a time axis.
 	"""
 	
 	# Get the first PC and its smoothed derivative
@@ -396,7 +432,7 @@ class SpAn(object):
 	_pca_params = ['npca', 'prepca']
 	_mssa_params = ['nmssa', 'window']
 	_svd_params = ['nsvd']
-	_params = dict(pca=_pca_params, mssa=_pca_params+_svd_params, svd=_pca_params+_mssa_params)
+	_params = dict(pca=_pca_params, mssa=_pca_params+_mssa_params, svd=_pca_params+_svd_params)
 	_all_params = _pca_params+_mssa_params+_svd_params
 
 	def __init__(self, datasets, serial=False, weights=None, norms=None, quiet=False, **kwargs):
@@ -743,13 +779,15 @@ class SpAn(object):
 			# - PCA
 			if (analysis_type == 'pca' or self._prepca[iset]) and \
 				(self._pca_raw_eof.has_key(iset) and changed['npca'][iset]):
+				print 'Rerunning PCA'
 				self.pca(iset=iset)
 					
 			# - MSSA
 			if analysis_type == 'mssa' and \
 				(self._mssa_raw_eof.has_key(iset) and
-					(changed['nmssa'][iset] or changed['window'] or 
+					(changed['nmssa'][iset] or changed['window'][iset] or 
 					(self._prepca[iset] and changed['prepca'][iset]))):
+				print 'Rerunning MSSA'
 				self.mssa(iset=iset)
 			
 			# - SVD
@@ -758,6 +796,7 @@ class SpAn(object):
 					(self._prepca[iset] and changed['prepca'][iset]))):
 				runsvd = True
 		if runsvd:
+			print 'Rerunning SVD'
 			self.svd()
 				
 		# Inform about which params have been modified for each dataset
@@ -794,22 +833,15 @@ class SpAn(object):
 	#################################################################
 
 	def pca(self,iset=None,**kwargs):
-		""" Principal Components Analysis (PCA)
+		""" 
+		Principal Components Analysis (PCA)
+		
+		It is called everytime needed by :meth:`pca_eof`, :meth:`pca_pc`, :meth:`pca_ev` and :meth:`pca_rec`.
+		Thus, since results are stored in cache, it not necessary call it explicitly.
 
-		Descriptions:::
-		  This function performs a PCA on the analysis objects
-		  and returns EOF, PC and eigen values.
-		  EOF are automatically unpacked.
-		:::
-
-		Usage:::
-		  pca(npca=None,weights=None,relative=False)
-
-		  iset	:: Dataset selection. If None, all are analysed [default: None]
-		  npca	:: Number of principal components to return [default: 10]
-		  relative :: Egein values are normalized to their sum (%) [default: False]
-
-		:::
+		:Parameters:
+			%(npca)s
+			%(iset)s
 		"""
 
 		# Check on which dataset to operate
@@ -859,9 +891,18 @@ class SpAn(object):
 
 
 	def pca_eof(self, iset=None, scale=False, **kwargs):
-		"""Get EOFs from current PCA decomposition
+		"""Get EOFs from PCA analysis
 
-		If PCA was not performed or if update is True, it is done with all parameters sent to pca()
+		:Parameters:
+			%(scale)s
+			%(raw)s
+			%(iset)s
+			
+		:PCA parameters:
+			%(npca)s
+			
+		:Returns:
+			Arrays with shape ``(npca,...)``
 		"""
 	
 		# Dataset selection
@@ -917,16 +958,23 @@ class SpAn(object):
 		return self._return_(fmt_eof)		
 
 
-	def pca_pc(self,iset=None,update=False,**kwargs):
+	def pca_pc(self,iset=None,**kwargs):
 		"""Get PCs from current PCA decomposition
+		
+		:Parameters:
+			%(iset)s
 
-		If PCA was not performed, it is done with all parameters sent to pca()
+		:PCA parameters:
+			%(npca)s
+			
+		:Returns:
+			Arrays with the shape ``(npca,nt)``
 		"""
 		# Check on which dataset to operate
 		isets = self._check_isets_(iset)
 
 		# Update params
-		changed =  self._update_('pca', **kwargs)
+		self._update_('pca', **kwargs)
 		
 		# Of, let's format the variable
 		fmt_pc = {}
@@ -961,9 +1009,18 @@ class SpAn(object):
 	def pca_ev(self,iset=None,relative=False,sum=False,cumsum=False,update=False,**kwargs):
 		"""Get eigen values from current PCA decomposition
 
-		Inputs:
-		  relative :: Return percentage of variance
-		  sum :: Return the sum of eigen values (total variance)
+		:Parameters:
+		  %(relative)s
+		  %(sum)s
+		  %(cumsum)s
+		  %(iset)s
+		
+			
+		:PCA parameters:
+			%(npca)s
+			
+		:Returns:
+			Arrays with shape ``(npca,)`` or a float
 		"""
 
 		# Check on which dataset to operate
@@ -1020,8 +1077,16 @@ class SpAn(object):
 	def pca_rec(self,iset=None,modes=None,**kwargs):
 		"""Reconstruct a set of modes from PCA decomposition
 
-		Inputs:
-		  modes :: Selection of Modes. Can be like [1,3,-5] -> modes [1,3,4,5], or None -> all [default: None].
+		:Parameters:
+			%(modes)s
+			%(raw)s
+			%(iset)s
+			
+		:PCA parameters:
+			%(npca)s
+			
+		:Returns:
+			Arrays with the same shape as input arrays.
 		"""
 		
 		# Check on which dataset to operate
@@ -1074,36 +1139,14 @@ class SpAn(object):
 	def mssa(self,iset=None, **kwargs):
 		""" MultiChannel Singular Spectrum Analysis (MSSA)
 
-		Description:::
-		  This function performs a MSSA on the analysis objects
-		  and returns EOF, PC and eigen values.
-		  Unless pca parameter is set to false, a pre
-		  PCA is performed to reduced the number of d-o-f
-		  if already done and if the number of channels is
-		  greater than 30.
-		:::
+		It is called everytime needed by :meth:`mssa_eof`, :meth:`mssa_pc`, :meth:`mssa_ev` and :meth:`mssa_rec`.
+		Thus, since results are stored in cache, it not necessary call it explicitly.
 
-		Usage:::
-		eof, pc, ev = mssa(nmssa,pca,relative=False)
-
-		OR
-
-		eof, pc, ev, ev_sum = mssa(nmssa,pca,get_ev_sum=True,relative=False)
-
-		  nmssa  :: Number of MSSA modes retained
-		  window :: MSSA window parameter
-		  prepca	:: If True, performs a preliminary PCA
-		  get_ev_sum  :: Also return sum of all eigen values (default: False)
-		  relative :: Egein values are normalized to their sum (%) [default: False]
-
-		Output:::
-		  eof :: EOF array
-		  pc  :: Principal Components array
-		  ev  :: Eigen Values  array
-		  ev_sum :: Sum of all eigen values (even thoses not returned).
-		    Returned ONLY if get_ev_sum is True.
-		    It can also be retreived with <SpAn_object>.stev_sum.
-		:::
+		:Parameters:
+			%(nmssa)s
+			%(window)s
+			%(prepca)s
+			%(iset)s
 		"""
 
 		# Check on which dataset to operate
@@ -1156,13 +1199,25 @@ class SpAn(object):
 				
 		self._last_analysis_type = 'mssa'
 		gc.collect()
+	mssa.__doc__ = mssa.__doc__ % docs
 
 
 
-	def mssa_eof(self,iset=None,raw=False,**kwargs):
-		"""Get EOFs from current MSSA decomposition
+	def mssa_eof(self, iset=None, scale=False, raw=False,**kwargs):
+		"""Get EOFs from MSSA analysis
 
-		If MSSA was not performed, it is done with all parameters sent to mssa()
+		:Parameters:
+			%(scale)s
+			%(raw)s
+			%(iset)s
+			
+		:MSSA parameters:
+			%(nmssa)s
+			%(window)s
+			%(prepca)s
+			
+		:Returns:
+			Arrays with shape ``(nmssa,nt-window+1,...)``
 		"""
 
 		# Dataset selection
@@ -1173,10 +1228,7 @@ class SpAn(object):
 
 		# Of, let's format the variable
 		fmt_eof = {}
-		for iset in xrange(self._ndataset): # (window*nchan,nmssa)
-		
-			# Operate only on selected datasets
-			if isets is not None and iset not in isets: continue
+		for iset in isets: # (window*nchan,nmssa)
 		
 			# EOF already available 
 			if self._mssa_fmt_eof.has_key(iset):
@@ -1184,7 +1236,6 @@ class SpAn(object):
 				continue
 				
 			# No analyses performed?
-#			if not self._pca_raw_eof.has_key(iset): self.pca(iset=iset)
 			if not self._mssa_raw_eof.has_key(iset): self.mssa(iset=iset)
 			raw_eof = self._mssa_raw_eof[iset]
 			nm = self._nmssa[iset] ; nw = self._window[iset]
@@ -1226,40 +1277,49 @@ class SpAn(object):
 					if atts.has_key('units'):
 						del eof.units
 					
+				# Scaling
+				if scale:
+					if scale is True:
+						scale = self._mssa_raw_pc[iset].std()
+					eof *= scale
+					
 			fmt_eof[iset] = self._mssa_fmt_eof[iset]
 			
 		gc.collect()
 		return self._return_(fmt_eof)
+	mssa_eof.__doc__ = mssa_eof.__doc__ % docs
 
-	def mssa_pc(self,iset=None,update=False,*args,**kwargs):
-		"""Get PCs from current MSSA decomposition
+	def mssa_pc(self, iset=None, **kwargs):
+		"""Get PCs from MSSA analysis
+		
+		:Parameters:
+			%(iset)s
 
-		If MSSA was not performed, it is done with all parameters sent to mssa()
+		:MSSA parameters:
+			%(nmssa)s
+			%(window)s
+			%(prepca)s
+			
+		:Returns:
+			Arrays with the shape ``(nmssa,nt)``
 		"""
 
 		# Dataset selection
 		isets = self._check_isets_(iset)
 
 		# Update params
-		#FIXME: treat dependency rules
-		changed =  self._update_('mssa', **kwargs)
-		#print 'mssa pc: changed',changed
-
+		self._update_('mssa', **kwargs)
 
 		# Of, let's format the variable
 		fmt_pc = {}
-		for iset in xrange(self._ndataset):
+		for iset in isets:
 			
-			# Operate only on selected datasets
-			if isets is not None and iset not in isets: continue
-		
 			# PC already available 
 			if self._mssa_fmt_pc.has_key(iset):
 				fmt_pc[iset] = self._mssa_fmt_pc[iset]
 				continue
 				
 			# No analyses performed?
-#			if not self._pca_raw_eof.has_key(iset): self.pca(iset=iset)
 			if not self._mssa_raw_pc.has_key(iset): self.mssa(iset=iset)
 						
 			# Format the variable
@@ -1278,29 +1338,37 @@ class SpAn(object):
 			self._check_dataset_tag_('_mssa_fmt_pc',iset)
 
 		return self._return_(fmt_pc,grouped=True)		
+	mssa_pc.__doc__ = mssa_pc.__doc__ % docs
 			
 
 	def mssa_ev(self,iset=None,relative=False,sum=False,cumsum=False,**kwargs):
 		"""Get eigen values from current MSSA decomposition
 
-		Inputs:
-		  relative :: Return percentage of variance
-		  sum :: Return the sum of eigen values (total variance)
+		:Parameters:
+		  %(relative)s
+		  %(sum)s
+		  %(cumsum)s
+		  %(iset)s
+		
+			
+		:MSSA parameters:
+			%(nmssa)s
+			%(window)s
+			%(prepca)s
+			
+		:Returns:
+			Arrays with shape ``(nmssa,)`` or a float
 		"""
 
 		# Check on which dataset to operate
 		isets = self._check_isets_(iset)
 
 		# Update params
-		changed =  self._update_('mssa', **kwargs)
-		#print 'mssa ev: changed',changed
+		self._update_('mssa', **kwargs)
 
 		# Loop on dataset
 		res = {}
-		for iset in xrange(self._ndataset):
-			
-			# Operate only on selected datasets
-			if isets is not None and iset not in isets: continue
+		for iset in isets:
 			
 			# No analyses performed?
 #			if not self._pca_raw_eof.has_key(iset): self.pca(iset=iset)
@@ -1337,30 +1405,45 @@ class SpAn(object):
 			res[iset] = ev
 
 		return self._return_(res)		
+	mssa_ev.__doc__ = mssa_ev.__doc__ % docs
 
 
-	def mssa_rec(self,iset=None,modes=None,raw=False, phases=False, **kwargs):
+	def mssa_rec(self, iset=None, modes=None, raw=False, phases=False, **kwargs):
+		"""Reconstruction of MSSA modes
+		
+		:Parameters:
+			%(iset)s
+			%(modes)s
+			%(raw)s
+			*phases* : ``False`` | ``True`` | int
+				Return phases composites of the reconstructed field.
+				By default, 8 phases are computed. You can psecify
+				the number of phases by passing an integer.
+			
+		:MSSA parameters:
+			%(nmssa)s
+			%(window)s
+			%(prepca)s
+			
+		:Returns:
+			Arrays with the same shape as input arrays.
+		"""
 		
 		# Dataset selection
 		isets = self._check_isets_(iset)
 
 		# Update params
-		changed =  self._update_('mssa', **kwargs)
-		#print 'mssa rec: changed',changed
-		if phases in [True,None]:
-			phases = self._nphase
-		elif phases is not False:
+		self._update_('mssa', **kwargs)
+		if isinstance(phases, int):
 			self._nphase = phases
+		elif phases is not False:
+			phases = self._nphase
 		
 		# Loop on datasets
 		mssa_fmt_rec = {}
-		for iset in  xrange(self._ndataset):
+		for iset in isets:
 
-			# Operate only on selected datasets
-			if isets is not None and iset not in isets: continue
-		
 			# No analyses performed?
-#			if not self._pca_raw_eof.has_key(iset): self.pca(iset=iset)
 			if not self._mssa_raw_eof.has_key(iset): self.mssa(iset=iset)
 			
 			# Projection
@@ -1405,7 +1488,7 @@ class SpAn(object):
 					rec.long_name += ' of '+atts['long_name']
 					
 		return self._return_(mssa_fmt_rec,grouped=raw)	
-	
+	mssa_rec.__doc__ = mssa_rec.__doc__ % docs
 
 	#################################################################
 	## SVD
@@ -1413,27 +1496,15 @@ class SpAn(object):
 	def svd(self,usecorr=True, **kwargs):
 		""" Singular Value Decomposition (SVD)
 
-		Descriptions:::
-		  This function performs a SVD
-		  and returns EOF, PC and eigen values.
-		  Unless pca parameter is set to false, a pre
-		  PCA is performed to reduced the number of d-o-f
-		  if already done and if the number of channels is
-		  greater than 30.
-		:::
+		It is called everytime needed by :meth:`svd_eof`, :meth:`svd_pc`, :meth:`svd_ev` and :meth:`svd_rec`.
+		Thus, since results are stored in cache, it not necessary call it explicitly.
 
-		Usage:::
-
-		  nsvd  :: Number of SVD modes retained
-		  window :: MSSA window parameter
-		  pca	:: If True, performs a preliminary PCA
-
-		Output:::
-		  eof :: EOF array
-		  pc  :: Principal Components array
-		  ev  :: Eigen Values  array
-
-		:::
+		:Parameters:
+			%(nsvd)s
+			%(prepca)s
+			- *usecorr*: bool
+				Use correlations instead of covariances.
+			%(iset)s
 		"""
 
 		if self._ndataset<2:
@@ -1495,11 +1566,24 @@ class SpAn(object):
 
 		self._last_analysis_type = 'svd'
 		gc.collect()
+	svd.__doc__ = svd.__doc__ % docs
 
 	def svd_eof(self,iset=None,raw=False,**kwargs):
-		"""Get EOFs from current SVD decomposition
+		"""Get EOFs from SVD analysis
 
-		If SVD was not performed, it is done with all parameters sent to svd()
+		If SVD was not performed, it is done with all parameters sent to :meth:`svd`
+
+		:Parameters:
+			%(scale)s
+			%(raw)s
+			%(iset)s
+			
+		:SVD parameters:
+			%(nsvd)s
+			%(prepca)s
+			
+		:Returns:
+			Arrays with shape ``(nsvd,...)``
 		"""
 
 		# Dataset selection
@@ -1563,28 +1647,33 @@ class SpAn(object):
 		gc.collect()
 		return self._return_(fmt_eof)
 
-	def svd_pc(self,iset=None,update=False,*args,**kwargs):
-		"""Get PCs from current SVD decomposition
+	def svd_pc(self,iset=None,**kwargs):
+		"""Get PCs from SVD analysis
 
-		If SVD was not performed, it is done with all parameters sent to svd()
+		If SVD was not performed, it is done with all parameters sent to :meth:`svd`
+		
+		:Parameters:
+			%(iset)s
+			
+		:SVD parameters:
+			%(nsvd)s
+			%(prepca)s
+			
+		:Returns:
+			Arrays with shape ``(nsvd,nt)``
 		"""
 
 		# Dataset selection
 		isets = self._check_isets_(iset)
 
 		# Update params
-		#FIXME: treat dependency rules
-		changed =  self._update_('svd', **kwargs)
-		#print 'svd pc: changed',changed
+		self._update_('svd', **kwargs)
 
 
 		# Of, let's format the variable
 		fmt_pc = {}
 		for iset in xrange(self._ndataset):
 			
-			# Operate only on selected datasets
-			if isets is not None and iset not in isets: continue
-		
 			# PC already available 
 			if self._svd_fmt_pc.has_key(iset):
 				fmt_pc[iset] = self._svd_fmt_pc[iset]
@@ -1612,16 +1701,25 @@ class SpAn(object):
 		return self._return_(fmt_pc,grouped=True)		
 			
 	def svd_ev(self,relative=False,sum=False,cumsum=False,**kwargs):
-		"""Get eigen values from current SVD decomposition
+		"""Get eigen values from SVD analysis
 
-		Inputs:
-		  relative :: Return percentage of variance
-		  sum :: Return the sum of eigen values (total variance)
+		:Parameters:
+		  %(relative)s
+		  %(sum)s
+		  %(cumsum)s
+		  %(iset)s
+		
+			
+		:SVD parameters:
+			%(nsvd)s
+			%(prepca)s
+			
+		:Returns:
+			Array with shape ``(nsvd,)`` or a float
 		"""
 
 		# Update params
-		changed =  self._update_('svd', **kwargs)
-		#print 'svd ev: changed',changed
+		self._update_('svd', **kwargs)
 
 		# No analyses performed?
 		if not self._svd_raw_eof.has_key(0): self.svd()
@@ -1654,6 +1752,82 @@ class SpAn(object):
 			ev.units = '% of total variance'
 		return ev
 
+	def svd_rec(self,iset=None,modes=None,raw=False, **kwargs):
+		"""Reconstruction of SVD modes
+		
+		:Parameters:
+			%(iset)s
+			%(modes)s
+			%(raw)s
+			
+		:SVD parameters:
+			%(nsvd)s
+			%(prepca)s
+			
+		:Returns:
+			Arrays with the same shape as input arrays.
+		"""
+		
+		# Dataset selection
+		isets = self._check_isets_(iset)
+
+		# Update params
+		self._update_('svd', **kwargs)
+		if phases in [True,None]:
+			phases = self._nphase
+		elif phases is not False:
+			self._nphase = phases
+		
+		# Loop on datasets
+		svd_fmt_rec = {}
+		for iset in isets:
+
+			# No analyses performed?
+			if not self._svd_raw_eof.has_key(iset): self.svd(iset=iset)
+			
+			# Projection
+			raw_rec,smodes = self._project_(self._svd_raw_eof[iset],
+				self._svd_raw_pc[iset],iset,modes)
+				
+			# Phases composites
+			if phases:
+				raw_rec = get_phases(raw_rec,phases)
+				taxis = raw_rec.getAxis(1)
+			else:
+				taxis = self._time_axis_(iset)
+				
+			# Get raw data back to physical space (nchan,nt)
+			if not self._prepca[iset]: # No pre-PCA performed
+				svd_fmt_rec[iset] = self._unstack_(iset,raw_rec,taxis)
+				
+			elif raw: # Force direct result from svd
+				svd_fmt_rec[iset] = [cdms.createVariable(raw_rec.transpose())]
+				svd_fmt_rec[iset][0].setAxisList(0,[taxis,self._mode_axis_('svd',iset)])
+					
+			else: # With pre-pca
+				proj_rec, spcamodes = self._project_(self._pca_raw_eof[iset],raw_rec.transpose(),iset,nt=len(taxis))
+				svd_fmt_rec[iset] = self._unstack_(iset,proj_rec,taxis)
+			del  raw_rec
+			
+			# Set attributes
+			for idata,rec in enumerate(svd_fmt_rec[iset]):
+				if not self._stack_info[iset]['ids'][idata].startswith('variable_'):
+					rec.id = self._stack_info[iset]['ids'][idata]+'_svd_rec'
+				else:
+					rec.id = 'svd_rec'
+#				if modes is not None:
+				rec.id += smodes #FIXME: do we keep it?
+				rec.modes = smodes
+#				else:
+#					rec.modes = '1-%i'%self._nsvd[iset]
+				rec.standard_name = 'recontruction_of_svd_modes'
+				rec.long_name = 'Reconstruction of SVD modes'
+				atts = self._stack_info[iset]['atts'][idata]
+				if atts.has_key('long_name'):
+					rec.long_name += ' of '+atts['long_name']
+					
+		return self._return_(svd_fmt_rec,grouped=raw)	
+	
 
 
 	def oldsvd(self,nsvd=None,pca=None):
