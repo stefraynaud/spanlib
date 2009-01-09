@@ -62,6 +62,9 @@ docs = dict(
 				Return the cumulated sum of eigen values.""", 
 )
 
+def _filldocs_(func):
+	func.__doc__ = func.__doc__ % docs
+	return func
 
 def _pack_(data,weights=None,norm=None):
 	""" Pack a dataset and its weights according to its mask
@@ -684,7 +687,7 @@ class SpAn(object):
 				changed[param] = [False]*self._ndataset
 				old[param] = getattr(self,'_'+param,list(init_all))
 				setattr(self,'_'+param,_check_length_(kwargs.pop(param, old[param]),self._ndataset,None))
-				print 'cur', param, getattr(self, '_'+param), changed[param]
+#				print 'cur', param, getattr(self, '_'+param), changed[param]
 #		if not req_params: return changed
 		if not running: return changed
 
@@ -823,7 +826,7 @@ class SpAn(object):
 		if isinstance(imap, int):
 			return [_check_length_(inputs, max(1, imap), fillvalue), ]
 		inputs = _check_length_(inputs,len(imap),fillvalue)
-		for im in enumerate(imap):
+		for iset, im in enumerate(imap):
 			inputs[iset] = _check_length_(inputs[iset], max(1, im), fillvalue)
 		return inputs
 
@@ -831,7 +834,7 @@ class SpAn(object):
 	#################################################################
 	## PCA
 	#################################################################
-
+	@_filldocs_
 	def pca(self,iset=None,**kwargs):
 		""" 
 		Principal Components Analysis (PCA)
@@ -944,8 +947,8 @@ class SpAn(object):
 				atts = self._stack_info[iset]['atts'][idata]
 				if atts.has_key('long_name'):
 					eof.long_name += ' of '+atts['long_name']
-				if atts.has_key('units'):
-					del eof.units
+				if scale and atts.has_key('units'):
+					eof.units = atts['units']
 					
 				# Scaling
 				if scale:
@@ -1274,8 +1277,8 @@ class SpAn(object):
 					atts = self._stack_info[iset]['atts'][idata]
 					if atts.has_key('long_name'):
 						eof.long_name += ' of '+atts['long_name']
-					if atts.has_key('units'):
-						del eof.units
+					if scale and atts.has_key('units'):
+						eof.units = atts['units']
 					
 				# Scaling
 				if scale:
@@ -1685,7 +1688,7 @@ class SpAn(object):
 						
 			# Format the variable
 			idata = 0 # Reference is first data
-			pc = cdms.createVariable(npy.asarray(self._svd_raw_pc[iset][:,:self._nsvd[iset]].transpose(),order='C'))
+			pc = cdms.createVariable(npy.asarray(self._svd_raw_pc[iset][:,:self._nsvd].transpose(),order='C'))
 			pc.setAxis(0,self._mode_axis_('svd',iset))
 			pc.setAxis(1,self._time_axis_(iset, idata))
 			pc.id = pc.name = 'svd_pc'
@@ -1693,10 +1696,10 @@ class SpAn(object):
 			pc.long_name = 'SVD principal components'
 			atts = self._stack_info[iset]['atts'][idata]
 			if atts.has_key('long_name'): pc.long_name += ' of '+atts['long_name']
-			if atts.has_key('units'):     pc.units = atts['units']
+#			if atts.has_key('units'):     pc.units = atts['units']
 
 			fmt_pc[iset] = self._svd_fmt_pc[iset] = pc
-			self._check_dataset_tag_('_svd_fmt_pc',iset)
+			self._check_dataset_tag_('_svd_fmt_pc', iset, svd=True)
 
 		return self._return_(fmt_pc,grouped=True)		
 			
@@ -1725,12 +1728,12 @@ class SpAn(object):
 		if not self._svd_raw_eof.has_key(0): self.svd()
 
 		# We only want the sum
-		if sum: return self._svd_ev_sum[iset]
+		if sum: return self._svd_ev_sum
 
 		# Format the variable
 		id = 'svd_ev'
 		long_name = []
-		raw_ev = self._svd_raw_ev[:self._nsvd[iset]]
+		raw_ev = self._svd_raw_ev[:self._nsvd]
 		if cumsum:
 			raw_ev = raw_ev.cumsum()
 			id += '_cumsum'
@@ -1830,7 +1833,7 @@ class SpAn(object):
 	
 
 
-	def oldsvd(self,nsvd=None,pca=None):
+	def _old_svd_(self,nsvd=None,pca=None):
 
 		# Check we have at least 2 variables!!
 		# At the moment we will not use any more variable
@@ -1952,7 +1955,7 @@ class SpAn(object):
 
 
 
-	def reconstruct(self,imode=None,mssa=None,pca=None,phases=False,nphases=8,offset=.5,firstphase=0,svd=None,ipair=None):
+	def _old_reconstruct_(self,imode=None,mssa=None,pca=None,phases=False,nphases=8,offset=.5,firstphase=0,svd=None,ipair=None):
 		""" Reconstruct results from mssa or pca
 
 		Description:::
@@ -2174,7 +2177,8 @@ class SpAn(object):
 		imap = self._input_map
 		if grouped:
 			if isinstance(imap, list):
-				imap = [m[0] for m in map]
+				imap = [0]*len(imap)
+#				imap = [m[0] for m in imap]
 			else:
 				imap = 0
 		
@@ -2206,21 +2210,57 @@ class SpAn(object):
 		return ret
 
 	def nmssa(self):
+		"""
+		Number of MSSA modes
+		
+		:Returns:
+			integer or tuple
+		"""
 		return self._return_(self._nmssa,grouped=True)
 		
 	def npca(selfe):
+		"""
+		Number of PCA modes
+		
+		:Returns:
+			integer or tuple
+		""" 
 		return self._return_(self._nmssa,grouped=True)
 
 	def ns(self):
+		"""
+		Length of channel axis (unmasked input points)
+		
+		:Returns:
+			integer or tuple
+		"""
 		return self._return_(self._nmssa,grouped=True)
 		
 	def nt(self):
+		"""
+		Length of time axis
+		
+		:Returns:
+			integer or tuple
+		"""
 		return self._return_(self._nmssa,grouped=True)
 		
 	def window(self):
+		"""
+		MSSA window parameter
+		
+		:Returns:
+			integer or tuple
+		"""
 		return self._return_(self._nmssa,grouped=True)
 
 	def nsvd(self):
+		"""
+		Number of SVD modes
+		
+		:Returns:
+			integer or tuple
+		"""
 		return self._nsvd
 
 	def clean(self):
