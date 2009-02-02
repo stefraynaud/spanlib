@@ -1,6 +1,6 @@
 import sys
 #sys.path.insert(0,'../src/build/lib.linux-i686-2.4')
-import cdms
+import cdms2 as cdms
 import spanlib
 import vcs
 import MV
