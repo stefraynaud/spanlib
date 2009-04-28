@@ -30,7 +30,7 @@ AC_SR_SPANLIB_PYTHON()
 AC_SR_HEADER([Misc configuration])
 ######################################################################
 AC_SR_SPANLIB_EXAMPLE()
-AC_SR_SPANLIB_DOC()
+AC_SR_DOC()
 
 ######################################################################
 AC_SR_HEADER([Creating Makefiles])

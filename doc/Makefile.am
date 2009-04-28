@@ -1,85 +1,73 @@
 ######################################################################
-## SpanLib, Raynaud 2006
+## SpanLib, Raynaud 2006-2008
 ######################################################################
-
-## Source files
-SOURCES = $(SOURCES_CORE) $(SOURCES_EXA_F90) $(SOURCES_EXA_PYT)
-SOURCES_CORE = $(top_srcdir)/src/spanlib.f90 $(top_srcdir)/lib/spanlib_python.py
-SOURCES_EXA_F90 = \
-	$(top_srcdir)/example/example1.f90 \
-	$(top_srcdir)/example/example2.f90 \
-	$(top_srcdir)/example/example3.f90
-SOURCES_EXA_PYT = \
-	$(top_srcdir)/example/example1.py \
-	$(top_srcdir)/example/example2.py
-
-## XML translation of source files
-XML_SRC = src_f90_lib.xml src_f90_ex1.xml src_f90_ex2.xml src_f90_ex3.xml src_pyt_mod.xml src_pyt_ex1.xml src_pyt_ex2.xml
-
-## XML translation of source files to be included
-XML_SRC_INC = $(XML_SRC:.xml=_inc.xml)
-
-## HTML translation of source files
-HTML_SRC = $(XML_SRC:.xml=.html)
-
-## XML list of subroutines
-XML_DOC_SUB = doc_f90_sub_inc.xml doc_pyt_sub_inc.xml
-
-## Vurrent version
-XML_DOC_VER_INC = doc_ver_inc.xml
 
 ## For the distro
-EXTRA_DIST = spanlib.xml spanlib.xsl spanlib_single.xsl src.xsl common.xsl $(XML_SRC)
+EXTRA_DIST = source/*.rst build source/_static
 
 ## For the installation
-docdir = $(datadir)/@PACKAGE@/html
-dist_doc_DATA = \
-	$(HTML_SRC) index.html spanlib.css spanlib.html \
-	doc_ins.html doc_f90.html doc_pyt.html doc_lin.html doc_bib.html \
-	doc_ins_dow.html doc_ins_ins.html \
-	doc_f90_sub.html doc_f90_exa.html \
-	doc_pyt_sub.html doc_pyt_exa.html
+docdir = $(datadir)/@PACKAGE@
+dist_doc_DATA = 
 
-## Source parsing command
-PARSE = $(top_srcdir)/scripts/gendoc.pl \
-	$(shell echo $(SOURCES_EXA_F90) | wc -w) \
-	$(shell echo $(SOURCES_EXA_PYT) | wc -w) \
-	$(SOURCES)
+## Sphinx
 
-if HAS_DOC_SUPPORT
-CLEANFILES = *_inc.xml
-endif
+# You can set these variables from the command line.
+SPHINXOPTS    =
+PAPER         = a4
+
+# Internal variables.
+ALLSPHINXOPTS   = -d build/doctrees -D latex_paper_size=$(PAPER) $(SPHINXOPTS) source
+
 
 ######################################################################
 ######################################################################
 
+
 if HAS_DOC_SUPPORT
-spanlib.html: spanlib.xml spanlib_single.xsl common.xsl $(XML_SRC_INC) $(XML_DOC_SUB) spanlib.css $(XML_DOC_VER_INC)
-	@echo "Generating single page html documentation..."
-	@$(XSLTPROC) $(XSLTPROC_FLAGS) -o $@ spanlib_single.xsl $<
 
-index.html: spanlib.xml spanlib.xsl common.xsl $(XML_SRC_INC) $(XML_DOC_SUB) $(XML_DOC_VER_INC)
-	@echo "Generating mutiple page html documentation..."
-	@$(XSLTPROC) $(XSLTPROC_FLAGS) -o $@ spanlib.xsl $<
-
-src_%.html: src_%.xml src_%_inc.xml src.xsl common.xsl
-	@echo "Generating $@..."
-	@$(XSLTPROC) $(XSLTPROC_FLAGS) -o $@ src.xsl $<
-
-xx:
-	@echo $(PARSE)
-
-$(XML_SRC_INC) $(XML_DOC_SUB): $(SOURCES)
-	@echo "Generating xml documentations from code sources..."
-	@$(PARSE)
-
-$(XML_DOC_VER_INC): $(top_srcdir)/configure.in
-	@echo "Checking package version..."
-	@test -f $@ || echo "" > $@
-	@version=`grep "AM_INIT_AUTOMAKE" $^ | cut -d"," -f2 | cut -d")" -f1` ; \
-	test "x$$version" = "x`grep Version $@ | cut -d\  -f2 | cut -d'<' -f1`" || \
-	rm -f $@ && echo '<para>Version '$$version'</para>' > $@  && \
-	echo "Version updated"
-
+if HAS_LATEX_SUPPORT
+all-local: html latex
 else
+all-local: html
 endif
+
+
+
+html-local:
+	-mkdir -p build/html build/doctrees
+	-$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) build/html
+	@echo
+	@echo "Build finished. The HTML pages are in build/html."
+
+if HAS_LATEX_SUPPORT
+latex:
+	-mkdir -p build/latex build/doctrees
+	-$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) build/latex
+	-cd build/latex && make all-pdf
+endif
+
+changes:
+	-mkdir -p build/changes build/doctrees
+	-$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) build/changes
+	@echo
+	@echo "The overview file is in build/changes."
+
+linkcheck:
+	-mkdir -p build/linkcheck build/doctrees
+	-$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) build/linkcheck
+	@echo
+	@echo "Link check complete; look for any errors in the above output " \
+	      "or in build/linkcheck/output.txt."
+
+maintener-clean-local:
+	-rm -rf build
+
+endif
+
+install-pdf-local:
+	cp build/latex/SpanLib.pdf $(docdir)
+	
+install-html-local:
+	cp -r build/html/* $(docdir)
+
+
