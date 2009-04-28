@@ -1,7 +1,7 @@
 ! File: spanlib_lapack95.F90
 !
 ! This file is part of the SpanLib library.
-! Copyright (C) 2006-2007  Stephane Raynaud
+! Copyright (C) 2006-2009  Stephane Raynaud
 ! Contact: stephane dot raynaud at gmail dot com
 !
 ! This library is free software; you can redistribute it and/or
@@ -19,9 +19,6 @@
 ! Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 module spanlib_lapack95
-
-	! Precision
-	use la_precision
 
 	! Subroutines
 	use f95_lapack, only: &

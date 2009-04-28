@@ -4,21 +4,20 @@
 
 lib_LIBRARIES = libspanlib.a
 if UPPER_CASE_MOD
-nodist_include_HEADERS=SPANLIB_PRECISION.mod SPANLIB_LAPACK95.mod SPANLIB.mod
+nodist_include_HEADERS=SPANLIB_LAPACK95.mod SPANLIB.mod
 else
-nodist_include_HEADERS=spanlib_precision.mod spanlib_lapack95.mod spanlib.mod
+nodist_include_HEADERS=spanlib_lapack95.mod spanlib.mod
 endif
-nodist_libspanlib_a_SOURCES=spanlib_precision.f90 spanlib_lapack95.f90
+nodist_libspanlib_a_SOURCES=spanlib_lapack95.f90
 dist_libspanlib_a_SOURCES=spanlib.f90
-noinst_PROGRAMS = getf90precision
-getf90precision_SOURCES = getf90precision.f90
-CLEANFILES=*.pyf setup.cfg *.mod $nodist_libspanlib_a_SOURCES
-AM_FCFLAGS=$(LAPACK95_INC)
-AM_F90FLAGS=$(AM_FCFLAGS)
+CLEANFILES=*.pyf setup.cfg *.mod $(nodist_libspanlib_a_SOURCES)
+AM_FCFLAGS=$(LAPACK95_INC) -fPIC
+AM_F90FLAGS=$(AM_FCFLAGS) -fPIC
 
 WRAPPER=spanlib_pywrap.f90
 if WITH_PYTHON
 PYTHON_LIBRARY_DIR = $(srcdir)/build/$(F2PY_BUILD_DIR)/spanlib
+# PYTHON_LIBRARY = $(PYTHON_LIBRARY_DIR)/spanlib_fort.so
 PYTHON_LIBRARY = $(PYTHON_LIBRARY_DIR)/spanlib_fort.so
 endif
 
@@ -27,29 +26,18 @@ EXTRA_DIST=$(WRAPPER)
 ######################################################################
 ######################################################################
 
-all-local: check-precision $(LIBRARIES) $(HEADERS) $(PYTHON_LIBRARY)
+all-local: $(LIBRARIES) $(HEADERS) $(PYTHON_LIBRARY)
 
 if UPPER_CASE_MOD
-spanlib.o: SPANLIB_LAPACK95.mod spanlib_precision.mod
-SPANLIB_PRECISION.mod: spanlib_precision.o
+spanlib.o: SPANLIB_LAPACK95.mod
 SPANLIB_LAPACK95.mod: spanlib_lapack95.o
 else
-spanlib.o: spanlib_lapack95.mod spanlib_precision.mod
-spanlib_precision.mod: spanlib_precision.o
+spanlib.o: spanlib_lapack95.mod
 spanlib_lapack95.mod: spanlib_lapack95.o
 endif
-spanlib_precision.f90: check-precision
 
 # spanlib_lapack95.f90: check-lapack95
 
-# check-precision: check-lapack95 template.spanlib_precision.f90
-check-precision: template.spanlib_precision.f90 spanlib_lapack95.f90
-	@echo "Checking precision..."
-	test -f spanlib_precision.f90 || cp template.spanlib_precision.f90 spanlib_precision.f90
-	@precision=`grep "wp *= *sp" spanlib_precision.f90 | cut -d\  -f6` ; \
-	test "$$precision" = "$(WP)" || \
-	( rm -f spanlib_precision.f90 && sed "s/wp = sp/wp = $(WP)/" $^ > spanlib_precision.f90 && \
-	echo "Switched to $(PRECISION) precision" )
 
 # check-lapack95: template.spanlib_lapack95.f90
 spanlib_lapack95.f90: template.spanlib_lapack95.f90
@@ -57,8 +45,7 @@ spanlib_lapack95.f90: template.spanlib_lapack95.f90
 	@test -f spanlib_lapack95.f90  || cp $^ spanlib_lapack95.f90
 	@if test "$(USE_MKL)" = "yes" ; then \
       rm -f spanlib_lapack95.f90 ; \
-      sed -e "s/use la_precision/use mkl95_precision/" \
-          -e "s/use f95_lapack/use mkl95_lapack/" \
+      sed -e "s/use f95_lapack/use mkl95_lapack/" \
           $^ > spanlib_lapack95.f90 ; \
       echo "Switched to MKL (intel) lapack95 config" ; \
    else  \
@@ -67,30 +54,11 @@ spanlib_lapack95.f90: template.spanlib_lapack95.f90
       echo "Switched back to default lapack95 config" ; \
    fi
  	
-# check-lapack95: spanlib_lapack95.F90
-# 	@echo "Checking lapack95 config..."
-# 	@test -f spanlib_lapack95.f90  || cp $^ spanlib_lapack95.f90
-# 	@use_mkl_lapack95=`grep "use .*mkl95_lapack" spanlib_lapack95.f90`  ; \
-# 	if test "x$$use_mkl_lapack95" = "x" -a "$(USE_MKL_LAPACK95)" = "yes" ; then \
-#       rm -f spanlib_lapack95.f90 ; \
-#       sed -e "s/use la_precision/use mkl95_precision/" \
-#           -e "s/use f95_lapack/use mkl95_lapack/" \
-#           $^ > spanlib_lapack95.f90 ; \
-#       echo "Switched to MKL (intel) lapack95 config" ; \
-#    elif test "x$$use_mkl_lapack95" != "x" -a "$(USE_MKL_LAPACK95)" = "no" ; then \
-#       rm -f spanlib_lapack95.f90 ; \
-#       sed "s/ => [_a-z]*//g" $^ > spanlib_lapack95.f90 ; \
-#       echo "Switched back to default lapack95 config" ; \
-#    fi
 
 if WITH_PYTHON
 install-exec-hook:
 if LOCAL_PYTHON_INSTALL
-	$(PYTHON) setup.py install --install-purelib $(PYTHONDIR)
-# 	test -z "$(PYTHONDIR)" || $(mkdir_p) $(PYTHONDIR)
-# 	@echo "Installing $(PACKAGE) python module in $(PYTHONDIR)"
-# 	$(INSTALL) -d -m 755 $(PYTHONDIR)/spanlib
-# 	$(INSTALL_DATA) $(PYTHON_LIBRARY_DIR)/* $(PYTHONDIR)/spanlib
+	$(PYTHON) setup.py install --install-lib $(PYTHONDIR)
 else
 	$(PYTHON) setup.py install
 endif
@@ -105,13 +73,11 @@ clean-local:
 
 $(PYTHON_LIBRARY): $(HEADERS) setup.py setup.cfg $(PACKAGE).pyf $(WRAPPER) \
    $(LIBRARIES) $(top_srcdir)/lib/__init__.py $(top_srcdir)/lib/spanlib_python.py
-	$(PYTHON) setup.py build
-	@echo "Adding tmp lib dir"
-	-rm -f build/tmp_lib ; ln -s $(F2PY_BUILD_DIR) build/tmp_lib
+	$(PYTHON) setup.py build --build-lib build/lib
 
-$(PACKAGE).pyf: $(top_srcdir)/scripts/genpyf.pl $(WRAPPER) getf90precision
+$(PACKAGE).pyf: $(top_srcdir)/scripts/genpyf.py $(WRAPPER)
 	@echo Creating $@
-	$(top_srcdir)/scripts/genpyf.pl $(WRAPPER) $@ $(PRECISION) `./getf90precision`
+	$(top_srcdir)/scripts/genpyf.py $(WRAPPER) $@ 
 
 setup.py: FORCE
 	@test -f $@ || ( cp template.$@ $@ && echo "$@ created" )
@@ -130,8 +96,8 @@ setup.py: FORCE
 
 setup.cfg: FORCE
 	@test -f $@ || ( cp template.$@ $@ && echo "$@ created" )
-	@test x$(FC) = x$(grep "^f90exec=" $@ | cut -f1 | cut -d= -f2) -a \
-	x$(FC) = x$(grep "^f77exec=" $@ | cut -f1 | cut -d= -f2) || \
+	@test "x$(FC)" = "x`grep "^f90exec=" $@ | cut -f1 | cut -d= -f2`" -a \
+	"x$(FC)" = "x`grep "^f77exec=" $@ | cut -f1 | cut -d= -f2`" || \
 	( rm -f $@ && \
 	sed -e "s/_FC_/$(FC)/" -e "s/_FCVENDOR_/$(F2PY_FC_VENDOR)/" template.$@ > $@  && \
 	echo "$@ updated" )

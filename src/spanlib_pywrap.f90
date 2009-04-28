@@ -31,10 +31,10 @@ subroutine pca(var, ns, nt, nkeep, xeof, pc, ev, ev_sum, weights, useteof)
 	! External
 	! --------
 	integer, intent(in)  :: ns,nt
-	real(wp),intent(in)  :: var(ns,nt)
+	real,    intent(in)  :: var(ns,nt)
 	integer, intent(in)  :: nkeep
-	real(wp),intent(out) :: pc(nt,nkeep), xeof(ns,nkeep), ev(nkeep)
-	real(wp),intent(in)  :: weights(ns)
+	real,    intent(out) :: pc(nt,nkeep), xeof(ns,nkeep), ev(nkeep)
+	real,    intent(in)  :: weights(ns)
 	integer, intent(in)  :: useteof
 	real,    intent(out) :: ev_sum
 
@@ -55,8 +55,8 @@ subroutine pca_getec(var, xeof, ns, nt, nkept, ec, weights)
 	! External
 	! --------
 	integer, intent(in)  :: ns,nt,nkept
-	real(wp),intent(in)  :: var(ns,nt), xeof(ns,nkept),weights(ns)
-	real(wp),intent(out) :: ec(nt,nkept)
+	real,    intent(in)  :: var(ns,nt), xeof(ns,nkept),weights(ns)
+	real,    intent(out) :: ec(nt,nkept)
 
 
 	! Call to original subroutine
@@ -76,8 +76,8 @@ subroutine pca_rec(xeof, pc, ns, nt, nkept, varrec, istart, iend)
 	! External
 	! --------
 	integer, intent(in)  :: ns, nt, nkept, istart, iend
-	real(wp),intent(in)  :: xeof(ns,nkept), pc(nt,nkept)
-	real(wp),intent(out) :: varrec(ns,nt)
+	real,    intent(in)  :: xeof(ns,nkept), pc(nt,nkept)
+	real,   intent(out) :: varrec(ns,nt)
 
 	! Call to original subroutine
 	! ---------------------------
@@ -97,8 +97,8 @@ subroutine mssa(var, nchan, nt, nwindow, nkeep, steof, stpc, ev, ev_sum)
 	! External
 	! --------
 	integer, intent(in)  :: nchan, nt, nwindow, nkeep
-	real(wp),intent(in)  :: var(nchan,nt)
-	real(wp),intent(out) :: steof(nchan*nwindow,nkeep), &
+	real,    intent(in)  :: var(nchan,nt)
+	real,    intent(out) :: steof(nchan*nwindow,nkeep), &
 	 & stpc(nt-nwindow+1,nkeep), ev(nkeep)
 	real,    intent(out) :: ev_sum
 
@@ -119,9 +119,9 @@ subroutine mssa_getec(var, steof, nchan, nt, nkept, nwindow, stec)
 	! External
 	! --------
 	integer, intent(in) :: nchan, nt, nwindow, nkept
-	real(wp),intent(in) :: var(nchan,nt), &
+	real,    intent(in) :: var(nchan,nt), &
 	 & steof(nchan*nwindow,nkept)
-	real(wp),intent(out)  :: stec(nt-nwindow+1, nkept)
+	real,    intent(out)  :: stec(nt-nwindow+1, nkept)
 
 	! Call to original subroutine
 	! ---------------------------
@@ -141,9 +141,9 @@ subroutine mssa_rec(steof, stpc, nchan, nt, nkeep, nwindow, &
 	! --------
 	integer, intent(in)  :: nchan, nt, nwindow, nkeep
 	integer, intent(in)  :: istart, iend
-	real(wp),intent(in)  :: steof(nchan*nwindow,nkeep), &
+	real,    intent(in)  :: steof(nchan*nwindow,nkeep), &
 	 & stpc(nt-nwindow+1,nkeep)
-	real(wp),intent(out) :: varrec(nchan,nt)
+	real,    intent(out) :: varrec(nchan,nt)
 
 	! Call to original subroutine
 	! ---------------------------
@@ -165,10 +165,10 @@ subroutine phasecomp(varrec, ns, nt, np,  phases, weights, &
 	! External
 	! --------
 	integer, intent(in)  :: ns, nt, np
-	real(wp),intent(in)  :: varrec(ns,nt)
-	real(wp),intent(in)  :: weights(ns)
-	real(wp),intent(in)  :: offset, firstphase
-	real(wp),intent(out) :: phases(ns, np)
+	real,    intent(in)  :: varrec(ns,nt)
+	real,    intent(in)  :: weights(ns)
+	real,    intent(in)  :: offset, firstphase
+	real    ,intent(out) :: phases(ns, np)
 
 	! Call to original subroutine
 	! ---------------------------
@@ -189,11 +189,11 @@ subroutine svd(ll, nsl, rr, nsr, nt, nkeep, leof, reof, lpc, rpc, ev, ev_sum, lw
 	! External
 	! --------
 	integer, intent(in)  :: nsl,nsr,nt
-	real(wp),intent(in)  :: ll(nsl,nt),rr(nsr,nt)
+	real,    intent(in)  :: ll(nsl,nt),rr(nsr,nt)
 	integer, intent(in)  :: nkeep
-	real(wp),intent(out) :: lpc(nt,nkeep), leof(nsl,nkeep)
-	real(wp),intent(out) :: rpc(nt,nkeep), reof(nsr,nkeep), ev(nkeep)
-	real(wp),intent(in)  :: lweights(nsl),rweights(nsr)
+	real,    intent(out) :: lpc(nt,nkeep), leof(nsl,nkeep)
+	real,    intent(out) :: rpc(nt,nkeep), reof(nsr,nkeep), ev(nkeep)
+	real,    intent(in)  :: lweights(nsl),rweights(nsr)
 	logical, intent(in)  :: usecorr
 	real,    intent(out) :: ev_sum
 
@@ -216,9 +216,9 @@ subroutine chan_pack(varNd, mask, nstot, nt, var2d, ns)
 	! External
 	! --------
 	integer, intent(in)  :: nstot, nt, ns
-	real(wp),intent(in)  :: varNd(nt,nstot)
+	real,    intent(in)  :: varNd(nt,nstot)
 	integer, intent(in)  :: mask(nstot)
-	real(wp),intent(out) :: var2d(ns,nt)
+	real,    intent(out) :: var2d(ns,nt)
 
 	! Internal
 	! --------
@@ -243,9 +243,9 @@ subroutine chan_unpack(varNd, mask, nstot, nt, var2d, ns, &
 	! External
 	! --------
 	integer, intent(in)  :: nstot, nt, ns
-	real(wp),intent(out) :: varNd(nt,nstot)
+	real,    intent(out) :: varNd(nt,nstot)
 	integer, intent(in)  :: mask(nstot)
-	real(wp),intent(in)  :: var2d(ns,nt),missing_value
+	real,    intent(in)  :: var2d(ns,nt),missing_value
 
 	! Internal
 	! --------
