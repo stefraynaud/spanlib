@@ -24,7 +24,6 @@
 subroutine pca(var, ns, nt, nkeep, xeof, pc, ev, ev_sum, weights, useteof)
 
 	use spanlib, only: sl_pca
-	use spanlib_precision
 
 	implicit none
 
@@ -48,7 +47,6 @@ end subroutine pca
 subroutine pca_getec(var, xeof, ns, nt, nkept, ec, weights)
 
 	use spanlib, only: sl_pca_getec
-	use spanlib_precision
 
 	implicit none
 
@@ -69,7 +67,6 @@ end subroutine pca_getec
 subroutine pca_rec(xeof, pc, ns, nt, nkept, varrec, istart, iend)
 
 	use spanlib, only: sl_pca_rec
-	use spanlib_precision
 
 	implicit none
 
@@ -90,7 +87,6 @@ end subroutine pca_rec
 subroutine mssa(var, nchan, nt, nwindow, nkeep, steof, stpc, ev, ev_sum)
 
 	use spanlib, only: sl_mssa
-	use spanlib_precision
 
 	implicit none
 
@@ -112,7 +108,6 @@ end subroutine mssa
 subroutine mssa_getec(var, steof, nchan, nt, nkept, nwindow, stec)
 
 	use spanlib, only: sl_mssa_getec
-	use spanlib_precision
 
 	implicit none
 
@@ -133,7 +128,6 @@ subroutine mssa_rec(steof, stpc, nchan, nt, nkeep, nwindow, &
   & varrec, istart, iend)
 
 	use spanlib, only: sl_mssa_rec
-	use spanlib_precision
 
 	implicit none
 
@@ -158,7 +152,6 @@ subroutine phasecomp(varrec, ns, nt, np,  phases, weights, &
   & offset, firstphase)
 
 	use spanlib, only: sl_phasecomp
-	use spanlib_precision
 
 	implicit none
 
@@ -182,7 +175,6 @@ end subroutine phasecomp
 subroutine svd(ll, nsl, rr, nsr, nt, nkeep, leof, reof, lpc, rpc, ev, ev_sum, lweights, rweights, usecorr)
 
 	use spanlib, only: sl_svd
-	use spanlib_precision
 
 	implicit none
 
@@ -209,8 +201,6 @@ end subroutine svd
 
 subroutine chan_pack(varNd, mask, nstot, nt, var2d, ns)
 
-	use spanlib_precision
-
 	implicit none
 
 	! External
@@ -235,8 +225,6 @@ end subroutine chan_pack
 
 subroutine chan_unpack(varNd, mask, nstot, nt, var2d, ns, &
   & missing_value)
-
-	use spanlib_precision
 
 	implicit none
 

@@ -20,8 +20,6 @@
 
 module spanlib
 
-	use spanlib_precision
-
 	implicit none
 
 contains
