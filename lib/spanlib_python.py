@@ -43,17 +43,17 @@ docs = dict(
 				If ``None``, all modes are summed. 
 				Example of other usages:
 				
-					- ``4`` or ``[4]`` or ``(4,)``: only mode 2
+					- ``4`` or ``[4]`` or ``(4,)``: only mode 4
 					- ``-4``: modes 1 to 4
 					- ``(1,3,-5)``: modes 1, 3, 4 and 5 (``-`` means "until")""", 
 	raw = """*raw* : bool
 				When pre-PCA is used and ``raw`` is ``True``, it prevents from
 				going back to physical space (expansion to PCA EOFs space).""", 
 	scale = """*scale* : bool | float
-				Apply a factor to EOFs. This is essentially useful to add
-				a quantitative meaning. If ``True``, the standard deviation of
-				the corresponding PC is used. If a float is passed, it is
-				applied in addition to the deviation.""", 
+				Apply a factor to EOFs or PCs. This is essentially useful to add
+				a quantitative meaning. If ``True``, ``scale`` is chosen so that
+				the standard deviation of the mode (EOF or PC) is the square of
+				the associated eigen value.""", 
 	relative = """*relative* : bool
 				Return percentage of variance instead of its absolute value.""", 
 	sum = """*sum* : bool
@@ -233,7 +233,6 @@ def _check_norm_(packed):
 		packed['data'] = packed['data']/packed['norm'] # Norm copy
 	else:
 		packed['norm'] = 1.
-			
 
 def _get_pairs_(pcs, mincorr=0.85, idxtol=2, pertol=.1, smooth=5, evs=None, evtol=.1):
 	""" Get pairs in MSSA results
@@ -438,7 +437,7 @@ class SpAn(object):
 	_params = dict(pca=_pca_params, mssa=_pca_params+_mssa_params, svd=_pca_params+_svd_params)
 	_all_params = _pca_params+_mssa_params+_svd_params
 
-	def __init__(self, datasets, serial=False, weights=None, norms=None, quiet=False, **kwargs):
+	def __init__(self, datasets, serial=False, weights=None, norms=True, quiet=False, **kwargs):
 		""" Prepare the Spectral Analysis Object
 
 		Description:::
@@ -506,7 +505,9 @@ class SpAn(object):
 		norms = kwargs.pop('norm', norms)
 		weights = kwargs.pop('weight', weights)
 		if norms is None:	norms = 1.
-		norms = self._check_shape_(norms, 1.)
+		norms = self._check_shape_(norms, True)
+		for iset,d in enumerate(datasets):
+			if len(d) == 1: norms[iset] = [1.]
 		weights = self._check_shape_(weights, None)
 
 		# We stack and pack data
@@ -641,6 +642,12 @@ class SpAn(object):
 		"""Get the normalization factor of one subdataset of one dataset"""
 		return self._stack_info[iset]['norms'][idata]
 		
+	def norms(self, iset, idata=None):
+		"""Get the normalization factor of a dataset"""
+		if idata is None:
+			return self._stack_info[iset]['norms']
+		return self._stack_info[iset]['norms'][idata]
+		
 	def _type_(self,iset,idata):
 		"""Get 'numpy', 'MA' or 'cdms' for one subdataset of one dataset"""
 		return self._stack_info[iset]['types'][idata]
@@ -711,8 +718,8 @@ class SpAn(object):
 		for iset in xrange(self._ndataset):
 			if self._prepca[iset] is None: # Default: pre-PCA needed over max (for MSSA and SVD)
 				self._prepca[iset] = min(self._ns[iset], self._ns[iset]) > SpAn._npca_max
-				if not self._quiet and self._prepca[iset]:
-					print '[mssa] The number of valid points of one of the datasets is greater than %i, so we perform a pre-PCA'%SpAn._npca_max
+				if not self._quiet and self._prepca[iset] and analysis_type in ['mssa', 'pca'] :
+					print '[mssa/svd] The number of valid points of one of the datasets is greater than %i, so we perform a pre-PCA'%SpAn._npca_max
 			if self._prepca[iset] is True: # Defaults to the number of PCA modes
 				self._prepca[iset] = self._npca[iset]
 			elif self._prepca[iset]: # Max number of prepca modes is number of points
@@ -799,7 +806,8 @@ class SpAn(object):
 					(self._prepca[iset] and changed['prepca'][iset]))):
 				runsvd = True
 		if runsvd:
-			print 'Rerunning SVD'
+			#FIXME: MUST NOT RERUN SVD
+#			print 'Rerunning SVD'
 			self.svd()
 				
 		# Inform about which params have been modified for each dataset
@@ -893,6 +901,7 @@ class SpAn(object):
 		self._last_analysis_type = 'pca'
 
 
+	@_filldocs_
 	def pca_eof(self, iset=None, scale=False, **kwargs):
 		"""Get EOFs from PCA analysis
 
@@ -952,16 +961,20 @@ class SpAn(object):
 					
 				# Scaling
 				if scale:
-					if scale is True:
-						scale = self._pca_raw_pc[iset].std()
-					eof *= scale
+					if scale is True: # Std dev of EOF is sqrt(ev)
+						scale = npy.sqrt(self._pca_raw_ev[iset]*(self.ns(iset)-1))
+						for imode in xrange(eof.shape[0]):
+							eof[imode] *= scale[imode]
+					else:
+						eof *= scale
 					
 			fmt_eof[iset] = self._pca_fmt_eof[iset]
 
 		return self._return_(fmt_eof)		
 
 
-	def pca_pc(self,iset=None,**kwargs):
+	@_filldocs_
+	def pca_pc(self,iset=None, **kwargs):
 		"""Get PCs from current PCA decomposition
 		
 		:Parameters:
@@ -984,7 +997,7 @@ class SpAn(object):
 		for iset in isets:
 			
 			# PC already available 
-			if self._pca_fmt_pc.has_key(iset) and not update:
+			if self._pca_fmt_pc.has_key(iset):
 				fmt_pc[iset] = self._pca_fmt_pc[iset]
 				continue
 			
@@ -992,16 +1005,20 @@ class SpAn(object):
 			if not self._pca_raw_pc.has_key(iset): self.pca(iset=iset)
 
 			# Format the variable
-			idata = 0 # Reference is first data
 			pc = cdms.createVariable(npy.asarray(self._pca_raw_pc[iset][:,:self._npca[iset]].transpose(),order='C'))
 			pc.setAxis(0,self._mode_axis_('pca',iset))
-			pc.setAxis(1,self._time_axis_(iset,idata))
+			pc.setAxis(1,self._time_axis_(iset,0))
 			pc.id = pc.name = 'pca_pc'
 			pc.standard_name = 'principal_components_of_pca'
-			pc.long_name = 'PCA principal components'
-			atts = self._stack_info[iset]['atts'][idata]
-			if atts.has_key('long_name'): pc.long_name += ' of '+atts['long_name']
-			if atts.has_key('units'):     pc.units = atts['units']
+			pc.long_name = 'PCA principal components of '
+			atts = self._stack_info[iset]['atts'][0]
+			if self._ndata[iset] == 1 and  atts.has_key('long_name'): 
+				pc.long_name += atts['long_name']
+#			else:
+#				pc.long_name += 'dataset %i'%iset
+			if (self._ndata[iset] == 1 or npy.allclose(self.norms(iset), 1.)) and atts.has_key('units'):
+				pc.units = atts['units']
+				
 			
 			fmt_pc[iset] = self._pca_fmt_pc[iset] = pc
 			self._check_dataset_tag_('_pca_fmt_pc',iset)
@@ -1009,7 +1026,8 @@ class SpAn(object):
 		return self._return_(fmt_pc)		
 
 
-	def pca_ev(self,iset=None,relative=False,sum=False,cumsum=False,update=False,**kwargs):
+	@_filldocs_
+	def pca_ev(self,iset=None,relative=False,sum=False,cumsum=False,**kwargs):
 		"""Get eigen values from current PCA decomposition
 
 		:Parameters:
@@ -1059,15 +1077,17 @@ class SpAn(object):
 			ev = cdms.createVariable(raw_ev)
 			ev.id = ev.name = id
 			long_name.append('PCA eigen values')
-			ev.long_name = ' '.join(long_name).title()
+			ev.long_name = ' '.join(long_name).title()+' of '
 			ev.setAxisList([self._mode_axis_('pca',iset)])
 			ev.standard_name = 'eigen_values_of_pca'
 			atts = self._stack_info[iset]['atts'][0]
-			if atts.has_key('long_name'):
-				ev.long_name += ' of '+atts['long_name']
+			if self._ndata[iset] == 1 and atts.has_key('long_name'):
+				ev.long_name += atts['long_name']
+			else:
+				ev.long_name += 'dataset %i'%iset
 			if relative:
 				ev.units = '% of total variance'
-			elif atts.has_key('units'):
+			elif (self._ndata[iset] == 1 or npy.allclose(self.norms(iset), 1.)) and atts.has_key('units'):
 				ev.units = atts['units']
 				for ss in ['^','**',' ']:
 					if ev.units.find(ss) != -1:
@@ -1077,6 +1097,7 @@ class SpAn(object):
 
 		return self._return_(res)		
 
+	@_filldocs_
 	def pca_rec(self,iset=None,modes=None,**kwargs):
 		"""Reconstruct a set of modes from PCA decomposition
 
@@ -1130,6 +1151,8 @@ class SpAn(object):
 				atts = self._stack_info[iset]['atts'][idata]
 				if atts.has_key('long_name'):
 					rec.long_name += ' of '+atts['long_name']
+				if atts.has_key('units'):
+					rec.units = atts['units']
 					
 		return self._return_(pca_fmt_rec)	
 	
@@ -1139,6 +1162,7 @@ class SpAn(object):
 	# MSSA
 	#################################################################
 
+	@_filldocs_
 	def mssa(self,iset=None, **kwargs):
 		""" MultiChannel Singular Spectrum Analysis (MSSA)
 
@@ -1202,10 +1226,8 @@ class SpAn(object):
 				
 		self._last_analysis_type = 'mssa'
 		gc.collect()
-	mssa.__doc__ = mssa.__doc__ % docs
 
-
-
+	@_filldocs_
 	def mssa_eof(self, iset=None, scale=False, raw=False,**kwargs):
 		"""Get EOFs from MSSA analysis
 
@@ -1283,15 +1305,15 @@ class SpAn(object):
 				# Scaling
 				if scale:
 					if scale is True:
-						scale = self._mssa_raw_pc[iset].std()
-					eof *= scale
+						scale = npy.sqrt(self._mssa_raw_ev[iset])*nl*nw
+					eof[:] *= scale
 					
 			fmt_eof[iset] = self._mssa_fmt_eof[iset]
 			
 		gc.collect()
 		return self._return_(fmt_eof)
-	mssa_eof.__doc__ = mssa_eof.__doc__ % docs
 
+	@_filldocs_
 	def mssa_pc(self, iset=None, **kwargs):
 		"""Get PCs from MSSA analysis
 		
@@ -1326,24 +1348,26 @@ class SpAn(object):
 			if not self._mssa_raw_pc.has_key(iset): self.mssa(iset=iset)
 						
 			# Format the variable
-			idata = 0 # Reference is first data
 			pc = cdms.createVariable(npy.asarray(self._mssa_raw_pc[iset][:,:self._nmssa[iset]].transpose(),order='C'))
 			pc.setAxis(0,self._mode_axis_('mssa',iset))
 			pc.setAxis(1,self._mssa_pctime_axis_(iset))
 			pc.id = pc.name = 'mssa_pc'
-			pc.standard_name = 'principal_components_of_mssa'
+			pc.standard_name = 'principal_components_of_mssa of '
 			pc.long_name = 'MSSA principal components'
-			atts = self._stack_info[iset]['atts'][idata]
-			if atts.has_key('long_name'): pc.long_name += ' of '+atts['long_name']
-			if atts.has_key('units'):     pc.units = atts['units']
-
+			atts = self._stack_info[iset]['atts'][0]
+			if self._ndata[iset] == 1 and atts.has_key('long_name'): 
+				pc.long_name += atts['long_name']
+#			else:
+#				pc.long_name += 'of dataset %i'%iset
+			if (self._ndata[iset] == 1 or npy.allclose(self.norms(iset), 1.)) and atts.has_key('units'):
+				pc.units = atts['units']
 			fmt_pc[iset] = self._mssa_fmt_pc[iset] = pc
 			self._check_dataset_tag_('_mssa_fmt_pc',iset)
 
-		return self._return_(fmt_pc,grouped=True)		
-	mssa_pc.__doc__ = mssa_pc.__doc__ % docs
+		return self._return_(fmt_pc,grouped=True)
 			
 
+	@_filldocs_
 	def mssa_ev(self,iset=None,relative=False,sum=False,cumsum=False,**kwargs):
 		"""Get eigen values from current MSSA decomposition
 
@@ -1408,9 +1432,9 @@ class SpAn(object):
 			res[iset] = ev
 
 		return self._return_(res)		
-	mssa_ev.__doc__ = mssa_ev.__doc__ % docs
 
 
+	@_filldocs_
 	def mssa_rec(self, iset=None, modes=None, raw=False, phases=False, **kwargs):
 		"""Reconstruction of MSSA modes
 		
@@ -1491,11 +1515,11 @@ class SpAn(object):
 					rec.long_name += ' of '+atts['long_name']
 					
 		return self._return_(mssa_fmt_rec,grouped=raw)	
-	mssa_rec.__doc__ = mssa_rec.__doc__ % docs
 
 	#################################################################
 	## SVD
 	#################################################################
+	@_filldocs_
 	def svd(self,usecorr=True, **kwargs):
 		""" Singular Value Decomposition (SVD)
 
@@ -1515,7 +1539,7 @@ class SpAn(object):
 		
 		# Parameters
 		self._update_('svd', **kwargs)
-
+		print 'xxx running svd'
 		# Loop on datasets
 		for iset,pdata in enumerate(self._pdata[:2]):
 
@@ -1569,8 +1593,8 @@ class SpAn(object):
 
 		self._last_analysis_type = 'svd'
 		gc.collect()
-	svd.__doc__ = svd.__doc__ % docs
 
+	@_filldocs_
 	def svd_eof(self,iset=None,raw=False,**kwargs):
 		"""Get EOFs from SVD analysis
 
@@ -1642,14 +1666,21 @@ class SpAn(object):
 					atts = self._stack_info[iset]['atts'][idata]
 					if atts.has_key('long_name'):
 						eof.long_name += ' of '+atts['long_name']
-					if atts.has_key('units'):
-						del eof.units
+					if scale is True and atts.has_key('units'):
+						eof.units = atts['units']
+					
+				# Scaling
+				if scale:
+					if scale is True:
+						scale = npy.sqrt(self._mssa_raw_ev[iset])*nl
+					eof[:] *= scale
 					
 			fmt_eof[iset] = self._svd_fmt_eof[iset]
 			
 		gc.collect()
 		return self._return_(fmt_eof)
 
+	@_filldocs_
 	def svd_pc(self,iset=None,**kwargs):
 		"""Get PCs from SVD analysis
 
@@ -1703,6 +1734,7 @@ class SpAn(object):
 
 		return self._return_(fmt_pc,grouped=True)		
 			
+	@_filldocs_
 	def svd_ev(self,relative=False,sum=False,cumsum=False,**kwargs):
 		"""Get eigen values from SVD analysis
 
@@ -1755,6 +1787,7 @@ class SpAn(object):
 			ev.units = '% of total variance'
 		return ev
 
+	@_filldocs_
 	def svd_rec(self,iset=None,modes=None,raw=False, **kwargs):
 		"""Reconstruction of SVD modes
 		
@@ -1944,8 +1977,8 @@ class SpAn(object):
 		for j,ims in enumerate(imodes):
 			if ims[0] > nmode: break
 			if ims[1] > nmode: ims[1] = nmode
-			args.extend(ims)
-			ffrec += function(*args,**kwargs) # (nc,nt)
+			targs = args+list(ims)
+			ffrec += function(*targs,**kwargs) # (nc,nt)
 			if ims[0] == ims[1]:
 				smode = str(ims[0])
 			else:
@@ -2209,32 +2242,32 @@ class SpAn(object):
 		gc.collect()
 		return ret
 
-	def nmssa(self):
+	def nmssa(self, iset):
 		"""
 		Number of MSSA modes
 		
 		:Returns:
 			integer or tuple
 		"""
-		return self._return_(self._nmssa,grouped=True)
+		return self._return_(self._nmssa[iset],grouped=True)
 		
-	def npca(selfe):
+	def npca(self, iset):
 		"""
 		Number of PCA modes
 		
 		:Returns:
 			integer or tuple
 		""" 
-		return self._return_(self._nmssa,grouped=True)
+		return self._return_(self._npca[iset],grouped=True)
 
-	def ns(self):
+	def ns(self, iset):
 		"""
 		Length of channel axis (unmasked input points)
 		
 		:Returns:
 			integer or tuple
 		"""
-		return self._return_(self._nmssa,grouped=True)
+		return self._return_(self._ns[iset],grouped=True)
 		
 	def nt(self):
 		"""
