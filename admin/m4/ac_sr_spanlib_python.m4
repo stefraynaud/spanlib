@@ -57,7 +57,7 @@ AC_DEFUN([AC_SR_SPANLIB_PYTHON],[
 			    "AS_VAR_GET(HAS_BLASLAPACK)" != "no"],
 			[AS_VAR_SET(WITH_PYTHON,"yes")],
 			[AC_SR_WARNING([You wont be able to build the python module.
-You need perl, BLAS/LAPACK, f2py and CDAT.])])
+You need BLAS/LAPACK, f2py and CDAT.])])
 	AM_CONDITIONAL([WITH_PYTHON],AS_VAR_TEST_SET(WITH_PYTHON))
 # 	AS_IF(AS_VAR_TEST_SET(WITH_PYTHON),,
 # 		[AC_SR_WARNING([You wont be able to build the python module.

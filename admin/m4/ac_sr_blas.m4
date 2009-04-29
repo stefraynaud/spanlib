@@ -70,10 +70,8 @@ AS_VAR_SET_IF([BLAS_LIB],[
 AC_MSG_RESULT(AS_VAR_GET(BLAS_LIB))
 
 # Try sgemm with blas
-AS_IF([test AS_VAR_GET(PRECISION) = simple],
-	AS_VAR_SET(subroutine,sgemm),AS_VAR_SET(subroutine,dgemm))
-AC_CACHE_CHECK([for AS_VAR_GET(subroutine) of the blas library],ac_cv_blasok,
-[AC_TRY_LINK_FUNC(AS_VAR_GET(subroutine),
+AC_CACHE_CHECK([for sgemm of the blas library],ac_cv_blasok,
+[AC_TRY_LINK_FUNC(sgemm,
                  [AS_VAR_SET(ac_cv_blasok,yes)],
                  [AS_VAR_SET(ac_cv_blasok,no)])
 ])
@@ -135,12 +133,14 @@ AS_IF([test AS_VAR_GET(USE_MKL) = "yes"],
 	[AS_VAR_SET(LAPACK95_DEFAULT,"-llapack95")]
 )	
 
+
+
 # F95 library name or LIBS
 AC_MSG_CHECKING([for lapack f95 library flag])
 AC_ARG_VAR(LAPACK95,LAPACK95 library name or LIBS flag(s))
 AC_ARG_WITH(lapack95,
 	AC_HELP_STRING([--with-lapack95=LIBNAME],
-		[LAPACK95 ibrary name or LIBS flag(s)]),
+		[LAPACK95 library name or LIBS flag(s)]),
 	[
 		case AS_VAR_GET(with_lapack95) in
 			no):;;
@@ -164,12 +164,12 @@ AS_IF([test AS_VAR_GET(USE_MKL) = "yes"],
 	[
 		AS_VAR_SET(USE_MKL_LAPACK95,no)
 		AS_VAR_SET(lapack95_mod,mkl95_lapack)
-		AS_VAR_SET(lapack95_pre,mkl95_precision)
+dnl		AS_VAR_SET(lapack95_pre,mkl95_precision)
 		AS_VAR_SET(lapack95_sub,syev)	
 	],[
 		AS_VAR_SET(USE_MKL_LAPACK95,yes)
 		AS_VAR_SET(lapack95_mod,f95_lapack)
-		AS_VAR_SET(lapack95_pre,la_precision)
+dnl		AS_VAR_SET(lapack95_pre,la_precision)
 		AS_VAR_SET(lapack95_sub,la_syev)
 	]
 )
@@ -198,7 +198,7 @@ AC_MSG_RESULT(AS_VAR_GET(LAPACK95_LIB))
 #AC_ARG_WITH(lapack95_mod,
 #	AC_HELP_STRING([--with-lapack95-mod=MODNAME],
 #		[LAPACK95 module name]),
-#	[case AS_VAR_GET(with_lapack_mod) in
+#	[case AS_VAR_GET(with_lapack95_mod) in
 #		no|yes)AS_VAR_SET(LAPACK95_MOD,f95_lapack);;
 #		*)AS_VAR_SET(LAPACK95_MOD,AS_VAR_GET(with_lapack95_mod));;
 #	esac] 
@@ -239,9 +239,6 @@ AC_CACHE_CHECK([for la_syev of the lapack95 library],ac_cv_lapackok,
 		AC_LINK_IFELSE(
 			[program conftest_routine
 	use AS_VAR_GET(lapack95_mod), only: AS_VAR_GET(lapack95_sub)
-	use AS_VAR_GET(lapack95_pre), only: wp => AS_VAR_GET(WP)
-	real :: c(1,1),e(1)
-	call AS_VAR_GET(lapack95_sub)(c,e)
 end program conftest_routine],
 			AS_VAR_SET(ac_cv_lapackok,yes),
 			AS_VAR_SET(ac_cv_lapackok,no))
