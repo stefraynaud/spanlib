@@ -133,7 +133,7 @@ def _pack_(data,weights=None,norm=None):
 		if data.ndim == 3 and \
 			data.getAxis(-1).isLongitude() and data.getAxis(-2).isLatitude():
 			import cdutil
-			weights = cdutil.area_weights(data[0]).raw_data() # Geographic weights
+			weights = cdutil.area_weights(data[0]).data # Geographic weights
 		else:
 			weights = npy.ones(nstot,dtype='f').reshape(sh[1:])
 	elif cdms.isVariable(weights):
@@ -560,7 +560,8 @@ class SpAn(object):
 				self._mode_axes[analysis_type][iset] = cdms.createAxis(npy.arange(1,nn+1))
 				self._mode_axes[analysis_type][iset].id = analysis_type+'_mode'
 				self._mode_axes[analysis_type][iset].long_name = analysis_type.upper()+' modes in decreasing order'
-				self._check_dataset_tag_('_mode_axes',iset,analysis_type, svd=analysis_type=='svd')
+				if analysis_type!='svd':
+					self._check_dataset_tag_('_mode_axes',iset,analysis_type, svd=analysis_type=='svd')
 			if analysis_type == 'svd': return self._mode_axes[analysis_type][iset]
 			out.append(self._mode_axes[analysis_type][iset])
 		if single: return out[0]
@@ -1520,7 +1521,7 @@ class SpAn(object):
 	## SVD
 	#################################################################
 	@_filldocs_
-	def svd(self,usecorr=True, **kwargs):
+	def svd(self,usecorr=False, **kwargs):
 		""" Singular Value Decomposition (SVD)
 
 		It is called everytime needed by :meth:`svd_eof`, :meth:`svd_pc`, :meth:`svd_ev` and :meth:`svd_rec`.
@@ -1595,7 +1596,7 @@ class SpAn(object):
 		gc.collect()
 
 	@_filldocs_
-	def svd_eof(self,iset=None,raw=False,**kwargs):
+	def svd_eof(self,iset=None,scale=False, raw=False,**kwargs):
 		"""Get EOFs from SVD analysis
 
 		If SVD was not performed, it is done with all parameters sent to :meth:`svd`
@@ -2487,9 +2488,9 @@ class SpAn(object):
 
 class SVDModel(SpAn):
 
-	def __init__(self,data,**kwargs):
+	def __init__(self,predictor, predictand,**kwargs):
 
-		SpAn.__init__(self,data,**kwargs)
+		SpAn.__init__(self,(predictor,predictand) ,**kwargs)
 
 		# Perform an SVD between the first two datasets
 		self.svd(nsvd=None,pca=None)
@@ -2500,7 +2501,7 @@ class SVDModel(SpAn):
 									(npy.average(self._svd_pc[1]**2)/nsr - \
 									 (npy.average(self._svd_pc[1])/nsl)**2))
 
-	def __call__(self,data,nsvdrun=None,method='regre'):
+	def __call__(self,predictor,nsvdrun=None,method='regre'):
 		"""Run the SVD model 
 		
 		@keyparam method: Method of reconstruction [default: 'regre']. 'direct' assumes that left and normalized expansion coefficients are equal (Syu and Neelin 1995). 'regre' does not use right EOFs but regression coefficients (Harrisson et al 2002)

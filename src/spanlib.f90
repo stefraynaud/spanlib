@@ -857,7 +857,8 @@ contains
 	nsl = size(ll,1)
 	nsr = size(rr,1)
 	nt = size(ll,2)
-	if(nsl/=nsr.or.nt/=size(rr,2))then
+! 	if(nsl/=nsr.or.nt/=size(rr,2))then
+	if(nt/=size(rr,2))then
 		print*,'[svd] Left and right array have incompatible sizes'
 		return
 	end if
@@ -887,6 +888,7 @@ contains
 	else
 		zbcorr = .false.
 	endif
+	print *,'use corr ?',zbcorr
 
 	! Use divide/conquer algo?
 	! ------------------------
@@ -913,12 +915,19 @@ contains
 		zrw = 1.
 	end if
 	
+	! Remove the mean
+	! ---------------
+	allocate(zll(nsl,nt))
+	zll = ll - spread(sum(ll,dim=2)/real(nt), ncopies=nt, dim=2)
+	allocate(zrr(nsr,nt))
+	zrr = rr - spread(sum(rr,dim=2)/real(nt), ncopies=nt, dim=2)
+
 	! Standard deviation for correlations
 	! -----------------------------------
 	allocate(zls(nsl),zrs(nsl))
 	if(zbcorr)then
-		zls = sqrt(sum(ll**2,dim=2))/nsl
-		zrs = sqrt(sum(rr**2,dim=2))/nsr
+		zls = sqrt(sum(zll**2,dim=2))/nsl
+		zrs = sqrt(sum(zrr**2,dim=2))/nsr
 		where(zls==0.) zls = 1.
 		where(zrs==0.) zrs = 1.
 	else
@@ -929,13 +938,6 @@ contains
 
 	! Computations
 	! ============
-
-	! Remove the mean
-	! ---------------
-	allocate(zll(nsl,nt))
-	zll = ll - spread(sum(ll,dim=2)/real(nt), ncopies=nt, dim=2)
-	allocate(zrr(nsr,nt))
-	zrr = rr - spread(sum(rr,dim=2)/real(nt), ncopies=nt, dim=2)
 
 	! Weighting
 	! ---------
@@ -951,13 +953,14 @@ contains
 	cov = cov / float(nt)
 	if(.not.present(lpc)) deallocate(zll,zls)
 	if(.not.present(rpc)) deallocate(zrr,zrs)
+	print*, 'SVD cov(:2,:2):',cov(1:2,1:2)
 
 	! SVD
 	! ---
-	allocate(zleof(nsr,ns), zev(ns))
+	allocate(zleof(nsl,ns), zev(ns))
 	if(zbLargeMatrix)then
 		! FIXME: problem with gesdd
-		call gesvd(cov, zev, u=zleof, job='V')
+		call gesdd(cov, zev, u=zleof, job='V')
 	else
 		call gesvd(cov, zev, u=zleof, job='V')
 	end if
