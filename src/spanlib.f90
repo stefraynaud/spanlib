@@ -98,7 +98,7 @@ contains
 	if(nkeep>znkeepmax)then
 		print*,'[pca] You want to keep a number of PCs '//&
 		 & 'greater than ',znkeepmax
-		return
+		stop 1
 	end if
 
 	! What does the user want?
@@ -793,7 +793,7 @@ contains
   !############################################################
 
 	subroutine sl_svd(ll,rr,nkeep,leof,reof,lpc,rpc,ev,ev_sum,lw,rw,usecorr,&
-		& bLargeMatrix)
+		& bLargeMatrix,info)
 
 	! Title:
 	!	Singular Value Decomposition
@@ -841,6 +841,7 @@ contains
 		& reof(size(rr,1),nkeep),ev(nkeep)
 	logical, intent(in),  optional :: bLargeMatrix, usecorr
 	real, intent(out), optional :: ev_sum
+	integer, intent(out),  optional :: info
 
 	! Internal
 	! --------
@@ -854,12 +855,14 @@ contains
 
 	! Sizes
 	! -----
+	info = 0
 	nsl = size(ll,1)
 	nsr = size(rr,1)
 	nt = size(ll,2)
 ! 	if(nsl/=nsr.or.nt/=size(rr,2))then
 	if(nt/=size(rr,2))then
-		print*,'[svd] Left and right array have incompatible sizes'
+		print*,'[svd] Left and right arrays have incompatible sizes'
+		info = 1
 		return
 	end if
 	ns = min(nsr,nsl)
@@ -867,11 +870,13 @@ contains
 	if(nkeep>znkeepmax)then
 		print*,'[svd] You want to keep a number of PCs '//&
 		 & 'greater than ',znkeepmax
+		info = 2
 		return
 	end if
 	if(nkeep>ns)then
 		print*,'[svd] You want to keep a number of PCs '//&
 			&'greater than the number of EOF:',ns
+		info = 3
 		return
 	end if
 
@@ -1063,7 +1068,7 @@ contains
 
 	! Internal
 	! --------
-	integer :: i,nt,nkeepPca, nkeepSvd, nsl, nsr
+	integer :: i,nt,nkeepPca, nkeepSvd, nsl, nsr, info
 
 	! Sizes
 	! -----
@@ -1085,7 +1090,7 @@ contains
 	! SVD
 	! ---
 	call sl_svd(transpose(lPcaPc),transpose(rPcaPc),nkeepSvd, &
-		& leof=lSvdEof, reof=rSvdEof, lpc=lSvdPc, rpc=rSvdPc)
+		& leof=lSvdEof, reof=rSvdEof, lpc=lSvdPc, rpc=rSvdPc, info=info)
 
 	! Scale factors based on standard deviations
 	! -----------------------------------------

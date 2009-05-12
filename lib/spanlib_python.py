@@ -2,7 +2,7 @@
 # File: spanlib_python.py
 #
 # This file is part of the SpanLib library.
-# Copyright (C) 2006-2008  Stephane Raynaud, Charles Doutriaux
+# Copyright (C) 2006-2009  Stephane Raynaud, Charles Doutriaux
 # Contact: stephane dot raynaud at gmail dot com
 #
 # This library is free software; you can redistribute it and/or
@@ -1521,7 +1521,7 @@ class SpAn(object):
 	## SVD
 	#################################################################
 	@_filldocs_
-	def svd(self,usecorr=False, **kwargs):
+	def svd(self,usecorr=False, largematrix=False, **kwargs):
 		""" Singular Value Decomposition (SVD)
 
 		It is called everytime needed by :meth:`svd_eof`, :meth:`svd_pc`, :meth:`svd_ev` and :meth:`svd_rec`.
@@ -1546,13 +1546,14 @@ class SpAn(object):
 
 			# Check if old results can be used when nsvd is lower
 			if getattr(self,'_svd_raw_pc').has_key(iset) and \
-				getattr(self,'_svd_raw_pc')[iset].shape[-1] > self._nsvd[iset]:
+				getattr(self,'_svd_raw_pc')[iset].shape[-1] > self._nsvd:
 				continue
 			
 			# Remove old results
 			for att in 'raw_eof','raw_pc','raw_ev','ev_sum':
 				dic = getattr(self,'_svd_'+att)
-				if dic.has_key(iset): del dic[iset]
+				if isinstance(dic, dict) and dic.has_key(iset): 
+					del dic[iset]
 
 			# Prepare input to SVD
 			if self._prepca[iset]: # Pre-PCA case
@@ -1580,8 +1581,10 @@ class SpAn(object):
 					rweights = weights
 
 		# Compute SVD
-		raw_eof_left, raw_eof_right, raw_pc_left, raw_pc_right, raw_ev, ev_sum = \
-			spanlib_fort.svd(left, right, self._nsvd, lweights, rweights, usecorr)
+		raw_eof_left, raw_eof_right, raw_pc_left, raw_pc_right, raw_ev, ev_sum, info = \
+			spanlib_fort.svd(left, right, self._nsvd, lweights, rweights, usecorr, largematrix)
+		if info != 0:
+			raise SpanlibError('svd', 'Error when running fortran SVD')
 			
 		# Save results
 		self._svd_raw_pc[0] = raw_pc_left
@@ -1789,7 +1792,7 @@ class SpAn(object):
 		return ev
 
 	@_filldocs_
-	def svd_rec(self,iset=None,modes=None,raw=False, **kwargs):
+	def svd_rec(self,modes=None,iset=None,raw=False, **kwargs):
 		"""Reconstruction of SVD modes
 		
 		:Parameters:
@@ -1810,10 +1813,6 @@ class SpAn(object):
 
 		# Update params
 		self._update_('svd', **kwargs)
-		if phases in [True,None]:
-			phases = self._nphase
-		elif phases is not False:
-			self._nphase = phases
 		
 		# Loop on datasets
 		svd_fmt_rec = {}
@@ -1826,14 +1825,8 @@ class SpAn(object):
 			raw_rec,smodes = self._project_(self._svd_raw_eof[iset],
 				self._svd_raw_pc[iset],iset,modes)
 				
-			# Phases composites
-			if phases:
-				raw_rec = get_phases(raw_rec,phases)
-				taxis = raw_rec.getAxis(1)
-			else:
-				taxis = self._time_axis_(iset)
-				
 			# Get raw data back to physical space (nchan,nt)
+			taxis = self._time_axis_(iset)
 			if not self._prepca[iset]: # No pre-PCA performed
 				svd_fmt_rec[iset] = self._unstack_(iset,raw_rec,taxis)
 				
@@ -2496,11 +2489,8 @@ class SVDModel(SpAn):
 		self.svd(nsvd=None,pca=None)
 
 		# Compute the scale factors between the two datasets
-		self.scale_factors = npy.sqrt((npy.average(self._svd_pc[0]**2)/nsr - \
-									 (npy.average(self._svd_pc[0])/nsr)**2) / \
-									(npy.average(self._svd_pc[1]**2)/nsr - \
-									 (npy.average(self._svd_pc[1])/nsl)**2))
-
+		self.scale_l2r = self._svd_raw_pc[1].std(axis=0)/self._svd_raw_pc[0].std(axis=0)
+		
 	def __call__(self,predictor,nsvdrun=None,method='regre'):
 		"""Run the SVD model 
 		

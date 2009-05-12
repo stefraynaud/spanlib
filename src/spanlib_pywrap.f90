@@ -172,7 +172,7 @@ end subroutine phasecomp
 
 
 
-subroutine svd(ll, nsl, rr, nsr, nt, nkeep, leof, reof, lpc, rpc, ev, ev_sum, lweights, rweights, usecorr)
+subroutine svd(ll, nsl, rr, nsr, nt, nkeep, leof, reof, lpc, rpc, ev, ev_sum, lweights, rweights, usecorr, largematrix, info)
 
 	use spanlib, only: sl_svd
 
@@ -186,12 +186,16 @@ subroutine svd(ll, nsl, rr, nsr, nt, nkeep, leof, reof, lpc, rpc, ev, ev_sum, lw
 	real,    intent(out) :: lpc(nt,nkeep), leof(nsl,nkeep)
 	real,    intent(out) :: rpc(nt,nkeep), reof(nsr,nkeep), ev(nkeep)
 	real,    intent(in)  :: lweights(nsl),rweights(nsr)
-	logical, intent(in)  :: usecorr
+	logical, intent(in)  :: usecorr,largematrix
 	real,    intent(out) :: ev_sum
+	integer, intent(out) :: info
+	
+	! Internal
+	! --------
 
 	! Call to original subroutine
 	! ---------------------------
-	call sl_svd(ll,rr,nkeep,leof,reof,lpc,rpc,ev,ev_sum,lweights,rweights,usecorr)
+	call sl_svd(ll,rr,nkeep,leof,reof,lpc,rpc,ev,ev_sum,lweights,rweights,usecorr,largematrix,info)
 
 end subroutine svd
 
