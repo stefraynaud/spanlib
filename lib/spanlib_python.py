@@ -66,7 +66,7 @@ def _filldocs_(func):
 	func.__doc__ = func.__doc__ % docs
 	return func
 
-def _pack_(data,weights=None,norm=None):
+def _pack_(data,weights=None,norm=None, notime=False):
 	""" Pack a dataset and its weights according to its mask
 
 	:Description:
@@ -106,7 +106,10 @@ def _pack_(data,weights=None,norm=None):
 			packed['type'] = 'numpy'
 	else:
 		packed['type'] = 'cdms'
-	nt = data.shape[0]
+	if notime:
+		nt = 1
+	else:
+		nt = data.shape[0]
 	if data.ndim == 1:
 		nstot = 1
 	else:
@@ -115,7 +118,7 @@ def _pack_(data,weights=None,norm=None):
 	packed['norm'] = norm
 
 	# Is it already packed? Check the mask...
-	if data.mask is MV.nomask:
+	if data.mask is MV.nomask or not data.mask.any():
 		if weights is None:
 			weights = npy.ones(nstot,dtype='f')
 		else:
@@ -130,7 +133,7 @@ def _pack_(data,weights=None,norm=None):
 
 	# Weights ?
 	if weights is None:
-		if data.ndim == 3 and \
+		if data.ndim == (3-int(notime)) and \
 			data.getAxis(-1).isLongitude() and data.getAxis(-2).isLatitude():
 			import cdutil
 			weights = cdutil.area_weights(data[0]).data # Geographic weights
@@ -351,6 +354,112 @@ def _next_max_corrs_(pc1, pc2=None, maxlag=None, getfirsts=True, decorr=False):
 				maxima += ((mylags, mycorrs), )
 	return maxima
 
+def _core_stack_(dataset,dweights=None,dnorms=None, notime=False):
+	""" Takes several data files, of same time and stacks them up together
+
+	Description:::
+	This fonction concatenates several dataset that have the
+	same time axis. It is useful for analysing for example
+	several variables at the same time.
+	It takes into account weights, masks and axes.
+	:::
+
+	Inputs:::
+	dataset   :: A list of data objects.
+		They must all have the same time length.
+	dweights :: Associated weights.
+	:::
+	"""
+
+	# Inits
+	len_time=None
+	taxes = []
+	saxes = []
+	atts = []
+	shapes = []
+	ids = []
+	grids = []
+	mvs = []
+	masks = []
+	norms = []
+	types = []
+	ndims = []
+	if dweights is None:
+		dweights = [None]*len(dataset)
+	if dnorms is None:
+		dnorms = [None]*len(dataset)
+
+	# Loop on datasets
+	for idata,data in enumerate(dataset):
+
+		# We must work on an cdms variable
+		if not cdms.isVariable(data):
+			data = cdms.createVariable(data,copy=0)
+			if npy.ma.isMA(data):
+				types.append('ma')
+			else:
+				types.append('numpy')
+		else:
+			types.append('cdms')
+
+		# Check time
+		if not notime:
+			if data.getTime() is not None:
+				# If a proper time axis is found, bring it to front
+				data = data(order='t...')
+			if len_time is None:
+				len_time = data.shape[0]
+			elif len_time != len(data.getAxis(0)):
+				raise 'Error all datasets must have the same time length!!!!'
+
+		# Append info
+		if notime:
+			taxes.append(None)
+		else:
+			taxes.append(data.getAxis(0))
+		saxes.append(data.getAxisList()[1-int(notime):])
+		shapes.append(data.shape)
+		ndims.append(data.ndim)
+		ids.append(data.id)
+		atts.append({})
+		for att in data.listattributes():
+			atts[-1][att] = data.attributes[att]
+		grids.append(data.getGrid())
+		mvs.append(data.missing_value)
+		
+		# Pack 
+		packed = _pack_(data, dweights[idata], dnorms[idata], notime=notime)
+
+		# Create or concatenate
+		if not idata:
+			stacked = packed['data']
+			weights = packed['weights']
+		else:
+			stacked = npy.concatenate((stacked,packed['data']))
+			weights = npy.concatenate((weights,packed['weights']))
+		norms.append(packed['norm'])
+		masks.append(packed['mask'])
+		del packed
+		gc.collect()
+
+	# Store data and information
+	if notime or stacked.ndim==1:
+		ns = 1
+	else:
+		ns = stacked.shape[0]
+	if taxes[0] is None:
+		nt = 0
+	else:
+		nt = len(taxes[0])
+	stack = dict(info = dict(ids=ids,taxes=taxes,saxes=saxes,masks=masks,
+		weights=weights,atts=atts,shapes=shapes,grids=grids,ndims=ndims, 
+		mvs=mvs,types=types,norms=norms), 
+		ndata = len(ids), 
+		pdata = stacked, 
+		nt = stacked.shape[1], 
+		ns = ns, 
+	)
+	return stack
 
 
 def get_phases(data,nphase=8,minamp=.5,firstphase=0):
@@ -1157,7 +1266,6 @@ class SpAn(object):
 					
 		return self._return_(pca_fmt_rec)	
 	
-	
 
 	#################################################################
 	# MSSA
@@ -1540,7 +1648,7 @@ class SpAn(object):
 		
 		# Parameters
 		self._update_('svd', **kwargs)
-		print 'xxx running svd'
+
 		# Loop on datasets
 		for iset,pdata in enumerate(self._pdata[:2]):
 
@@ -1859,80 +1967,6 @@ class SpAn(object):
 		return self._return_(svd_fmt_rec,grouped=raw)	
 	
 
-
-	def _old_svd_(self,nsvd=None,pca=None):
-
-		# Check we have at least 2 variables!!
-		# At the moment we will not use any more variable
-		if len(self._pdata)<2:
-			raise SpanlibError('svd','Error you need at least (most) 2 datasets to run svd, otherwise use pca and mssa')
-
-		# Check for default values for mssa and pca if not passed by user
-		if pca is None:
-			if self._pca_raw_pc ==[] and max(self.ns) > 30: # Pre-PCA needed
-				print '[svd] The number of valid points is greater than',30,' so we perform a pre-PCA'
-				pca = True
-			elif self._pca_raw_pc is not None:
-				pca = True
-			else:
-				pca = False
-
-		if pca is True: # From PCA to MSSA
-			nspace = [self._npca,]*len(self._pdata)
-			if self._pca_raw_pc ==[]: # Still no PCA done
-				self.pca()
-		else:
-			nspace = self.ns
-
-		if nsvd is not None:
-			self._nsvd = nsvd
-
-
-		if pca is True: # Pre-PCA case
-			lneof, rneof, lnpc, rnpc, nev = \
-			  spanlib_fort.svd(npy.transpose(self._pca_raw_pc[0]), 
-			    npy.transpose(self._pca_raw_pc[1]), self._nsvd)
-		else: # Direct SVD case
-			lneof, rneof, lnpc, rnpc, nev = \
-			  spanlib_fort.svd(self._pdata[0], self._pdata[1], self._nsvd)
-
-		self._svd_eof = [lneof,rneof]
-		self._svd_pc = [lnpc,rnpc]
-
-		eof=[]
-		pc=[]
-
-		for i in range(2):
-			teof = MV.transpose(self._svd_eof[i])
-			teof.id=self.varname[i]+'_svd_eof'
-			teof.standard_name='SVD Empirical Orthogonal Functions'
-
-			ax0=teof.getAxis(0)
-			ax0.id='svd_chan'
-			ax0.standard_name='Channels'
-
-			ax1=teof.getAxis(1)
-			ax1.id=self.varname[i]+'_svd_mode'
-			ax1.standard_name='SVD Modes in decreasing order'
-
-			tpc=MV.transpose(MV.array(self._svd_pc[i]))
-			tpc.id=self.varname[i]+'_svd_pc'
-			tpc.standard_name='SVD Principal Components'
-			tpc.setAxis(0,ax0)
-
-			ax3 = tpc.getAxis(1)
-			ax3.id='time'
-
-			tev=MV.array(ntstev,id=elf.varname[i]+'_svd_ev',axes=[ax0])
-			tev.standard_name='SVD Eigen Values'
-
-			eof.append(teof)
-			pc.append(tpc)
-
-		return eof[0],pc[0],eof[1],pc[1],ev
-
-
-
 	def _project_(self,reof,rpc,iset=0,imodes=None,ns=None,nt=None,nw=None):
 		"""Generic raw construction of modes for pure PCA, MSSA or SVD, according to EOFs and PCs, for ONE DATASET
 		
@@ -1965,7 +1999,8 @@ class SpAn(object):
 		if nw is not None:
 			# MSSA
 			args.extend([ns,nt,nw])
-		# Loop modes
+			
+		# Loop no modes
 		smodes = []
 		ffrec = 0.
 		for j,ims in enumerate(imodes):
@@ -1979,223 +2014,6 @@ class SpAn(object):
 				smode = '%i-%i'%tuple(ims)
 			smodes.append(smode)
 		return ffrec,'+'.join(smodes)
-
-
-
-	def _old_reconstruct_(self,imode=None,mssa=None,pca=None,phases=False,nphases=8,offset=.5,firstphase=0,svd=None,ipair=None):
-		""" Reconstruct results from mssa or pca
-
-		Description:::
-		  This function performs recontructions to retreive the
-		  the contribution of a selection of modes to the original field.
-		  By default, it recontructs from available PCA and MSSA
-		  results. Recontruction of MSSA modes also calls recontruction
-		  from of pre-PCA to get back to the original space.
-		  This function can optionally performs phase composites
-		  (useful for pairs of MSSA modes = oscillations) on MSSA
-		  recontructions.
-		:::
-
-		Usage:::
-		ffrec = reconstruct(imode,mssa,pca)
-
-		  imode  :: Selection of modes [default: None]. If:
-		    - None: all modes
-		    - > 0: only this mode
-		    - < 0: all modes until -imode
-		    - list of modes: use it directly
-		  ipair  :: Reconstruct pairs from MSSA if available. If:
-		    - > 0: only this pair
-		    - < 0: all pairs until ipair
-		    - list of pairs: use it directly
-		    It takes precedence over imode.
-		  mssa   :: Reconstruct MSSA if True
-		  pca    :: Reconstruct PCA if True
-		  phases :: Operate phase reconstruction True/False (default is False)
-		:::
-
-		Output:::
-		  ffrec :: Reconstructed field
-		:::
-		"""
-		#print 'self._mssa_eof[0].shape',self._mssa_eof[0].shape
-
-		# Which modes
-		if imode is not None:
-			if type(imode) is type(1):
-				if imode < 0:
-					imode = range(-imode)
-				else:
-					imode = [imode-1,]
-			imode = (npy.array(imode)+1).tolist()
-
-		# Which pairs (for MSSA)
-		if mssa is True and ipair is not None:
-			if ipair is type(1):
-				if ipair < 0:
-					ipair = range(-ipair)
-				else:
-					ipair = [ipair-1,]
-			ipair = (npy.array(ipair)+1).tolist()
-
-		ntimes=self._nt
-		comments = 'Reconstructed from'
-		axes=list(self.axes)
-
-		# What we need explicitly
-		#  - MSSA
-		if mssa is True and self._mssa_eof == []:
-			self.mssa()
-		# - SVD
-		if svd is True and self._svd_eof == []:
-			self.svd()
-
-		# What we have
-		#  - SVD
-		if svd is None:
-			if self._svd_eof == []:
-				svd = False
-			elif self._mssa_eof==[]:
-				svd = True
-		#  - MSSA
-		if mssa is None:
-			if self._mssa_eof ==[]:
-				mssa = False
-			elif svd is False:
-				mssa = True
-			else:
-				mssa = False
-		# - PCA	
-		if pca is None:
-			pca = self._pca_raw_pc != []
-
-
-		# Phase reconstruction for pca or mssa
-		if phases and not pca and not mssa:
-			raise 'Error you did not do any PCA or MSSA!\n To do a phases analysis only use the function %s in this module.\n%s' % ('get_phases',get_phases.__doc__)
-
-		# MSSA reconstruction
-		if mssa:
-			comments+=' MSSA '
-			# Space dimension
-			if pca: # PCA (indirect MSSA)
-				nspace = [self._npca,]*len(self._pdata[0])
-			else:   # Physical (direct MSSA)
-				nspace = [pdata.shape[0] for pdata in self._pdata]
-
-			# Reconstructions
-			if ipair is not None:
-				# Reconstruct pairs
-				if self.pairs == []:
-					for i in xrange(len(self._pdata)):
-						self.pairs.append(getPairs(MV.transpose(self._mssa_pc[i])))	
-			else:
-				# Reconstruct other modes
-				if imode is None:
-					imode=range(1,self._nmssa+1)
-				ffrec = self._reconstruct(imode,self._mssa_eof,self._mssa_pc,
-					ns=nspace,nt=self.nt,nw=self.window)
-
-		# SVD Reconstruction
-		if svd:
-			comments+=' SVD '
-			# Space dimension
-			if pca: # PCA
-				nspace = [self._npca,self._npca]
-			else:   # Physical
-				nspace = [pdata.shape[0] for pdata in self._pdata]
-
-			# Reconstructions
-			if imode is None:
-				imode = range(1,self._nsvd+1)
-			ffrec = self._reconstruct(imode,self._svd_eof,self._svd_pc,
-				ns=nspace,nt=self.nt)
-
-		# Phase composites reconstuction
-		if phases:
-			comments+=' Phases'
-			if mssa:
-				for i in xrange(len(self._pdata)):
-					ffrec[i] = get_phases(ffrec[i],nphases,offset,firstphase)
-			else:
-				ffrec=[]
-				for i in xrange(len(self._pdata)):
-					ffrec.append(get_phases(npy.transpose(self._pca_raw_pc[i]),
-						nphases,offset,firstphase))
-
-			# Replace time axis with phases axis
-			ntimes = nphases
-			for iset in xrange(self._ndataset):
-				for idata in xrange(self._ndata[iset]):
-					if axes[j][i].isTime():
-						axes[j][i]=ffrec[j].getAxis(1)
-						break
-
-
-		# PCA reconstruction (alone or for SVD or MSSA)
-		if svd:
-			ndataset = 2
-		else:
-			ndataset = self._ndataset
-		if pca:
-			comments+=' PCA'
-			if True in [mssa, phases, svd]: # PCs are reconstructions themselves
-				this_pc = [npy.transpose(ffrec[i]) for i in xrange(ndataset)]
-				del(ffrec)
-			else: # Classic pure PCA case
-				this_pc = self._pca_raw_pc
-			if mssa or imode is None: imode = range(1,self._npca+1)
-			ffrec_raw = [self._reconstruct_modes(imode,self._pca_raw_eof[i],this_pc[i])
-				for iset in xrange(ndataset)]
-
-
-		# Format ouput data
-		ffrec = []
-		for iset in xrange(ndataset):
-
-			# Unstack data for this dataset
-			ffrec[iset] = self._unstack_(iset,ffrec_raw[iset],'pca')
-
-			# Check some properties
-			for this_rec in ffrec[iset]:
-				if not ffrec[i].id.find('variable_'):
-					this_rec.id = 'rec'
-				else:
-					this_rec.id += '_rec'
-				this_rec.name = this_rec.id
-				if self._stack_info[iset]['atts'].has_key('long_name'):
-					this_rec.long_name = 'Reconstruction'
-				else:
-					this_rec.long_name = 'Reconstruction of '+this_rec.long_name
-				this_rec.comments = comments
-
-			# Back to physical space
-			sh = [ffrec[i].shape[1],]
-			sh.extend(self.shapes[i][1:])
-			if self.mask[i] is not False:
-				ffrec[i] = MV.transpose(spanlib_fort.chan_unpack(self.mask[i],ffrec[i],1.e20))
-				ffrec.setMissing(1.e20)
-				ffrec[i] = MV.reshape(ffrec[i],sh)
-				ffrec[i] = MV.masked_object(ffrec[i],1.e20)
-			else:
-				ffrec[i] = MV.transpose(ffrec[i])
-				ffrec[i] = MV.reshape(ffrec[i],sh)
-			ffrec[i].setAxisList(axes[i])
-			ffrec[i].id=self.varname[i]+'_rec'
-			ffrec[i].name = ffrec[i].id
-			for att in 'units','long_name':
-				if att in self.attributes[i].keys():
-					if att is 'long_name':
-						ffrec[i].attributes[att] = \
-						  'Reconstruction of '+self.attributes[i][att]
-					else:
-						ffrec[i].attributes[att] = self.attributes[i][att]
-			ffrec[i].comment=comments
-			ffrec[i].modes = imode
-			if not svd:
-				ffrec[i].setGrid(self.grids[i])
-
-		return self._return_(ffrec)
 
 	def _return_(self,dataset,grouped=False):
 		"""Return dataset as input dataset (depth and shapes)"""
@@ -2328,85 +2146,20 @@ class SpAn(object):
 		dweights :: Associated weights.
 		:::
 		"""
-
-		# Inits
-		len_time=None
-		taxes = []
-		saxes = []
-		atts = []
-		shapes = []
-		ids = []
-		grids = []
-		mvs = []
-		masks = []
-		norms = []
-		types = []
-
-		# Loop on datasets
-		for idata,data in enumerate(dataset):
-
-			# We must work on an cdms variable
-			if not cdms.isVariable(data):
-				data = cdms.createVariable(data,copy=0)
-				if npy.ma.isMA(data):
-					types.append('ma')
-				else:
-					types.append('numpy')
-			else:
-				types.append('cdms')
-
-			# Check time
-			if data.getTime() is not None:
-				# If a proper time axis is found, bring it to front
-				data = data(order='t...')
-			if len_time is None:
-				len_time = data.shape[0]
-			elif len_time != len(data.getAxis(0)):
-				raise 'Error all datasets must have the same time length!!!!'
-
-			# Append info
-			taxes.append(data.getAxis(0))
-			saxes.append(data.getAxisList()[1:])
-			shapes.append(data.shape)
-			ids.append(data.id)
-			atts.append({})
-			for att in data.listattributes():
-				atts[-1][att] = data.attributes[att]
-			grids.append(data.getGrid())
-			mvs.append(data.missing_value)
-
-			# Pack 
-			packed = _pack_(data,dweights[idata],dnorms[idata])
-
-			# Create or concatenate
-			if not idata:
-				stacked = packed['data']
-				weights = packed['weights']
-			else:
-				stacked = npy.concatenate((stacked,packed['data']))
-				weights = npy.concatenate((weights,packed['weights']))
-			norms.append(packed['norm'])
-			masks.append(packed['mask'])
-			del packed
-			gc.collect()
-
+		stack = _core_stack_(dataset, dweights, dnorms)
+		
 		# Store data and information
-		self._stack_info.append(dict(ids=ids,taxes=taxes,saxes=saxes,masks=masks,
-			weights=weights,atts=atts,shapes=shapes,grids=grids,
-			mvs=mvs,types=types,norms=norms))
-		self._ndata.append(len(ids))
-		self._pdata.append(stacked)
-		self._nt.append(stacked.shape[1])
-		if len(stacked.shape) == 2:
-			self._ns.append(stacked.shape[0])
-		else:
-			self._ns.append(1)
+		self._stack_info.append(stack['info'])
+		self._ndata.append(stack['ndata'])
+		self._pdata.append(stack['pdata'])
+		self._nt.append(stack['nt'])
+		self._ns.append(stack['ns'])
 
 
 	def _unstack_(self,iset,pdata,firstaxes):
 		"""Return a list of variables in the physical space, for ONE dataset.
 		
-		pdata: (~ns,nt)
+		pdata: (~ns,nt) typically from fortran routines
 		firstaxes: MUST be a tuple
 		"""
 
@@ -2436,13 +2189,14 @@ class SpAn(object):
 
 			# Check axes and shape
 			axes = []
-			for fa in firstaxes:
-				if isinstance(fa,(list,tuple)): # Time
-					axes.append(fa[idata])
-				elif isinstance(fa,dict): # MODE
-					axes.append(fa[iset])
-				else:
-					axes.append(fa) # WINDOW OR OTHERS
+			if firstaxes not in [False, None]:
+				for fa in firstaxes:
+					if isinstance(fa,(list,tuple)): # Time
+						axes.append(fa[idata])
+					elif isinstance(fa,dict): # MODE
+						axes.append(fa[iset])
+					else:
+						axes.append(fa) # WINDOW OR OTHERS
 			if len(shape) > 1: axes.extend(saxe)
 			shape = tuple([len(axis) for axis in axes])
 			if unpacked.shape != shape:
@@ -2486,23 +2240,116 @@ class SVDModel(SpAn):
 		SpAn.__init__(self,(predictor,predictand) ,**kwargs)
 
 		# Perform an SVD between the first two datasets
-		self.svd(nsvd=None,pca=None)
+		self.learn(nsvd=None,pca=None)
 
 		# Compute the scale factors between the two datasets
-		self.scale_l2r = self._svd_raw_pc[1].std(axis=0)/self._svd_raw_pc[0].std(axis=0)
+		self._l2r = self._svd_raw_pc[1].std(axis=0)/self._svd_raw_pc[0].std(axis=0)
+
+	def l2r(self, left, method='pcs'):
+		return self._l2r*left
 		
-	def __call__(self,predictor,nsvdrun=None,method='regre'):
+	def learn(self, **kwargs):
+		"""Learning phase"""
+#		self.clean()
+		self.svd(**kwargs)
+		
+	def run(self, predictor, method='pcs', modes=None):
 		"""Run the SVD model 
 		
-		@keyparam method: Method of reconstruction [default: 'regre']. 'direct' assumes that left and normalized expansion coefficients are equal (Syu and Neelin 1995). 'regre' does not use right EOFs but regression coefficients (Harrisson et al 2002)
+		- *method*: Method of reconstruction [default: 'regre']. 'direct' assumes that left and normalized expansion coefficients are equal (Syu and Neelin 1995). 'regre' does not use right EOFs but regression coefficients (Harrisson et al 2002)
+		
+		..note::
+		
+			You can also simply "call" the :class:`SVDModel` instance::
+			
+			# Init
+			>>> model = SVDModel(predictor,predictand)
+			# Run method
+			>>> predicted1 = model.run(new_predictor1)
+			# Call method
+			>>> predicted2 = model(new_predictor2)
 		"""
+		# Predictor as SpAn datasets
+		if isinstance(predictor,(list,tuple)):
+			if isinstance(predictor,tuple):
+				predictor = list(predictor)
+			input_map = len(predictor)
+		else:
+			predictor = [predictor]
+			input_map = 0
+			
+		# Check input map
+		if input_map != self._input_map[0]:
+			raise SpanlibError('svdmodel::run', 'Your input predictor is not in the same form as the predictor used in the learning phase')
+			
+		# Stack
+		notime = predictor[0].ndim != self._stack_info[0]['ndims'][0]
+		stack = _core_stack_(predictor, notime=notime)
+		var = stack['pdata'] # (nt,ns)
+		
+		# Get left expansion coefficients
+		# - pre pca
+		if self._prepca[0]:
+			toproj = self._getec_(var, 'pca') # (nt,npca)
+		else:
+			toproj = var
+		# - svd
+		lec = self._getec_(toproj.transpose(), 'svd') # (nt,nsvd)
+		
+		# Convert to right expansion coefficients (nt,nsvd)
+		rec = self.l2r(lec, method=method)
 
-		if nsvdrun is not None:
-			self._nsvdrun = nsvdrun
+		# Projections
+		raw_rec,smodes = self._project_(self._svd_raw_eof[1], rec, 1, modes)
+			
+		# Get raw data back to physical space (nchan,nt)
+		taxis = stack['info']['taxes'][0]
+		if not self._prepca[1]: # No pre-PCA performed
+			projected = self._unstack_(1, raw_rec, taxis)
+			
+		else: # With pre-pca
+			proj_rec, spcamodes = self._project_(self._pca_raw_eof[1],raw_rec.transpose(),1,nt=len(taxis))
+			projected = self._unstack_(1,proj_rec,taxis)
+		del  raw_rec
+		
+		# Set attributes
+		for idata,rec in enumerate(projected):
+			if not self._stack_info[1]['ids'][idata].startswith('variable_'):
+				rec.id = self._stack_info[1]['ids'][idata]+'_sm'
+			else:
+				rec.id = 'sm_var%idata'%idata
+			rec.modes = smodes
+			rec.long_name = 'Results of SVD model'
+			atts = self._stack_info[1]['atts'][idata]
+			if atts.has_key('long_name'):
+				rec.long_name += ' of '+atts['long_name']
+				
+		return self._return_({1:projected})
 
-		#TODO: finish the svd model man !
 
+	__call__ = run
 
+	def _getec_(self, var, anatype):
+		"""Special reimplementation of the fortran pca_getec
+		
+		var: (ns,nt)
+		anatype: 'pca' or 'svd'
+		"""
+		
+		# Input arrays
+		# - eofs(ns,nk)
+		eofs = getattr(self, '_%s_raw_eof'%anatype)[0]
+		# - weights(ns)
+		if (anatype=='pca' and self._prepca[0]) or (anatype=='svd' and not self._prepca[0]) :
+			weights = self._stack_info[0]['weights']
+		else:
+			weights = npy.ones(eofs.shape[0])
+			
+		# Projection (ec(nt,nk))
+		ec = spanlib_fort.pca_getec(var, eofs, weights)
+		
+		return ec
+	
 	def clean(self):
 		SpAn.clean(self)
 		self._regre_ = None
@@ -2520,170 +2367,4 @@ class SpanlibError(Exception):
 
 
 
-##	def __old_init__(self,data,weights=None,npca=10,window=None, nmssa=4,nsvd=10,relative=False):
-##
-##		## Sets all values to None
-##		self.clean()
-##
-##		## Before all makes sure data is list of data
-##		if not isinstance(data,(list,tuple)):
-##			data=[data,]
-##		if weights is None:
-##			weights=[None,] * len(data)
-##		elif not isinstance(weights,(list,tuple)):
-##			weights = [weights,]
-##
-##		## First pack our data, prepare the weights and mask for PCA
-##		self._pdata=[]
-##		self.weights=[]
-##		self.mask=[]
-##		self.attributes=[]
-##		self.shapes=[]
-##		self.axes=[]
-##		self.varname=[]
-##		self.grids=[]
-##		for i,d in enumerate(data):
-##			d=MV.array(d,copy=0)
-##			w=weights[i]
-##			tmp = pack(d,w)
-##			tmpdata,tmpweights,tmpmask = tmp
-##			self._pdata.append(tmpdata)
-##			self.weights.append(tmpweights)
-##			self.mask.append(tmpmask)
-##			self.attributes.append(d.attributes)
-##			self.shapes.append(d.shape)
-##			self.axes.append(d.getAxisList())
-##			self.varname.append(d.id)
-##			self.grids.append(d.getGrid())
-##
-##		# Space and time dimensions
-##		self.nt = data[0].shape[0]
-##		for d in data:
-##			if d.shape[0] != self.nt:
-##				raise Exception, 'Error your dataset are not all consistent in time length'
-##		self.ns = [pdata.shape[0] for pdata in self._pdata]
-##
-##		# Number of modes
-##		self._npca = npca
-##		self._nmssa = nmssa
-##		self._nsvd = nsvd
-##
-##		# MSSA window
-##		if window is None:
-##			self.window = int(self.nt/3.)
-##		else:
-##			self.window = window
-
-
-
-#def stackData(*data):
-	#""" Takes several data files, of same time and stacks them up together
-
-	#Description:::
-	  #This fonction concatenates several dataset that have the
-	  #same time axis. It is useful for analysing for example
-	  #several variables at the same time.
-	  #It takes into account weights, masks and axes.
-	#:::
-
-	#Usage:::
-	#dout, weights, mask, axes = stackData(data1[, data2...])
-
-	  #*data   :: One or more data objects to stack.
-	    #They must all have the same time length.
-	#:::
-
-	#Output:::
-	  #dout	:: Stacked data
-	  #weights :: Associated stacked weights
-	  #masks   :: Associated stacked masks
-	  #axes	:: Associated stacked axes
-	#:::
-	#"""
-	#len_time=None
-	#axes=[]
-	#dout=None # data output
-	#for d in data:
-		#d = MV.array(d)
-		#t=d.getTime()
-		#if t is None:
-			#t = d.getAxis(0)
-			#t.designateTime()
-			#d.setAxis(0,t)
-		#if len_time is None:
-			#len_time=len(t)
-		#elif len_time!=len(t):
-			#raise 'Error all datasets must have the same time length!!!!'
-
-		#if d.getAxis(0)!=t:
-			#d=d(order='t...')
-
-		#axes.append(d.getAxisList())
-		#tdata,w,m=pack(d)
-		#if dout is None: # Create
-			#dout=tdata
-			#weights=w
-			#masks=[m]
-		#else: # Append
-			#dout=npy.concatenate((dout,tdata))
-			#weights=npy.concatenate((weights,w))
-			#masks.append(m)
-	#return npy.transpose(dout),weights,masks,axes
-
-#def unStackData(din,weights,masks,axes):
-	#""" Unstack data in the form returned from stackData
-
-	#Description:::
-	  #This function is the reverse operation of stakData.
-	  #It splits stacked datasets into a list.
-	#:::
-
-	#Usage:::
-	#dout = unStackData(din,weights,mask,axes)
-
-	  #din	 :: Stacked data (see stackData function)
-	  #weights :: Associated stacked weights
-	  #masks   :: Associated stacked masks
-	  #axes	:: Associated stacked axes
-	#:::
-
-	#Output:::
-	  #dout	:: List of unstacked data
-	#:::
-	#"""
-	#nvar=len(axes)
-
-	#if nvar!=len(masks):
-		#raise 'Error masks and input data length not compatible'
-
-	#totsize=0
-	#for m in masks:
-		#totsize+=int(npy.sum(npy.ravel(m)))
-	#if totsize!=din.shape[1]:
-		#raise 'Error data and masks are not compatible in length!!!! (%s) and (%s)' \
-		      #% (totsize,din.shape[1])
-
-	#istart=0
-	#dout=[]
-	#missing_value = 1.e20
-	#for i in xrange(nvar):
-		#m=masks[i]
-		#mlen=int(npy.sum(m.flat))
-		#iend=istart+mlen
-		#data=npy.transpose(din[:,istart:iend])
-		#w=weights[istart:iend]
-		##FIXME: missing value
-		#up=spanlib_fort.chan_unpack(m,data,missing_value)
-		#unpacked = MV.transpose(MV.masked_array(up))
-		#sh = []
-		#for ax in axes[i]:
-			#sh.append(len(ax))
-		#unpacked = MV.reshape(unpacked,sh)
-		#unpacked.setMissing(missing_value)
-
-		##unpacked = MV.masked_where(npy.equal(npy.resize(npy.transpose(m),unpacked.shape),0),unpacked,copy=0)
-		#unpacked.setAxisList(axes[i])
-		#istart+=mlen
-		#dout.append(unpacked)
-	#return dout
 
