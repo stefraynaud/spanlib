@@ -113,7 +113,7 @@ def _pack_(data,weights=None,norm=None, notime=False):
 	if data.ndim == 1:
 		nstot = 1
 	else:
-		nstot = npy.multiply.reduce(data.shape[1:])
+		nstot = npy.multiply.reduce(data.shape[1-notime:])
 	sh=list(data.shape)
 	packed['norm'] = norm
 
@@ -133,12 +133,12 @@ def _pack_(data,weights=None,norm=None, notime=False):
 
 	# Weights ?
 	if weights is None:
-		if data.ndim == (3-int(notime)) and \
+		if data.ndim == (3-notime) and \
 			data.getAxis(-1).isLongitude() and data.getAxis(-2).isLatitude():
 			import cdutil
 			weights = cdutil.area_weights(data[0]).data # Geographic weights
 		else:
-			weights = npy.ones(nstot,dtype='f').reshape(sh[1:])
+			weights = npy.ones(nstot,dtype='f').reshape(sh[1-notime:])
 	elif cdms.isVariable(weights):
 		weights = weights.filled(0.)
 	else:
@@ -2168,7 +2168,7 @@ class SpAn(object):
 		unstacked = []
 		#if not isinstance(firstaxes,list):
 			#firstaxes = [firstaxes]
-		if not isinstance(firstaxes,tuple):
+		if firstaxes is not None and not isinstance(firstaxes,tuple):
 			firstaxes = firstaxes,
 		for idata in xrange(len(self._stack_info[iset]['ids'])):
 
@@ -2189,7 +2189,7 @@ class SpAn(object):
 
 			# Check axes and shape
 			axes = []
-			if firstaxes not in [False, None]:
+			if isinstance(firstaxes,  tuple):
 				for fa in firstaxes:
 					if isinstance(fa,(list,tuple)): # Time
 						axes.append(fa[idata])
@@ -2198,7 +2198,7 @@ class SpAn(object):
 					else:
 						axes.append(fa) # WINDOW OR OTHERS
 			if len(shape) > 1: axes.extend(saxe)
-			shape = tuple([len(axis) for axis in axes])
+			shape = tuple([len(axis) for axis in axes if axis is not None])
 			if unpacked.shape != shape:
 				unpacked = unpacked.reshape(shape,order='C')
 				
@@ -2308,7 +2308,8 @@ class SVDModel(SpAn):
 			projected = self._unstack_(1, raw_rec, taxis)
 			
 		else: # With pre-pca
-			proj_rec, spcamodes = self._project_(self._pca_raw_eof[1],raw_rec.transpose(),1,nt=len(taxis))
+			proj_rec, spcamodes = self._project_(self._pca_raw_eof[1], raw_rec.transpose(), 1,
+				nt=len(taxis) if taxis is not None else 1)
 			projected = self._unstack_(1,proj_rec,taxis)
 		del  raw_rec
 		
