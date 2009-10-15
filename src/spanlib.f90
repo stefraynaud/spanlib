@@ -849,7 +849,7 @@ contains
 	real, allocatable :: zll(:,:), zrr(:,:), cov(:,:), &
 		&                    zlw(:), zrw(:), zls(:), zrs(:)
 	real, allocatable :: zev(:), zleof(:,:)
-	integer               :: znkeepmax, i
+	integer               :: znkeepmax, i, la_info
 	logical               :: zbLargeMatrix,zbcorr
 
 
@@ -965,10 +965,14 @@ contains
 	allocate(zleof(nsl,ns), zev(ns))
 	if(zbLargeMatrix)then
 		! FIXME: problem with gesdd
-		call gesdd(cov, zev, u=zleof, job='V')
+		call gesdd(cov, zev, u=zleof, job='V', info=la_info)
 	else
-		call gesvd(cov, zev, u=zleof, job='V')
+		call gesvd(cov, zev, u=zleof, job='V', info=la_info)
 	end if
+	if(la_info /= 0)then
+		info = la_info+10
+		return
+	endif
 
 
 	! Get output arrays
