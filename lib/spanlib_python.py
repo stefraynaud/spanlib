@@ -357,18 +357,20 @@ def _next_max_corrs_(pc1, pc2=None, maxlag=None, getfirsts=True, decorr=False):
 def _core_stack_(dataset,dweights=None,dnorms=None, notime=False):
 	""" Takes several data files, of same time and stacks them up together
 
-	Description:::
 	This fonction concatenates several dataset that have the
 	same time axis. It is useful for analysing for example
 	several variables at the same time.
 	It takes into account weights, masks and axes.
-	:::
 
-	Inputs:::
-	dataset   :: A list of data objects.
-		They must all have the same time length.
-	dweights :: Associated weights.
-	:::
+	:Params:
+	
+		- *dataset*: A list of data objects.
+			They must all have the same time length.
+			
+	:Options:
+	
+		- *dweights*: Associated weights.
+
 	"""
 
 	# Inits
@@ -462,7 +464,7 @@ def _core_stack_(dataset,dweights=None,dnorms=None, notime=False):
 	return stack
 
 
-def get_phases(data,nphase=8,minamp=.5,firstphase=0):
+def get_phases(data,  nphase=8, minamp=.5, firstphase=0, index=None):
 	""" Phase composites for oscillatory fields
 
 	  This computes temporal phase composites of a spatio-temporal
@@ -489,29 +491,29 @@ def get_phases(data,nphase=8,minamp=.5,firstphase=0):
 	"""
 	
 	# Get the first PC and its smoothed derivative
-	pc = SpAn(data).pca_pc(npca=1, quiet=True)[0]
-	pc[:] /= pc.std()
+	if index is None:
+		pc = SpAn(data).pca_pc(npca=1, quiet=True)[0].filled()
+	else:
+		pc = N.array(index)
+	pc /= pc.std() # normalization
+	if len(pc) > 2: # 1,2,1 smooth
+		pc[1:-1] = npy.convolve(pc, [.25, .5, .25], 'valid')
 	dpc = npy.gradient(pc)
-	if len(dpc) > 2: # 1,2,1 smooth
-		dpc[1:-1] = npy.convolve(dpc, [.25, .5, .25])
-	dpc[:] = dpc/dpc.std()
+	if len(pc) > 2: # 1,2,1 smooth
+		dpc[1:-1] = npy.convolve(dpc, [.25, .5, .25], 'valid')
+	dpc[:] = dpc/dpc.std() # normalization
 	
 	# Get amplitude and phase indexes
 	amplitudes = npy.hypot(pc, dpc)
 	angles = npy.arctan2(dpc, pc)
 	dphase = 2*npy.pi/nphase
-	angles[:] = npy.where(npy.greater_equal(angles, 2*npy.pi-dphase*.5), angles-dphase*.5, angles)
-	
-	# Selection according to amplitudes 
-	good = npy.greater_equal(amplitudes, minamp)
-	pc = npy.compress(good, pc, axis=0)
-	dpc = npy.compress(good, dpc, axis=0)
-	itaxis = npy.clip(data.getOrder().find('t'), 0, data.ndim-1)
-	cdata = data.compress(good, axis=itaxis)
+	angles[:] = npy.where(angles >= 2*npy.pi-dphase*.5, angles-dphase*.5, angles)
+	marks = dphase * (npy.arange(nphase+1) - .5) + firstphase*npy.pi/360.
+	angles = (angles-marks[0])%(npy.pi*2)+marks[0]
 	
 	# Initialize output variable
-	sl = [slice(None)]*data.ndim
-	sl[itaxis] = slice(0, 1)
+	data = MV.asarray(data)
+	itaxis = npy.clip(data.getOrder().find('t'), 0, data.ndim-1)
 	phases = MV.repeat(MV.take(data, (0, ), itaxis), nphase, itaxis)
 	phases[:] = MV.masked
 	paxis = cdms.createAxis(npy.arange(nphase)*dphase, id='phases')
@@ -522,14 +524,14 @@ def get_phases(data,nphase=8,minamp=.5,firstphase=0):
 	phases.setAxisList(axes)
 	
 	# Loop on circular bins to make composites
-	marks = dphase * (npy.arange(nphase) - .5) + firstphase*npy.pi/360.
 	slices = [slice(None), ]*phases.ndim
 	idx = npy.arange(data.shape[itaxis])
-	for iphase in xrange(len(marks-1)):
+	for iphase in xrange(len(marks)-1):
 		slices[itaxis] = iphase
-		inbin = npy.logical_and(npy.geater_equal(angles, marks[iphase]), npy.less(angles, marks[iphase+1]))
-		phases[tuple(slices)] = MV.average(data.compress(inbin, axis=itaxis))
-
+		inbin = amplitudes > minamp
+		inbin &= angles >= marks[iphase]
+		inbin &= angles < marks[iphase+1]
+		phases[tuple(slices)] = data.compress(inbin, axis=itaxis).mean(axis=itaxis)
 	return phases
 
 
@@ -828,7 +830,7 @@ class SpAn(object):
 		for iset in xrange(self._ndataset):
 			if self._prepca[iset] is None: # Default: pre-PCA needed over max (for MSSA and SVD)
 				self._prepca[iset] = min(self._ns[iset], self._ns[iset]) > SpAn._npca_max
-				if not self._quiet and self._prepca[iset] and analysis_type in ['mssa', 'pca'] :
+				if not self._quiet and self._prepca[iset] and analysis_type in ['mssa', 'svd'] :
 					print '[mssa/svd] The number of valid points of one of the datasets is greater than %i, so we perform a pre-PCA'%SpAn._npca_max
 			if self._prepca[iset] is True: # Defaults to the number of PCA modes
 				self._prepca[iset] = self._npca[iset]
@@ -841,7 +843,7 @@ class SpAn(object):
 		for iset in xrange(self._ndataset):
 			if self._prepca[iset] and self._npca[iset] < self._prepca[iset]:
 				if not self._quiet  and self._prepca[iset]:
-						print 'The number of pre-PCA modes (%i) for dataset #%iis lower than the number of PCA modes (%i), so we adjust the latter.' % (self._prepca[iset],iset,self._npca[iset])
+						print 'The number of pre-PCA modes (%i) for dataset #%i is lower than the number of PCA modes (%i), so we adjust the latter.' % (self._prepca[iset],iset,self._npca[iset])
 				self._npca[iset] = self._prepca[iset]
 			
 		# Window extension of MSSA
@@ -1588,7 +1590,7 @@ class SpAn(object):
 				
 			# Phases composites
 			if phases:
-				raw_rec = get_phases(raw_rec,phases)
+				raw_rec = MV.transpose(get_phases(raw_rec.T,phases))
 				taxis = raw_rec.getAxis(1)
 			else:
 				taxis = self._time_axis_(iset)
@@ -1623,7 +1625,16 @@ class SpAn(object):
 				if atts.has_key('long_name'):
 					rec.long_name += ' of '+atts['long_name']
 					
-		return self._return_(mssa_fmt_rec,grouped=raw)	
+		return self._return_(mssa_fmt_rec,grouped=raw)
+	
+	def mssa_phases(self, pair, iset=0, nphase=8, **kwargs):
+		"""Build phase composites using an MSSA pair"""
+		if isinstance(pair, int):
+			pair = (pair, pair+1)
+		
+		# Dataset selection
+		isets = self._check_isets_(iset)
+		return self.mssa_rec(iset=iset, modes=pair, phases=nphase)
 
 	#################################################################
 	## SVD
@@ -2026,6 +2037,14 @@ class SpAn(object):
 #				imap = [m[0] for m in imap]
 			else:
 				imap = 0
+				
+		# Dataset: list -> dict
+		if isinstance(dataset, list):
+			dd = {}
+			for i, d in enumerate(dataset):
+				dd[i] = d
+			dataset = dd
+			del dataset
 		
 		# Single variable or a single grouped list
 		dataset = copy.copy(dataset)
@@ -2054,32 +2073,32 @@ class SpAn(object):
 		gc.collect()
 		return ret
 
-	def nmssa(self, iset):
+	def nmssa(self):
 		"""
 		Number of MSSA modes
 		
 		:Returns:
 			integer or tuple
 		"""
-		return self._return_(self._nmssa[iset],grouped=True)
+		return self._return_(self._nmssa, grouped=True)
 		
-	def npca(self, iset):
+	def npca(self):
 		"""
 		Number of PCA modes
 		
 		:Returns:
 			integer or tuple
 		""" 
-		return self._return_(self._npca[iset],grouped=True)
+		return self._return_(self._npca, grouped=True)
 
-	def ns(self, iset):
+	def ns(self):
 		"""
 		Length of channel axis (unmasked input points)
 		
 		:Returns:
 			integer or tuple
 		"""
-		return self._return_(self._ns[iset],grouped=True)
+		return self._return_(self._ns, grouped=True)
 		
 	def nt(self):
 		"""
@@ -2088,16 +2107,24 @@ class SpAn(object):
 		:Returns:
 			integer or tuple
 		"""
-		return self._return_(self._nmssa,grouped=True)
+		return self._return_(self._nt, grouped=True)
 		
-	def window(self):
+	def window(self, absolute=False):
 		"""
 		MSSA window parameter
+		
+		:Options: 
+		
+			- *absolute*: if False, return the window relative to time length, 
+			  else return the effective window (multiplied by nt)
 		
 		:Returns:
 			integer or tuple
 		"""
-		return self._return_(self._nmssa,grouped=True)
+		win = self._window
+		if absolute:
+			win = [int(w*nt) for nt in zip(win, self._nt)]
+		return self._return_(win, grouped=True)
 
 	def nsvd(self):
 		"""
@@ -2258,9 +2285,7 @@ class SVDModel(SpAn):
 		
 		- *method*: Method of reconstruction [default: 'regre']. 'direct' assumes that left and normalized expansion coefficients are equal (Syu and Neelin 1995). 'regre' does not use right EOFs but regression coefficients (Harrisson et al 2002)
 		
-		..note::
-		
-			You can also simply "call" the :class:`SVDModel` instance::
+		:Example:
 			
 			# Init
 			>>> model = SVDModel(predictor,predictand)
@@ -2270,22 +2295,23 @@ class SVDModel(SpAn):
 			>>> predicted2 = model(new_predictor2)
 		"""
 		# Predictor as SpAn datasets
-		if isinstance(predictor,(list,tuple)):
-			if isinstance(predictor,tuple):
+		if isinstance(predictor, (list, tuple)):
+			if isinstance(predictor, tuple):
 				predictor = list(predictor)
 			input_map = len(predictor)
 		else:
 			predictor = [predictor]
 			input_map = 0
-			
+		print '-'*70
 		# Check input map
 		if input_map != self._input_map[0]:
 			raise SpanlibError('svdmodel::run', 'Your input predictor is not in the same form as the predictor used in the learning phase')
 			
 		# Stack
 		notime = predictor[0].ndim != self._stack_info[0]['ndims'][0]
-		stack = _core_stack_(predictor, notime=notime)
+		stack = _core_stack_(predictor, dnorms=self._stack_info[0]['norms'], notime=notime)
 		var = stack['pdata'] # (nt,ns)
+		print 'var', var[0, :3]
 		
 		# Get left expansion coefficients
 		# - pre pca
@@ -2297,10 +2323,13 @@ class SVDModel(SpAn):
 		lec = self._getec_(toproj.transpose(), 'svd') # (nt,nsvd)
 		
 		# Convert to right expansion coefficients (nt,nsvd)
+		print 'lec', lec[0]
 		rec = self.l2r(lec, method=method)
+		print 'rec', rec[0]
 
 		# Projections
 		raw_rec,smodes = self._project_(self._svd_raw_eof[1], rec, 1, modes)
+		print raw_rec.shape, raw_rec[:, 0]
 			
 		# Get raw data back to physical space (nchan,nt)
 		taxis = stack['info']['taxes'][0]
