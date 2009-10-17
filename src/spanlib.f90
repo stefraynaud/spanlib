@@ -30,242 +30,246 @@ contains
 	! ############################################################
 	! ############################################################
 
-	subroutine sl_pca(var,nkeep,xeof,pc,ev,ev_sum,weights,useteof, bLargeMatrix)
+	subroutine sl_pca(var,nkeep,xeof,pc,ev,ev_sum,weights,useteof, bigmat)
 
-	!	Principal Component Analysis
-	!
-	! Description:
-	!	Perform a decomposition of space-time field in a set of
-	!	Empirical Orthogonal Functions (EOFs) and Principal components (PCs).
-	!	The input data set can be optionally weighted in space.
-	!	By default, the analysis computes  "temporal" (T) or classical
-	!	spatial (S) EOFs depending on if the space dimension is greater
-	!	than the time dimension. This default behavior can be overridden.
-	!
-	! Necessary arguments:
-	!	- var: Space-time array
-	!	- nkeep: Maximum number of modes to keep in outputs
-	!
-	! Optional arguments:
-	!	- xeof: Space-mode array of EOFs
-	!	- pc: Time-mode array of PCs
-	!	- ev: Mode array of eigen values (variances)
-	!	- ev_sum: Sum of all egein values (even thoses not returned)
-	!	- weights: Space array of weights
-	!	- useteof: To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]
-	!	- bLargeMatrix: Use syevd instead of syev (faster for large 
-	!         matrices, but uses more workspace) [default:.true.]
-	!
-	! Dependencies:
-	!	[sd]gemm(BLAS) [sd]syrk(BLAS) syev(LAPACK95) syevd(LAPACK95)
-
-
-	! Declarations
-	! ============
-
-	use spanlib_lapack95, only: syevd=>la_syevd, syev=>la_syev
-
-	implicit none
-
-	! External
-	! --------
-	real, intent(in)            :: var(:,:)
-	integer,  intent(in)	        :: nkeep
-	real, intent(out), optional :: pc(size(var,2),nkeep), &
-	&                                xeof(size(var,1),nkeep), ev(nkeep)
-	real, intent(in),  optional :: weights(:)
-	integer,  intent(in),  optional :: useteof
-	logical,  intent(in),  optional :: bLargeMatrix
-	real, intent(out), optional :: ev_sum
-
-	! Internal
-	! --------
-	integer               :: ns,nt
-	real, allocatable :: cov(:,:), subcov(:,:)
-	real, allocatable :: wvar(:,:), ww(:), zeof(:,:), zvar(:,:)
-	real, allocatable :: zev(:)
-	integer               :: zuseteof, znkeepmax, i
-	logical               :: zbLargeMatrix
-
-	! Setups
-	! ======
-
-	! Sizes
-	! -----
-	ns = size(var,1)
-	nt = size(var,2)
-	znkeepmax = 100
-	if(nkeep>znkeepmax)then
-		print*,'[pca] You want to keep a number of PCs '//&
-		 & 'greater than ',znkeepmax
-		stop 1
-	end if
-
-	! What does the user want?
-	! ------------------------
-	if(.not.present(xeof).and..not.present(pc)&
-	  &.and..not.present(ev))then
-		print*,'[pca] Nothing to do. Quit.'
-		return
-	end if
-
-	! By default, T-EOF decompostion if ns > nt
-	! -----------------------------------------
-	zuseteof = -1
-	if(present(useteof))zuseteof = useteof
-	if(zuseteof<0)then
-		if(ns>nt)then
-			zuseteof=1
-		else
-			zuseteof=0
+		! **Principal Component Analysis**
+		!
+		! :Description:
+		
+		!	Perform a decomposition of space-time field in a set of
+		!	Empirical Orthogonal Functions (EOFs) and Principal components (PCs).
+		!	The input data set can be optionally weighted in space.
+		!	By default, the analysis computes  "temporal" (T) or classical
+		!	spatial (S) EOFs depending on if the space dimension is greater
+		!	than the time dimension. This default behavior can be overridden.
+		!
+		! :Necessary arguments:
+		!
+		!	- *var (ns,nt)*: Data
+		!	- *nkeep*: Maximum number of modes to keep in outputs
+		!
+		! :Optional arguments:
+		!
+		!	- *xeof (ns,nkeep)*: Space-mode array of EOFs
+		!	- *pc (nt,nkeep)*: Time-mode array of PCs
+		!	- *ev (nkeep)*: Mode array of eigen values (variances)
+		!	- *ev_sum*: Sum of all egein values (even thoses not returned)
+		!	- *weights (ns)*: Space array of weights
+		!	- *useteof*: To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]
+		!	- *bigmat*: Use syevd instead of syev (faster for large 
+		!      matrices, but uses more workspace) [default:.true.]
+		!
+		! :Dependencies:
+		!	:func:`[sd]gemm` (BLAS) :func:`[sd]syrk` (BLAS) 
+		!    :func:`syev` (LAPACK95) :func:`syevd` (LAPACK95)
+	
+	
+		! Declarations
+		! ============
+	
+		use spanlib_lapack95, only: syevd=>la_syevd, syev=>la_syev
+	
+		implicit none
+	
+		! External
+		! --------
+		real, intent(in)            :: var(:,:)
+		integer,  intent(in)	        :: nkeep
+		real, intent(out), optional :: pc(size(var,2),nkeep), &
+		&                                xeof(size(var,1),nkeep), ev(nkeep)
+		real, intent(in),  optional :: weights(:)
+		integer,  intent(in),  optional :: useteof
+		logical,  intent(in),  optional :: bigmat
+		real, intent(out), optional :: ev_sum
+	
+		! Internal
+		! --------
+		integer               :: ns,nt
+		real, allocatable :: cov(:,:), subcov(:,:)
+		real, allocatable :: wvar(:,:), ww(:), zeof(:,:), zvar(:,:)
+		real, allocatable :: zev(:)
+		integer               :: zuseteof, znkeepmax, i
+		logical               :: zbigmat
+	
+		! Setups
+		! ======
+	
+		! Sizes
+		! -----
+		ns = size(var,1)
+		nt = size(var,2)
+		znkeepmax = 100
+		if(nkeep>znkeepmax)then
+			print*,'[pca] You want to keep a number of PCs '//&
+			 & 'greater than ',znkeepmax
+			stop 1
+		end if
+	
+		! What does the user want?
+		! ------------------------
+		if(.not.present(xeof).and..not.present(pc)&
+		  &.and..not.present(ev))then
+			print*,'[pca] Nothing to do. Quit.'
+			return
+		end if
+	
+		! By default, T-EOF decompostion if ns > nt
+		! -----------------------------------------
+		zuseteof = -1
+		if(present(useteof))zuseteof = useteof
+		if(zuseteof<0)then
+			if(ns>nt)then
+				zuseteof=1
+			else
+				zuseteof=0
+			endif
 		endif
-	endif
-	znkeepmax=100
-	if(zuseteof==1)then
-		if(nkeep>nt)then
-			print*,'[pca] You want to keep a number of PCs '//&
-				&'greater than the number of EOF:',nt
-			return
-		end if
-	else
-		if(nkeep>ns)then
-			print*,'[pca] You want to keep a number of PCs '//&
-				&'greater than the number of EOF:',ns
-			return
-		end if
-	end if
-
-	! Use ssyevd?
-	! -----------
-	if(.not.present(bLargeMatrix))then
-		zbLargeMatrix = .true.
-	else
-		zbLargeMatrix = bLargeMatrix
-	end if
-
-	! Remove the mean
-	! ---------------
-	allocate(zvar(ns,nt))
-	zvar = var - spread(sum(var,dim=2)/real(nt), ncopies=nt, dim=2)
-
-
-	! Default weights = 1.
-	! --------------------
-	allocate(ww(ns))
-	allocate(wvar(ns,nt))
-	ww = 1.
-	if(present(weights))then
-		ww(:) = weights * real(ns) / sum(weights)
-		where(ww==0.)ww = 1.
-		do i = 1, nt
-			wvar(:,i) = zvar(:,i) * sqrt(ww)
-		end do
-	else
-		wvar = zvar
-	end if
-
-
-	! EOF decomposition
-	! =================
-
-	if(zuseteof==1)then
-
-
-		! T-EOF case
-		! ----------
-
-		! Covariance
-		allocate(cov(nt,nt))
-		allocate(zev(nt))
-		cov=0.
-		call ssyrk('U','T',nt,ns,1.,wvar,ns, 0.,cov,nt)
-		cov = cov / float(ns)
-		deallocate(wvar)
-
-		! Diagonalising (cov: input=cov, output=eof)
-		if(zbLargeMatrix)then
-			call syevd(cov,zev,jobz='V')
+		znkeepmax=100
+		if(zuseteof==1)then
+			if(nkeep>nt)then
+				print*,'[pca] You want to keep a number of PCs '//&
+					&'greater than the number of EOF:',nt
+				return
+			end if
 		else
-			call syev(cov,zev,jobz='V')
+			if(nkeep>ns)then
+				print*,'[pca] You want to keep a number of PCs '//&
+					&'greater than the number of EOF:',ns
+				return
+			end if
 		end if
-
-		! Back to S-EOFs
-		if(present(pc).or.present(xeof))then
-			allocate(zeof(ns,nkeep))
-			allocate(subcov(nt,nkeep))
-			subcov = cov(:,nt:nt-nkeep+1:-1)
-			deallocate(cov)
-			call sgemm('N','N',ns,nkeep,nt,1.,zvar,ns, &
-				& subcov,nt,0.,zeof,ns)
-			deallocate(subcov)
-			do i = 1, nkeep
-				zeof(:,i) = zeof(:,i) / &
-				 &          sqrt(dot_product(ww(:), zeof(:,i)**2))
-			end do
-			if(.not.present(pc)) deallocate(ww)
-		else
-			deallocate(cov)
-		end if
-
-		! Eigenvalues
+	
+		! Use ssyevd?
 		! -----------
-		if(present(ev)) ev = zev(nt:nt-nkeep+1:-1)
-
-	else
-
-		! S-EOF case (classical)
-		! ----------------------
-
-		! Covariance
-		allocate(cov(ns,ns))
-		allocate(zev(ns))
-		cov = 0.
-		call ssyrk('U','N',ns,nt,1.,wvar,ns, 0.,cov,ns)
-		cov = cov / float(nt)
-		deallocate(wvar)
-
-		! Diagonalisation (cov: input=cov, output=eof)
-		if(zbLargeMatrix)then
-			call syevd(cov,zev,jobz='V')
+		if(.not.present(bigmat))then
+			zbigmat = .true.
 		else
-			call syev(cov,zev,jobz='V')
+			zbigmat = bigmat
 		end if
-
-		! Formatting S-EOFs
-		if(present(xeof).or.present(pc))then
-			allocate(zeof(ns,nkeep))
-			do i = 1, nkeep
-				zeof(:,i) = cov(:,ns-i+1) / sqrt(ww(:))
-			end do
-		end if
-	   deallocate(cov)
-
-		! Eigenvalues
-		! -----------
-		if(present(ev)) ev = zev(ns:ns-nkeep+1:-1)
-
-	end if
-
-	! Sum of all eigenvalues (useful for percentils)
-	! ----------------------------------------------
-	if(present(ev_sum)) ev_sum = sum(zev)
-
-	! Free eof array
-	! --------------
-	if(present(xeof))then
-		xeof = zeof
-		if(.not.present(pc)) deallocate(zeof)
-	end if
-
-	! Finally get PCs
-	! ===============
-	if(present(pc))then
+	
+		! Remove the mean
+		! ---------------
+		allocate(zvar(ns,nt))
+		zvar = var - spread(sum(var,dim=2)/real(nt), ncopies=nt, dim=2)
+	
+	
+		! Default weights = 1.
+		! --------------------
+		allocate(ww(ns))
+		allocate(wvar(ns,nt))
+		ww = 1.
 		if(present(weights))then
-			call sl_pca_getec(zvar,zeof,pc,weights=ww)
+			ww(:) = weights * real(ns) / sum(weights)
+			where(ww==0.)ww = 1.
+			do i = 1, nt
+				wvar(:,i) = zvar(:,i) * sqrt(ww)
+			end do
 		else
-			call sl_pca_getec(zvar,zeof,pc)
+			wvar = zvar
 		end if
-	end if
+	
+	
+		! EOF decomposition
+		! =================
+	
+		if(zuseteof==1)then
+	
+	
+			! T-EOF case
+			! ----------
+	
+			! Covariance
+			allocate(cov(nt,nt))
+			allocate(zev(nt))
+			cov=0.
+			call ssyrk('U','T',nt,ns,1.,wvar,ns, 0.,cov,nt)
+			cov = cov / float(ns)
+			deallocate(wvar)
+	
+			! Diagonalising (cov: input=cov, output=eof)
+			if(zbigmat)then
+				call syevd(cov,zev,jobz='V')
+			else
+				call syev(cov,zev,jobz='V')
+			end if
+	
+			! Back to S-EOFs
+			if(present(pc).or.present(xeof))then
+				allocate(zeof(ns,nkeep))
+				allocate(subcov(nt,nkeep))
+				subcov = cov(:,nt:nt-nkeep+1:-1)
+				deallocate(cov)
+				call sgemm('N','N',ns,nkeep,nt,1.,zvar,ns, &
+					& subcov,nt,0.,zeof,ns)
+				deallocate(subcov)
+				do i = 1, nkeep
+					zeof(:,i) = zeof(:,i) / &
+					 &          sqrt(dot_product(ww(:), zeof(:,i)**2))
+				end do
+				if(.not.present(pc)) deallocate(ww)
+			else
+				deallocate(cov)
+			end if
+	
+			! Eigenvalues
+			! -----------
+			if(present(ev)) ev = zev(nt:nt-nkeep+1:-1)
+	
+		else
+	
+			! S-EOF case (classical)
+			! ----------------------
+	
+			! Covariance
+			allocate(cov(ns,ns))
+			allocate(zev(ns))
+			cov = 0.
+			call ssyrk('U','N',ns,nt,1.,wvar,ns, 0.,cov,ns)
+			cov = cov / float(nt)
+			deallocate(wvar)
+	
+			! Diagonalisation (cov: input=cov, output=eof)
+			if(zbigmat)then
+				call syevd(cov,zev,jobz='V')
+			else
+				call syev(cov,zev,jobz='V')
+			end if
+	
+			! Formatting S-EOFs
+			if(present(xeof).or.present(pc))then
+				allocate(zeof(ns,nkeep))
+				do i = 1, nkeep
+					zeof(:,i) = cov(:,ns-i+1) / sqrt(ww(:))
+				end do
+			end if
+		   deallocate(cov)
+	
+			! Eigenvalues
+			! -----------
+			if(present(ev)) ev = zev(ns:ns-nkeep+1:-1)
+	
+		end if
+	
+		! Sum of all eigenvalues (useful for percentils)
+		! ----------------------------------------------
+		if(present(ev_sum)) ev_sum = sum(zev)
+	
+		! Free eof array
+		! --------------
+		if(present(xeof))then
+			xeof = zeof
+			if(.not.present(pc)) deallocate(zeof)
+		end if
+	
+		! Finally get PCs
+		! ===============
+		if(present(pc))then
+			if(present(weights))then
+				call sl_pca_getec(zvar, zeof, pc, weights=ww)
+			else
+				call sl_pca_getec(zvar, zeof, pc)
+			end if
+		end if
 
 	end subroutine sl_pca
 
@@ -277,67 +281,69 @@ contains
 
 	subroutine sl_pca_getec(var, xeof, ec, weights)
 
-	! Title:
-	!	Compute PCA expansion coefficients
-	!
-	! Description
-	!	Get an expansion coefficients from a space-time field
-	!	and a set of EOFs computed by PCA. If the input
-	!	space-time field is the same as the one used to computes
-	!	input ST-EOFs, these expansion coincide with the
-	! associated principal components.
-	!
-	! Necessary arguments:
-	!	- var:   Space-time field
-	!	- xeof: Spatial EOFs
-	!	- ec:   Time-mode array of expansion coefficients
-	!
-	! Optional arguments:
-	!	- weights: Space array of weights
-
-	implicit none
-
-	! Declarations
-	! ============
-
-	! External
-	! --------
-	real, intent(in)           :: var(:,:), xeof(:,:)
-	real, intent(out)          :: ec(size(var,2),size(xeof,2))
-	real, intent(in), optional :: weights(:)
-
-	! Internal
-	! --------
-	real :: zweights(size(var,1)), zvar(size(var,1),size(var,2))
-	integer :: ns,nt,nkeep,i
-
-	! Computations
-	! ============
-
-	! Initialisations
-	! ---------------
-
-	ns = size(var,1)
-	nt = size(var,2)
-	nkeep = size(xeof,2)
-
-	if(present(weights))then
-		zweights = weights
-		do i=1, nt
-			zvar(:,i) = var(:,i) * zweights
+		! **Compute PCA expansion coefficients**
+		!
+		! :Description:
+		!
+		!	Get an expansion coefficients from a space-time field
+		!	and a set of EOFs computed by PCA. If the input
+		!	space-time field is the same as the one used to computes
+		!	input ST-EOFs, these expansion coincide with the
+		!	associated principal components.
+		!
+		! :Necessary arguments:
+		
+		!	- *var (ns, nt)*: Data
+		!	- *xeof (ns, nkeep)*: EOFs
+		!	- *ec (nt, nmode)*: Expansion coefficients
+		!
+		! :Optional arguments:
+		!
+		!	- *weights (ns)*: Weights
+	
+		implicit none
+	
+		! Declarations
+		! ============
+	
+		! External
+		! --------
+		real, intent(in)           :: var(:,:), xeof(:,:)
+		real, intent(out)          :: ec(size(var,2),size(xeof,2))
+		real, intent(in), optional :: weights(:)
+	
+		! Internal
+		! --------
+		real :: zweights(size(var,1)), zvar(size(var,1),size(var,2))
+		integer :: ns,nt,nkeep,i
+	
+		! Computations
+		! ============
+	
+		! Initialisations
+		! ---------------
+	
+		ns = size(var,1)
+		nt = size(var,2)
+		nkeep = size(xeof,2)
+	
+		if(present(weights))then
+			zweights = weights
+			do i=1, nt
+				zvar(:,i) = var(:,i) * zweights
+			end do
+		else
+			zweights = 1.
+			zvar = var
+		end if
+	
+		! Main stuff
+		! ----------
+		! ec = matmul( transpose(var), xeof) ! Not efficient
+		call sgemm('T','N',nt,nkeep,ns,1.,zvar,ns,xeof,ns,0.,ec,nt)
+		do i = 1, nkeep
+			ec(:,i) = ec(:,i) / dot_product(xeof(:,i)**2, zweights)
 		end do
-	else
-		zweights = 1.
-		zvar = var
-	end if
-
-	! Main stuff
-	! ----------
-	! ec = matmul( transpose(var), xeof) ! Not efficient
-	call sgemm('T','N',nt,nkeep,ns,1.,zvar,ns,xeof,ns,0.,ec,nt)
-	do i = 1, nkeep
-		ec(:,i) = ec(:,i) / dot_product(xeof(:,i)**2, zweights)
-	end do
 
 	end subroutine sl_pca_getec
 
@@ -349,87 +355,89 @@ contains
 
 	subroutine sl_pca_rec(xeof, pc, varrec, istart, iend)
 
-	! Title:
-	!	Reconstruction of a set of PCA components
-	!
-	! Description:
-	!	Perform a reconstruction using a set of components previously
-	!	computed with a PCA. All the reconstructed components are summed.
-	!	A reconstructed component is simply the "product" of an EOF
-	!	by its PC. The sum of all reconstructed component is the original field.
-	!
-	! Necessary arguments:
-	!	- xeof:		Space-mode array of EOFs
-	!	- pc:		Time-mode array of PCs
-	!	- varrec:	Space-time array of the reconstructed field
-	!
-	! Optional arguments:
-	!	- istart:	Index of the first component to use
-	!	- iend:		Index of the last component to use
-
-
-	! Declarations
-	! ============
-
-	implicit none
-
-	! External
-	! --------
-	real,	intent(in)     :: xeof(:,:), pc(:,:)
-	real,	intent(out)    :: varrec(size(xeof,1),size(pc,1))
-	integer,intent(in),	optional	:: istart, iend
-
-	! Internal
-	! --------
-	integer           :: nkept, itmp, zistart, ziend, nt, ns, i
-	real, allocatable	:: zpc(:,:)
-
-
-	! Setup
-	! =====
-	nkept = size(xeof,2)
-	zistart=1
-	if(present(istart))zistart=istart
-	if(present(iend))then
-		ziend=iend
-	else
-		ziend=nkept
-	end if
-	if(zistart.lt.1.or.zistart.gt.nkept)then
+		! **Reconstruction of a set of PCA components**
+		!
+		! :Description:
+		!
+		!	Perform a reconstruction using a set of components previously
+		!	computed with a PCA. All the reconstructed components are summed.
+		!	A reconstructed component is simply the "product" of an EOF
+		!	by its PC. The sum of all reconstructed component is the original field.
+		!
+		! :Necessary arguments:
+		!
+		!	- *xeof (ns,nkeep)*: Space-mode array of EOFs
+		!	- *pc (nt,nkeep)*: Time-mode array of PCs
+		!	- *varrec (ns,nt)*: Space-time array of the reconstructed field
+		!
+		! :Optional arguments:
+		!
+		!	- *istart*: Index of the first component to use
+		!	- *iend*: Index of the last component to use
+	
+	
+		! Declarations
+		! ============
+	
+		implicit none
+	
+		! External
+		! --------
+		real,	intent(in)     :: xeof(:,:), pc(:,:)
+		real,	intent(out)    :: varrec(size(xeof,1),size(pc,1))
+		integer,intent(in),	optional	:: istart, iend
+	
+		! Internal
+		! --------
+		integer           :: nkept, itmp, zistart, ziend, nt, ns, i
+		real, allocatable	:: zpc(:,:)
+	
+	
+		! Setup
+		! =====
+		nkept = size(xeof,2)
 		zistart=1
-		print*,'[pca_rec] istart lower than 1 => set to 1'
-	end if
-	if(ziend.lt.1.or.ziend.gt.nkept)then
-		ziend=nkept
-		print*,'[pca_rec] iend greater than the number '//&
-			&'of avalaible modes => reduced to ',ziend
-	end if
-	if(zistart>ziend)then
-		itmp=ziend
-		ziend=zistart
-		zistart=itmp
-		print*,'[pca_rec] istart > iend => inversion'
-	end if
-	ns = size(xeof,1)
-	nt = size(pc,1)
-
-	! Computation
-	! ===========
-	varrec = 0.
-	if(nt<ns) then
-		do i = 1, nt
-			varrec(:, i) = varrec(:, i) + &
-				&	matmul(xeof(:, zistart:ziend), pc(i, zistart:ziend))
-		end do
-	else
-		allocate(zpc(ziend-zistart+1, nt))
-		zpc = transpose(pc(:, zistart:ziend))
-		do i = 1, ns
-			varrec(i, :) = varrec(i, :) + &
-				&	matmul(xeof(i, zistart:ziend), zpc)
-		end do
-		deallocate(zpc)
-	end if
+		if(present(istart))zistart=istart
+		if(present(iend))then
+			ziend=iend
+		else
+			ziend=nkept
+		end if
+		if(zistart.lt.1.or.zistart.gt.nkept)then
+			zistart=1
+			print*,'[pca_rec] istart lower than 1 => set to 1'
+		end if
+		if(ziend.lt.1.or.ziend.gt.nkept)then
+			ziend=nkept
+			print*,'[pca_rec] iend greater than the number '//&
+				&'of avalaible modes => reduced to ',ziend
+		end if
+		if(zistart>ziend)then
+			itmp=ziend
+			ziend=zistart
+			zistart=itmp
+			print*,'[pca_rec] istart > iend => inversion'
+		end if
+		ns = size(xeof,1)
+		nt = size(pc,1)
+	
+		! Computation
+		! ===========
+		varrec = 0.
+		if(nt<ns) then
+			do i = 1, nt
+				varrec(:, i) = varrec(:, i) + &
+					&	matmul(xeof(:, zistart:ziend), pc(i, zistart:ziend))
+			end do
+		else
+			allocate(zpc(ziend-zistart+1, nt))
+			zpc = transpose(pc(:, zistart:ziend))
+			do i = 1, ns
+				varrec(i, :) = varrec(i, :) + &
+					&	matmul(xeof(i, zistart:ziend), zpc)
+			end do
+			deallocate(zpc)
+		end if
 
 	end subroutine sl_pca_rec
 
@@ -442,150 +450,204 @@ contains
   !############################################################
   !############################################################
 
-	subroutine sl_mssa(var, nwindow, nkeep, steof, stpc, ev, ev_sum, bLargeMatrix)
+	subroutine sl_mssa(var, nwindow, nkeep, steof, stpc, ev, ev_sum, bigmat)
 
-	! Title:
-	!	Multi-channel Singular Spectrum Analysis
+		! **Multi-channel Singular Spectrum Analysis**
+		!
+		! :Description:
+		!
+		!	Perform a decomposition of space-time field in a set of
+		!	space-time Empirical Orthogonal Functions (EOFs) and
+		!	time Principal components (PCs), according to a window
+		!	parameter.
+		!
+		! :Necessary arguments:
+		!
+		!	- *var*:      Space-time array
+		!	- *nwindow*: Window size
+		!	- *nkeep*:   Maximum number of modes to keep in outputs
+		!
+		! :Optional arguments:
+		!
+		!	- *steof*: Space-window-mode array of EOFs
+		!	- *stpc*: Time-mode array of PCs
+		!	- *ev*: Mode array of eigen values (variances)
+		!	- *ev_sum*: Sum of all eigen values (even thoses not returned)
+		!	- *bigmat*: Use ssyevd instead of ssyev (faster for large matrices, 
+		!	  but uses more workspace) [default:.true.]
+		!
+		! :Dependencies:
+		!	:func:`sl_stcov` :func:`syev(LAPACK95)` :func:`syevd(LAPACK95)`
+	
+	
+		! Declarations
+		! ============
+	
+		use spanlib_lapack95, only: syevd=>la_syevd, syev=>la_syev
+	
+		implicit none
+	
+		! External
+		! --------
+		real, intent(in)            :: var(:,:)
+		integer,  intent(in)            :: nwindow, nkeep
+		real, intent(out), optional :: &
+			& steof(size(var,1)*nwindow, nkeep), &
+			& stpc(size(var,2)-nwindow+1, nkeep), ev(nkeep)
+		logical,  intent(in),  optional :: bigmat
+		real, intent(out), optional :: ev_sum
+	
+		! Internal
+		! --------
+		real, allocatable :: cov(:,:), zev(:), &
+			& zvar(:,:), zsteof(:,:)
+		integer :: nchan, nsteof, nt, znkeepmax
+		logical :: zbigmat
+	
+	
+		! Setup
+		! =====
+	
+		! Sizes
+		! -----
+		nchan = size(var,1)
+		nsteof = nchan * nwindow
+		nt = size(var,2)
+		znkeepmax = 100
+		if(nkeep>znkeepmax)then
+			print*,'[mssa] You want to keep a number of PCs '//&
+			 & 'greater than ',znkeepmax
+			return
+		else if(nkeep>nsteof) then
+			print*,'[mssa] You want to keep a number of PCs greater '// &
+				& 'than the number of ST-EOFs:',nsteof
+			return
+		end if
+	
+		! Use ssyevd?
+		! -----------
+		if(.not.present(bigmat))then
+			zbigmat = .true.
+		else
+			zbigmat = bigmat
+		end if
+	
+		! Remove the mean
+		! ---------------
+		allocate(zvar(nchan, nt))
+		zvar = var - spread(sum(var,dim=2)/real(nt), ncopies=nt, dim=2)
+	
+		! Set the block-Toeplitz covariance matrix
+		! ========================================
+		allocate(cov(nsteof, nsteof))
+		call sl_stcov(zvar, cov)
+	!	do ic1 = 1, nchan
+	!		do ic2 = 1, nchan
+	!			do iw2 = 1, nwindow
+	!				do iw1 = 1, iw2
+	!					i1 = (ic1-1) * nwindow + iw1
+	!					i2 = (ic2-1) * nwindow + iw2
+	!					iw = iw2 - iw1 + 1
+	!					cov(i1,i2) = &
+	!						& dot_product(zvar(ic1, 1  : nt-iw+1),  &
+	!						&             zvar(ic2, iw : nt	 )) / &
+	!						& real(nt-iw+1)
+	!					cov(i2,i1) = cov(i1,i2)
+	!				end do
+	!			end do
+	!		end do
+	!	end do
+	
+		! Diagonalisation
+		! ===============
+		allocate(zev(nsteof))
+		if(zbigmat)then
+			call syevd(cov,zev,jobz='V')
+		else
+			call syev(cov,zev,jobz='V')
+		end if
+	
+	
+	
+		! Get ST-EOFs and eigenvalues
+		! ===========================
+		if(present(steof).or.present(stpc))then
+			allocate(zsteof(nsteof, nkeep))
+			zsteof = cov(:, nsteof : nsteof-nkeep+1 : -1)
+			deallocate(cov)
+			if(present(steof))then
+				steof = zsteof
+				deallocate(zsteof)
+			end if
+		end if
+	
+		! Eigen values
+		! ------------
+		if(present(ev))then
+			ev = zev(nsteof : nsteof-nkeep+1 : -1)
+		end if
+		if(present(ev_sum)) ev_sum = sum(zev)
+		deallocate(zev)
+	
+	
+		! Get ST-PCs
+		! ==========
+		if(present(stpc)) call sl_mssa_getec(zvar, steof, nwindow, stpc)
+		deallocate(zvar)
+
+	end subroutine sl_mssa
+	
+	
+
+
+	!############################################################
+	!############################################################
+	!############################################################
+
+	subroutine sl_stcov(var, cov)
+	
+	! Compute the Block-Toeplitz covariance matrix for MSSA analysis
 	!
-	! Description:
-	!	Perform a decomposition of space-time field in a set of
-	!	space-time Empirical Orthogonal Functions (EOFs) and
-	!	time Principal components (PCs), according to a window
-	!	parameter.
-	!
-	! Necessary arguments:
-	!	- var:      Space-time array
-	!	- nwindow: Window size
-	!	- nkeep:   Maximum number of modes to keep in outputs
-	!
-	! Optional arguments:
-	!	- steof:  Space-window-mode array of EOFs
-	!	- stpc:   Time-mode array of PCs
-	!	- ev:     Mode array of eigen values (variances)
-	!  - ev_sum: Sum of all eigen values (even thoses not returned)
-	!	- bLargeMatrix: Use ssyevd instead of ssyev (faster for large matrices, 
-	!                  but uses more workspace) [default:.true.]
-	!
-	! Dependencies:
-	!	syev(LAPACK95) syevd(LAPACK95)
-
-
-	! Declarations
-	! ============
-
-	use spanlib_lapack95, only: syevd=>la_syevd, syev=>la_syev
-
-	implicit none
-
-	! External
-	! --------
-	real, intent(in)            :: var(:,:)
-	integer,  intent(in)            :: nwindow, nkeep
-	real, intent(out), optional :: &
-		& steof(size(var,1)*nwindow, nkeep), &
-		& stpc(size(var,2)-nwindow+1, nkeep), ev(nkeep)
-	logical,  intent(in),  optional :: bLargeMatrix
-	real, intent(out), optional :: ev_sum
-
-	! Internal
-	! --------
-	real, allocatable :: cov(:,:), zev(:), &
-		& zvar(:,:), zsteof(:,:)
-	integer :: nchan, nsteof, nt, znkeepmax
-	integer :: iw, iw1, iw2, i1, i2, ic1, ic2
-	logical :: zbLargeMatrix
-
-
-	! Setup
-	! =====
-
-	! Sizes
-	! -----
-	nchan = size(var,1)
-	nsteof = nchan * nwindow
-	nt = size(var,2)
-	znkeepmax = 100
-	if(nkeep>znkeepmax)then
-		print*,'[mssa] You want to keep a number of PCs '//&
-		 & 'greater than ',znkeepmax
-		return
-	else if(nkeep>nsteof) then
-		print*,'[mssa] You want to keep a number of PCs greater '// &
-			& 'than the number of ST-EOFs:',nsteof
-		return
-	end if
-
-	! Use ssyevd?
-	! -----------
-	if(.not.present(bLargeMatrix))then
-		zbLargeMatrix = .true.
-	else
-		zbLargeMatrix = bLargeMatrix
-	end if
-
-	! Remove the mean
-	! ---------------
-	allocate(zvar(nchan, nt))
-	zvar = var - spread(sum(var,dim=2)/real(nt), ncopies=nt, dim=2)
-
-	! Set the block-Toeplitz covariance matrix
-	! ========================================
-	allocate(cov(nsteof, nsteof))
-	do ic1 = 1, nchan
-		do ic2 = 1, nchan
-			do iw2 = 1, nwindow
-				do iw1 = 1, iw2
-					i1 = (ic1-1) * nwindow + iw1
-					i2 = (ic2-1) * nwindow + iw2
-					iw = iw2 - iw1 + 1
-					cov(i1,i2) = &
-						& dot_product(zvar(ic1, 1  : nt-iw+1),  &
-						&             zvar(ic2, iw : nt	 )) / &
-						& real(nt-iw+1)
-					cov(i2,i1) = cov(i1,i2)
+	! .. note:: ``var`` does not need to be centered
+	
+	
+		implicit none
+		
+		real, intent(in)  :: var(:, :)
+		real, intent(out) :: cov(:, :)
+		
+		real, allocatable :: varmean(:)
+		integer ::  nchan, nt, nsteof, nwindow
+		integer :: iw, iw1, iw2, i1, i2, ic1, ic2
+		
+		nchan = size(var, 1)
+		nt = size(var, 2)
+		nsteof = size(cov, 1)
+		nwindow = nsteof/nchan
+		
+		allocate(varmean(nchan))
+		varmean = sum(var, dim=2)/real(nt)
+	
+		do ic1 = 1, nchan
+			do ic2 = 1, nchan
+				do iw2 = 1, nwindow
+					do iw1 = 1, iw2
+						i1 = (ic1-1) * nwindow + iw1
+						i2 = (ic2-1) * nwindow + iw2
+						iw = iw2 - iw1 + 1
+						cov(i1,i2) = &
+							& dot_product(var(ic1, 1  : nt-iw+1)-varmean(ic1),  &
+							&             var(ic2, iw : nt	 )-varmean(ic2)) / &
+							& real(nt-iw+1)
+						cov(i2,i1) = cov(i1,i2)
+					end do
 				end do
 			end do
 		end do
-	end do
+		
+		deallocate(varmean)
 
-	! Diagonalisation
-	! ===============
-	allocate(zev(nsteof))
-	if(zbLargeMatrix)then
-		call syevd(cov,zev,jobz='V')
-	else
-		call syev(cov,zev,jobz='V')
-	end if
-
-
-
-	! Get ST-EOFs and eigenvalues
-	! ===========================
-	if(present(steof).or.present(stpc))then
-		allocate(zsteof(nsteof, nkeep))
-		zsteof = cov(:, nsteof : nsteof-nkeep+1 : -1)
-		deallocate(cov)
-		if(present(steof))then
-			steof = zsteof
-			deallocate(zsteof)
-		end if
-	end if
-
-	! Eigen values
-	! ------------
-	if(present(ev))then
-		ev = zev(nsteof : nsteof-nkeep+1 : -1)
-	end if
-	if(present(ev_sum)) ev_sum = sum(zev)
-	deallocate(zev)
-
-
-	! Get ST-PCs
-	! ==========
-	if(present(stpc)) call sl_mssa_getec(zvar,steof,nwindow,stpc)
-	deallocate(zvar)
-
-	end subroutine sl_mssa
+	end subroutine sl_stcov
 
 
 	!############################################################
@@ -605,12 +667,12 @@ contains
 	!	input ST-EOFs, these expansion coincide with the
 	! associated principal components.
 	!
-	! Necessary arguments:
+	! :Necessary arguments:
 	!	- var:   Space-time field
 	!	- steof: Space-window-mode EOFs
 	!	- stec:  Time-mode array of expansion coefficients
 	!
-	! Dependencies:
+	! :Dependencies:
 	!	[sd]gemm(BLAS)
 
 	implicit none
@@ -670,13 +732,13 @@ contains
 	! Description:
 	!	Same as for the reconstruction of PCA components, but for MSSA.
 	!
-	! Necessary arguments:
+	! :Necessary arguments:
 	!	- steof:   SpaceXwindow-mode array of EOFs
 	!	- stpc:    Time-mode array of PCs
 	!	- nwindow: Window size
 	!	- varrec:   Space-time array of the reconstructed field
 	!
-	! Optional arguments:
+	! :Optional arguments:
 	!	- istart: Index of the first component to use
 	!	- iend:   Index of the last component to use
 
@@ -793,7 +855,7 @@ contains
   !############################################################
 
 	subroutine sl_svd(ll,rr,nkeep,leof,reof,lpc,rpc,ev,ev_sum,lw,rw,usecorr,&
-		& bLargeMatrix,info)
+		& bigmat,info)
 
 	! Title:
 	!	Singular Value Decomposition
@@ -802,12 +864,12 @@ contains
 	!	Singular value decomposition between two datasets having
 	!	the same length in time.
 	!
-	! Necessary arguments:
+	! :Necessary arguments:
 	!	- ll:    Left space-time array
 	!	- rr:    Right space-time array
 	!	- nkeep: Maximum number of modes to keep in outputs
 	!
-	! Optional arguments:
+	! :Optional arguments:
 	!	- leof:  Left EOFs
 	!	- reof:  Right EOFs
 	!	- lpc:   Left PCs
@@ -816,9 +878,9 @@ contains
 	!	- lw:    Left weights
 	!	- rw:    Right weights
 	!	- usecorr:  Use correlations instead of covariances
-	!	- bLargeMatrix: Use gesdd instead of gesvd (faster for large matrices, but uses more workspace) [default:.false.]
+	!	- bigmat: Use gesdd instead of gesvd (faster for large matrices, but uses more workspace) [default:.false.]
 	!
-	! Dependencies:
+	! :Dependencies:
 	!	[sd]gemm(BLAS) gesvd(LAPACK95) gesdd(LAPACK95)
 
 
@@ -839,7 +901,7 @@ contains
 	real, intent(out),optional :: lpc(size(ll,2),nkeep), &
 		& leof(size(ll,1),nkeep), rpc(size(rr,2),nkeep), &
 		& reof(size(rr,1),nkeep),ev(nkeep)
-	logical, intent(in),  optional :: bLargeMatrix, usecorr
+	logical, intent(in),  optional :: bigmat, usecorr
 	real, intent(out), optional :: ev_sum
 	integer, intent(out),  optional :: info
 
@@ -850,7 +912,7 @@ contains
 		&                    zlw(:), zrw(:), zls(:), zrs(:)
 	real, allocatable :: zev(:), zleof(:,:)
 	integer               :: znkeepmax, i, la_info
-	logical               :: zbLargeMatrix,zbcorr
+	logical               :: zbigmat,zbcorr
 
 
 	! Sizes
@@ -897,10 +959,10 @@ contains
 
 	! Use divide/conquer algo?
 	! ------------------------
-	if(.not.present(bLargeMatrix))then
-		zbLargeMatrix = .false.
+	if(.not.present(bigmat))then
+		zbigmat = .false.
 	else
-		zbLargeMatrix = bLargeMatrix
+		zbigmat = bigmat
 	end if
 
 	! Weights
@@ -958,12 +1020,11 @@ contains
 	cov = cov / float(nt)
 	if(.not.present(lpc)) deallocate(zll,zls)
 	if(.not.present(rpc)) deallocate(zrr,zrs)
-	print*, 'SVD cov(:2,:2):',cov(1:2,1:2)
 
 	! SVD
 	! ---
 	allocate(zleof(nsl,ns), zev(ns))
-	if(zbLargeMatrix)then
+	if(zbigmat)then
 		! FIXME: problem with gesdd
 		call gesdd(cov, zev, u=zleof, job='V', info=la_info)
 	else
@@ -1040,7 +1101,7 @@ contains
 	!	Outputs EOFs and PCs from PCA and SVD can further be used
 	!	by the model part.
 	!
-	! Necessary arguments:
+	! :Necessary arguments:
 	!	- ll:    Left space-time array
 	!	- rr:    Right space-time array
 	!	- lPcaEof:  Left pre-PCA EOFs
@@ -1124,7 +1185,7 @@ contains
 	!	from left field. It uses results from pre-PCA
 	!	and SVD decompositions performed by sl_svdmodel_build.
 	!
-	! Necessary arguments:
+	! :Necessary arguments:
 	!	- ll:    Left space array
 	!	- rr:    Right space array
 	!	- lPcaEof:  Left pre-PCA EOFs
@@ -1133,7 +1194,7 @@ contains
 	!	- rSvdEof:  Right pre-SVD EOFs
 	!	- l2r:      Scale factors to convert from left to right
 	!
-	! Dependencies:
+	! :Dependencies:
 	!	sl_pca_getec sl_pca_rec
 
 
@@ -1217,16 +1278,16 @@ contains
 	!	the first phase conincides with the maximmum.
 	!
 	!
-	! Necessary arguments:
+	! :Necessary arguments:
 	!	- varrec: Space-time array
 	!	- np:    Number of requested phases over the 360 degrees cycle [default:8]
 	!
-	! Optional arguments:
+	! :Optional arguments:
 	!	- weights:    Space array of weights
 	!	- offset:     Minimal normalized amplitude of the index [default:0.]
 	!	- firstphase: Value in degrees of the first phase [default:0.]
 	!
-	! Dependencies:
+	! :Dependencies:
 	!	sl_pca
 
 
