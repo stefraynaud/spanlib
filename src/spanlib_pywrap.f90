@@ -105,6 +105,25 @@ subroutine mssa(var, nchan, nt, nwindow, nkeep, steof, stpc, ev, ev_sum)
 
 end subroutine mssa
 
+subroutine stcov(var, cov, nchan, nt, nwindow)
+
+	use spanlib, only: sl_stcov
+	
+	implicit none
+	
+	! External
+	! --------
+	integer, intent(in)  :: nchan, nt, nwindow
+	real,    intent(in)  :: var(nchan,nt)
+	real,    intent(out) :: cov(nchan*nwindow,nchan*nwindow)
+
+	! Call to original subroutine
+	! ---------------------------
+	call sl_stcov(var, cov)
+
+end subroutine stcov
+
+
 subroutine mssa_getec(var, steof, nchan, nt, nkept, nwindow, stec)
 
 	use spanlib, only: sl_mssa_getec
