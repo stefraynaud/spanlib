@@ -3,7 +3,8 @@
 ######################################################################
 
 EXTRA_DIST = COPYING INSTALL AUTHORS README ChangeLog
-SUBDIRS = src lib scripts doc
+#SUBDIRS = src lib scripts doc
+SUBDIRS = src lib scripts
 DIST_SUBDIRS = $(SUBDIRS) example
 
 .PHONY: example doc

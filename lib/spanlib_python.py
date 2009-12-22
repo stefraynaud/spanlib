@@ -1895,17 +1895,18 @@ class SpAn(object):
 			self._input_map = input_map
 		self._datasets = datasets
 		
-	def _demap_(self, fields, grouped=False):
+	def _demap_(self, fields, grouped=None):
 		"""Return fields as input dataset (depth and shapes)"""
 		
 		# Convert list to dictionary
 		if isinstance(fields, list):
-			grouped = True
+			if grouped is None: grouped = not isinstance(fields[0], list)
 			ff = {}
 			for i, f in enumerate(fields):
 				ff[i] = f
 			fields = ff
 		else:
+			if grouped is None: grouped = False
 			fields = copy.copy(fields)
 		
 		# Loop on datasets	
@@ -1918,12 +1919,13 @@ class SpAn(object):
 			# Get field of current dataset
 			f = fields[iset]
 			
-			# single input variable (or grouped to single)?
+			# Single input variable (or grouped to single)?
 			if im == 0 and not grouped:
 				f = f[0]
 				
 			# Only one dataset
-			if isinstance(self._input_map, int): return f
+			if isinstance(self._input_map, int): 
+				return f
 			
 			# Append
 			ret += f, 
@@ -2756,6 +2758,136 @@ def phase_composites(data,  nphase=8, minamp=.5, firstphase=0, index=None, force
 	return phases
 
 
+class Filler(object):
+	"""Class to fill missing value with a MSSA filtered version of the data
+	
+	The initialization automatically call the :meth:`fill` method.
+	"""
+	
+	def __init__(self, data, **kwargs):
+		
+		self._kwargs = kwargs
+		self._kwargs['getinvalid'] = True
+		self._kwargs.setdefault('nvalid', 1)
+		self._kwargs.setdefault('quiet', True)
+		self._data = data
+		self.filled = None
+		self.filtered = None
+		
+		self.fill(**kwargs)
+
+	def fill(self, nitermax=50, cvmax=2, npca=20, nmssa=15, **kwargs):
+		"""Run the filler with a convergence loop
+		
+		Results are accessible in the following attributes:
+		
+		.. attribute:: filtered
+		
+			Filtered data, result from the convergence loop.
+			
+		.. attribute:: filled
+		
+			Data filled with :attr:`filtered`
+			
+		:Parameters:
+		
+			- **nitermax**: Maximal number of iterations
+			- **cvmax**: Convergence criterion (%)
+			- **npca**: Number of PCA modes (see :class:`SpAn`)
+			- **nmssa**: Number of MSSA modes (see :class:`SpAn`)
+			- Other parameters are passed to :class:`SpAn`
+			
+		:Returns:
+		
+			- :attr:`filled`
+		
+		"""
+	
+		kwargs['getinvalid'] = True
+		kwargs.setdefault('nvalid', 1)
+		kwargs.setdefault('quiet', True)
+		data = self._data
+		for icv in xrange(nitermax):
+			
+			# Setup data
+			# - run analysis
+			if icv:
+				kwargs['getinvalid'] = False
+				kwargs['nvalid'] = None
+			span = SpAn(data, serial=False, npca=npca, nmssa=nmssa, **kwargs)
+			# - first run
+			if icv == 0:
+				# Check input
+				if isinstance(span._input_map, list):
+					raise TypeError('Input data must be a single variable or a list of variables')
+				mdata = span._datasets
+				# Keep original data safe
+				for ivar in xrange(len(mdata[0])):
+					var = mdata[0][ivar]
+					if cdms2_isVariable(var): mdata[0][ivar] = var.clone()
+					else: mdata[0][ivar] = var.copy()			
+			
+			# Check convergence
+			if icv == 0: # reference
+			
+				invalids = span._stack_info[0]['invalids']
+				for invalid in invalids:
+					if invalid is not None and invalid.any():
+						break
+				else:
+					print "Nothing to fill in"
+					datarec = data
+					break
+				cv = 1.
+				last_energy = 0.
+					
+			else: # next steps
+			
+				# new energy
+				energy = 0.
+				for i, invalid in enumerate(invalids):
+					if invalid is None: continue
+					basevar = span._datasets[0][i]
+					if cdms2_isVariable(span._datasets[0][i]):
+						basevar = basevar.asma()
+					basevar = basevar.copy()
+					basevar[:] -= span._stack_info[0]['means'][i] #FIXME: order
+					basevar[:] *= basevar
+					energy += basevar[invalid].sum()
+					del basevar
+					
+				# check convergence
+				cv = (energy-last_energy)/energy
+				print ' cv', cv*100
+				if cv < 0 or npy.abs(cv) < cvmax/100.:
+					print 'Convergence reached: %.2f%% (%i iterations)'%(100*cv, icv)
+					break
+				last_energy = energy
+			
+			# Reconstruction
+			datarec = span.mssa_rec()
+			mdatarec = span._remap_(datarec)
+			
+			# Replace invalid data with reconstructed field
+			for ivar in xrange(len(mdatarec[0])):
+				if invalids[ivar] is not None:
+					mdata[0][ivar][:] = eval(span._type_(0, ivar)).where(invalids[ivar], 
+						mdatarec[0][ivar], mdata[0][ivar])
+			data = span._demap_(mdata)
+					
+	
+			# Check iteration limit
+			if icv >= nitermax:
+				print 'Convergence not reached %i%% (%i iterations)'%(100*cv, icv)
+				break
+				
+		# Output
+		self.span = span
+		self.nmssa = span.nmssa()
+		self.npca = span.npca()
+		self.filled = data
+		self.filtered = datarec
+		return data
 
 def fill_missing(data, nitermax=50, cvmax=0.02, out='filled', **kwargs):
 	
@@ -2769,8 +2901,12 @@ def fill_missing(data, nitermax=50, cvmax=0.02, out='filled', **kwargs):
 			kwargs['getinvalid'] = False
 			kwargs['nvalid'] = None
 		span = SpAn(data, serial=False, **kwargs)
-		if icv == 0 and isinstance(span._input_map, list):
-			raise TypeError('Input data must be a single variable or a list of variables')
+		if icv == 0:
+			if isinstance(span._input_map, list):
+				raise TypeError('Input data must be a single variable or a list of variables')
+			mdata = span._remap_(data)
+
+		
 		
 		# Check convergence
 		if icv == 0: # reference
@@ -2778,7 +2914,7 @@ def fill_missing(data, nitermax=50, cvmax=0.02, out='filled', **kwargs):
 			invalids = span._stack_info[0]['invalids']
 			for invalid in invalids:
 				if invalid is not None and invalid.any():
-					print invalid.sum()
+#					print invalid.sum()
 					break
 			else:
 				print "Nothing to fill in"
@@ -2804,9 +2940,9 @@ def fill_missing(data, nitermax=50, cvmax=0.02, out='filled', **kwargs):
 				del basevar
 				
 			# check convergence
-			cv = npy.abs(energy-last_energy)/energy
-			print ' cv', energy, cv
-			if cv < cvmax:
+			cv = (energy-last_energy)/energy
+			print ' cv', cv*100
+			if cv < 0 or npy.abs(cv) < cvmax:
 				print 'Convergence reached: %i%% (%i iterations)'%(100*cv, icv)
 				if out=='rec': return datarec
 				elif out=='both': return data, datarec
@@ -2815,19 +2951,34 @@ def fill_missing(data, nitermax=50, cvmax=0.02, out='filled', **kwargs):
 		
 		# Reconstruction
 		datarec = span.mssa_rec()
-		if span._input_map == 0:
-			if icv==0:
-				if cdms2_isVariable(data): data = data.clone()
-				else: data = data.copy()
-			data[:] = eval(span._type_(0, 0)).where(invalids[0], datarec, data)
-		else:
-			data = list(data)
-			for i, d in enumerate(datarec):
-				if icv==0:
-					if cdms2_isVariable(d): d = data.clone()
-					else: d = d.copy()
-				if invalids[i] is not None:
-					data[i][:] = eval(span._type_(0, i)).where(invalids[i], d, data[i])
+		mdatarec = span._remap_(datarec)
+		for ivar in xrange(len(mdatarec[0])):
+			
+			# Keep original data safe
+			if icv==0: 
+				var = mdata[0][ivar]
+				if cdms2_isVariable(var): mdata[0][ivar] = var.clone()
+				else: mdatar[0][ivar] = var.copy()
+				
+			# Replace invalid data with reconstructed data
+			if invalids[ivar] is not None:
+				mdata[0][ivar][:] = eval(span._type_(0, ivar)).where(invalids[ivar], 
+					mdatarec[0][ivar], mdata[0][ivar])
+		data = span._demap_(mdata)
+		pass
+#		if span._input_map == 0:
+#			if icv==0:
+#				if cdms2_isVariable(data): data = data.clone()
+#				else: data = data.copy()
+#			data[:] = eval(span._type_(0, 0)).where(invalids[0], datarec, data)
+#		else:
+#			data = list(data)
+#			for i, d in enumerate(datarec):
+#				if icv==0:
+#					if cdms2_isVariable(d): d = data.clone()
+#					else: d = d.copy()
+#				if invalids[i] is not None:
+#					data[i][:] = eval(span._type_(0, i)).where(invalids[i], d, data[i])
 				
 
 		# Check iteration limit

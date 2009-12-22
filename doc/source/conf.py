@@ -16,7 +16,7 @@ import sys, os
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
-sys.path.extend([os.path.abspath('sphinxext'), os.path.abspath('../../src/build/tmp_lib')])
+sys.path.extend([os.path.abspath('sphinxext'), os.path.abspath('../../src/build/lib')])
 
 # General configuration
 # ---------------------
@@ -79,6 +79,12 @@ pygments_style = 'sphinx'
 
 # Options for HTML output
 # -----------------------
+
+intersphinx_mapping = {
+	'http://docs.python.org/dev': None,
+	'http://matplotlib.sourceforge.net':None,
+	#'http://docs.scipy.org/doc':None,
+}
 
 # The style sheet to use for HTML and HTML Help pages. A file of that name
 # must exist either in Sphinx' static/ path, or in one of the custom paths
