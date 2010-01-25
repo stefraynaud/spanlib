@@ -2830,7 +2830,7 @@ class Filler(object):
 			# Check convergence
 			if icv == 0: # reference
 			
-				invalids = span._stack_info[0]['invalids']
+				self.invalids = invalids = span._stack_info[0]['invalids']
 				for invalid in invalids:
 					if invalid is not None and invalid.any():
 						break
@@ -2886,7 +2886,9 @@ class Filler(object):
 		self.nmssa = span.nmssa()
 		self.npca = span.npca()
 		self.filled = data
+		self.filled.id = self._data.id+'_filled'
 		self.filtered = datarec
+		self.filled.id = self._data.id+'_filtered'
 		return data
 
 def fill_missing(data, nitermax=50, cvmax=0.02, out='filled', **kwargs):
