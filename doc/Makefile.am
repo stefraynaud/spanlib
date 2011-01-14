@@ -40,10 +40,11 @@ html-local:
 	@echo "Build finished. The HTML pages are in build/html."
 
 if HAS_LATEX_SUPPORT
+all-pdf: pdf
+pdf: latex
 latex:
 	-mkdir -p build/latex build/doctrees
-	-$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) build/latex
-	-cd build/latex && make all-pdf
+	-$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) build/latex && cd build/latex && make all-pdf
 endif
 
 changes:
