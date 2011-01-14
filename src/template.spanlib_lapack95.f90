@@ -20,12 +20,12 @@
 
 module spanlib_lapack95
 
-	! Subroutines
-	use f95_lapack, only: &
-		& la_syev  => syev, &
-		& la_syevd => syevd, &
-		& la_gesvd => gesvd, &
-		& la_gesdd => gesdd 
+    ! Subroutines
+    use f95_lapack, only: &
+        & la_syev , &
+        & la_syevd, &
+        & la_gesvd, &
+        & la_gesdd 
 
 end module spanlib_lapack95
 

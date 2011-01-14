@@ -1,11 +1,9 @@
 ######################################################################
-## SpanLib, Raynaud 2006-2009
+## SpanLib, Raynaud 2006-2010
 ######################################################################
 
 import os
 import sys
-
-from getopt import gnu_getopt
 
 
 # Gather up all the files we need.
@@ -21,8 +19,6 @@ description='Python extension to spanlib fortran library'
 author = 'Stephane Raynaud and Charles Doutriaux'
 author_email = 'stephane.raynaud@gmail.com'
 url="http://spanlib.sf.net"
-description
-## scypy_distutils Script
 from numpy.distutils.core import setup, Extension
 
 # Some useful directories.  
