@@ -2,10 +2,11 @@
 ## SpanLib, Raynaud 2006
 ######################################################################
 
-EXTRA_DIST = COPYING INSTALL AUTHORS README ChangeLog
+EXTRA_DIST = COPYING INSTALL AUTHORS README ChangeLog setup.py setup.cfg
 #SUBDIRS = src lib scripts doc
 SUBDIRS = src lib scripts
-DIST_SUBDIRS = $(SUBDIRS) example
+DIST_SUBDIRS = $(SUBDIRS) 
+#example
 
 .PHONY: example doc
 
