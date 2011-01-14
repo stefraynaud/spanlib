@@ -23,7 +23,6 @@ AC_DEFUN([AX_WITH_PYTHON],
   AC_ARG_VAR([PYTHON],[absolute path name of Python executable])
 
   dnl unless PYTHON was supplied to us (as a precious variable)
-dnl  if test -z "$PYTHON"
   AS_VAR_SET_IF(PYTHON,,[
     AC_MSG_CHECKING(for --with-python)
     AC_ARG_WITH(python,
@@ -41,15 +40,14 @@ dnl  if test -z "$PYTHON"
                 ])
   ])
 
-  dnl if it's still not found, check the paths, or use the fallback
-dnl  if test -z "$PYTHON"
+  dnl if its still not found, check the paths, or use the fallback
   AS_VAR_SET_IF(PYTHON,,[
     AC_PATH_PROG([PYTHON], python, m4_ifval([$2],[$2],[python]), $3)
   ])
 
   dnl check version if required
   m4_ifvaln([$1], [
-    dnl do this only if we didn't fall back
+    dnl do this only if we didnt fall back
     if test "$PYTHON" != "m4_ifval([$2],[$2],[python])"
     then
       AC_MSG_CHECKING($PYTHON version >= $1)
