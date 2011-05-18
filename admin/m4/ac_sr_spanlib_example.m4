@@ -7,7 +7,6 @@ AC_DEFUN([AC_SR_SPANLIB_EXAMPLE],[
     #################################################################
     # We need netcdf
     #################################################################
-
     AS_IF([test "AS_VAR_GET(ENABLE_FORTRAN)" = "yes"],[
         AC_SR_NETCDF()
         AS_IF([test "AS_VAR_GET(HAS_F90NETCDF)" = "yes"],[
@@ -15,11 +14,11 @@ AC_DEFUN([AC_SR_SPANLIB_EXAMPLE],[
         ],[
             AC_SR_WARNING([Without f90 netcdf support, you wont be able to run the f90 example])
         ])
-        AS_VAR_SET([ENABLE_FORTRAN_EXAMPLES],"yes")
+        AS_VAR_SET(ENABLE_FORTRAN_EXAMPLES,"yes")
     ],[
-        AS_VAR_SET([ENABLE_FORTRAN_EXAMPLES],"no")
+        AS_VAR_SET(ENABLE_FORTRAN_EXAMPLES,"no")
     ])
-    AM_CONDITIONAL([ENABLE_FORTRAN_EXAMPLES],AS_VAR_GET(ENABLE_FORTRAN_EXAMPLES)
+    AM_CONDITIONAL([ENABLE_FORTRAN_EXAMPLES],[test AS_VAR_GET(ENABLE_FORTRAN_EXAMPLES) = "yes"])
 
     #################################################################
     # Blas/Lapack (checked before)
@@ -30,21 +29,10 @@ AC_DEFUN([AC_SR_SPANLIB_EXAMPLE],[
     #################################################################
     # Python example help
     #################################################################
-    AS_IF([test "AS_VAR_GET(ENABLE_PYTHON)" = "yes"],[
-        # Check CDAT
-        AC_MSG_CHECKING([for cdms2 support])
-        AS_VAR_GET(PYTHON) -c ["import cdms2"] 2> /dev/null
-        AS_IF([test "$?" = "0"],[  
-            AC_MSG_RESULT("yes")
-            AS_VAR_SET([ENABLE_PYTHON_EXAMPLES],"yes")
-        ],[
-            AS_VAR_SET([ENABLE_PYTHON_EXAMPLES],"no")
-        ])
-dnl        AS_VAR_SET(PYTHON_EXAMPLE_TEXT,['To run examples, go to the "example" directory and type "make python"'])
-    ],[
-        AS_VAR_SET([ENABLE_PYTHON_EXAMPLES],"no")
-    ])
-    AM_CONDITIONAL([ENABLE_PYTHON_EXAMPLES],AS_VAR_GET(ENABLE_PYTHON_EXAMPLES)
+    AS_IF([test "AS_VAR_GET(ENABLE_PYTHON)" = "yes" -a "AS_VAR_GET(HAS_BLASLAPACK)" != "no"],
+        [AS_VAR_SET(ENABLE_PYTHON_EXAMPLES,"yes")],
+        [AS_VAR_SET(ENABLE_PYTHON_EXAMPLES,"no")])
+    AM_CONDITIONAL([ENABLE_PYTHON_EXAMPLES],[test AS_VAR_GET(ENABLE_PYTHON_EXAMPLES) = "yes"])
 
 
     #################################################################
@@ -60,7 +48,7 @@ dnl        AS_VAR_SET(PYTHON_EXAMPLE_TEXT,['To run examples, go to the "example"
                 AS_VAR_SET(DOWNLOADER,AS_VAR_GET(LINKS))) ])
     AS_VAR_SET_IF(DOWNLOADER,,
         AC_SR_WARNING([No commandline downloader found:
-you will have to download yourself the input data file to run the example]))
+you will have to download yourself the input data file to run some examples]))
     AC_SUBST(DOWNLOADER)
     AM_CONDITIONAL(HAS_DOWNLOADER,AS_VAR_TEST_SET(DOWNLOADER))
     AM_CONDITIONAL(USE_LINKS,

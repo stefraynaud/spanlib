@@ -2,7 +2,7 @@
 # File: spanlib_python.py
 #
 # This file is part of the SpanLib library.
-# Copyright (C) 2006-2009  Stephane Raynaud, Charles Doutriaux
+# Copyright (C) 2006-2011  Stephane Raynaud, Charles Doutriaux
 # Contact: stephane dot raynaud at gmail dot com
 #
 # This library is free software; you can redistribute it and/or
@@ -20,7 +20,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #################################################################################
 
-import spanlib_fort,numpy as npy
+import spanlib_fort,numpy
+npy = numpy
 try:
     import cdms2 ,MV2
     MV = MV2
@@ -32,6 +33,7 @@ except:
     has_cdat_support = False
 import copy,gc
 from warnings import warn
+#print spanlib_fort.__file__
 
 docs = dict(
     npca = """- *npca*: int | ``None``
@@ -75,9 +77,556 @@ def _filldocs_(func):
     func.__doc__ = func.__doc__ % docs
     return func
 
+def broadcast(input, mylen, fillvalue=None):
+    """Make sure that input has the right length"""
+    # A single value
+    if mylen == 0:
+        if isinstance(input,(list,tuple)):
+            if not input: return None
+            return input[0]
+        return input
+        
+    # Multiple values as a list (or tuple)
+    if not isinstance(input,(list,tuple)):
+        fillvalue = input
+        input = [input]
+    if isinstance(input,tuple):
+        input = list(input)
+    dlen = mylen-len(input)
+    if dlen < 0:
+        input = input[:mylen]
+    elif dlen > 0:
+        input.extend([fillvalue]*dlen)
+    return input
 
+class Data(object):
+    """Class to handle a single variable
+    
+        This class packs a variable in 2D space by removing
+        all masked points and storing a space-time array.
+        It performs this operation also on the weights.
+        It is used for removing unnecessary points and
+        simplifying the input format for analysis functions.
+            
+        :Parameters:
+        
+            - **data**: masked array
+                Flatten in space an [x,y,t] array by 
+                removing its masked point
+        
+        :Options:
+        
+            - **weights**: Weights to be flatten also
+            - **norm**: Normalisation coefficients
+            - **mask**: Integer mask where valid data = 1
+    """
+    def __init__(self, data, weights=None, norm=None, keep_invalids=False, nvalid=None, clean_weights=True):
+        
+        # Guess data type and copy
+        if cdms2_isVariable(data):
+            self.array_type = 'MV2'
+            data = data.clone()
+        elif npy.ma.isMA(data):
+            self.array_type = 'numpy.ma'
+            data = data.copy()
+        else:
+            self.array_type = 'numpy'
+            data = data.copy()
+        self.data = data
+        self.dtype = data.dtype
+        data = data.astype('d')
+            
+         # Shape
+        self.shape = data.shape
+        self.ndim = data.ndim
+        self.nt = self.shape[0]
+        self.nstot = data.size/self.nt
+        self.nsdim = data.ndim-1
+        
+        # Check time axis
+        if cdms2_isVariable(data) and data.getTime() is not None: 
+            order = data.getOrder()
+            if not order.startswith('t'):
+                warn('Time axis is not the first axis of input variable (order="%s")'%order)
 
+        # Weights ?
+        if weights is None or weights is False:
+            if weights is not False and data.ndim == 3 and \
+                cdms2_isVariable(data) and \
+                'x' in data.getOrder() and 'y' in data.getOrder():
+                import cdutil
+                weights = cdutil.area_weights(data[0]).data.astype('d') # Geographic weights
+            elif self.nstot==1:
+                weights = npy.ones(1)
+            else:
+                weights = npy.ones(self.shape[1:])
+        elif npy.ma.isMA(weights):
+            weights = weight.filled(0.).astype('d')
+        else:
+            weights = npy.asarray(weights, dtype='d')
+        if data.ndim>1 and self.shape[1:] != weights.shape:
+            raise SpanlibError('Weights must be of shape %s (instead of %s)'
+                %(self.shape[1:],  weights.shape))
+            
+        # Store some info
+        # - time
+        if not cdms2_isVariable(data):
+            self.taxis = data.shape[0]
+        else:
+            self.taxis = data.getAxis(0)
+        # - others axes and attributes
+        if cdms2_isVariable(data): # cdms -> ids
+            self.saxes = data.getAxisList()[1:]
+            self.id = data.id
+            self.atts =  {}
+            for att in data.listattributes():
+                self.atts[att] = data.attributes[att]
+            self.grid = data.getGrid()
+            data = data.asma()
+        else: # numpy -> length
+            self.saxes = data.shape[1:]
+            self.id = None
+            self.atts = None
+            self.grid = None
+        # - missing value
+        if npy.ma.isMA(data):
+            self.missing_value = data.get_fill_value()
+        else:
+            self.missing_value = 1.e20
+        # - special cases
+        for att in 'long_name', 'units':
+            if hasattr(data, att):
+                setattr(self, att, data.attributes[att])
+        
 
+        # Mask (1 means good)
+        # - real good values
+        bmask = npy.ma.getmaskarray(data)
+        good = 1-bmask.astype('l')
+        # - first from data (integrate) => 1D
+        count = npy.atleast_1d(good.sum(axis=0))
+        del good
+        # - now remove channels where weight is zero
+        if clean_weights:
+            count[npy.atleast_1d(weights==0.)] = 0
+        # - check number of valid data along time
+        nvalid = npy.clip(int(nvalid), 1, self.nt) if nvalid is not None else self.nt
+        count[count<nvalid] = 0
+        count = npy.clip(count, 0, 1)
+        # - save as 0/1
+        self.ns = long(count.sum())
+        self.compress = count.size != self.ns
+        self.good = count>0
+        self.nvalid = nvalid
+        
+        # Scale unpacked data
+        # - mean
+        self.mean = data.mean(axis=0)
+        # - normalisation factor
+        if norm is True or norm is None:
+            norm = self.data.std() # Standard norm
+        elif norm is not False:
+            if norm <0: # Relative norm, else strict norm
+                norm = abs(norm)*self.data.std()
+        else:
+            norm = 1.
+        self.norm = norm
+        # - apply
+        self.scale(data)
+            
+        # Fill data
+        # - fill with mean (0.) where possible
+        if nvalid != self.nt: 
+            invalids = bmask & self.good
+            data[invalids] = 0.
+            if keep_invalids: 
+                self.invalids = invalids
+            else: del invalids
+        else:
+            self.invalids = None
+        # - finally fill with missing values at zero
+        if npy.ma.isMA(data):
+            data_num = data.filled(0.)
+        else:
+            data_num = data
+    
+        # Pack 
+        # - data
+        self.packed_data = self.core_pack(data_num, force2d=True)
+        # - weights
+        self.packed_weights = self.core_pack(weights)
+        
+
+        
+    def core_pack(self, data_num, force2d=False):
+        """Compress data along space if needed and put time dimension first
+        
+        :Parameters:
+        
+            - **data_num**: Pure numpy array.
+        """
+    
+        # Remove bad channels ?
+        if self.compress: # Pack  
+            pdata = data_num[:, self.good].T
+        else: # Don't pack
+            pdata = data_num.T
+            
+        # At least 1D
+        pdata = npy.atleast_1d(pdata)
+        
+        # 2D?
+        if force2d and pdata.ndim==1:
+            if self.nsdim==0:
+                pdata = npy.atleast_2d(pdata)
+            else:
+                pdata.shape = pdata.size, 1
+                
+        return pdata
+        
+    def scale(self, data, copy=False, mean=None, norm=None):
+        """Remove mean and normalize unpacked data"""
+        if copy: 
+            data = cdms2_isVariable(data) and data.clone() or data.copy()
+        if mean is not False:
+            data[:] -= self.mean if mean is True or mean is None else mean
+        if norm is not False:
+            data[:] /= self.norm if norm is True or norm is None else norm
+        return data
+        
+    def rescale(self, data, copy=False, mean=None, norm=None):
+        """Re-add mean and unnormalize unpacked data"""
+        if copy: 
+            data = cdms2_isVariable(data) and data.clone() or data.copy()
+        if norm is not False:
+            data[:] *= self.norm if norm is True or norm is None else norm
+        if mean is not False:
+            data[:] += self.mean if mean is True or mean is None else mean
+        return data
+   
+#    def scale(self, pdata, copy=False):
+#        """Demean and normalize packed data"""
+#        if copy: pdata = pdata.copy()
+#        if pdata.ndim==1:
+#            mean = self.packed_mean[:,0]
+#        else:
+#            mean = npy.repeat(self.packed_mean, pdata.shape[1], axis=1)
+#        pdata[:] -= mean ; del mean
+#        pdata[:] /= self.norm
+#        return 
+        
+#    def rescale(self, pdata, copy=False):
+#        """Remean and unnormalize packed data"""
+#        if copy: pdata = pdata.copy()
+#        if pdata.ndim==1:
+#            mean = self.packed_mean[:,0]
+#        else:
+#            mean = npy.repeat(self.packed_mean, pdata.shape[1], axis=1)
+#        pdata[:] *= self.norm
+#        pdata[:] += mean ; del mean
+#        return pdata
+   
+    def repack(self, data, scale=True, force2d=False):
+        """Pack a variable using previously computed mask array"""
+        
+        # Scale
+        if scale:
+            data = self.scale(data, copy=True)
+        
+        # Numpy
+        if npy.ma.isMA(data): data = data.filled()
+        
+        # Check shape
+        nsdim = self.ndim-1
+        if nsdim!=0: 
+            if data.shape[-nsdim:] != self.shape[-nsdim:]:
+                raise SpanlibError('Incompatible shape of channels (%s instead of %s)'
+                    %(data.shape[-nsdim:], self.shape[-nsdim:]))                
+        
+        return pdata
+       
+    def create_array(self, firstdims=None, format=1, firstaxes=None):
+        """Initialize an array similar to input array
+        
+        Type of array is guessed from attribute :attr:`array_type`.
+        
+        The array is filled with attribute :attr:`missing_value` if
+        pure numpy, else with masked values.
+        
+        :Params:
+        
+            - **firstdims**, optional: Size of the first dimension(s).
+              Defaults to attribute :attr:`nt`.
+            - **format**, optional: To format output array as a CDAT variable
+              using information from analyzed array.
+              
+                - ``1``: Add all initial axes but the first one.
+                - ``2`` or ``"full"``: Add attributes. 
+                - else, does not format.
+                
+            - **firstaxes**, optional: Set thes axes as the first ones.
+              If ``firstaxes is None`` and ``firstdims is None``, it defaults
+              to the first axis of analyzed array.
+              You may also provide integers instead of axes, which are then
+              used to set length of first axes if ``firstdims`` is not
+              set.
+              
+
+        """
+        # Get base array
+        # - shape
+        shape = self.shape[1:]
+#        firstdims = (firstdims is not None and firstaxes is not None) and firstdims or False
+        if firstdims is not None:
+            if not firstdims:
+                firstdims = False
+            elif not isinstance(firstdims, tuple):
+                firstdims = (firstdims, )
+        if firstdims is not False:
+            if firstaxes is None:
+                firstaxes = [self.taxis]
+            elif not isinstance(firstaxes, list):
+                firstaxes = list(firstaxes)
+            if firstdims is None: 
+                firstdims = tuple([(isinstance(a, (int, long))  and a or len(a)) for a in firstaxes])
+            shape = firstdims + shape
+        elif len(shape)==0:
+            shape = (1, )
+        # - create
+        MM = eval(self.array_type)
+        data = MM.zeros(shape, self.dtype)
+        # - missing values
+        if self.array_type != 'numpy':
+            data[:] = npy.ma.masked
+            data.set_fill_value(self.missing_value)
+        else:
+            data[:] = self.missing_value
+            
+        # Format CDAT variables
+        if self.array_type=='MV2' and format:
+            
+            # Axes
+            for i, axis in enumerate(self.saxes):
+                data.setAxis(i+len(firstdims), axis)
+            if firstdims is not False and firstaxes is not None:
+                for i, a in enumerate(firstaxes):
+                    if not isinstance(a, (int, long)):
+                        data.setAxis(i, a)
+             
+            # Attributes
+            if format=='full' or format>1:
+                data.id = self.id
+                for att, val in self.atts.items():
+                    setattr(data, att, val)
+        return data
+        
+        
+    def unpack(self, pdata, rescale=True, format=1, firstdims=None, firstaxes=None):
+        """Unpack data along space, reshape, and optionally unnormalize and remean.
+        
+        Input is sub_space:other, output is other:split_space.
+        For MSSA: pdata(nchan,window,nmssa) (other = window:nmssa)
+        
+        :Params:
+            
+            - **pdata**: Packed data.
+            - **rescale**, optional: Rescale the variable (mean and norm).
+            - **format**, optional: Format the variable (see :meth:`create_array`).
+            - **firstaxes**, optional: First axis (see :meth:`create_array`).
+        """
+        
+            
+        # Unpack
+        # - space is last
+        pdata = npy.ascontiguousarray(pdata.T).copy()
+        # - first dimensions
+        if firstdims is None and firstaxes is None:
+            firstdims = 0 if pdata.ndim==1 else pdata.shape[0]
+        # - create variable
+        data = self.create_array(firstdims=firstdims,  format=format, firstaxes=firstaxes)
+        # - check packed data shape
+        firstdims = data.shape[:-self.nsdim]
+        if len(firstdims) > 1:
+            pdata.shape = firstdims + (-1, )
+        # - uncompress
+        first_slices = (slice(None), )*max(1, len(firstdims))
+        if self.compress:
+            mdata = data.asma() if self.array_type=='MV2' else data
+            slices = first_slices+(self.good, )
+            mdata[slices] = pdata
+        else:
+            if self.nsdim==0 and pdata.ndim>1: pdata = pdata[first_slices+(0, )]
+            data[:] = pdata
+        del pdata
+        
+        # Rescale
+        if rescale:
+            self.rescale(data)
+
+        return data
+
+    def has_cdat(self):
+        """Was input array of CDAT type (:mod:`MV2`)?"""
+        return self.array_type == "MV2"
+
+          
+class Dataset(object):
+    """Class to handle one or a list of variables
+    
+    This fonction concatenates several dataset that have the
+    same time axis. It is useful for analysing for example
+    several variables at the same time.
+    It takes into account weights, masks and axes.
+
+    :Params:
+    
+        - *dataset*: A list of data objects.
+            They must all have the same time length.
+            
+    :Options:
+    
+        - *weights*: Associated weights.    
+    """
+    
+    def __init__(self, dataset, weights=None, norms=None, 
+        keep_invalids=False, nvalid=None, clean_weights=True):
+        
+        if isinstance(dataset, (list, tuple)):
+            dataset = list(dataset)
+            self.map = len(dataset)
+        else:
+            dataset = [dataset]
+            self.map = 0
+        self.ndataset = len(dataset)
+
+        # Inits
+        self.data = []
+        self.nt = None
+        weights = self.remap(weights, reshape=True)
+        norms = self.remap(norms, reshape=True)
+        self.invalids = []
+    
+        # Loop on datasets
+        for idata,data in enumerate(dataset):
+    
+            # Create the Data instance and pack array
+            dd = Data(data, norm=norms[idata], weights=weights[idata], 
+                keep_invalids=keep_invalids, nvalid=nvalid, clean_weights=clean_weights)
+            self.data.append(dd)
+            self.invalids.append(dd.invalids)
+            
+            # Check nt
+            if self.nt is None:
+                self.nt = dd.nt
+            elif self.nt != dd.nt:
+                raise SpanlibError('Time dimension of variable %i must have length %i (not %i)'%(idata, self.nt, dd.nt))
+    
+        # Merge
+        self.stacked_data = npy.asfortranarray(npy.vstack([d.packed_data for d in self.data]))
+        self.splits = npy.cumsum([d.packed_data.shape[0] for d in self.data[:-1]])
+        self.stacked_weights = npy.hstack([d.packed_weights for d in self.data])
+        self.ns = self.stacked_data.shape[0]
+        self.norms = [d.norm for d in self.data]
+    
+    def restack(self, dataset, scale=True):
+        """Stack new variables as a fortran array"""
+        
+        # Check input data
+        if isinstance(dataset, (list, tuple)):
+            dataset = list(dataset)
+            dmap = len(dataset)
+        else:
+            dataset = [dataset]
+            dmap = 0
+        if  len(dataset)!=self.ndataset:
+            raise SpanlibError('You must provide %i variable(s) to stack'%len(dataset))
+            
+        # Pack
+        packs = [self[idata].repack(data, scale=scale, force2d=True)
+            for idata, data in enumerate(dataset)]
+            
+        # Check time length (first axis)
+        nt1 = dataset[0].size/self[0].nstot
+        if len(dataset)>1:
+            for i, d in enumerate(dataset[1:]):
+                i += 1
+                nt2 = d.size/self[i].nstot
+                if packs[0].ndim!= packs[i].ndim:
+                    if packs[0].ndim==1:
+                        SpanlibError('Variable %i must not have a time dimension '% (i+1, ))
+                    else:
+                        SpanlibError('Variable %i must have a time dimension '% (i+1, ))
+                elif nt1!=nt2:
+                    raise SpanlibError('Time length of variable %i (%i) different from that of first variable (%i)'
+                        % (i+1, nt2, nt1))
+            
+        # Stack
+        stacker = npy.vstack if packs[0].ndim==2 else npy.hstack
+        return npy.asfortranarray(stacker(packs))
+    
+ 
+    def unstack(self, sdata, rescale=True, format=1, firstdims=None, firstaxes=None):
+        """Unstack and unpack data
+        
+        :Params:
+        
+            - **sdata**: Stacked data (as computed by :meth:`__init__` or :meth:`restack`).
+            - **rescale**, optional: Rescale the variable (mean and norm).
+            - **format**, optional: Format the variable (see :meth:`Data.create_array`).
+            - **firstaxes**, optional: First axis (see :meth:`Data.create_array`).
+            
+        :Seel also: :meth:`Data.unpack`
+        """
+        
+        # Unstack
+        spliter = npy.hsplit if sdata.ndim==1 else npy.vsplit
+        packs = spliter(sdata, self.splits)
+        
+        # Unpack
+        return [self[i].unpack(pdata, rescale=rescale, format=format, firstdims=firstdims, firstaxes=firstaxes)
+            for i, pdata in enumerate(packs)]
+        
+    
+#    def get_time(self, idata=0):
+#        """Get time axis"""
+#        return self.data[idata].get_time()
+
+    def __len__(self):
+        return self.ndataset
+        
+    def __getitem__(self, i):
+        return self.data[i]
+
+    def unmap(self, out):
+        """Remap out so as to be in the same form as input data"""
+        if self.map==0:
+            return out[0]
+        return out
+
+    def remap(self, values, reshape=True, fill_value=None):
+        """Makes sure that values is a list (or tuple) of length :attr:`ndataset`
+        
+        :func:`broadcast` is called when reshaping.
+        """ 
+        # We always need a list
+        if not isinstance(values, (list, tuple)):
+            values = [values]
+            
+        # Check length
+        n = len(self)
+        if len(values)!=n:
+            if not reshape:
+                raise SpanlibError('Wrong number of input items (%i instead of %i)'
+                    %(len(values), n))
+            values = broadcast(values, n, fill_value)
+        return values
+
+    def has_cdat(self):
+        """Check if there were at least one input array of CDAT type (:mod:`MV2`)?
+        
+        :Sea also: :meth:`Data.has_cdat`
+        """
+        return len(filter(lambda d: d.has_cdat(), self.data))
 
 class SpAn(object):
     
@@ -92,7 +641,8 @@ class SpAn(object):
     _params = dict(pca=_pca_params, mssa=_pca_params+_mssa_params, svd=_pca_params+_svd_params)
     _all_params = _pca_params+_mssa_params+_svd_params
 
-    def __init__(self, datasets, serial=False, weights=None, norms=True, quiet=False, **kwargs):
+    def __init__(self, datasets, sequential=False, weights=None, norms=True, quiet=False, 
+        nvalid=None, clean_weights=True, keep_invalids=False, **kwargs):
         """ Prepare the Spectral Analysis Object
 
         Description:::
@@ -117,7 +667,7 @@ class SpAn(object):
           nmssa   :: Number of MSSA modes retained [default: 4]
           nsvd  :: Number of SVD modes retained [default: 10]
           window  :: MSSA window parameter [default: time_length/3.]
-          serial :: If we have a list (or tuple) of variables as "datasets", they are analysed independantly (serial analyses in opposition to parallel analyses) if serial is True [default: False]. If False, they are packed before being analysed.
+          sequential :: If we have a list (or tuple) of variables as "datasets", they are analysed independantly (sequential analyses in opposition to parallel analyses) if sequential is True [default: False]. If False, they are packed before being analysed.
         :::
 
         Output:::
@@ -128,25 +678,32 @@ class SpAn(object):
         self._quiet = quiet
         self.clean()
         
-        # We organize datasets as list of list of variables
-        self._map_(datasets, serial)
-
-        # Weights and norms in the same form as datasets
-        norms = kwargs.pop('norm', norms)
-        weights = kwargs.pop('weight', weights)
-        if norms is None:   norms = 1.
-        norms = self._check_shape_(norms, True)
-        for iset,d in enumerate(self._datasets):
-            if len(d) == 1: norms[iset] = [1.]
-        weights = self._check_shape_(weights, None)
-
-        # We stack and pack data
-        getinvalid = kwargs.pop('getinvalid', None)
-        nvalid = kwargs.pop('nvalid', None)
-        for iset,d in enumerate(self._datasets):
-            self._stack_(d, weights[iset], norms[iset], getinvalid=getinvalid, nvalid=nvalid)
-        self._ndataset = len(self._datasets)
-        self._ndata= [len(dataset) for dataset in self._datasets]
+        # Form data, weights and norms for :class:`Dataset` 
+        self._map_(datasets, sequential)
+        weights = self._remap_(weights)
+        norms = self._remap_(norms)
+        
+        # Create Dataset instances
+        self.datasets = [Dataset(d, weights=w, norms=n, 
+            nvalid=nvalid, clean_weights=clean_weights, keep_invalids=keep_invalids)
+            for d, w, n in zip(self._datasets, weights, norms)]
+                
+#        # Weights and norms in the same form as datasets
+#        norms = kwargs.pop('norm', norms)
+#        weights = kwargs.pop('weight', weights)
+#        if norms is None:   norms = 1.
+#        norms = self._check_shape_(norms, True)
+#        for iset,d in enumerate(self._datasets):
+#            if len(d) == 1: norms[iset] = [1.]
+#        weights = self._check_shape_(weights, None)
+#
+#        # We stack and pack data
+#        keep_invalids = kwargs.pop('keep_invalids', None)
+#        nvalid = kwargs.pop('nvalid', None)
+#        for iset,d in enumerate(self._datasets):
+#            self._stack_(d, weights[iset], norms[iset], keep_invalids=keep_invalids, nvalid=nvalid)
+#        self.ndataset = len(self._datasets)
+#        self._ndata= [len(dataset) for dataset in self._datasets]
 
 
         # Check and save parameters
@@ -157,29 +714,29 @@ class SpAn(object):
     #################################################################
     ## Get datasets info
     #################################################################
+    
+    def __getitem__(self, i):
+        return self.datasets[i]
+    
+    def __len__(self):
+        return self.nd
 
-    def _time_axis_(self,iset,idata=None):
+    def _time_axis_(self, iset, idata=0):
         """Get the time axis of data variable of a dataset"""
-        if idata is None:
-            return self._stack_info[iset]['taxes']
-        return self._stack_info[iset]['taxes'][idata]
+        return self[iset][idata].taxis
 
-    def _space_axis_(self,iset,idata,iaxis=None):
-        """Get a sp_ace axis of data variable of a dataset"""
-        if iaxis is None:
-            return self._stack_info[iset]['saxes'][idata]
-        else:
-            return self._stack_info[iset]['saxes'][idata][iaxis]
-
-    def _mode_axis_(self,analysis_type,isets=None):
-        """Get a mode axis according to the type of modes (pca, mssa, svd)"""
+    def _mode_axis_(self, analysis_type, isets=None):
+        """Get a mode axis according to the type of modes (pca, mssa, svd)  
+        
+        If CDAT is not used, length of axis is returned.
+        """
         if not self._mode_axes.has_key(analysis_type):
             self._mode_axes[analysis_type] = {}
         single = False
         if analysis_type == 'svd':
             isets = [0]
         elif isets is None: 
-            isets = xrange(self._ndataset)
+            isets = xrange(self.nd)
         elif not isinstance(isets,(list,tuple)):
             isets = [isets]
             single = True
@@ -187,7 +744,7 @@ class SpAn(object):
         for iset in isets:
             nn = getattr(self,'_n'+analysis_type)
             if isinstance(nn, list): nn = nn[iset]
-            if not has_cdat_support:
+            if not self[iset].has_cdat():
                     self._mode_axes[analysis_type][iset] = nn
             elif not self._mode_axes[analysis_type].has_key(iset) or \
                 len(self._mode_axes[analysis_type][iset]) != nn:
@@ -202,13 +759,16 @@ class SpAn(object):
         return out
 
     def _channel_axis_(self,iset, name, **kwargs):
-        """Get the channel axis for one dataset (MSSA or SVD)"""
+        """Get the channel axis for one dataset (MSSA or SVD)  
+        
+        If CDAT is not used, length of axis is returned.
+        """
         if not self._prepca[iset]:
-            nchan = self._ns[iset]
+            nchan = self[iset].ns
         else:
             nchan = self._prepca[iset]
         channel_axes = getattr(self,'_%s_channel_axes'%name)
-        if not has_cdat_support:
+        if not self[iset].has_cdat():
             channel_axes[iset] = nchan
         if not channel_axes.has_key(iset) or len(channel_axes[iset]) != nchan:
             channel_axes[iset] = cdms2.createAxis(npy.arange(nchan))
@@ -226,8 +786,11 @@ class SpAn(object):
         return _channel_axis_(iset, 'mssa')
 
     def _mssa_window_axis_(self,iset, update=False):
-        """Get the MSSA window axis for one dataset"""
-        if not has_cdat_support:
+        """Get the MSSA window axis for one dataset  
+        
+        If CDAT is not used, length of axis is returned.
+        """
+        if not self[iset].has_cdat():
             self._mssa_window_axes[iset] = self._window[iset]
         elif not self._mssa_window_axes.has_key(iset) or \
             len(self._mssa_window_axes[iset]) != self._window[iset]:
@@ -237,10 +800,13 @@ class SpAn(object):
             self._check_dataset_tag_('_mssa_window_axes',iset)
         return self._mssa_window_axes[iset]
 
-    def _mssa_pctime_axis_(self,iset,idata=0):
-        """Get the MSSA PCs time axis for one dataset"""
-        nt = self._nt[iset] - self._window[iset] + 1
-        if not has_cdat_support:
+    def _mssa_pctime_axis_(self, iset, idata=0):
+        """Get the MSSA PCs time axis for one dataset
+        
+        If CDAT is not used, length of axis is returned.
+        """
+        nt = self[iset].nt - self._window[iset] + 1
+        if not self[iset].has_cdat():
             self._mssa_pctime_axes[iset] = nt
         elif not self._mssa_pctime_axes.has_key(iset) or \
             len(self._mssa_pctime_axes[iset]) != nt:
@@ -263,7 +829,7 @@ class SpAn(object):
             id:: Mark the id [default: True]
             svd: Mark using 'left' or 'right'
         """
-        if self._ndataset > 1:
+        if self.nd > 1:
             targetset = getattr(self,name)
             if key is not None:
                 targetset = targetset[key]
@@ -282,9 +848,10 @@ class SpAn(object):
                 else:
                     target.long_name += ' for dataset #%i'%iset
                     
-    def _cdat_ev_(self, iset,  ev, analysis_type, relative, cumsum, id=None, long_name=None, standard_name=None,  atts=None):
+    def _cdat_ev_(self, iset,  ev, analysis_type, relative, cumsum, 
+        id=None, long_name=None, standard_name=None,  atts=None):
         """Format eigenvalues as CDAT variable"""
-        if not has_cdat_support: return ev
+        if not self[iset].has_cdat(): return ev
         ev = cdms2.createVariable(ev)
         if id is None:
             id = analysis_type.lower()+'_ev'
@@ -297,11 +864,10 @@ class SpAn(object):
                 id += '_rel'
                 long_name.append('relative')
         ev.id = ev.name = id
-        atts = self._stack_info[iset]['atts'][0]
         if isinstance(long_name, list):
             long_name.append(analysis_type.upper()+' eigen values')
             ev.long_name = ' '.join(long_name).title()
-            if atts.has_key('long_name'):
+            if self[iset][0].atts.has_key('long_name'):
                 ev.long_name += ' of '+atts['long_name']
         else:
             ev.long_name = long_name
@@ -317,42 +883,24 @@ class SpAn(object):
                     
 
 
-    def _norm_(self,iset,idata):
-        """Get the normalization factor of one subdataset of one dataset"""
-        return self._stack_info[iset]['norms'][idata]
-        
     def norms(self, iset, idata=None):
         """Get the normalization factor of a dataset"""
         if idata is None:
-            return self._stack_info[iset]['norms']
-        return self._stack_info[iset]['norms'][idata]
-        
-    def _type_(self,iset,idata):
-        """Get 'numpy', 'MA' or 'cdms' for one subdataset of one dataset"""
-        return self._stack_info[iset]['types'][idata]
+            return [d.norm for d in self[iset].data]
+        return self[iset][idata].norm
         
     def _cdat_inside_(self, iset, idata=None):
         """Check if a data var or a dataset has CDAT support"""
         # Not at all
         if not has_cdat_support: return False
+        
         # Single var
         if idata is not None:
-            return self._type_(iset, idata) == 'MV2'
-        # Full dataset == at least one var
-        for vt in self._stack_info[iset]['types']:
-            if vt == 'MV2': return True
-        return False
+            return self[iset][idata].has_cdat()
 
-#   def _changed_param_(self,old,param):
-#       """Check if a parameter is changed for all datasets.
-#       Return a list of booleans.
-#       @param old: Dictionary of name and value of parameters
-#       @param param: Parameter name.
-#       """
-#       if isinstance(old[param],(list,tuple)):
-#           return [old[param][iset] != getattr(self,'_'+param)[iset] for iset in xrange(self._ndataset)]
-#       else:
-#           return old[param] != getattr(self,'_'+param)
+        # Full dataset == at least one var
+        return self[iset].has_cdat()
+
         
     def _update_(self, analysis_type=None, **kwargs):
         """Initialize, update and check statistical paremeters.
@@ -371,7 +919,7 @@ class SpAn(object):
         # Initialize old values and defaults changed to False
         old = {}
         changed = {}
-        init_all = [None]*self._ndataset
+        init_all = [None]*self.nd
         for param in self._all_params:
             #print 'check', param
 #           if not req_params: continue
@@ -382,16 +930,16 @@ class SpAn(object):
                 old[param] = getattr(self,'_'+param,None)
                 setattr(self,'_'+param,SpAn._check_length_(kwargs.pop(param, old[param]),0,None))
             else:
-                changed[param] = [False]*self._ndataset
+                changed[param] = [False]*self.nd
                 old[param] = getattr(self,'_'+param,list(init_all))
-                setattr(self,'_'+param,SpAn._check_length_(kwargs.pop(param, old[param]),self._ndataset,None))
+                setattr(self,'_'+param,SpAn._check_length_(kwargs.pop(param, old[param]),self.nd,None))
 #               print 'cur', param, getattr(self, '_'+param), changed[param]
 #       if not req_params: return changed
         if not running: return changed
 
         # Number of PCA modes       
 #       if 'npca' in req_params:
-        for iset in xrange(self._ndataset):
+        for iset in xrange(self.nd):
             if self._npca[iset] is None:
                 # Guess a value
                 if self._prepca[iset] is not None:
@@ -402,38 +950,41 @@ class SpAn(object):
                     self._npca[iset] = SpAn._npca_default # Default value
             if self._prepca[iset] is not None:
                 self._npca[iset] = max(self._npca[iset], self._prepca[iset]) # Min
-            self._npca[iset] = npy.clip(self._npca[iset],1,min(SpAn._npca_max,self._ns[iset],self._nt[iset])) # Max
+            self._npca[iset] = npy.clip(self._npca[iset], 1, 
+                min(SpAn._npca_max, self[iset].ns, self[iset].nt)) # Max
             
         # Number of pre-PCA modes before MSSA and SVD
 #       if 'prepca' in req_params:
-        for iset in xrange(self._ndataset):
+        for iset in xrange(self.nd):
             if self._prepca[iset] is None: # Default: pre-PCA needed over max (for MSSA and SVD)
-                self._prepca[iset] = min(self._ns[iset], self._ns[iset]) > SpAn._npca_max
+                self._prepca[iset] = min(self[iset].ns, self[iset].ns) > SpAn._npca_max
                 if not self._quiet and self._prepca[iset] and analysis_type in ['mssa', 'svd'] :
                     print '[mssa/svd] The number of valid points of one of the datasets is greater than %i, so we perform a pre-PCA'%SpAn._npca_max
             if self._prepca[iset] is True: # Defaults to the number of PCA modes
                 self._prepca[iset] = self._npca[iset]
             elif self._prepca[iset]: # Max number of prepca modes is number of points
-                self._prepca[iset] = min(self._prepca[iset], self._ns[iset], self._nt[iset])
+                self._prepca[iset] = min(self._prepca[iset], self[iset].ns, self[iset].nt)
             if self._prepca[iset] == 0:
                 self._prepca[iset] = False
             
         # Dependency rules between prepca and npca
-        for iset in xrange(self._ndataset):
+        for iset in xrange(self.nd):
             if self._prepca[iset] and self._npca[iset] < self._prepca[iset]:
                 if not self._quiet  and self._prepca[iset]:
-                        print 'The number of pre-PCA modes (%i) for dataset #%i is lower than the number of PCA modes (%i), so we adjust the latter.' % (self._prepca[iset],iset,self._npca[iset])
+                        print 'The number of pre-PCA modes (%i) for dataset #%i is lower' \
+                            ' than the number of PCA modes (%i), so we adjust the latter.' \
+                            % (self._prepca[iset], iset, self._npca[iset])
                 self._npca[iset] = self._prepca[iset]
             
         # Window extension of MSSA
 #       if 'window' in req_params:
-        for iset in xrange(self._ndataset):
+        for iset in xrange(self.nd):
             if self._window[iset] is None: # Initialization
-                self._window[iset] = int(self._nt[iset]*SpAn._window_default)
-            self._window[iset] = npy.clip(self._window[iset],1,max(1,self._nt[iset]))
+                self._window[iset] = int(self[iset].nt*SpAn._window_default)
+            self._window[iset] = npy.clip(self._window[iset], 1, max(1,self[iset].nt))
             
         # Number of MSSA modes
-        for iset in xrange(self._ndataset):
+        for iset in xrange(self.nd):
 #           if 'nmssa' not in req_params and not changed['prepca'][iset]: continue
 #           if not changed['prepca'][iset]: continue
             if self._nmssa[iset] is None: # Initialization
@@ -445,20 +996,20 @@ class SpAn(object):
             if self._prepca[iset]:
                 nchanmax = self._prepca[iset] # Input channels are from pre-PCA
             else:
-                nchanmax = self._ns[iset] # Input channels are from real space
+                nchanmax = self[iset].ns # Input channels are from real space
             self._nmssa[iset] = npy.clip(self._nmssa[iset],1,
                 min(SpAn._nmssa_max,nchanmax*self._window[iset])) # Max
             
         # Number of SVD modes (special case)
         if self._nsvd is None: # Initialization
             self._nsvd = SpAn._nsvd_default # Default value
-        for iset in xrange(self._ndataset): # Check values
+        for iset in xrange(self.nd): # Check values
 #           if 'nsvd' not in req_params and not changed['prepca'][iset]: continue
             if not changed['prepca'][iset]: continue
             if self._prepca[iset]:
                 nchanmax = self._prepca[iset] # Input channels are from pre-PCA
             else:
-                nchanmax = self._ns[iset] # Input channels are from real space
+                nchanmax = self[iset].ns # Input channels are from real space
             self._nsvd = npy.clip(self._nsvd,1, min(SpAn._nsvd_max,nchanmax)) # Max
             
 #       # Check what changed
@@ -469,7 +1020,7 @@ class SpAn(object):
 #       if not kwargs: return changed # Just initializations (dry run to prevent not ending loop)
         changed['nsvd'] = old['nsvd'] != self._nsvd
         runsvd = False
-        for iset in xrange(self._ndataset):
+        for iset in xrange(self.nd):
             
             # Check what changed
             for param in self._all_params:
@@ -505,17 +1056,18 @@ class SpAn(object):
         return changed
 
     def _check_isets_(self,iset):
-        """Check if an iset is a valid dataset.
+        """Check if an iset is associated to a a valid dataset.
+        
         It can be a list, and it is returned as a list.
-        if an iset is invalid, it is removed from the output list.
+        If an iset is invalid, it is removed from the output list.
         """
-        if iset is None: return range(self._ndataset)
+        if iset is None: return range(self.nd)
         if iset == 'left':
             iset = 0
         elif iset == 'right':
             iset = 1
-        if iset < 0 or iset >= self._ndataset:
-            warn('Invalid dataset id: %i. Valid id are < %i'%(iset,self._ndataset))
+        if iset < 0 or iset >= self.nd:
+            warn('Invalid dataset id: %i. Valid id are < %i'%(iset,self.nd))
         else:
             return [iset]
 
@@ -534,7 +1086,7 @@ class SpAn(object):
     ## PCA
     #################################################################
     @_filldocs_
-    def pca(self,iset=None,**kwargs):
+    def pca(self, iset=None, **kwargs):
         """ 
         Principal Components Analysis (PCA)
         
@@ -556,26 +1108,30 @@ class SpAn(object):
         for iset in isets:
             
             # Check if old results can be used when npca is lower
-            if getattr(self,'_pca_raw_pc').has_key(iset) and \
-                getattr(self,'_pca_raw_pc')[iset].shape[-1] > self._npca[iset]:
+            if iset in self._pca_raw_pc and \
+                self._pca_raw_pc[iset].shape[-1] > self._npca[iset]:
                 continue
-            
+
             # Remove old results
             for att in 'raw_eof','raw_pc','raw_ev','ev_sum':
                 dic = getattr(self,'_pca_'+att)
                 if dic.has_key(iset): del dic[iset]
 
             # Compute PCA
-            pdata = self._pdata[iset]
+            pdata = self[iset].stacked_data
             if pdata.shape[1] == 1: # One single channel, so result is itself
                 raw_eof = npy.ones(1, dtype=pdata.dtype)
                 raw_pc = pdata
-                raw_ev = raw_pc.var()
-                ev_sum = ev
+                ev_sum = raw_pc.var()
+                raw_ev = npy.atleast_1d(ev_sum)
 
             else: # Several channels
-                weights = self._stack_info[iset]['weights']
-                raw_eof,raw_pc,raw_ev,ev_sum = spanlib_fort.pca(pdata, self._npca[iset], weights, -1)  
+                weights = npy.asfortranarray(self[iset].stacked_weights)
+                pdata = npy.asfortranarray(pdata)
+                raw_eof, raw_pc, raw_ev, ev_sum = \
+                    spanlib_fort.pca(pdata, self._npca[iset], weights, -1)  
+                raw_pc = npy.ascontiguousarray(raw_pc)
+                raw_eof = npy.ascontiguousarray(raw_eof)
 
             # Save results
             self._pca_raw_pc[iset] = raw_pc
@@ -583,7 +1139,7 @@ class SpAn(object):
             self._pca_raw_ev[iset] = raw_ev
             self._pca_ev_sum[iset] = ev_sum
             
-            # Delete formmated variables
+            # Delete formatted variables
             for vtype in 'pc', 'eof':
                 vfmt = getattr(self, '_pca_fmt_'+vtype)
                 if vfmt.has_key(iset): del vfmt[iset]
@@ -622,7 +1178,7 @@ class SpAn(object):
             if isets is not None and iset not in isets: continue
             
             # EOF already available 
-            if self._pca_fmt_eof.has_key(iset):
+            if not raw and self._pca_fmt_eof.has_key(iset):
                 fmt_eof[iset] = self._pca_fmt_eof[iset]
                 continue
                 
@@ -630,24 +1186,25 @@ class SpAn(object):
             if not self._pca_raw_eof.has_key(iset): self.pca(iset=iset)
                 
             # Get raw data back to physical space
-            #FIXME: add raw for fmt_eof
-            self._pca_fmt_eof[iset] = \
-                self._unstack_(iset, self._pca_raw_eof[iset][:, :self._npca[iset]],
-                    self._mode_axis_('pca',iset),  cpatts=False, remean=False)
+            if raw:
+                fmt_eof[iset] = self._pca_raw_eof[iset].T
+                continue
+            self._pca_fmt_eof[iset] = self[iset].unstack(self._pca_raw_eof[iset], rescale=False, 
+                firstaxes=self._mode_axis_('pca', iset))
             
             # Set attributes and scale
             for idata,eof in enumerate(self._pca_fmt_eof[iset]):
                 
                 # Attributes
                 if cdms2_isVariable(eof):
-                    if not self._stack_info[iset]['ids'][idata].startswith('variable_'):
-                        eof.id = self._stack_info[iset]['ids'][idata]+'_pca_eof'
+                    if not self[iset][idata].id.startswith('variable_'):
+                        eof.id = self[iset][idata].id+'_pca_eof'
                     else:
                         eof.id = 'pca_eof'
                     eof.name = eof.id
                     eof.standard_name = 'empirical_orthogonal_functions_of_pca'
                     eof.long_name = 'PCA empirical orthogonal functions'
-                    atts = self._stack_info[iset]['atts'][idata]
+                    atts = self[iset][idata].atts
                     if atts.has_key('long_name'):
                         eof.long_name += ' of '+atts['long_name']
                     print 'scale', scale
@@ -665,12 +1222,12 @@ class SpAn(object):
                     
             fmt_eof[iset] = self._pca_fmt_eof[iset]
 
-        return self._demap_(fmt_eof, grouped=raw)       
+        return self._unmap_(fmt_eof, grouped=raw)       
 
 
     @_filldocs_
     def pca_pc(self, iset=None, scale=False, **kwargs):
-        """Get PCs from current PCA decomposition
+        """Get principal components (PCs) from current PCA decomposition
         
         :Parameters:
             %(iset)s
@@ -700,61 +1257,107 @@ class SpAn(object):
             if not self._pca_raw_pc.has_key(iset): self.pca(iset=iset)
 
             # Format the variable
-            pc = npy.asarray(self._pca_raw_pc[iset][:,:self._npca[iset]].transpose(),order='C')
+            pc = npy.ascontiguousarray(self._pca_raw_pc[iset][:,:self._npca[iset]].T)
             if self._cdat_inside_(iset):
-                pc = cdms2.createVariable()
+                pc = cdms2.createVariable(pc)
                 pc.setAxis(0, self._mode_axis_('pca',iset))
                 pc.setAxis(1, self._time_axis_(iset,0))
                 pc.id = pc.name = 'pca_pc'
                 pc.standard_name = 'principal_components_of_pca'
                 pc.long_name = 'PCA principal components of '
-                atts = self._stack_info[iset]['atts'][0]
-                if self._ndata[iset] == 1 and  atts.has_key('long_name'): 
+                atts = self[iset][0].atts
+                if len(self[iset])==1 and  atts.has_key('long_name'): 
                     pc.long_name += atts['long_name']
     #           else:
     #               pc.long_name += 'dataset %i'%iset
-                if scale and (self._ndata[iset] == 1 or npy.allclose(self.norms(iset), 1.)) and atts.has_key('units'):
+                if scale and (len(self[iset]) == 1 or npy.allclose(self[iset].norms, 1.)) and atts.has_key('units'):
                     pc.units = atts['units']
                 
             
             fmt_pc[iset] = self._pca_fmt_pc[iset] = pc
             self._check_dataset_tag_('_pca_fmt_pc',iset)
 
-        return self._demap_(fmt_pc, grouped=True)       
+        return self._unmap_(fmt_pc, grouped=True)       
 
-    def pca_ec(self, xeof=None, xpc=None, iset=None, scale=False, **kwargs):
+    def pca_ec(self, xeof=None, xdata=None, iset=None, raw=False, scale=False, **kwargs):
+        """Get expansion coefficient using current PCA decomposition
         
+        Expansion coefficients are the projection of data onto EOFs.
+        By default, it uses input data and computed EOFs, and thus
+        returns principal components. 
+        You can bypass this default behaviour using ``xeof`` and ``xdata``
+        keyword parameters.
+        
+        :Parameters:
+            %(iset)s
+
+        :PCA parameters:
+            %(npca)s
+            
+        :Returns:
+            Arrays with the shape ``(npca,nt)``
+        """
         # Check on which dataset to operate
         isets = self._check_isets_(iset)
-        
-        need_pca = xeof is None or xpc is None
-        if need_pca:
-            self._update_('pca', **kwargs)
-        
+                
         # Remap
-        if xeof is not None:
-            xeof = self._remap_(xeof)
-        if xpc is not None:
-            xpc = self._remap_(xpc,  grouped=True)
+        xeof = self._remap_(xeof)
+        xdata = self._remap_(xdata)
             
         # Loop on datasets
-        for     iset in isets:
-            
-            # PC already available 
-            if self._pca_fmt_pc.has_key(iset):
-                fmt_pc[iset] = self._pca_fmt_pc[iset]
-                continue
+        fmt_ec = {}
+        for iset in isets:
             
             # First PCA analysis?
-            if need_pca and not self._pca_raw_pc.has_key(iset): self.pca(iset=iset)
+            if xeof[iset] is None and not self._pca_raw_pc.has_key(iset): 
+                    self.pca(iset=iset)
+                    
+            # EOFs used for projection
+            if xeof[iset] is None: # From PCA
+                raw_eof = self._pca_raw_eof[iset]
+            elif raw: # Direct use
+                raw_eof = xeof[iset]
+            else: # We format then use
+                eofs = self[iset].remap(xeof[iset])
+                raw_eof = self[iset].restack(eofs, scale=False)
             
-            if xeof is None:
-                raw_eof = self._pca_raw_eof.has_key(iset)
-            else:
-                stack = self._core_stack_(xeof, dnorms=self._stack_info[0]['norms'], 
-                    dmasks=self._stack_info[0]['masks'], dorders=self._stack_info[0]['orders'], 
-                    dweights=self._stack_info[0]['weights'])
-                raw_eof = stack['pdata']
+            # Data to project on EOFs
+            if xdata[iset] is None: # From input
+                raw_data = self[iset].stacked_data
+            elif raw: # Direct use
+                raw_data = xdata[iset]
+            else: # We format then use
+                data = self[iset].remap(xdata[iset])
+                raw_data = self[iset].restack(data, scale=True)
+
+            # Weights
+            weights = self[iset].stacked_weights
+            
+            # Projection
+            raw_data = npy.asfortranarray(raw_data)
+            raw_eof = npy.asfortranarray(raw_eof)
+            weights = npy.asfortranarray(weights)
+            ec = npy.ascontiguousarray(spanlib_fort.pca_getec(raw_data, raw_eof, weights).T)
+            
+            # Format
+            if self._cdat_inside_(iset):
+                ec = cdms2.createVariable(ec)
+                ec.setAxis(0, self._mode_axis_('pca',iset))
+                ec.setAxis(1, self._time_axis_(iset,0))
+                ec.id = ec.name = 'pca_ec'
+                ec.standard_name = 'expansion_coefficients_of_pca'
+                ec.long_name = 'PCA expansion coefficients of '
+                atts = self[iset][0].atts
+                if len(self[iset])==1 and  atts.has_key('long_name'): 
+                    ec.long_name += atts['long_name']
+    #           else:
+    #               ec.long_name += 'dataset %i'%iset
+                if scale and (len(self[iset])==1 or npy.allclose(self.norms(iset), 1.)) and atts.has_key('units'):
+                    ec.units = atts['units']
+            fmt_ec[iset] = ec
+            
+        return self._unmap_(fmt_ec, grouped=True)       
+            
 
     @_filldocs_
     def pca_ev(self,iset=None,relative=False,sum=False,cumsum=False,**kwargs):
@@ -816,14 +1419,14 @@ class SpAn(object):
                 ev.long_name = ' '.join(long_name).title()+' of '
                 ev.setAxisList([self._mode_axis_('pca',iset)])
                 ev.standard_name = 'eigen_values_of_pca'
-                atts = self._stack_info[iset]['atts'][0]
-                if self._ndata[iset] == 1 and atts.has_key('long_name'):
+                atts = self[iset][0].atts
+                if len(self[iset])==1 and atts.has_key('long_name'):
                     ev.long_name += atts['long_name']
                 else:
                     ev.long_name += 'dataset %i'%iset
                 if relative:
                     ev.units = '% of total variance'
-                elif (self._ndata[iset] == 1 or npy.allclose(self.norms(iset), 1.)) and atts.has_key('units'):
+                elif (len(self[iset])==1 or npy.allclose(self.norms(iset), 1.)) and atts.has_key('units'):
                     ev.units = atts['units']
                     for ss in ['^','**',' ']:
                         if ev.units.find(ss) != -1:
@@ -832,10 +1435,10 @@ class SpAn(object):
                             
             res[iset] = ev
 
-        return self._demap_(res, grouped=True)      
+        return self._unmap_(res, grouped=True)      
 
     @_filldocs_
-    def pca_rec(self, iset=None, modes=None, raw=False, raw_pc=None, raw_eof=None, **kwargs):
+    def pca_rec(self, iset=None, modes=None, raw=False, raw_pc=None, raw_eof=None, rescale=True, format=2, **kwargs):
         """Reconstruct a set of modes from PCA decomposition
 
         :Parameters:
@@ -870,19 +1473,20 @@ class SpAn(object):
             # Get raw data back to physical space
             reof = self._pca_raw_eof[iset][:,:self._npca[iset]]
             rpc = self._pca_raw_pc[iset][:,:self._npca[iset]]
-            raw_rec,smodes = self._project_(reof,rpc,iset,modes)
+            raw_rec, smodes = self._raw_rec_(reof, rpc, modes)
             if raw:
                 pca_fmt_rec[iset] = raw_rec.T
             else:
-                pca_fmt_rec[iset] = self._unstack_(iset,raw_rec,self._time_axis_(iset))
+                pca_fmt_rec[iset] = self[iset].unstack(raw_rec, rescale=rescale, format=format)
+                pass
             del  raw_rec
-            
+
             # Set attributes and scale
             for idata,rec in enumerate(pca_fmt_rec[iset]):
                 if not cdms2_isVariable(rec): continue
 #               rec[:] *= self._norm_(iset,idata) # Scale
-                if not self._stack_info[iset]['ids'][idata].startswith('variable_'):
-                    rec.id = self._stack_info[iset]['ids'][idata]+'_pca_rec'
+                if not self[iset][idata].id.startswith('variable_'):
+                    rec.id = self[iset][idata].id+'_pca_rec'
                 else:
                     rec.id = 'pca_rec'
                 rec.name = rec.id
@@ -893,13 +1497,13 @@ class SpAn(object):
                 rec.modes = smodes
                 rec.standard_name = 'recontruction_of_pca_modes'
                 rec.long_name = 'Reconstruction of PCA modes: '+smodes
-                atts = self._stack_info[iset]['atts'][idata]
+                atts = self[iset][idata].atts
                 if atts.has_key('long_name'):
                     rec.long_name += ' of '+atts['long_name']
                 if atts.has_key('units'):
                     rec.units = atts['units']
                     
-        return self._demap_(pca_fmt_rec, grouped=raw)   
+        return self._unmap_(pca_fmt_rec, grouped=raw)   
     
 
     #################################################################
@@ -927,7 +1531,7 @@ class SpAn(object):
         self._update_('mssa', **kwargs)
 
         # Loop on datasets
-        for iset,pdata in enumerate(self._pdata):
+        for iset in isets:
 
             # Operate only on selected datasets
             if isets is not None and iset not in isets: continue
@@ -949,17 +1553,18 @@ class SpAn(object):
                 if not self._pca_raw_pc.has_key(iset): self.pca(iset=iset)
                 
                 # MSSA
+                pca_raw_pc = npy.asfortranarray(self._pca_raw_pc[iset][:, :self._prepca[iset]].T)
                 raw_eof, raw_pc, raw_ev, ev_sum = \
-                  spanlib_fort.mssa(self._pca_raw_pc[iset][:, :self._prepca[iset]].transpose(), 
-                  self._window[iset], self._nmssa[iset])
+                  spanlib_fort.mssa(pca_raw_pc, self._window[iset], self._nmssa[iset])
                   
             else: # Direct MSSA case
+                pdata = npy.asfortranarray(self[iset].stacked_data)
                 raw_eof, raw_pc, raw_ev, ev_sum = \
                   spanlib_fort.mssa(pdata, self._window[iset], self._nmssa[iset])
 
             # Save results
-            self._mssa_raw_pc[iset] = raw_pc
-            self._mssa_raw_eof[iset] = raw_eof
+            self._mssa_raw_pc[iset] = npy.ascontiguousarray(raw_pc)
+            self._mssa_raw_eof[iset] = npy.ascontiguousarray(raw_eof)
             self._mssa_raw_ev[iset] = raw_ev
             self._mssa_ev_sum[iset] = ev_sum
 
@@ -1012,41 +1617,41 @@ class SpAn(object):
             raw_eof = self._mssa_raw_eof[iset].reshape((nl, nw, nm))
             
             if raw: # Do not go back to physical space
-                self._mssa_fmt_eof[iset] = [cdms2.createVariable(raw_eof.T)]
-                self._mssa_fmt_eof[iset][0].setAxisList(
-                    [self._mode_axis_('mssa',iset),self._mssa_channel_axis_(iset)])
+                self._mssa_fmt_eof[iset] = [npy.ascontiguousarray(raw_eof.T)]
+                if self[iset].has_cdat():
+                    self._mssa_fmt_eof[iset][0] = cdms2.createVariable(self._mssa_fmt_eof[iset])
+                    self._mssa_fmt_eof[iset][0].setAxisList(
+                        [self._mode_axis_('mssa',iset),self._mssa_channel_axis_(iset)])
                     
             else: # Get raw data back to physical space
 #               raw_eof = raw_eof.swapaxes(1,2).reshape((nl, nm*nw),order='F')
                 raw_eof = npy.ascontiguousarray(raw_eof)
                 raw_eof.shape = (nl, nm*nw)
-                
+                firstaxes = (self._mode_axis_('mssa', iset), self._mssa_window_axis_(iset))
                 if not self._prepca[iset]: # No pre-PCA performed
-                    self._mssa_fmt_eof[iset] = self._unstack_(iset,raw_eof, 
-                        (self._mode_axis_('mssa',iset),self._mssa_window_axis_(iset)), 
-                        cpatts=False, remean=False)
+                    self._mssa_fmt_eof[iset] = self[iset].unstack(raw_eof, 
+                        rescale=False, format=1, firstaxes=firstaxes)
                         
-                else:
-                    proj_eof,smodes = self._project_(self._pca_raw_eof[iset],raw_eof.T,iset, nt=nm*nw)
+                else: # With pre-PCA
+                    proj_eof,smodes = self._combine_(self._pca_raw_eof[iset], raw_eof.T, iset, nt=nm*nw)
     #                   npy.swapaxes(raw_eof,0,1).reshape((nw*nc,nm),order='F'),iset, nt=nw*nm)
-                    self._mssa_fmt_eof[iset] = self._unstack_(iset,proj_eof,
-                        (self._mode_axis_('mssa',iset),self._mssa_window_axis_(iset)), 
-                        cpatts=False, remean=False)
+                    self._mssa_fmt_eof[iset] = self[iset].unstack(proj_eof, 
+                        rescale=False, format=1, firstaxes = firstaxes)
                     
             # Set attributes
             for idata,eof in enumerate(self._mssa_fmt_eof[iset]):
                 
                 # Attributes
                 if cdms2_isVariable(eof):
-                    if not raw and not self._stack_info[iset]['ids'][idata].find('variable_'):
-                        eof.id = self._stack_info[iset]['ids'][idata]+'_mssa_eof'
+                    if not raw and not self[iset][idata].id.find('variable_'):
+                        eof.id = self[iset][idata].id+'_mssa_eof'
                     else:
                         eof.id = 'mssa_eof'
                     eof.name = eof.id
                     eof.standard_name = 'empirical_orthogonal_functions_of_mssa'
                     eof.long_name = 'MSSA empirical orthogonal functions'
                     if not raw:
-                        atts = self._stack_info[iset]['atts'][idata]
+                        atts = self[iset][idata].atts
                         if atts.has_key('long_name'):
                             eof.long_name += ' of '+atts['long_name']
                         if scale and atts.has_key('units'):
@@ -1061,7 +1666,7 @@ class SpAn(object):
             fmt_eof[iset] = self._mssa_fmt_eof[iset]
             
         gc.collect()
-        return self._demap_(fmt_eof, grouped=raw)
+        return self._unmap_(fmt_eof, grouped=raw)
 
     @_filldocs_
     def mssa_pc(self, iset=None, **kwargs):
@@ -1107,17 +1712,17 @@ class SpAn(object):
                 pc.id = pc.name = 'mssa_pc'
                 pc.standard_name = 'principal_components_of_mssa of '
                 pc.long_name = 'MSSA principal components'
-                atts = self._stack_info[iset]['atts'][0]
-                if self._ndata[iset] == 1 and atts.has_key('long_name'): 
+                atts = self[iset][0].atts
+                if len(self[iset])==1 and atts.has_key('long_name'): 
                     pc.long_name += atts['long_name']
     #           else:
     #               pc.long_name += 'of dataset %i'%iset
-                #if (self._ndata[iset] == 1 or npy.allclose(self.norms(iset), 1.)) and atts.has_key('units'):
+                #if (len(self[iset])==1 or npy.allclose(self.norms(iset), 1.)) and atts.has_key('units'):
                 #   pc.units = atts['units']
             fmt_pc[iset] = self._mssa_fmt_pc[iset] = pc
             self._check_dataset_tag_('_mssa_fmt_pc',iset)
 
-        return self._demap_(fmt_pc, grouped=True)
+        return self._unmap_(fmt_pc, grouped=True)
             
 
     @_filldocs_
@@ -1208,7 +1813,8 @@ class SpAn(object):
                     red_noise = rn.sample()
                     
                     # Block-covariance matrix (nchan*nwindow,nchan*nwindow,)
-                    cov = spanlib_fort.stcov(red_noise.T, self.window(iset))
+                    cov = spanlib_fort.stcov(npy.asfortranarray(red_noise.T), self.window(iset))
+                    cov = npy.ascontiguousarray(cov)
                     del red_noise
                     
                     # Fake eigen values
@@ -1250,7 +1856,7 @@ class SpAn(object):
                     
             res[iset] = ev[0] if not mctest else ev
 
-        return self._demap_(res, grouped=True)      
+        return self._unmap_(res, grouped=True)      
 
     @_filldocs_
     def mssa_mctest(self, iset=None, nens=20, conf=95., **kwargs):
@@ -1287,7 +1893,7 @@ class SpAn(object):
 
 
     @_filldocs_
-    def mssa_rec(self, iset=None, modes=None, raw=False, phases=False, **kwargs):
+    def mssa_rec(self, iset=None, modes=None, raw=False, phases=False, rescale=True, format=2, **kwargs):
         """Reconstruction of MSSA modes
         
         :Parameters:
@@ -1326,8 +1932,10 @@ class SpAn(object):
             if not self._mssa_raw_eof.has_key(iset): self.mssa(iset=iset)
             
             # Projection
-            raw_rec,smodes = self._project_(self._mssa_raw_eof[iset],
-                self._mssa_raw_pc[iset], iset, modes, nw=self._window[iset])
+            raw_rec, smodes = self._raw_rec_(self._mssa_raw_eof[iset],
+                self._mssa_raw_pc[iset], modes, nw=self._window[iset])
+#            raw_rec,smodes = self._combine_(self._mssa_raw_eof[iset],
+#                self._mssa_raw_pc[iset], iset, modes, nw=self._window[iset])
                 
             # Phases composites
             if phases:
@@ -1341,31 +1949,36 @@ class SpAn(object):
                     taxis = nt
                 del raw_rec_t
             else:
-                taxis = self._time_axis_(iset)
-                nt = len(taxis)
+#                taxis = self._time_axis_(iset)
+#                nt = len(taxis)
+                nt = self[iset].nt
                 
             # Get raw data back to physical space (nchan,nt)
             if not self._prepca[iset]: # No pre-PCA performed
-                mssa_fmt_rec[iset] = self._unstack_(iset, raw_rec, taxis)
+                mssa_fmt_rec[iset] = self[iset].unstack(raw_rec, rescale=rescale, format=format)
+#                mssa_fmt_rec[iset] = self._unstack_(iset, raw_rec, taxis)
                 
             elif raw: # Force direct result from MSSA
-                if _cdat_inside_(iset):
+                if self[iset].has_cdat():
                     mssa_fmt_rec[iset] = [cdms2.createVariable(raw_rec.T)]
                     mssa_fmt_rec[iset][0].setAxisList(0,[taxis,self._mode_axis_('mssa',iset)])
                 else:
                     mssa_fmt_rec[iset] = raw_rec.T
                     
             else: # With pre-pca
-                proj_rec, spcamodes = self._project_(self._pca_raw_eof[iset], 
-                    raw_rec.T, iset, nt=nt)
-                mssa_fmt_rec[iset] = self._unstack_(iset, proj_rec, taxis)
+                proj_rec, spcamodes = \
+                    self._raw_rec_(self._pca_raw_eof[iset], raw_rec.T)
+#                proj_rec, spcamodes = self._combine_(self._pca_raw_eof[iset], 
+#                    raw_rec.T, iset, nt=nt)
+                mssa_fmt_rec[iset] = self[iset].unstack(proj_rec, rescale=rescale, format=format)
+#                mssa_fmt_rec[iset] = self._unstack_(iset, proj_rec, taxis)
             del  raw_rec
             
             # Set attributes
             for idata,rec in enumerate(mssa_fmt_rec[iset]):
                 if not cdms2_isVariable(rec): continue
-                if not self._stack_info[iset]['ids'][idata].startswith('variable_'):
-                    rec.id = self._stack_info[iset]['ids'][idata]+'_mssa_rec'
+                if not self[iset][idata].id.startswith('variable_'):
+                    rec.id = self[iset][idata].id+'_mssa_rec'
                 else:
                     rec.id = 'mssa_rec'
 #               if modes is not None:
@@ -1375,11 +1988,11 @@ class SpAn(object):
 #                   rec.modes = '1-%i'%self._nmssa[iset]
                 rec.standard_name = 'recontruction_of_mssa_modes'
                 rec.long_name = 'Reconstruction of MSSA modes'
-                atts = self._stack_info[iset]['atts'][idata]
+                atts = self[iset][idata].atts
                 if atts.has_key('long_name'):
                     rec.long_name += ' of '+atts['long_name']
                     
-        return self._demap_(mssa_fmt_rec, grouped=raw)
+        return self._unmap_(mssa_fmt_rec, grouped=raw)
     
     def mssa_phases(self, pair, iset=0, nphase=8, **kwargs):
         """Build phase composites using an MSSA pair
@@ -1428,7 +2041,7 @@ class SpAn(object):
             %(iset)s
         """
 
-        if self._ndataset<2:
+        if self.nd<2:
             raise SpanlibError('Error you need at least (most) 2 datasets to run svd, otherwise use pca and mssa',  'svd')
         
         # Parameters
@@ -1464,7 +2077,7 @@ class SpAn(object):
                     rweights = data[:, 0]*0.+1
 
             else: # Direct svd case
-                weights = self._stack_info[iset]['weights']
+                weights = self[iset].packed_weights
                 if iset == 0:
                     left = pdata
                     lweights = weights
@@ -1474,16 +2087,18 @@ class SpAn(object):
                     rweights = weights
 
         # Compute SVD
+        left = npy.asfortranarray(left)
+        right = npy.asfortranarray(right)
         raw_eof_left, raw_eof_right, raw_pc_left, raw_pc_right, raw_ev, ev_sum, info = \
             spanlib_fort.svd(left, right, self._nsvd, lweights, rweights, usecorr, largematrix)
         if info != 0:
             raise SpanlibError('Error when running fortran SVD',  'svd')
             
         # Save results
-        self._svd_raw_pc[0] = raw_pc_left
-        self._svd_raw_eof[0] = raw_eof_left
-        self._svd_raw_pc[1] = raw_pc_right
-        self._svd_raw_eof[1] = raw_eof_right
+        self._svd_raw_pc[0] = npy.ascontiguousarray(raw_pc_left)
+        self._svd_raw_eof[0] = npy.ascontiguousarray(raw_eof_left)
+        self._svd_raw_pc[1] = npy.ascontiguousarray(raw_pc_right)
+        self._svd_raw_eof[1] = npy.ascontiguousarray(raw_eof_right)
         self._svd_raw_ev = raw_ev
         self._svd_ev_sum = ev_sum
 
@@ -1518,7 +2133,7 @@ class SpAn(object):
 
         # Of, let's format the variable
         fmt_eof = {}
-        for iset in xrange(self._ndataset): # (window*nchan,nsvd)
+        for iset in xrange(self.nd): # (window*nchan,nsvd)
         
             # Operate only on selected datasets
             if isets is not None and iset not in isets: continue
@@ -1548,7 +2163,7 @@ class SpAn(object):
                         self._mode_axis_('svd',iset), cpatts=False, remean=False)
                         
                 else:
-                    proj_eof,smodes = self._project_(self._pca_raw_eof[iset],raw_eof.transpose(),iset, nt=nm)
+                    proj_eof,smodes = self._combine_(self._pca_raw_eof[iset],raw_eof.transpose(),iset, nt=nm)
                     self._svd_fmt_eof[iset] = self._unstack_(iset, proj_eof,
                         self._mode_axis_('svd',iset), cpatts=False, remean=False)
                     
@@ -1557,15 +2172,15 @@ class SpAn(object):
                 
                 # Attributes
                 if cdms2_isVariable(eof):
-                    if not raw and not self._stack_info[iset]['ids'][idata].find('variable_'):
-                        eof.id = self._stack_info[iset]['ids'][idata]+'_svd_eof'
+                    if not raw and not self[iset][idata].id.find('variable_'):
+                        eof.id = self[iset][idata].id+'_svd_eof'
                     else:
                         eof.id = 'svd_eof'
                     eof.name = eof.id
                     eof.standard_name = 'empirical_orthogonal_functions_of_svd'
                     eof.long_name = 'SVD empirical orthogonal functions'
                     if not raw:
-                        atts = self._stack_info[iset]['atts'][idata]
+                        atts = self[iset][idata].atts
                         if atts.has_key('long_name'):
                             eof.long_name += ' of '+atts['long_name']
                         if scale is True and atts.has_key('units'):
@@ -1580,7 +2195,7 @@ class SpAn(object):
             fmt_eof[iset] = self._svd_fmt_eof[iset]
             
         gc.collect()
-        return self._demap_(fmt_eof, grouped=raw)
+        return self._unmap_(fmt_eof, grouped=raw)
 
     @_filldocs_
     def svd_pc(self,iset=None,**kwargs):
@@ -1608,7 +2223,7 @@ class SpAn(object):
 
         # Of, let's format the variable
         fmt_pc = {}
-        for iset in xrange(self._ndataset):
+        for iset in xrange(self.nd):
             
             # PC already available 
             if self._svd_fmt_pc.has_key(iset):
@@ -1627,14 +2242,14 @@ class SpAn(object):
             pc.id = pc.name = 'svd_pc'
             pc.standard_name = 'principal_components_of_svd'
             pc.long_name = 'SVD principal components'
-            atts = self._stack_info[iset]['atts'][idata]
+            atts = self[iset][idata].atts
             if atts.has_key('long_name'): pc.long_name += ' of '+atts['long_name']
 #           if atts.has_key('units'):     pc.units = atts['units']
 
             fmt_pc[iset] = self._svd_fmt_pc[iset] = pc
             self._check_dataset_tag_('_svd_fmt_pc', iset, svd=True)
 
-        return self._demap_(fmt_pc, grouped=True)       
+        return self._unmap_(fmt_pc, grouped=True)       
             
     @_filldocs_
     def svd_ev(self,relative=False,sum=False,cumsum=False,**kwargs):
@@ -1720,7 +2335,7 @@ class SpAn(object):
             if not self._svd_raw_eof.has_key(iset): self.svd(iset=iset)
             
             # Projection
-            raw_rec,smodes = self._project_(self._svd_raw_eof[iset],
+            raw_rec,smodes = self._combine_(self._svd_raw_eof[iset],
                 self._svd_raw_pc[iset],iset,modes)
                 
             # Get raw data back to physical space (nchan,nt)
@@ -1733,15 +2348,15 @@ class SpAn(object):
                 svd_fmt_rec[iset][0].setAxisList(0,[taxis,self._mode_axis_('svd',iset)])
                     
             else: # With pre-pca
-                proj_rec, spcamodes = self._project_(self._pca_raw_eof[iset],raw_rec.transpose(),iset,nt=len(taxis))
+                proj_rec, spcamodes = self._combine_(self._pca_raw_eof[iset],raw_rec.transpose(),iset,nt=len(taxis))
                 svd_fmt_rec[iset] = self._unstack_(iset,proj_rec,taxis)
             del  raw_rec
             
             # Set attributes
             for idata,rec in enumerate(svd_fmt_rec[iset]):
                 if not cdms2_isVariable(rec): continue
-                if not self._stack_info[iset]['ids'][idata].startswith('variable_'):
-                    rec.id = self._stack_info[iset]['ids'][idata]+'_svd_rec'
+                if not self[iset][idata].id.startswith('variable_'):
+                    rec.id = self[iset][idata].id+'_svd_rec'
                 else:
                     rec.id = 'svd_rec'
 #               if modes is not None:
@@ -1751,11 +2366,11 @@ class SpAn(object):
 #                   rec.modes = '1-%i'%self._nsvd[iset]
                 rec.standard_name = 'recontruction_of_svd_modes'
                 rec.long_name = 'Reconstruction of SVD modes'
-                atts = self._stack_info[iset]['atts'][idata]
+                atts = self[iset][idata].atts
                 if atts.has_key('long_name'):
                     rec.long_name += ' of '+atts['long_name']
                     
-        return self._demap_(svd_fmt_rec, grouped=raw)   
+        return self._unmap_(svd_fmt_rec, grouped=raw)   
     
     def rec(self,analysis_type=None,*args,**kwargs):
         if analysis_type is None:
@@ -1778,7 +2393,7 @@ class SpAn(object):
                 for cc in 'eof','pc','ev':
                     dicts.append('_%s_%s_%s'%(aa,bb,cc))
         dicts.extend(['_mode_axes','_mssa_window_axes','_mssa_pctime_axes','_mssa_channel_axes','_svd_channel_axes'])
-        lists = ['_mssa_pairs','_stack_info','_svd_l2r','_nt','_ns','_ndata','_pdata']
+        lists = ['_mssa_pairs','_svd_l2r','_nt','_ns','_ndata','_pdata']
         self._nphase = 8
         for ll,func in (dicts,dict),(lists,list):
             for att in ll:
@@ -1786,7 +2401,7 @@ class SpAn(object):
                     obj = getattr(self,att)
                     del obj
                 setattr(self,att,func())
-        self._ndataset = 0
+        self.nd = 0
         self._last_analysis_type = None
         gc.collect()
 
@@ -1798,7 +2413,7 @@ class SpAn(object):
         :Returns:
             integer or tuple
         """
-        return self._demap_(self._nmssa, grouped=True)
+        return self._unmap_(self._nmssa, grouped=True)
         
     def npca(self):
         """
@@ -1807,7 +2422,7 @@ class SpAn(object):
         :Returns:
             integer or tuple
         """ 
-        return self._demap_(self._npca, grouped=True)
+        return self._unmap_(self._npca, grouped=True)
 
     def ns(self):
         """
@@ -1816,7 +2431,7 @@ class SpAn(object):
         :Returns:
             integer or tuple
         """
-        return self._demap_(self._ns, grouped=True)
+        return self._unmap_([d.ns for d in self], grouped=True)
         
     def nt(self):
         """
@@ -1825,7 +2440,7 @@ class SpAn(object):
         :Returns:
             integer or tuple
         """
-        return self._demap_(self._nt, grouped=True)
+        return self._unmap_([d.nt for d in self], grouped=True)
         
     def window(self, absolute=False):
         """
@@ -1842,7 +2457,7 @@ class SpAn(object):
         win = self._window
         if absolute:
             win = [int(w*nt) for nt in zip(win, self._nt)]
-        return self._demap_(win, grouped=True)
+        return self._unmap_(win, grouped=True)
 
     def nsvd(self):
         """
@@ -1859,48 +2474,78 @@ class SpAn(object):
     ## Organize datasets
     #################################################################
 
-
-    def _map_(self, datasets, serial):
-        """Make datasets in the right form (a list of a list of variables)"""
-        # We start from a list
-        if not isinstance(datasets,(list,tuple)): # A single variable (array)
-            datasets = [datasets]
-            self._input_map = 0
-            
-        else: # Several variables or group of variables
-            if isinstance(datasets,tuple):
-                datasets = list(datasets)
-            self._input_map = len(datasets)
-
-        # Check if we are forced to be in serial analysis mode
-        for d in datasets:
-            if isinstance(d,(list,tuple)):
-                serial = True
-                break
-        if not serial: # Convert to serial like mode (single group of variables)
-            datasets = [datasets]
-            
-        else: # Several groups of variables
-            
-            input_map = []
-            for iset in xrange(len(datasets)):
+    def _map_(self, datasets, sequential):
+        """Make datasets in the right form (a list of variables or lists of variables)"""
+        
+         # Input data tree type
+        if not isinstance(datasets, (tuple, list)):
+            self.tree_type = 0
+        else:
+            self.tree_type = 1
+            for dataset in datasets:
+                if isinstance(dataset, (tuple, list)):
+                    self.tree_type = 2
+                    break
+            else:
+                if sequential: self.tree_type = 2
                 
-                if isinstance(datasets[iset],(list,tuple)): # Several variables
-                    
-                    # Convert tuple to list
-                    if isinstance(datasets[iset],tuple): 
-                        datasets[iset] = list(datasets[iset])
-                    
-                    # Append the number fo variables
-                    input_map.append(len(datasets[iset]))
-                    
-                else: # A single variable
-                    
-                    datasets[iset] = [datasets[iset]]
-                    input_map.append(0)
-                    
-            self._input_map = input_map
+        # Group variables if needed
+        if self.tree_type < 2:
+            datasets = [datasets]
+            
         self._datasets = datasets
+        self.nd = len(datasets)
+            
+    def _remap_(self, values, reshape=True, fill_value=None):
+        """Makes sure that values is a list (or tuple) of length :attr:`ndatasets`
+        
+        :func:`broadcast` is called when reshaping.
+        """ 
+        # We always need a sequence
+        if not isinstance(values, (tuple, list)):
+            values = [values]
+           
+        # Check length
+        if self.tree_type==2 and len(values)!=len(self): 
+            if not reshape:
+                raise SpanlibError('Wrong number of input items (%i instead of %i)'
+                    %(len(values), len(self)))
+            values = broadcast(values, len(self), fill_value)
+            
+        return values
+        
+    def _unmap_(self, values, grouped=None):
+        """Return values as input dataset (depth and shapes)
+        
+        :Params:
+        
+            - **values**: List, list of lists or dictionary with integers as keys.
+            - **grouped**, optional: Do not unmap as the :class:`Dataset` level.
+        """
+        
+        # Convert list to dictionary
+        if isinstance(values, list):
+            if grouped is None: grouped = not isinstance(values[0], list)
+            ff = {}
+            for i, f in enumerate(values):
+                ff[i] = f
+            values = ff
+        else:
+            if grouped is None: grouped = False
+            values = copy.copy(values)
+        
+        # Loop on datasets  
+        ret = ()
+        for iset in sorted(values.keys()):
+            val = values[iset]
+            if not grouped:
+                val = self[iset].unmap(val)
+            ret += val, 
+            
+        if self.tree_type<2:
+            return ret[0]
+        return ret
+
         
     def _demap_(self, fields, grouped=None):
         """Return fields as input dataset (depth and shapes)"""
@@ -1939,51 +2584,12 @@ class SpAn(object):
             
         return ret
         
-
-    def _remap_(self, data,  where=None, grouped=False):
-        """Organize data as a list of list of variable in the same way input data was reorganized"""
-        try:
-            # Single variable
-            if self._input_map == 0: 
-                if not isinstance(data, npy.ndarray): raise
-                if grouped: return [data]
-                return [[data]]
-            
-            # Several variables in a single dataset
-            if isinstance(self._input_map,  int):
-                if len(data)!=self._input_map: raise
-                if grouped: return [data]
-                datasets = []
-                for i in xrange(self._input_map):
-                    var = data[i]
-                    if not isinstance(var, npy.ndarray): raise
-                    datasets.append(var)
-                return [datasets]
-                    
-            # Several datasets
-            if grouped: return data
-            datasets = []
-            for j, imap in enumerate(self._input_map):
-                if imap == 0: # Single var
-                    datasets.append([data[j]])
-                else: # Several variables
-                    if len(data[j])!=imap: raise
-                    dd = []
-                    for idata in xrange(imap):
-                        var = data[j][i]
-                        if not isinstance(var, npy.ndarray): raise
-                        dd.append(var)
-                    datasets.append(dd)
-            return datasets
-            
-        except:
-            raise SpanlibError('Your input data must be in the same form as input data (map: %s)'%(self._input_map, ), where)
     
     def _input_raw_(self, input, alt):
         if input is None:
             return alt
         if isinstance(input, dict): # Explicit dictionary
-            for i in xrange(self._ndataset):
+            for i in xrange(self.nd):
                 if not input.has_key(i) and alt.has_key(i):
                     input[i] = alt[i]
             return input
@@ -1992,485 +2598,27 @@ class SpAn(object):
             for i, data in enumerate(input):
                 out[i] = data
         else: # Array (=> same for all dataset)
-            for i in xrange(self._ndataset):
+            for i in xrange(self.nd):
                 out[i] = input
         return out
 
-    @classmethod
-    def _core_stack_(cls, dataset, dweights=None, dnorms=None, dorders=None, dmasks=None, notime=False, getinvalid=False, nvalid=None,):
-        """ Takes several data files, of same time and stacks them up together
-    
-        This fonction concatenates several dataset that have the
-        same time axis. It is useful for analysing for example
-        several variables at the same time.
-        It takes into account weights, masks and axes.
-    
-        :Params:
-        
-            - *dataset*: A list of data objects.
-                They must all have the same time length.
-                
-        :Options:
-        
-            - *dweights*: Associated weights.
-    
-        """
-    
-        # Inits
-        len_time=None
-        taxes = []
-        saxes = []
-        atts = []
-        shapes = []
-        ids = []
-        grids = []
-        mvs = []
-        norms = []
-        means = []
-        types = []
-        ndims = []
-        orders = []
-        masks = []
-        if getinvalid:
-            invalids = []
-        if dweights is None:
-            dweights = [None]*len(dataset)
-        if dnorms is None:
-            dnorms = [None]*len(dataset)
-        if dorders is None:
-            dorders = [None]*len(dataset)
-        if dmasks is None:
-            dmasks = [None]*len(dataset)
-        if notime: getinvalid=False
-    
-        # Loop on datasets
-        for idata,data in enumerate(dataset):
-    
-            # Guess data type
-            if not cdms2_isVariable(data):
-                #data = cdms2.createVariable(data,copy=0)
-                if npy.ma.isMA(data):
-                    types.append('npy.ma')
-                else:
-                    types.append('npy')
-            else:
-                types.append('MV2')
-    
-            # Check time axis
-            if not notime: 
-                if dorders[idata] is not None: # We specifiy the right order
-                    data = MV2.asarray(data)
-                    if cdms2.order2index(data.getAxisList(), data.getOrder())!=dorders[idata]:
-                        data = data(order=dorders[idata])
-                elif cdms2_isVariable(data) and data.getTime() is not None: 
-                    # If a proper time axis is found, bring it to front
-                    order = cdms2.order2index(data.getAxisList(), data.getOrder())
-                    data = data(order='t...')
-                    dorders[idata] = order
-                if len_time is None:
-                    len_time = data.shape[0]
-                elif len_time != data.shape[0]:
-                    raise 'Error all datasets must have the same time length!!!!'
-            else:
-                orders.append(None)
-    
-            # Append info
-            # - time
-            if notime:
-                taxes.append(None)
-            elif not cdms2_isVariable(data):
-                taxes.append(data.shape[0])
-            else:
-                taxes.append(data.getAxis(0))
-            # - others axes
-            if cdms2_isVariable(data): # cdms -> ids
-                saxes.append(data.getAxisList()[1-int(notime):])
-                ids.append(data.id)
-                atts.append({})
-                for att in data.listattributes():
-                    atts[-1][att] = data.attributes[att]
-                grids.append(data.getGrid())
-            else: # numpy -> length
-                saxes.append(data.shape[1-int(notime):])
-                ids.append(None)
-                atts.append(None)
-                grids.append(None)
-            # - missing value
-            if npy.ma.isMA(data):
-                mvs.append(data.missing_value)
-            else:
-                mvs.append(1.e20)
-            # - shape
-            shapes.append(data.shape)
-            ndims.append(data.ndim)
-            
-            # Pack 
-            packed = SpAn._pack_(data, dweights[idata], dnorms[idata], notime=notime, 
-                getinvalid=getinvalid, nvalid=nvalid, mask=dmasks[idata])
-    
-            # Create or concatenate
-            if not idata:
-                stacked = packed['data']
-                weights = packed['weights']
-            else:
-                stacked = npy.concatenate((stacked,packed['data']))
-                weights = npy.concatenate((weights,packed['weights']))
-            norms.append(packed['norm'])
-            masks.append(packed['mask'])
-            orders.append(dorders[idata])
-            means.append(packed['mean'])
-            if getinvalid: invalids.append(packed['invalid'])
-            del packed
-            gc.collect()
-    
-        # Store data and information
-        if notime or stacked.ndim==1:
-            ns = 1
-        else:
-            ns = stacked.shape[0]
-        if taxes[0] is None:
-            nt = 0
-        else:
-            nt = taxes[0]
-        stack_info = dict(ids=ids,taxes=taxes,saxes=saxes,masks=masks,
-            weights=weights,atts=atts,shapes=shapes,grids=grids,ndims=ndims, 
-            mvs=mvs,types=types,norms=norms,means=means, orders=orders)
-        if getinvalid: stack_info['invalids'] = invalids
-        stack = dict(info = stack_info, 
-            ndata = len(ids), 
-            pdata = stacked, 
-            nt = stacked.shape[1], 
-            ns = ns, 
-        )
-        return stack
-
-
-    def _stack_(self, dataset, dweights, dnorms, **kwargs):
-        """ Takes several data files, of same time and stacks them up together
-
-        This fonction concatenates several dataset that have the
-        same time axis. It is useful for analysing for example
-        several variables at the same time.
-        It takes into account weights, masks and axes.
-
-        Parameters:
-        
-            - dataset: A list of data objects. They must all have the same time length.
-            - dweights: Associated weights.
-        :::
-        """
-        stack = SpAn._core_stack_(dataset, dweights, dnorms, **kwargs)
-        
-        # Store data and information
-        self._stack_info.append(stack['info'])
-        self._ndata.append(stack['ndata'])
-        self._pdata.append(stack['pdata'])
-        self._nt.append(stack['nt'])
-        self._ns.append(stack['ns'])
-
-
-    def _unstack_(self, iset, pdata ,firstaxes, cpatts=True, remean=True):
-        """Return a list of variables in the physical space, for ONE dataset.
-        
-        Parameters:
-        
-            iset: dataset index
-            pdata: (~ns,nt) typically from fortran routines
-            firstaxes: MUST be a tuple of all axes except spatial axes  
-            cpatts: copy attributes of input variables to unstacked output variables
-            remean: add temporal mean of input variables to unstacked output variables
-        """
-
-        # Loop on stacked data
-        istart = 0
-        unstacked = []
-        #if not isinstance(firstaxes,list):
-            #firstaxes = [firstaxes]
-        if firstaxes is not None and not isinstance(firstaxes, tuple):
-            firstaxes = firstaxes,
-        for idata in xrange(len(self._stack_info[iset]['ids'])):
-
-            # Get needed stuff
-            props = {}
-            for att in self._stack_info[iset].keys():
-                if att[-1] == 's':
-                    props[att[:-1]] = self._stack_info[iset][att][idata]
-
-            # Axes and shape
-            # - first axes
-            axes = []
-            if isinstance(firstaxes,  tuple):
-                for fa in firstaxes:
-                    if isinstance(fa,(list,tuple)): # TIME
-                        axes.append(fa[idata])
-                    elif isinstance(fa,dict): # MODE
-                        axes.append(fa[iset])
-                    else:
-                        axes.append(fa) # WINDOW OR OTHERS
-            # - spatial axes
-            if props['type'] == 'MV2' and props['ndim'] > 1: 
-                axes.extend(props['saxe'])
-            # - shape
-            requested_shape = ()
-            for axis in axes:
-                if axis is None: continue
-                requested_shape += (axis, ) if isinstance(axis, int) else (len(axis), )
-                            
-            # Unpack data
-            unpacked, istart, mlen = self._unpack_(pdata, istart, props, requested_shape, remean)
-
-            # Convert to right type
-            if props['type'] != 'npy': # Masked
-            
-                # Masking
-                final = eval(props['type']).masked_object(unpacked, props['mv']) ; del unpacked
-                final.setMissing(props['mv'])
-                
-                # CDAT
-                if props['type'] == 'MV2':
-                    
-                    # Grid
-                    final.setAxisList(axes)
-                    final.setGrid(props['grid'])
-                    
-                    # Attributes
-                    if cpatts:
-                        for attn, attv in props['att'].items():
-                            setattr(final, attn, attv)
-                            
-                    # Order of axes
-                    if props['order'] is not None:
-                        final = final(order=props['order'])
-                        
-            else: # Numpy
-                final = unpacked
-                
-            # Append to output
-            unstacked.append(final)
-            istart += mlen
-
-        gc.collect()
-        return unstacked
-        
-        
-    @classmethod
-    def _pack_(cls, data, weights=None, norm=None, mask=None, notime=False, nvalid=None, getinvalid=False, demean=True):
-        """ Pack a dataset and its weights according to its mask
-    
-        :Description:
-            This function packs a dataset in 2D space by removing
-            all masked points and returning a space-time array.
-            It performs this operation also on the weights.
-            It is used for removing unnecessary points and
-            simplifying the input format for analysis functions.
-    
-    
-        :Parameters:
-        
-            - **data**: masked array
-                Flatten in space an [x,y,t] array by 
-                removingits masked point
-        
-        :Options:
-        
-            - **weights**: Weights to be flatten also
-            - **norm**: Normalisation coefficients
-            - **mask**: Integer mask where valid data = 1
-    
-        :Returns:
-        
-            - **packed_data**: : Space-time packed array
-            - **packed_weights**: Packed weights that were guessed or used
-            - **mask**: Mask that were guessed or used
-
-        """
-        # Sizes
-        packed = {}
-        if notime:
-            nt = 1
-        else:
-            nt = data.shape[0]
-        if data.ndim == 1:
-            nstot = 1
-        else:
-            nstot = npy.multiply.reduce(data.shape[1-notime:])
-        sh=list(data.shape)
-        
-        # Weights ?
-        if weights is None:
-            if data.ndim == (3-notime) and cdms2_isVariable(data) and \
-                'x' in data.getOrder() and 'y' in data.getOrder():
-                import cdutil
-                weights = cdutil.area_weights(data[0]).data # Geographic weights
-            else:
-                weights = npy.ones(nstot,dtype='f')
-                weights = npy.ascontiguousarray(weights)
-                weights.shape = sh[1-notime:]
-        elif npy.ma.isMA(weights):
-            weights = weights.filled(0.)
-        else:
-            weights = npy.asarray(weights,dtype='f')
-    
-        # Scalings
-        if cdms2_isVariable(data): 
-            data = data.asma()
-        data = data.copy()
-        # - mean
-        if notime or not demean:
-            packed['mean'] = 0.
-        else:
-            packed['mean'] = data.mean(axis=0)
-            data[:] -= packed['mean']
-        # - norm
-        packed['norm'] = norm
-        
-        # Mask
-        bmask = npy.ma.getmaskarray(data)
-        good = 1-bmask.astype('l')
-#        if mask is not None:
-#            good = mask
-#            bmask = mask==1
-    
-#        # Is it already packed? Check the mask...
-#        if not bmask.any() or bmask.all() or data.ndim==1:
-#            del maskfull
-#            if weights is None:
-#                weights = npy.ones(nstot,dtype='f')
-#            else:
-#                weights = npy.asarray(weights,dtype='f')
-#            packed['weights'] = weights.ravel()
-#            if len(packed['weights']) != nstot:
-#                packed['weights'] = npy.resize(packed['weights'], (nstot,))
-#            if npy.ma.isMA(data): data = data.filled(0.)
-#            data = npy.ascontiguousarray(data)
-#            data.shape = (nt,nstot)
-#            packed['data'] = data.T
-#            packed['mask'] = npy.ones(nstot)
-#            if getinvalid: packed['invalid'] = None
-#            SpAn._check_norm_(packed)
-#            return packed
-    
-        # Mask (1 means good)
-        if mask is None:
-            # - first from data (integrate) => 1D
-            if not notime:
-                mask = npy.atleast_1d(good.sum(axis=0))
-            else:
-                mask = good
-            del good
-            # - now remove channels where weight is zero
-            mask[npy.atleast_1d(weights==0.)] = 0
-            # - check number of valid data along time
-            if not notime:
-                nvalid = npy.clip(int(nvalid), 1, nt) if nvalid is not None else nt
-                mask[mask<nvalid] = 0
-            # - save as 0/1
-            mask[:] = npy.clip(mask, 0, 1)
-        packed['mask'] = mask
-    
-        # Number of valid points in spatial dimension
-        ns = long(mask.sum())
-        
-        # Fill data
-        # - fill with mean (0.) where possible
-        if not notime and nvalid!=nt: 
-            invalid = data.mask&mask.astype('?')
-            data[invalid] = 0.
-            if getinvalid: 
-                packed['invalid'] = invalid
-            else: del invalid, error
-        elif getinvalid:
-            packed['invalid'] = None
-        # - finally fill with missing values
-        if npy.ma.isMA(data):
-            data_num = data.filled(0.)
-        else:
-            data_num = data
-        
-        # Reshape
-        data_num = npy.ascontiguousarray(data_num)
-        data_num.shape = (nt,nstot)
-       
-    
-        # Remove bad channels ?
-        if mask.size != mask.sum(): # Pack  
-        
-            # - pack numeric data array
-            mask = npy.ascontiguousarray(mask)
-            mask.shape = nstot,
-            packed['data'] = npy.asarray(spanlib_fort.chan_pack(data_num, mask, ns), dtype='f', order='F')
-            del data_num
-            # - pack weights
-            weights = npy.ascontiguousarray(weights)
-            weights.shape = (1,nstot)
-            packed['weights'] = npy.asarray(spanlib_fort.chan_pack(weights, mask, ns)[:,0], dtype='f')
-            
-        else: # Don't pack
-        
-            packed['data'] = data_num.T.astype('f')
-            weights.shape = nstot, 
-            packed['weights'] = weights.astype('f')
-            
-            
-        SpAn._check_norm_(packed)
-        return packed
-        
-    @classmethod
-    def _unpack_(cls, pdata, istart, props, rshape, remean):
-        """Unpack data along space, reshape, unnormalize and remean.
-        
-        Input is sub_space:other, output is other:split_space.
-        For MSSA: pdata(nchan,window,nmssa) (other = window:nmssa)
-        """
-        # Get the block
-        mlen = int(props['mask'].sum())
-        iend = istart + mlen
-        indata = pdata[istart:iend,:]
-        
-        # Unpack
-        unpacked = spanlib_fort.chan_unpack(props['mask'], indata, props['mv'])
-        good = unpacked != props['mv']
-        
-        # Unnormalize
-        if props['norm'] != 1.:
-            unpacked[good] *= props['norm']
-            
-        # Time-average
-        if remean:
-            ii = npy.arange(good.shape[1])
-            igood = ii[props['mask']==1] ; del ii
-            rmean = props['mean'].reshape(good.shape[1])
-            unpacked[:, igood] += rmean[igood]
-            del rmean, igood
-            
-        # Shape
-        if rshape != unpacked.shape:
-            unpacked.shape = rshape
-
-        return unpacked, istart, mlen
-            
         
     @classmethod
     def _get_imodes_(cls, imode, nmode):
         
         # Which modes
         if imode is None:
-            imode = range(1,nmode+1)
+            imode = range(0, nmode+1)
         elif isinstance(imode,slice):
-            imode = range(imode.start,imode.stop,imode.step)
+            imode = range(imode.start, imode.stop, imode.step)
         else:
             if isinstance(imode,int):
-                #if imode < 0:
-                    #imode = range(-imode)
-                #else:
                 imode = [imode,]
-                    #imode = [imode-1,]
-            #imode = [im+1 for im in imode]
     
-        # Rearrange modes (imode=[1,3,4,5,9] -> [1,1],[3,5],[9,9])
-        imode = [im for im in imode if im <= nmode]
+        # Rearrange modes (imode=[0,3,4,5,9] -> [0,0],[3,5],[9,9])
+        imode = [im for im in imode if im < nmode]
         imode.sort(cmp=lambda x,y: cmp(abs(x),abs(y)))
-        if imode[0]<0: imode.insert(0,1)
+        if imode[0]<0: imode.insert(0,0)
         imodes = []
         im = 0
         while im < len(imode):
@@ -2484,46 +2632,77 @@ class SpAn(object):
             else:
                 if im < len(imode)-1: im = imt
             im += 1
-            imodes.append((imode1,imode2))
+            imodes.append([imode1,imode2])
         return imodes
     
     @classmethod
     def _check_length_(cls, input, mylen, fillvalue):
-        # A single value
-        if mylen == 0:
-            if isinstance(input,(list,tuple)):
-                if not input: return None
-                return input[0]
-            return input
-        # Multiple values as a list (or tuple)
-        if not isinstance(input,(list,tuple)):
-            fillvalue = input
-            input = [input]
-        if isinstance(input,tuple):
-            input = list(input)
-        dlen = mylen-len(input)
-        if dlen < 0:
-            input = input[:mylen]
-        elif dlen > 0:
-    #       for iadd in xrange(dlen):
-                input.extend([fillvalue]*dlen)
-        return input
+        return broadcast(input, mylen, fillvalue)
     
-    @classmethod
-    def _check_norm_(cls, packed):
-        """Setup the normalisation factor of a packed dataset"""
-        if packed['norm'] is True or packed['norm'] is None:
-            packed['norm'] = packed['data'].std() # Standard norm
-            packed['data'] = packed['data']/packed['norm'] # Norm copy
-        elif packed['norm'] is not False:
-            if packed['norm'] <0: # Relative norm, else strict norm
-                packed['norm'] = abs(packed['norm'])*packed['data'].std()
-            packed['data'] = packed['data']/packed['norm'] # Norm copy
+    def _raw_rec_(self, raw_eof, raw_pc, imodes=None, nw=False):
+        """Generic raw reconstruction of modes for pure PCA, MSSA or SVD, according to EOFs and PCs, for ONE DATASET
+        
+        raw_eof: (nspace,nmode)
+        raw_pc: (nt,nmode)
+        """
+
+#        # Get EOFs and PCs for one dataset
+#        if isinstance(raw_eof, (list, tuple, dict)): raw_eof = raw_eof[iset]
+#        if isinstance(raw_pc, (list, tuple, dict)): raw_pc = raw_pc[iset]
+#        
+        # Sizes
+        ns = raw_eof.shape[0]
+        nt = raw_pc.shape[0]
+        if nw: 
+            ns /= nw
+            nt +=nw-1
+           
+        # Which modes
+        nmode = raw_eof.shape[-1]
+        imodes = SpAn._get_imodes_(imodes, nmode)
+
+        # Function of reconstruction
+        if nw:
+            function = spanlib_fort.mssa_rec # MSSA
         else:
-            packed['norm'] = 1.
+            function = spanlib_fort.pca_rec  # PCA/SVD
+
+        # Arguments
+        args = [npy.asfortranarray(var) for var in [raw_eof, raw_pc]]
+        if nw:
+            args.extend([ns, nt, nw])
+            
+        # Loop no modes
+        smodes = []
+        ffrec = 0.
+        for j, ims in enumerate(imodes):
+            
+            # python -> fortran index
+            ims[0] += 1
+            ims[1] += 1
+            
+            # check modes
+            if ims[0] > nmode: break
+            if ims[1] > nmode: ims = (ims[0], nmode)
+            
+            # add modes to args
+            targs = args+list(ims)
+            
+            # fortran call
+            ffrec += npy.ascontiguousarray(function(*targs)) # (nc,nt)
+            
+            # mode specs as a string
+            if ims[0] == ims[1]:
+                smode = str(ims[0])
+            else:
+                smode = '%i-%i'%tuple(ims)
+            smodes.append(smode)
+            
+        return ffrec,'+'.join(smodes)
+
     
 
-    def _project_(self, reof, rpc, iset=0, imodes=None, ns=None, nt=None, nw=None):
+    def _combine_(self, reof, rpc, iset=0, imodes=None, ns=None, nt=None, nw=None):
         """Generic raw construction of modes for pure PCA, MSSA or SVD, according to EOFs and PCs, for ONE DATASET
         
         reof: (nspace,nmode)
@@ -2536,7 +2715,7 @@ class SpAn(object):
         if ns is None: 
             ns = reof.shape[0]
             if nw: ns /= nw
-        if nt is None: nt = self._nt[iset]
+        if nt is None: nt = self[iset].nt
 
         # Which modes
         nmode = reof.shape[-1]
@@ -2550,7 +2729,7 @@ class SpAn(object):
 
 
         # Arguments
-        args = [reof,rpc]
+        args = [reof, rpc]
         kwargs = {}
         if nw is not None:
             # MSSA
@@ -2560,6 +2739,8 @@ class SpAn(object):
         smodes = []
         ffrec = 0.
         for j,ims in enumerate(imodes):
+            ims[0] += 1
+            ims[1] += 1
             if ims[0] > nmode: break
             if ims[1] > nmode: ims = (ims[0], nmode)
             targs = args+list(ims)
@@ -2571,6 +2752,12 @@ class SpAn(object):
             smodes.append(smode)
         return ffrec,'+'.join(smodes)
 
+    def __iter__(self):
+        return SpanlibIter(self)
+    def next(self):
+        if not hasattr(self, '_iter'):
+            raise SpanlibError('No iterator have been initialized')
+        return span._iter.next()
 
 class SVDModel(SpAn):
 
@@ -2640,7 +2827,7 @@ class SVDModel(SpAn):
         rec = self.l2r(lec, method=method)
 
         # Projections
-        raw_rec,smodes = self._project_(self._svd_raw_eof[1], rec, 1, modes)
+        raw_rec,smodes = self._combine_(self._svd_raw_eof[1], rec, 1, modes)
             
         # Get raw data back to physical space (nchan,nt)
         taxis = stack['info']['taxes'][0]
@@ -2648,7 +2835,7 @@ class SVDModel(SpAn):
             projected = self._unstack_(1, raw_rec, taxis)
             
         else: # With pre-pca
-            proj_rec, spcamodes = self._project_(self._pca_raw_eof[1], raw_rec.T, 1,
+            proj_rec, spcamodes = self._combine_(self._pca_raw_eof[1], raw_rec.T, 1,
                 nt=len(taxis) if taxis is not None else 1)
             projected = self._unstack_(1, proj_rec, taxis)
         del  raw_rec
@@ -2666,7 +2853,7 @@ class SVDModel(SpAn):
             if atts.has_key('long_name'):
                 rec.long_name += ' of '+atts['long_name']
                 
-        return self._demap_({1:projected})
+        return self._unmap_({1:projected})
 
 
     __call__ = run
@@ -2700,7 +2887,18 @@ class SVDModel(SpAn):
 
 
 class SpanlibError(Exception):
-    def __init__(self,what, where=None):
+    """Reporter of exceptions
+    
+    :Params:
+    
+        - **what**: What is the error.
+        - **where**, optional: Where the error occured.
+        
+    :Example:
+    
+        >>> SpanlibError('Bad number of channels', 'pca')
+    """
+    def __init__(self, what, where=None):
         Exception.__init__(self)
         self._where = where
         self._what = what
@@ -2709,6 +2907,21 @@ class SpanlibError(Exception):
             return 'SpanlibError: %s' %  self._what
         return 'SpanlibError: [%s] %s' % (self._where, self._what)
 
+class SpanlibIter:
+    """Iterator over datasets"""
+    def __init__(self, span):
+        self.span = span
+        self.iset = 0
+        span._iter = self
+    def __iter__(self):
+        return self
+    def next(self):
+        if self.iset<self.span.nd:
+            self.iset += 1
+            return self.span[self.iset-1]
+        del self.span._iter
+        raise StopIteration
+    
 
 
 def phase_composites(data,  nphase=8, minamp=.5, firstphase=0, index=None, force_cdat=False):
@@ -2805,7 +3018,7 @@ class Filler(object):
     def __init__(self, data, run=True, **kwargs):
         
         self._kwargs = kwargs
-        self._kwargs['getinvalid'] = True
+        self._kwargs['keep_invalids'] = True
         self._kwargs.setdefault('nvalid', 1)
         self._kwargs.setdefault('quiet', True)
         self._data = data
@@ -2843,7 +3056,7 @@ class Filler(object):
         
         """
     
-        kwargs['getinvalid'] = True
+        kwargs['keep_invalids'] = True
         kwargs.setdefault('nvalid', 1)
         kwargs.setdefault('quiet', True)
         data = self._data
@@ -2851,37 +3064,44 @@ class Filler(object):
             self.filtsteps = []
         else:
             self.filtsteps = None
+        old_span = None
         for self.nstep in xrange(nitermax):
             
             # Setup data
             # - run analysis
             if self.nstep:
-                kwargs['getinvalid'] = False
+                kwargs['keep_invalids'] = False
                 kwargs['nvalid'] = None
-            span = SpAn(data, serial=False, npca=npca, nmssa=nmssa, **kwargs)
+            span = SpAn(data, sequential=False, npca=npca, nmssa=nmssa, **kwargs)
             # - first run
             if self.nstep == 0:
+                
                 # Check input
-                if isinstance(span._input_map, list):
+                if not span.tree_type<2:
                     raise TypeError('Input data must be a single variable or a list of variables')
-                mdata = span._datasets
+                
                 # Keep original data safe
-                for ivar in xrange(len(mdata[0])):
-                    var = mdata[0][ivar]
-                    if cdms2_isVariable(var): mdata[0][ivar] = var.clone()
-                    else: mdata[0][ivar] = var.copy()           
+                mdata = []
+                norms = []
+                for ivar in xrange(len(span[0])):
+                    var = span[0][ivar].data
+                    if cdms2_isVariable(var): var = var.clone()
+                    else: var = var.copy()  
+                    mdata.append(var)
+                    norms.append(span[0][ivar].norm)
+                    kwargs['norms'] = norms
             
             # Check convergence
             if self.nstep == 0: # reference
             
-                self.invalids = invalids = span._stack_info[0]['invalids']
+                self.invalids = invalids = span[0].invalids
                 for invalid in invalids:
                     if invalid is not None and invalid.any():
                         break
                 else:
                     print "Nothing to fill in"
                     datarec = data
-                    if getfiltsteps: sels.filtsteps.append(datarec)
+                    if getfiltsteps: self.filtsteps.append(datarec)
                     break
                 self.cv = 1.
                 last_energy = 0.
@@ -2892,11 +3112,10 @@ class Filler(object):
                 energy = 0.
                 for i, invalid in enumerate(invalids):
                     if invalid is None: continue
-                    basevar = span._datasets[0][i]
-                    if cdms2_isVariable(span._datasets[0][i]):
+                    basevar = span[0][i].data
+                    if span[0][i].has_cdat():
                         basevar = basevar.asma()
-                    basevar = basevar.copy()
-                    basevar[:] -= span._stack_info[0]['means'][i] #FIXME: order
+                    basevar = span[0][i].scale(basevar, copy=True, norm=True)
                     basevar[:] *= basevar
                     energy += basevar[invalid].sum()
                     del basevar
@@ -2911,20 +3130,21 @@ class Filler(object):
             
             # Reconstruction
             datarec = span.mssa_rec()
-            mdatarec = span._remap_(datarec)
+            mdatarec = span[0].remap(datarec)
             
             # Replace invalid data with reconstructed field
-            for ivar in xrange(len(mdatarec[0])):
+            for ivar in xrange(len(mdatarec)):
                 if invalids[ivar] is not None:
                     if callable(filter):
-                        mdatarec[0][ivar][:] = filter(mdatarec[0][ivar])
-                    mdata[0][ivar][:] = eval(span._type_(0, ivar)).where(invalids[ivar], 
-                        mdatarec[0][ivar], mdata[0][ivar])
+                        mdatarec[ivar][:] = filter(mdatarec[ivar])
+                    mdata[ivar][:] = eval(span[0][ivar].array_type).where(invalids[ivar], 
+                        mdatarec[ivar], mdata[ivar])
             
             # Save current filtered state
             if getfiltsteps: self.filtsteps.append(datarec)
                         
-            data = span._demap_(mdata)
+            data = span._unmap_([mdata])
+            old_span = span
                     
     
             # Check iteration limit
@@ -2933,119 +3153,24 @@ class Filler(object):
                 break
                 
         # Output
+        span = old_span if old_span is not None else span
         self.span = span
         self.nmssa = span.nmssa()
         self.npca = span.npca()
         self.filled = data
         self.filtered = datarec
-        if isinstance(self.filled, list):
-            for i, data in enumerate(self._data):
-                self.filled[i].id = data.id+'_filled'
-                self.filtered[i].id = data.id+'_filtered'
-        else:
-            self.filled.id = self._data.id+'_filled'
-            self.filled.id = self._data.id+'_filtered'
+        if span[0].has_cdat(): # Ids for CDAT variables
+            if isinstance(self.filled, list):
+                for i, data in enumerate(span[0].datasets):
+                    if not data.has_cdat(): continue
+                    self.filled[i].id +='_filled'
+                    self.filtered[i].id += '_filtered'
+            elif span[0]:
+                self.filled.id += '_filled'
+                self.filled.id += '_filtered'
         return data
 
-def fill_missing(data, nitermax=50, cvmax=0.02, out='filled', **kwargs):
-    
-    kwargs['getinvalid'] = True
-    kwargs.setdefault('nvalid', 1)
-    kwargs.setdefault('quiet', True)
-    for icv in xrange(nitermax):
-        
-        # Setup data
-        if icv:
-            kwargs['getinvalid'] = False
-            kwargs['nvalid'] = None
-        span = SpAn(data, serial=False, **kwargs)
-        if icv == 0:
-            if isinstance(span._input_map, list):
-                raise TypeError('Input data must be a single variable or a list of variables')
-            mdata = span._remap_(data)
-
-        
-        
-        # Check convergence
-        if icv == 0: # reference
-        
-            invalids = span._stack_info[0]['invalids']
-            for invalid in invalids:
-                if invalid is not None and invalid.any():
-#                   print invalid.sum()
-                    break
-            else:
-                print "Nothing to fill in"
-                if out=='filled':return data
-                elif out=='both': return data, data
-                return data
-            cv = 1.
-            last_energy = 0.
-                
-        else: # next steps
-        
-            # new energy
-            energy = 0.
-            for i, invalid in enumerate(invalids):
-                if invalid is None: continue
-                basevar = span._datasets[0][i]
-                if cdms2_isVariable(span._datasets[0][i]):
-                    basevar = basevar.asma()
-                basevar = basevar.copy()
-                basevar[:] -= span._stack_info[0]['means'][i] #FIXME: order
-                basevar[:] *= basevar
-                energy += basevar[invalid].sum()
-                del basevar
-                
-            # check convergence
-            cv = (energy-last_energy)/energy
-            print ' cv', cv*100
-            if cv < 0 or npy.abs(cv) < cvmax:
-                print 'Convergence reached: %i%% (%i iterations)'%(100*cv, icv)
-                if out=='rec': return datarec
-                elif out=='both': return data, datarec
-                return data
-            last_energy = energy
-        
-        # Reconstruction
-        datarec = span.mssa_rec()
-        mdatarec = span._remap_(datarec)
-        for ivar in xrange(len(mdatarec[0])):
-            
-            # Keep original data safe
-            if icv==0: 
-                var = mdata[0][ivar]
-                if cdms2_isVariable(var): mdata[0][ivar] = var.clone()
-                else: mdatar[0][ivar] = var.copy()
-                
-            # Replace invalid data with reconstructed data
-            if invalids[ivar] is not None:
-                mdata[0][ivar][:] = eval(span._type_(0, ivar)).where(invalids[ivar], 
-                    mdatarec[0][ivar], mdata[0][ivar])
-        data = span._demap_(mdata)
-        pass
-#       if span._input_map == 0:
-#           if icv==0:
-#               if cdms2_isVariable(data): data = data.clone()
-#               else: data = data.copy()
-#           data[:] = eval(span._type_(0, 0)).where(invalids[0], datarec, data)
-#       else:
-#           data = list(data)
-#           for i, d in enumerate(datarec):
-#               if icv==0:
-#                   if cdms2_isVariable(d): d = data.clone()
-#                   else: d = d.copy()
-#               if invalids[i] is not None:
-#                   data[i][:] = eval(span._type_(0, i)).where(invalids[i], d, data[i])
-                
-
-        # Check iteration limit
-        if icv >= nitermax:
-            print 'Convergence not reached %i%% (%i iterations)'%(100*cv, icv)
-            if out=='rec':return datarec
-            elif out=='both': return data, datarec
-            return data
-        
+       
 
 class RedNoise(object):
     """Create a red noise generated based on lag-0 and lag-1 autocovariances of a variable

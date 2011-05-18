@@ -22,9 +22,6 @@ module spanlib
 
     implicit none
     
-    ! Working precision
-    wp = 8
-
 contains
 
     ! ############################################################
@@ -33,7 +30,7 @@ contains
     ! ############################################################
     ! ############################################################
 
-    subroutine sl_pca(var,nkeep,xeof,pc,ev,ev_sum,weights,useteof, bigmat)
+    subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, weights, useteof)
 
         ! **Principal Component Analysis**
         !
@@ -59,44 +56,39 @@ contains
         !    - *ev_sum*: Sum of all egein values (even thoses not returned)
         !    - *weights (ns)*: Space array of weights
         !    - *useteof*: To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]
-        !    - *bigmat*: Use syevd instead of syev (faster for large 
-        !      matrices, but uses more workspace) [default:.true.]
         !
         ! :Dependencies:
-        !    :func:`[sd]gemm` (BLAS) :func:`[sd]syrk` (BLAS) 
-        !    :func:`la_syev` (LAPACK95) :func:`la_syevd` (LAPACK95)
+        !    :func:`dgemm` (BLAS) :func:`dsyrk` (BLAS) :func:`dsyev` (LAPACK) 
     
     
         ! Declarations
         ! ============
     
-        use spanlib_lapack95, only: la_syevd, la_syev
+!         use spanlib_lapack95, only: la_syevd, la_syev
     
         implicit none
     
         ! External
         ! --------
-        real(wp), intent(in)            :: var(:,:)
+        real(8), intent(in)            :: var(:,:)
         integer,  intent(in)            :: nkeep
-        real(wp), intent(out), optional :: pc(size(var,2),nkeep), &
+        real(8), intent(out), optional :: pc(size(var,2),nkeep), &
         &                                xeof(size(var,1),nkeep), ev(nkeep)
-        real(wp), intent(in),  optional :: weights(:)
+        real(8), intent(in),  optional :: weights(:)
         integer,  intent(in),  optional :: useteof
-        logical,  intent(in),  optional :: bigmat
-        real(wp), intent(out), optional :: ev_sum
+        real(8), intent(out), optional :: ev_sum
     
         ! Internal
         ! --------
         integer               :: ns,nt
-        real(wp), allocatable :: cov(:,:), subcov(:,:)
-        real(wp), allocatable :: wvar(:,:), ww(:), zeof(:,:), zvar(:,:)
-        real(wp), allocatable :: zev(:)
-        integer               :: zuseteof, znkeepmax, i
-        logical               :: zbigmat
-    
+        real(8), allocatable :: cov(:,:), subcov(:,:)
+        real(8), allocatable :: wvar(:,:), ww(:), zeof(:,:), zvar(:,:)
+        real(8), allocatable :: zev(:), work(:)
+        integer               :: zuseteof, znkeepmax, i, info, lwork
+
         ! Setups
         ! ======
-    
+
         ! Sizes
         ! -----
         ns = size(var,1)
@@ -142,28 +134,21 @@ contains
             end if
         end if
     
-        ! Use ssyevd?
-        ! -----------
-        if(.not.present(bigmat))then
-            zbigmat = .true.
-        else
-            zbigmat = bigmat
-        end if
     
         ! Remove the mean
         ! ---------------
-        allocate(zvar(ns,nt))
+        allocate(zvar(ns, nt))
         zvar = var - spread(sum(var,dim=2)/real(nt), ncopies=nt, dim=2)
     
     
         ! Default weights = 1.
         ! --------------------
         allocate(ww(ns))
-        allocate(wvar(ns,nt))
-        ww = 1.
+        allocate(wvar(ns, nt))
+        ww = 1d0
         if(present(weights))then
             ww(:) = weights * real(ns) / sum(weights)
-            where(ww==0.)ww = 1.
+            where(ww==0d0)ww = 1d0
             do i = 1, nt
                 wvar(:,i) = zvar(:,i) * sqrt(ww)
             end do
@@ -177,25 +162,26 @@ contains
     
         if(zuseteof==1)then
     
-    
             ! T-EOF case
             ! ----------
     
             ! Covariance
             allocate(cov(nt,nt))
             allocate(zev(nt))
-            cov=0.
-!wp            call ssyrk('U','T',nt,ns,1.,wvar,ns, 0.,cov,nt)
-            call dsyrk('U','T',nt,ns,1.,wvar,ns, 0.,cov,nt)
-            cov = cov / float(ns)
+            cov=0d0
+            call dsyrk('U', 'T', nt, ns, 1d0, wvar, ns, 0d0, cov, nt)
+            cov = cov / dble(ns-1)
             deallocate(wvar)
     
             ! Diagonalising (cov: input=cov, output=eof)
-            if(zbigmat)then
-                call la_syevd(cov,zev,jobz='V')
-            else
-                call la_syev(cov,zev,jobz='V')
-            end if
+!             call la_syev(cov,zev,jobz='V')
+            allocate(work(1))
+            call dsyev('V', 'U', nt, cov, nt, zev, work, -1, info)
+            lwork = int(work(1))
+            deallocate(work)
+            allocate(work(lwork))
+            call dsyev('V', 'U', nt, cov, nt, zev, work, lwork, info)
+            deallocate(work)        
     
             ! Back to S-EOFs
             if(present(pc).or.present(xeof))then
@@ -203,9 +189,8 @@ contains
                 allocate(subcov(nt,nkeep))
                 subcov = cov(:,nt:nt-nkeep+1:-1)
                 deallocate(cov)
-!wp                call sgemm('N','N',ns,nkeep,nt,1.,zvar,ns, &
-                call dgemm('N','N',ns,nkeep,nt,1.,zvar,ns, &
-                    & subcov,nt,0.,zeof,ns)
+                call dgemm('N', 'N', ns, nkeep, nt, 1d0, zvar, ns, &
+                    & subcov, nt, 0d0, zeof, ns)
                 deallocate(subcov)
                 do i = 1, nkeep
                     zeof(:,i) = zeof(:,i) / &
@@ -221,25 +206,26 @@ contains
             if(present(ev)) ev = zev(nt:nt-nkeep+1:-1)
     
         else
-    
+   
             ! S-EOF case (classical)
             ! ----------------------
     
             ! Covariance
             allocate(cov(ns,ns))
             allocate(zev(ns))
-            cov = 0.
-!            call ssyrk('U','N',ns,nt,1.,wvar,ns, 0.,cov,ns)
-            call dsyrk('U','N',ns,nt,1.,wvar,ns, 0.,cov,ns)
-            cov = cov / float(nt)
+            cov = 0d0
+            call dsyrk('U', 'N', ns, nt, 1d0, wvar, ns, 0d0, cov, ns)
+            cov = cov / dble(nt-1)
             deallocate(wvar)
     
             ! Diagonalisation (cov: input=cov, output=eof)
-            if(zbigmat)then
-                call la_syevd(cov,zev,jobz='V')
-            else
-                call la_syev(cov,zev,jobz='V')
-            end if
+            allocate(work(1))
+            call dsyev('V', 'U', ns, cov, ns, zev, work, -1, info)
+            lwork = int(work(1))
+            deallocate(work)
+            allocate(work(lwork))
+            call dsyev('V', 'U', ns, cov, ns, zev, work, lwork, info)
+            deallocate(work)        
     
             ! Formatting S-EOFs
             if(present(xeof).or.present(pc))then
@@ -249,7 +235,7 @@ contains
                 end do
             end if
            deallocate(cov)
-    
+
             ! Eigenvalues
             ! -----------
             if(present(ev)) ev = zev(ns:ns-nkeep+1:-1)
@@ -266,7 +252,7 @@ contains
             xeof = zeof
             if(.not.present(pc)) deallocate(zeof)
         end if
-    
+ 
         ! Finally get PCs
         ! ===============
         if(present(pc))then
@@ -298,7 +284,7 @@ contains
         !    associated principal components.
         !
         ! :Necessary arguments:
-        
+        !
         !    - *var (ns, nt)*: Data
         !    - *xeof (ns, nkeep)*: EOFs
         !    - *ec (nt, nmode)*: Expansion coefficients
@@ -314,13 +300,13 @@ contains
     
         ! External
         ! --------
-        real(wp), intent(in)           :: var(:,:), xeof(:,:)
-        real(wp), intent(out)          :: ec(size(var,2),size(xeof,2))
-        real(wp), intent(in), optional :: weights(:)
+        real(8), intent(in)           :: var(:,:), xeof(:,:)
+        real(8), intent(out)          :: ec(size(var,2),size(xeof,2))
+        real(8), intent(in), optional :: weights(:)
     
         ! Internal
         ! --------
-        real(wp) :: zweights(size(var,1)), zvar(size(var,1),size(var,2))
+        real(8) :: zweights(size(var,1)), zvar(size(var,1),size(var,2))
         integer :: ns,nt,nkeep,i
     
         ! Computations
@@ -339,15 +325,15 @@ contains
                 zvar(:,i) = var(:,i) * zweights
             end do
         else
-            zweights = 1.
+            zweights = 1d0
             zvar = var
         end if
     
         ! Main stuff
         ! ----------
         ! ec = matmul( transpose(var), xeof) ! Not efficient
-!wp        call sgemm('T','N',nt,nkeep,ns,1.,zvar,ns,xeof,ns,0.,ec,nt)
-        call dgemm('T','N',nt,nkeep,ns,1.,zvar,ns,xeof,ns,0.,ec,nt)
+        call dgemm('T', 'N', nt, nkeep, ns, 1d0, &
+            & zvar, ns, xeof, ns, 0d0, ec, nt)
         do i = 1, nkeep
             ec(:,i) = ec(:,i) / dot_product(xeof(:,i)**2, zweights)
         end do
@@ -390,14 +376,14 @@ contains
     
         ! External
         ! --------
-        real(wp),    intent(in)     :: xeof(:,:), pc(:,:)
-        real(wp),    intent(out)    :: varrec(size(xeof,1),size(pc,1))
+        real(8),    intent(in)     :: xeof(:,:), pc(:,:)
+        real(8),    intent(out)    :: varrec(size(xeof,1),size(pc,1))
         integer,intent(in),    optional    :: istart, iend
     
         ! Internal
         ! --------
         integer           :: nkept, itmp, zistart, ziend, nt, ns, i
-        real(wp), allocatable    :: zpc(:,:)
+        real(8), allocatable    :: zpc(:,:)
     
     
         ! Setup
@@ -430,7 +416,7 @@ contains
     
         ! Computation
         ! ===========
-        varrec = 0.
+        varrec = 0d0
         if(nt<ns) then
             do i = 1, nt
                 varrec(:, i) = varrec(:, i) + &
@@ -457,7 +443,7 @@ contains
   !############################################################
   !############################################################
 
-    subroutine sl_mssa(var, nwindow, nkeep, steof, stpc, ev, ev_sum, bigmat)
+    subroutine sl_mssa(var, nwindow, nkeep, steof, stpc, ev, ev_sum)
 
         ! **Multi-channel Singular Spectrum Analysis**
         !
@@ -480,36 +466,32 @@ contains
         !    - *stpc*: Time-mode array of PCs
         !    - *ev*: Mode array of eigen values (variances)
         !    - *ev_sum*: Sum of all eigen values (even thoses not returned)
-        !    - *bigmat*: Use ssyevd instead of ssyev (faster for large matrices, 
-        !      but uses more workspace) [default:.true.]
         !
         ! :Dependencies:
-        !    :func:`sl_stcov` :func:`la_syev(LAPACK95)` :func:`la_syevd(LAPACK95)`
+        !    :func:`sl_stcov` :func:`dsyev(LAPACK)`
     
     
         ! Declarations
         ! ============
     
-        use spanlib_lapack95, only: la_syevd, la_syev
+!         use spanlib_lapack95, only: la_syevd, la_syev
     
         implicit none
     
         ! External
         ! --------
-        real(wp), intent(in)            :: var(:,:)
+        real(8), intent(in)            :: var(:,:)
         integer,  intent(in)            :: nwindow, nkeep
-        real(wp), intent(out), optional :: &
+        real(8), intent(out), optional :: &
             & steof(size(var,1)*nwindow, nkeep), &
             & stpc(size(var,2)-nwindow+1, nkeep), ev(nkeep)
-        logical,  intent(in),  optional :: bigmat
-        real(wp), intent(out), optional :: ev_sum
+        real(8), intent(out), optional :: ev_sum
     
         ! Internal
         ! --------
-        real(wp), allocatable :: cov(:,:), zev(:), &
-            & zvar(:,:), zsteof(:,:)
-        integer :: nchan, nsteof, nt, znkeepmax
-        logical :: zbigmat
+        real(8), allocatable :: cov(:,:), zev(:), &
+            & zvar(:,:), zsteof(:,:), work(:)
+        integer :: nchan, nsteof, nt, znkeepmax, info, lwork
     
     
         ! Setup
@@ -531,18 +513,11 @@ contains
             return
         end if
     
-        ! Use ssyevd?
-        ! -----------
-        if(.not.present(bigmat))then
-            zbigmat = .true.
-        else
-            zbigmat = bigmat
-        end if
     
         ! Remove the mean
         ! ---------------
         allocate(zvar(nchan, nt))
-        zvar = var - spread(sum(var,dim=2)/real(nt), ncopies=nt, dim=2)
+        zvar = var - spread(sum(var,dim=2)/real(nt-1), ncopies=nt, dim=2)
     
         ! Set the block-Toeplitz covariance matrix
         ! ========================================
@@ -552,12 +527,13 @@ contains
         ! Diagonalisation
         ! ===============
         allocate(zev(nsteof))
-        if(zbigmat)then
-            call la_syevd(cov,zev,jobz='V')
-        else
-            call la_syev(cov,zev,jobz='V')
-        end if
-    
+        allocate(work(1))
+        call dsyev('V', 'U', nsteof, cov, nsteof, zev, work, -1, info)
+        lwork = int(work(1))
+        deallocate(work)
+        allocate(work(lwork))
+        call dsyev('V', 'U', nsteof, cov, nsteof, zev, work, lwork, info)
+        deallocate(work)            
     
     
         ! Get ST-EOFs and eigenvalues
@@ -604,10 +580,10 @@ contains
     
         implicit none
         
-        real(wp), intent(in)  :: var(:, :)
-        real(wp), intent(out) :: cov(:, :)
+        real(8), intent(in)  :: var(:, :)
+        real(8), intent(out) :: cov(:, :)
         
-        real(wp), allocatable :: varmean(:)
+        real(8), allocatable :: varmean(:)
         integer ::  nchan, nt, nsteof, nwindow
         integer :: iw, iw1, iw2, i1, i2, ic1, ic2
         
@@ -673,15 +649,15 @@ contains
 
     ! External
     ! --------
-    real(wp), intent(in)  :: var(:,:), steof(:,:)
-    real(wp), intent(out) :: stec(size(var,2)-nwindow+1,&
+    real(8), intent(in)  :: var(:,:), steof(:,:)
+    real(8), intent(out) :: stec(size(var,2)-nwindow+1,&
         & size(steof,2))
     integer,       intent(in)  :: nwindow
 
     ! Internal
     ! --------
     integer :: nt,nkeep,im,iw,nchan
-    real(wp) :: wpc(size(var,2)-nwindow+1),substeof(size(var,1)),&
+    real(8) :: wpc(size(var,2)-nwindow+1),substeof(size(var,1)),&
         & subvar(size(var,1),size(var,2)-nwindow+1)
 
     ! Computations
@@ -689,7 +665,7 @@ contains
 
     ! Initialisations
     ! ---------------
-    stec = 0.
+    stec = 0d0
     nchan = size(var,1)
     nt = size(var,2)
     nkeep = size(steof,2)
@@ -700,9 +676,8 @@ contains
         do iw = 1, nwindow
             subvar = var(:,iw:iw+nt-nwindow)
             substeof = steof(iw:iw+(nchan-1)*nwindow:nwindow, im)
-!wp            call sgemm('T','N', nt-nwindow+1, 1, nchan, 1.,&
-            call dgemm('T','N', nt-nwindow+1, 1, nchan, 1.,&
-                & subvar, nchan, substeof, nchan, 0., wpc, nt-nwindow+1)
+            call dgemm('T', 'N', nt-nwindow+1, 1, nchan, 1d0,&
+                & subvar, nchan, substeof, nchan, 0d0, wpc, nt-nwindow+1)
                 stec(:, im)  =  stec(:, im) + wpc
         end do
         stec(:, im) = stec(:, im) / sum(steof(:,im)**2)
@@ -742,8 +717,8 @@ contains
 
     ! External
     ! --------
-    real(wp),   intent(in)  :: steof(:,:), stpc(:,:)
-    real(wp),   intent(out) :: varrec(size(steof, 1)/nwindow,&
+    real(8),   intent(in)  :: steof(:,:), stpc(:,:)
+    real(8),   intent(out) :: varrec(size(steof, 1)/nwindow,&
      &                                    size(stpc, 1)+nwindow-1)
     integer,intent(in)           :: nwindow
     integer,intent(in), optional :: istart, iend
@@ -752,7 +727,7 @@ contains
     ! --------
     integer :: ntpc, nchan, nt, ic, im, iw, nkept, &
      &         itmp, zistart, ziend
-    real(wp), allocatable :: reof(:), epc(:,:)
+    real(8), allocatable :: reof(:), epc(:,:)
 
 
     ! Setup
@@ -766,7 +741,7 @@ contains
     nkept = size(steof, 2)
     allocate(reof(nwindow))
     allocate(epc(nwindow, ntpc-nwindow+1))
-    varrec = 0.
+    varrec = 0d0
 
     ! Range
     ! -----
@@ -799,7 +774,7 @@ contains
 
     ! Computation
     ! ===========
-    varrec = 0.
+    varrec = 0d0
     do im = zistart, ziend ! sum over the selection of modes
 
         ! (ntpc-nwindow+1) length slices
@@ -847,7 +822,7 @@ contains
   !############################################################
 
     subroutine sl_svd(ll,rr,nkeep,leof,reof,lpc,rpc,ev,ev_sum,lw,rw,usecorr,&
-        & bigmat,info)
+        & info)
 
     ! Title:
     !    Singular Value Decomposition
@@ -870,39 +845,39 @@ contains
     !    - lw:    Left weights
     !    - rw:    Right weights
     !    - usecorr:  Use correlations instead of covariances
-    !    - bigmat: Use la_gesdd instead of la_gesvd (faster for large matrices, but uses more workspace) [default:.false.]
     !
     ! :Dependencies:
-    !    [sd]gemm(BLAS) la_gesvd(LAPACK95) la_gesdd(LAPACK95)
+    !    :func:`sdgemm` (BLAS) :func:`dgesvd` (LAPACK) :func:`dgesdd` (LAPACK)
 
 
     ! Declarations
     ! ============
 
-    use spanlib_lapack95, only: la_gesdd, la_gesvd
+!     use spanlib_lapack95, only: la_gesdd, la_gesvd
 
     implicit none
 
     ! External
     ! --------
-    real(wp), intent(in)           :: ll(:,:),rr(:,:)
+    real(8), intent(in)           :: ll(:,:),rr(:,:)
     integer,  intent(in)           :: nkeep
-    real(wp), intent(in), optional :: lw(:), rw(:)
-    real(wp), intent(out),optional :: lpc(size(ll,2),nkeep), &
+    real(8), intent(in), optional :: lw(:), rw(:)
+    real(8), intent(out),optional :: lpc(size(ll,2),nkeep), &
         & leof(size(ll,1),nkeep), rpc(size(rr,2),nkeep), &
         & reof(size(rr,1),nkeep),ev(nkeep)
-    logical, intent(in),  optional :: bigmat, usecorr
-    real(wp), intent(out), optional :: ev_sum
+    logical, intent(in),  optional :: usecorr
+    real(8), intent(out), optional :: ev_sum
     integer, intent(out),  optional :: info
 
     ! Internal
     ! --------
     integer               :: ns,nsl,nsr,nt
-    real(wp), allocatable :: zll(:,:), zrr(:,:), cov(:,:), &
+    real(8), allocatable :: zll(:,:), zrr(:,:), cov(:,:), &
         &                    zlw(:), zrw(:), zls(:), zrs(:)
-    real(wp), allocatable :: zev(:), zleof(:,:)
-    integer               :: znkeepmax, i, la_info
-    logical               :: zbigmat,zbcorr
+    real(8), allocatable :: zev(:), zleof(:,:), work(:)
+    real(8)              :: zvt(1, 1)
+    integer               :: znkeepmax, i, la_info, lwork
+    logical               :: zbcorr
 
 
     ! Sizes
@@ -947,29 +922,22 @@ contains
     endif
     print *,'use corr ?',zbcorr
 
-    ! Use divide/conquer algo?
-    ! ------------------------
-    if(.not.present(bigmat))then
-        zbigmat = .false.
-    else
-        zbigmat = bigmat
-    end if
 
     ! Weights
     ! -------
     allocate(zlw(nsl))
     if(present(lw))then
-        zlw = lw * real(nsl) / sum(lw)
-        where(zlw==0.) zlw = 1.
+        zlw = lw * dble(nsl) / sum(lw)
+        where(zlw==0d0) zlw = 1d0
     else
-        zlw = 1.
+        zlw = 1d0
     end if
     allocate(zrw(nsl))
     if(present(rw))then
-        zrw = rw * real(nsr) / sum(rw)
-        where(zrw==0.) zrw = 1.
+        zrw = rw * dble(nsr) / sum(rw)
+        where(zrw==0d0) zrw = 1d0
     else
-        zrw = 1.
+        zrw = 1d0
     end if
     
     ! Remove the mean
@@ -985,11 +953,11 @@ contains
     if(zbcorr)then
         zls = sqrt(sum(zll**2,dim=2))/nsl
         zrs = sqrt(sum(zrr**2,dim=2))/nsr
-        where(zls==0.) zls = 1.
-        where(zrs==0.) zrs = 1.
+        where(zls==0d0) zls = 1d0
+        where(zrs==0d0) zrs = 1d0
     else
-        zls = 1.
-        zrs = 1.
+        zls = 1d0
+        zrs = 1d0
     end if
 
 
@@ -1006,21 +974,30 @@ contains
     ! Cross-covariances
     ! -----------------
     allocate(cov(nsl,nsr))
-!wp    call sgemm('N','T',nsl,nsr,nt,1.,zll,nsl,zrr,nsr,0.,cov,nsl)
-    call dgemm('N','T',nsl,nsr,nt,1.,zll,nsl,zrr,nsr,0.,cov,nsl)
-    cov = cov / float(nt)
+    call dgemm('N', 'T', nsl, nsr, nt, 1d0, &
+        zll, nsl, zrr, nsr, 0d0, cov, nsl)
+    cov = cov / dble(nt)
     if(.not.present(lpc)) deallocate(zll,zls)
     if(.not.present(rpc)) deallocate(zrr,zrs)
 
     ! SVD
     ! ---
     allocate(zleof(nsl,ns), zev(ns))
-    if(zbigmat)then
-        ! FIXME: problem with gesdd
-        call la_gesdd(cov, zev, u=zleof, job='V', info=la_info)
-    else
-        call la_gesvd(cov, zev, u=zleof, job='V', info=la_info)
-    end if
+!     if(zbigmat)then
+!         ! FIXME: problem with gesdd
+!         call la_gesdd(cov, zev, u=zleof, job='V', info=la_info)
+!     else
+!         call la_gesvd(cov, zev, u=zleof, job='V', info=la_info)
+!     end if
+    allocate(work(lwork))
+    call dgesvd('U', 'O', nsl, nsr, cov, nsl, zev, zleof, &
+        nsl, zvt, 1, work, -1, la_info)
+    deallocate(work)
+    lwork = int(work(1))
+    allocate(work(lwork))
+    call dgesvd('U', 'O', nsl, nsr, cov, nsl, zev, zleof, &
+        nsl, zvt, 1, work, lwork, la_info)
+    deallocate(work)
     if(la_info /= 0)then
         info = la_info+10
         return
@@ -1113,10 +1090,10 @@ contains
 
     ! External
     ! --------
-    real(wp), intent(in) :: ll(:,:), rr(:,:)
-    real(wp), intent(out) ::lPcaEof(:,:), rPcaEof(:,:),&
+    real(8), intent(in) :: ll(:,:), rr(:,:)
+    real(8), intent(out) ::lPcaEof(:,:), rPcaEof(:,:),&
      & lsvdEof(:,:), rSvdEof(:,:), l2r(:)
-    real(wp), intent(out), optional :: &
+    real(8), intent(out), optional :: &
      & lPcaPc(size(ll,2),size(lPcaEof,2)), &
      & rPcaPc(size(ll,2),size(rPcaEof,2)), &
      & lSvdPc(size(ll,2),size(lSvdEof,2)), &
@@ -1196,14 +1173,14 @@ contains
 
     ! External
     ! --------
-    real(wp), intent(in) :: ll(:), lPcaEof(:,:), rPcaEof(:,:),&
+    real(8), intent(in) :: ll(:), lPcaEof(:,:), rPcaEof(:,:),&
      & lSvdEof(:,:), rSvdEof(:,:), l2r(:)
-    real(wp), intent(out) :: rr(:)
+    real(8), intent(out) :: rr(:)
 
     ! Internal
     ! --------
     integer :: i,nt,nkeepPca, nkeepSvd
-    real(wp), allocatable :: zlPcaEc(:,:),zlSvdEc(:,:),&
+    real(8), allocatable :: zlPcaEc(:,:),zlSvdEc(:,:),&
         & zrSvdEc(:,:),zrPcaPc(:,:),zll(:,:),zrr(:,:)
 
     ! Computations
@@ -1290,18 +1267,18 @@ contains
     ! External
     ! --------
     integer,       intent(in)           :: np
-    real(wp), intent(in)           :: varrec(:,:)
-    real(wp), intent(in), optional :: weights(:)
-    real(wp), intent(in), optional :: offset, firstphase
-    real(wp), intent(out)          :: phases(size(varrec, 1),np)
+    real(8), intent(in)           :: varrec(:,:)
+    real(8), intent(in), optional :: weights(:)
+    real(8), intent(in), optional :: offset, firstphase
+    real(8), intent(out)          :: phases(size(varrec, 1),np)
 
     ! Internal
     ! --------
-    real(wp), allocatable :: pc(:,:)
-    real(wp) :: dpc(size(varrec,2)), amp(size(varrec,2))
+    real(8), allocatable :: pc(:,:)
+    real(8) :: dpc(size(varrec,2)), amp(size(varrec,2))
     integer :: nt, iphase
-    real(wp) :: angles(np), projection(size(varrec,2))
-    real(wp) :: pi, deltarad, pcos, psin, zoffset, zfirstphase
+    real(8) :: angles(np), projection(size(varrec,2))
+    real(8) :: pi, deltarad, pcos, psin, zoffset, zfirstphase
     logical :: select_amplitude(size(varrec,2)), &
      &         select_phase(size(varrec,2))
     integer :: itime(size(varrec,2)), nsel, i, ns
@@ -1311,13 +1288,13 @@ contains
     ! Setup
     ! =====
     nt = size(varrec,2)
-    pi = acos(-1.)
+    pi = acos(-1d0)
     itime = (/ (i, i=1, nt) /)
     ns = size(varrec, 1)
     if(present(offset))then
         zoffset=offset
     else
-        zoffset=0.
+        zoffset=0d0
     end if
 
     ! Find the first PC and its derivative
@@ -1325,9 +1302,9 @@ contains
     allocate(pc(nt,1))
     call sl_pca(varrec, 1, pc=pc, weights=weights)
     pc = pc * sqrt(real(nt)/sum(pc**2))
-    dpc = 0.5 * (eoshift(pc(:,1),  1, pc(nt,1)) - &
+    dpc = 0.5d0 * (eoshift(pc(:,1),  1, pc(nt,1)) - &
      &           eoshift(pc(:,1), -1, pc(1,1)))
-    dpc((/1,nt/)) = dpc((/1,nt/)) * 2.
+    dpc((/1,nt/)) = dpc((/1,nt/)) * 2d0
     dpc = dpc * sqrt(real(nt)/sum(dpc**2))
     amp = sqrt(pc(:,1)**2 + dpc**2)
 
@@ -1339,22 +1316,22 @@ contains
     ! ----------------
     deltarad = 2 * pi / real(np)
     if(present(firstphase))then
-        zfirstphase = modulo(firstphase * 2 * pi / 360., 2 * pi)
+        zfirstphase = modulo(firstphase * 2d0 * pi / 360d0, 2d0 * pi)
     else
-       zfirstphase = 0.
+       zfirstphase = 0d0
     end if
     angles = (/ (real(iphase), iphase=0,np-1) /) * deltarad + &
      &       zfirstphase
 
     ! Compute the phase maps
     ! ----------------------
-    phases = 0.
+    phases = 0d0
     select_amplitude = amp >= zoffset
     do iphase = 1, np
         pcos = cos(angles(iphase))
         psin = sin(angles(iphase))
         projection =  (pc(:,1)*pcos+dpc*psin) / amp
-        select_phase = ( projection >= cos(0.5*deltarad) ) &
+        select_phase = ( projection >= cos(0.5d0*deltarad) ) &
          &             .and. select_amplitude
         if(any(select_phase))then
             nsel = count(select_phase)

@@ -1,7 +1,10 @@
 import os,sys
-if os.path.exists('../src/build/lib'):
-	sys.path.insert(0,'../src/build/lib')
+if os.path.exists('../out'):
+    sys.path.insert(0,'../out')
 import spanlib,cdms2 as cdms,MV2 as MV,numpy as npy,pylab as P
+cdms.setNetcdfShuffleFlag(0)
+cdms.setNetcdfDeflateFlag(0)
+cdms.setNetcdfDeflateLevelFlag(0)
 
 ##var = npy.random.rand(50,100).astype('f')
 var = npy.zeros((150,100),'f')
@@ -13,12 +16,12 @@ tt = npy.arange(nt,dtype='f')
 xfreq = 2
 tfreq = 3
 for ifreq in .5,3:
-	tvar = (npy.cos(2*npy.pi * tfreq * tt/(nt-1))*tt/(nt-1)).reshape((nt,1))
-	xvar = npy.cos(2*npy.pi * xfreq*ifreq * xx/(nx-1)).reshape((1,nx))
-	var += npy.multiply(tvar,xvar)
+    tvar = (npy.cos(2*npy.pi * tfreq * tt/(nt-1))*tt/(nt-1)).reshape((nt,1))
+    xvar = npy.cos(2*npy.pi * xfreq*ifreq * xx/(nx-1)).reshape((1,nx))
+    var += npy.multiply(tvar,xvar)
 for i in xrange(nt):
-	for j in xrange(nx):
-		var[i,j] += 3*(i+j)/(nx+nt)
+    for j in xrange(nx):
+        var[i,j] += 3*(i+j)/(nx+nt)
 #var*=1.e10
 var-=var.mean(axis=0)
 
@@ -85,12 +88,12 @@ P.rc('font', size=9)
 P.figure(figsize=(6,8))
 P.subplots_adjust(hspace=.5, bottom=.03, top=.96)
 for im in xrange(nmode):
-	P.subplot(nmode,2,im*2+1)
-	P.plot(eof[im].filled())
-	P.title('EOF %i'%(im+1))
-	P.subplot(nmode,2,im*2+2)
-	P.plot(pc[im].filled())
-	P.title('PC %i'%(im+1))
+    P.subplot(nmode,2,im*2+1)
+    P.plot(eof[im].filled())
+    P.title('EOF %i'%(im+1))
+    P.subplot(nmode,2,im*2+2)
+    P.plot(pc[im].filled())
+    P.title('PC %i'%(im+1))
 P.savefig(__file__[:-2]+'out.png')
 
 P.figure(figsize=(6,8))

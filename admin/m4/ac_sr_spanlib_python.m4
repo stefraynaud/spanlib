@@ -73,7 +73,6 @@ cat > setup.cfg << EOF
 
 [[build_ext]]
 library_dirs=/usr/lib:/usr/local/lib
-build_lib=build/lib
 
 [[config_fc]]
 f90exec=AS_VAR_GET(FC)
@@ -85,13 +84,15 @@ blas_lib=AS_VAR_GET(BLAS_LIB)
 lapack=AS_VAR_GET(LAPACK)
 lapack_lib=AS_VAR_GET(LAPACK_LIB)
 lapack_inc=AS_VAR_GET(LAPACK_INC)
-lapack95=AS_VAR_GET(LAPACK95)
-lapack95_lib=AS_VAR_GET(LAPACK95_LIB)
-lapack95_inc=AS_VAR_GET(LAPACK95_INC)
-lapack95_mod=AS_VAR_GET(LAPACK95_MOD)
-lapack95_pre=AS_VAR_GET(LAPACK95_PRE)
 
 EOF
+
+dnl build_lib=build/lib
+dnl lapack95=AS_VAR_GET(LAPACK95)
+dnl lapack95_lib=AS_VAR_GET(LAPACK95_LIB)
+dnl lapack95_inc=AS_VAR_GET(LAPACK95_INC)
+dnl lapack95_mod=AS_VAR_GET(LAPACK95_MOD)
+dnl lapack95_pre=AS_VAR_GET(LAPACK95_PRE)
 
 AC_MSG_NOTICE(Created setup.cfg)
 ])
