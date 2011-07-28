@@ -174,7 +174,6 @@ contains
             deallocate(wvar)
     
             ! Diagonalising (cov: input=cov, output=eof)
-!             call la_syev(cov,zev,jobz='V')
             allocate(work(1))
             call dsyev('V', 'U', nt, cov, nt, zev, work, -1, info)
             lwork = int(work(1))
@@ -517,7 +516,7 @@ contains
         ! Remove the mean
         ! ---------------
         allocate(zvar(nchan, nt))
-        zvar = var - spread(sum(var,dim=2)/real(nt-1), ncopies=nt, dim=2)
+        zvar = var - spread(sum(var,dim=2)/real(nt), ncopies=nt, dim=2)
     
         ! Set the block-Toeplitz covariance matrix
         ! ========================================
@@ -605,7 +604,7 @@ contains
                         cov(i1,i2) = &
                             & dot_product(var(ic1, 1  : nt-iw+1)-varmean(ic1),  &
                             &             var(ic2, iw : nt     )-varmean(ic2)) / &
-                            & real(nt-iw+1)
+                            & real(nt-iw-1)!+1)
                         cov(i2,i1) = cov(i1,i2)
                     end do
                 end do
@@ -821,8 +820,8 @@ contains
   !############################################################
   !############################################################
 
-    subroutine sl_svd(ll,rr,nkeep,leof,reof,lpc,rpc,ev,ev_sum,lw,rw,usecorr,&
-        & info)
+    subroutine sl_svd(ll, rr, nkeep, leof, reof, lpc, rpc, &
+        & ev, ev_sum, lw, rw, usecorr, info)
 
     ! Title:
     !    Singular Value Decomposition
@@ -920,7 +919,6 @@ contains
     else
         zbcorr = .false.
     endif
-    print *,'use corr ?',zbcorr
 
 
     ! Weights
@@ -932,34 +930,33 @@ contains
     else
         zlw = 1d0
     end if
-    allocate(zrw(nsl))
+    allocate(zrw(nsr))
     if(present(rw))then
         zrw = rw * dble(nsr) / sum(rw)
         where(zrw==0d0) zrw = 1d0
     else
         zrw = 1d0
     end if
-    
+ 
     ! Remove the mean
     ! ---------------
     allocate(zll(nsl,nt))
-    zll = ll - spread(sum(ll,dim=2)/real(nt), ncopies=nt, dim=2)
+    zll = ll - spread(sum(ll,dim=2)/dble(nt), ncopies=nt, dim=2)
     allocate(zrr(nsr,nt))
-    zrr = rr - spread(sum(rr,dim=2)/real(nt), ncopies=nt, dim=2)
+    zrr = rr - spread(sum(rr,dim=2)/dble(nt), ncopies=nt, dim=2)
 
     ! Standard deviation for correlations
     ! -----------------------------------
-    allocate(zls(nsl),zrs(nsl))
+    allocate(zls(nsl),zrs(nsr))
     if(zbcorr)then
-        zls = sqrt(sum(zll**2,dim=2))/nsl
-        zrs = sqrt(sum(zrr**2,dim=2))/nsr
+        zls = sqrt(sum(zll**2,dim=2))/dble(nsl)
+        zrs = sqrt(sum(zrr**2,dim=2))/dble(nsr)
         where(zls==0d0) zls = 1d0
         where(zrs==0d0) zrs = 1d0
     else
         zls = 1d0
         zrs = 1d0
     end if
-
 
     ! Computations
     ! ============
@@ -973,36 +970,35 @@ contains
 
     ! Cross-covariances
     ! -----------------
-    allocate(cov(nsl,nsr))
+    allocate(cov(nsl, nsr))
     call dgemm('N', 'T', nsl, nsr, nt, 1d0, &
         zll, nsl, zrr, nsr, 0d0, cov, nsl)
-    cov = cov / dble(nt)
-    if(.not.present(lpc)) deallocate(zll,zls)
-    if(.not.present(rpc)) deallocate(zrr,zrs)
+    cov = cov / dble(nt-1)
+    if(.not.present(lpc)) deallocate(zll, zls)
+    if(.not.present(rpc)) deallocate(zrr, zrs)
 
     ! SVD
     ! ---
-    allocate(zleof(nsl,ns), zev(ns))
+    allocate(zleof(nsl, ns), zev(ns))
 !     if(zbigmat)then
 !         ! FIXME: problem with gesdd
 !         call la_gesdd(cov, zev, u=zleof, job='V', info=la_info)
 !     else
 !         call la_gesvd(cov, zev, u=zleof, job='V', info=la_info)
 !     end if
-    allocate(work(lwork))
-    call dgesvd('U', 'O', nsl, nsr, cov, nsl, zev, zleof, &
-        nsl, zvt, 1, work, -1, la_info)
-    deallocate(work)
+    allocate(work(1))
+    call dgesvd('S', 'O', nsl, nsr, cov, nsl, zev, &
+        zleof, nsl, zvt, 1, work, -1, la_info)
     lwork = int(work(1))
+    deallocate(work)
     allocate(work(lwork))
-    call dgesvd('U', 'O', nsl, nsr, cov, nsl, zev, zleof, &
+    call dgesvd('S', 'O', nsl, nsr, cov, nsl, zev, zleof, &
         nsl, zvt, 1, work, lwork, la_info)
     deallocate(work)
     if(la_info /= 0)then
         info = la_info+10
         return
     endif
-
 
     ! Get output arrays
     ! =================
@@ -1036,7 +1032,7 @@ contains
             zll(:,i) = zll(:,i) * zls ! Correlation case
         end do
         deallocate(zls)
-        call sl_pca_getec(zll,leof,lpc,weights=zlw)
+        call sl_pca_getec(zll, leof, lpc, weights=zlw)
         deallocate(zll,zlw)
     end if
     if(present(rpc))then
@@ -1044,7 +1040,7 @@ contains
             zrr(:,i) = zrr(:,i) * zrs ! Correlation case
         end do
         deallocate(zrs)
-        call sl_pca_getec(zrr,reof,rpc,weights=zrw)
+        call sl_pca_getec(zrr, reof, rpc, weights=zrw)
         deallocate(zrr,zrw)
     end if
 

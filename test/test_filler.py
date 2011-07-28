@@ -3,15 +3,14 @@ import numpy as npy
 import os, sys
 from util import insert_local_path, setup_data2
 insert_local_path()
-#sys.path.insert(0, '../lib')
-#from spanlib_python import Filler
+sys.path.insert(0, '../lib')
+from spanlib_python import Filler
+#from spanlib import Filler
 
 #sys.path.insert(0, '../libok/spanlib')
 #from spanlib_python import Filler
-from spanlib import Filler
 
 import pylab as P
-import MV2
 
 class TestSequenceFunctions(unittest.TestCase):
 
@@ -51,7 +50,7 @@ class TestSequenceFunctions(unittest.TestCase):
 #        P.plot(withholes[:, 0], 'b')
 #        P.show()
         self.assertTrue(npy.allclose(filled.filtered[0].filled()[200:202,0], 
-            npy.array([10.61948956,  10.74003157])))
+            npy.array([10.61834159,  10.73914392])))
         
 if __name__ == '__main__':
     unittest.main()

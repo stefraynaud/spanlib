@@ -19,13 +19,6 @@ class TestSequenceFunctions(unittest.TestCase):
         return SpAn([[var1, var2], var3])
         
         
-#    def test_init(self):
-#        span = self.setup_span3()
-#        input = span[0][0].rescale(span[0].stacked_data[:99], copy=True).T
-#        var1 = setup_data1()
-#        output = var1.compress(~var1[0].mask, axis=1)
-#        self.assertTrue(npy.allclose(input, output))
-#
 #    def test_pca(self):
 #        # spanlib
 #        span = SpAn(setup_data1(nt=70, nx=50))
@@ -113,6 +106,15 @@ class TestSequenceFunctions(unittest.TestCase):
 #        self.assertAlmostEqual(rec2.sum(), 8253.6128613672063)
 #        self.assertAlmostEqual(rec3.sum(), 3557.322411248088)
       
+    def test_pca_xrec(self):
+        var = setup_data1()
+        span = SpAn(var)
+        rec = span.pca_rec()
+        xeof = span.pca_eof()
+        xpc = span.pca_pc()
+        xrec = span.pca_rec(xeof=xeof, xpc=xpc)
+        self.assertTrue(npy.allclose(rec, xrec))
+        
 #    def test_pca_ndim3(self):
 #        span = SpAn(setup_data2())
 #        span.pca()

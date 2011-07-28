@@ -21,7 +21,8 @@
 ! Interface to f90
 ! ================
 
-subroutine pca(var, ns, nt, nkeep, xeof, pc, ev, ev_sum, weights, useteof)
+subroutine pca(var, ns, nt, nkeep, xeof, pc, ev, ev_sum, &
+    & weights, useteof)
 
     use spanlib, only: sl_pca
 
@@ -32,7 +33,8 @@ subroutine pca(var, ns, nt, nkeep, xeof, pc, ev, ev_sum, weights, useteof)
     integer, intent(in)  :: ns,nt
     real(8),    intent(in)  :: var(ns,nt)
     integer, intent(in)  :: nkeep
-    real(8),    intent(out) :: pc(nt,nkeep), xeof(ns,nkeep), ev(nkeep)
+    real(8),    intent(out) :: pc(nt,nkeep), xeof(ns,nkeep), &
+        & ev(nkeep)
     real(8),    intent(in)  :: weights(ns)
     integer, intent(in)  :: useteof
     real(8),    intent(out) :: ev_sum
@@ -53,7 +55,8 @@ subroutine pca_getec(var, xeof, ns, nt, nkept, ec, weights)
     ! External
     ! --------
     integer, intent(in)  :: ns,nt,nkept
-    real(8),    intent(in)  :: var(ns,nt), xeof(ns,nkept),weights(ns)
+    real(8),    intent(in)  :: var(ns,nt), xeof(ns,nkept), &
+        & weights(ns)
     real(8),    intent(out) :: ec(nt,nkept)
 
 
@@ -78,13 +81,15 @@ subroutine pca_rec(xeof, pc, ns, nt, nkept, varrec, istart, iend)
 
     ! Call to original subroutine
     ! ---------------------------
-    call sl_pca_rec(xeof, pc, varrec=varrec, istart=istart, iend=iend)
+    call sl_pca_rec(xeof, pc, varrec=varrec, istart=istart, &
+        & iend=iend)
 
 end subroutine pca_rec
 
 
 
-subroutine mssa(var, nchan, nt, nwindow, nkeep, steof, stpc, ev, ev_sum)
+subroutine mssa(var, nchan, nt, nwindow, nkeep, steof, &
+    & stpc, ev, ev_sum)
 
     use spanlib, only: sl_mssa
 
@@ -100,8 +105,8 @@ subroutine mssa(var, nchan, nt, nwindow, nkeep, steof, stpc, ev, ev_sum)
 
     ! Call to original subroutine
     ! ---------------------------
-    call sl_mssa(var, nwindow, nkeep, steof=steof, stpc=stpc, ev=ev, &
-     & ev_sum=ev_sum)
+    call sl_mssa(var, nwindow, nkeep, steof=steof, stpc=stpc, &
+        & ev=ev, ev_sum=ev_sum)
 
 end subroutine mssa
 
@@ -191,7 +196,9 @@ end subroutine phasecomp
 
 
 
-subroutine svd(ll, nsl, rr, nsr, nt, nkeep, leof, reof, lpc, rpc, ev, ev_sum, lweights, rweights, usecorr, info)
+subroutine svd(ll, nsl, rr, nsr, nt, nkeep, leof, reof, &
+    & lpc, rpc, ev, &
+    & ev_sum, lweights, rweights, usecorr, info)
 
     use spanlib, only: sl_svd
 
@@ -203,18 +210,20 @@ subroutine svd(ll, nsl, rr, nsr, nt, nkeep, leof, reof, lpc, rpc, ev, ev_sum, lw
     real(8),    intent(in)  :: ll(nsl,nt),rr(nsr,nt)
     integer, intent(in)  :: nkeep
     real(8),    intent(out) :: lpc(nt,nkeep), leof(nsl,nkeep)
-    real(8),    intent(out) :: rpc(nt,nkeep), reof(nsr,nkeep), ev(nkeep)
+    real(8),    intent(out) :: rpc(nt,nkeep), reof(nsr,nkeep), &
+        & ev(nkeep)
     real(8),    intent(in)  :: lweights(nsl),rweights(nsr)
     logical, intent(in)  :: usecorr
     real(8),    intent(out) :: ev_sum
     integer, intent(out) :: info
-    
+
     ! Internal
     ! --------
 
     ! Call to original subroutine
     ! ---------------------------
-    call sl_svd(ll,rr,nkeep,leof,reof,lpc,rpc,ev,ev_sum,lweights,rweights,usecorr,info)
+    call sl_svd(ll, rr, nkeep, leof, reof, lpc, rpc, ev, &
+        & ev_sum, lweights, rweights, usecorr, info)
 
 end subroutine svd
 

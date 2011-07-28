@@ -9,17 +9,17 @@ def insert_local_path():
         if cfg.has_option('paths', 'build_lib'):
             sys.path.insert(0, cfg.get('paths', 'build_lib'))
 
-def setup_data1(nx=100, nt=120, xfreq=2, tfreq=3, xyfact=3):
+def setup_data1(nx=100, nt=120, xfreq=2, tfreq=3, xyfact=3, masked=True):
     """Generate space-time data sample with a single spatial dimension
     
-    Returned array has masked values
+    Returned array has masked values if ``masked`` is set to ``True``
     """
     var = npy.zeros((nt,nx))
     
     xx = npy.arange(nx,dtype='d')
     tt = npy.arange(nt,dtype='d')
     
-    for ifreq in .5,3:
+    for ifreq in [.5, 3]:
         tvar = (npy.cos(2*npy.pi * tfreq * tt/(nt-1))*tt/(nt-1)).reshape((nt,1))
         xvar = npy.cos(2*npy.pi * xfreq*ifreq * xx/(nx-1)).reshape((1,nx))
         var += npy.multiply(tvar,xvar)
@@ -29,7 +29,7 @@ def setup_data1(nx=100, nt=120, xfreq=2, tfreq=3, xyfact=3):
     jj, ii = npy.indices((nt, nx)).astype('d')
     var += npy.exp(-((ii-nx/2.)/(nx/2.))**2 - ((jj-nt/2.)/(nt/2.))**2)
     var = npy.ma.asarray(var)
-    var[:, 1] = npy.ma.masked
+    if masked and var.shape[1]>1: var[:, 1] = npy.ma.masked
 
     return var
 
@@ -42,6 +42,15 @@ def setup_data2(nx=30, ny=20, **kwargs):
     data1 = setup_data1(nx=nx*ny, **kwargs)
     return data1.reshape((-1, ny, nx))
 
+def setup_data0(nt = 300):
+    """Get a 1D signal suitable for SSA tests"""
+    t = npy.arange(nt*1.)
+    p0 = 23.
+    p1 = p0*3.6
+    p2 = p0/10.
+    return npy.cos(t/p0*2*npy.pi)+npy.sin(t/p1*2*npy.pi+1.3)+npy.cos(t/p2*2*npy.pi+1.4)
+
+
 def pca_numpy(var, nmode):
     """PCA using numpy library"""
     cov = npy.cov(var.T, bias=0)
@@ -52,4 +61,13 @@ def pca_numpy(var, nmode):
     pc = npy.dot(var, eof)
     return eof, pc, ev
 
-
+def svd_numpy(varl, varr, nmode):
+    """SVD of the covariance matrix of twxo variables"""
+    cov = npy.dot(varl, varr.T)/(varl.shape[1]-1)
+    eofl, ev, eofrt = npy.linalg.svd(cov, full_matrices=False)
+    eofr = eofrt.T
+    eofl = eofl[::nmode]
+    eofr = eofr[::nmode]
+    pcl = npy.dot(varl.T, eofl)
+    pcr = npy.dot(varr.T, eofr)
+    return eofl, eofr, pcl, pcr, ev

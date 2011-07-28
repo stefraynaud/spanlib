@@ -56,7 +56,7 @@ class TestSequenceFunctions(unittest.TestCase):
     def test_restack_notime(self):
         self.setup_data()
         self.assertTrue(N.allclose(
-            self.d.restack((self.data1[0], self.data2[0], self.data3[0])), 
+            self.d.restack((self.data1[0], self.data2[0], self.data3[0:1])), 
             self.d.stacked_data[:, 0]))
             
     def test_unstack(self):
@@ -72,6 +72,10 @@ class TestSequenceFunctions(unittest.TestCase):
         self.assertTrue(N.ma.allclose(self.data1[1], data[0]))
         self.assertTrue(N.ma.allclose(self.data2[1], data[1]))
         self.assertTrue(N.ma.allclose(self.data3[1], data[2]))
+        
+    def test_toto(self):
+        dataset = Dataset((self.data1, self.data1))
+        print 1
         
 if __name__ == '__main__':
     unittest.main()
