@@ -32,7 +32,7 @@ import pylab as P
 #print _fortran.__file__
 #from .util import Logger, broadcast, SpanlibIter, dict_filter
 #from spanlib.util import Logger, broadcast, SpanlibIter, dict_filter
-from spanlib.util import Logger, broadcast, SpanlibIter, dict_filter
+from util import Logger, broadcast, SpanlibIter, dict_filter
 
 docs = dict(
     npca = """- *npca*: int | ``None``
@@ -135,7 +135,7 @@ class _BasicAnalyzer_:
         
         If CDAT is not used, length of axis is returned.
         """
-        if self._mode_axes.has_key(analysis_type):
+        if analysis_type not in self._mode_axes:
             self._mode_axes[analysis_type] = {}
         nn = getattr(self,'_n'+analysis_type)
         if not self.has_cdat():
@@ -566,7 +566,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 
         # Check if old results can be used when npca is lower
         if not force and self._pca_raw_pc is not None and \
-            self._pca_raw_pc.shape[-1] > self._npca:
+            self._pca_raw_pc.shape[-1] >= self._npca:
             return
 
         # Remove old results
@@ -980,12 +980,12 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             %(window)s
             %(prepca)s
         """
-        print '+MSSA'
+
         # Parameters
         self.update_params('mssa', **kwargs)
 
         # Check if old results can be used when nmssa is lower
-        if not force and self._mssa_raw_pc is not None and self._mssa_raw_pc.shape[-1] > self._nmssa:
+        if not force and self._mssa_raw_pc is not None and self._mssa_raw_pc.shape[-1] >= self._nmssa:
             return
         
         # Remove old results
@@ -998,13 +998,13 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             # PCA
             self.pca(force=int(force)==2)
             
-            # Remove the pre-PCs mean (not always zero!)
+            # Compute the pre-PCs mean (not always zero!) for future reconstructions
             pca_raw_pc = self._pca_raw_pc[:, :self._prepca]
             pca_raw_pc_masked = npy.ma.masked_values(pca_raw_pc, 
                 default_missing_value, copy=False)
             self._pca_raw_pc_mean = pca_raw_pc_masked.mean(axis=0).filled(0.)
             del pca_raw_pc_masked
-            pca_raw_pc -= self._pca_raw_pc_mean
+#            pca_raw_pc -= self._pca_raw_pc_mean
             self._pca_raw_pc_mean.shape = -1, 1
             pca_raw_pc = npy.asfortranarray(pca_raw_pc.T)
             
@@ -1233,7 +1233,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
                 raw_data = self.stacked_data
             else: # After PCA
                 raw_data = self._pca_raw_pc.T[:self._prepca]
-        elif xraw==1: # Direct use
+        elif int(xraw)==1: # Direct use
             raw_data = xdata
         elif self._prepca: # After PCA
             raw_data = self.pca_ec(xdata=xdata, raw=True, unmap=False, 
@@ -1425,7 +1425,6 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         :Returns:
             Arrays with the same shape as input arrays.
         """
-#        print '+MSSAREC'
         # Update params
         self.update_params('mssa', **kwargs)
         if isinstance(phases, int):
@@ -1513,30 +1512,38 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             else:
                 mssa_fmt_rec = self.unstack(raw_rec, rescale=rescale, format=format)
             
-        elif int(raw)==1 or int(raw)==12: # Force direct result from MSSA
-        
-            if format and self.has_cdat() and int(raw)==12: # Formatted
-                mssa_fmt_rec = [cdms2.createVariable(raw_rec.T)]
-                mssa_fmt_rec[0].setAxisList(0,[taxis,self._mode_axis_('mssa')])
-            else: # Pure raw
-                mssa_fmt_rec = raw_rec
-                
         else: # With pre-pca
-        
+            
             # Add back the pre-PCs mean
             pca_raw_pc_mean = npy.repeat(self._pca_raw_pc_mean, raw_rec.shape[1], 1)
             raw_rec += pca_raw_pc_mean
             del pca_raw_pc_mean
             
-            # Project
-            proj_rec, spcamodes = \
-                self._raw_rec_(self._pca_raw_eof[:, :self.prepca], raw_rec.T)
+            # No PCA reprojection
+            if int(raw)==1 or int(raw)==12: # Force direct result from MSSA
+        
+                if format and self.has_cdat() and int(raw)==12: # Formatted
                 
-            if int(raw)==2: # Raw results from PCA rec
-                mssa_fmt_rec = proj_rec
+                    mssa_fmt_rec = [cdms2.createVariable(raw_rec.T)]
+                    mssa_fmt_rec[0].setAxisList(0,[taxis,self._mode_axis_('mssa')])
+                    
+                else: # Pure raw
                 
-            else: # Back to original format
-                mssa_fmt_rec = self.unstack(proj_rec, rescale=rescale, format=format)
+                    mssa_fmt_rec = raw_rec
+                    
+                return raw_rec
+                
+            else: # Reprojection
+            
+                # Project
+                proj_rec, spcamodes = \
+                    self._raw_rec_(self._pca_raw_eof[:, :self.prepca], raw_rec.T)
+                    
+                if int(raw)==2: # Raw results from PCA rec
+                    mssa_fmt_rec = proj_rec
+                    
+                else: # Back to original format
+                    mssa_fmt_rec = self.unstack(proj_rec, rescale=rescale, format=format)
                 
         del  raw_rec
         
@@ -1852,7 +1859,6 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             function = _fortran.pca_rec  # PCA/SVD
 
         # Arguments
-#        print 'py:raw_rec: ec max min sum', raw_pc.max(), raw_pc.min(), raw_pc.sum()
         if npy.ma.isMA(raw_pc): 
             raw_pc = raw_pc.filled(default_missing_value)
         if npy.ma.isMA(raw_eof): 
@@ -2113,7 +2119,6 @@ def freqfilter(data, low_freq, high_freq, **kwargs):
         imax = npy.argmax(result)
         freq = npy.fft.fftfreq(nt)[:nt/2]
         freq_max = freq[imax]
-#        print mode, 1/freq_max
         if freq_max < low_freq or freq_max > high_freq:
             modes.append(mode)
     return span.mssa_rec(modes=modes)

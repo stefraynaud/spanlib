@@ -1,4 +1,5 @@
 #################################################################################
+#################################################################################
 # File: spanlib_python.py
 #
 # This file is part of the SpanLib library.
@@ -21,8 +22,8 @@
 #################################################################################
 
 import numpy as npy
-from spanlib.util import Logger, broadcast, SpanlibIter, dict_filter
-from spanlib_python import Analyzer, default_missing_value
+from util import Logger, broadcast, SpanlibIter, dict_filter
+from analyzer import Analyzer, default_missing_value
 import pylab as P
 
 class Filler(Logger):
@@ -40,32 +41,18 @@ class Filler(Logger):
         self._kwargs.setdefault('nvalid', 1)
         self._kwargs.setdefault('quiet', True)
         self._data = data
-        self.filled = None
-        self.filtered = None
+#        self.filled = None
+#        self.filtered = None
         self.nstep = 0
         self.cv = 100
-        
+        self._analyzes = []   
+        self._kwfill = {}
+        self._ana = 'pca'
         
         # Setup analyzer
         span = self.analyze(**kwargs)
-##            kwargs['keep_invalids'] = False
-##            kwargs['nvalid'] = None
-#        kwargs['keep_invalids'] = True
-#        kwargs.setdefault('nvalid', 1)
-#        kwargs.setdefault('quiet', True)
-#        print '+span'
-#        print 'len(data)', len(data)
-#        print 'args', npcamax, nmssamax, kwargs
-#        kwargs['npca'] = npcamax
-#        kwargs['nmssa'] = nmssamax
-#        span = self.span = SpAn(data, sequential=False, logger=self.logger, **kwargs)
-##        span.update_params()
-##        if mssa: span.update_params(anatype='mssa')
-#        print '-span'
         
         # Checks
-#        if not span.tree_type<2:
-#            self.error('Input data must be a single variable or a list of variables')
         for invalid in span.invalids:
             if invalid is not None and invalid.any():
                 break
@@ -73,7 +60,7 @@ class Filler(Logger):
             self.warning("No gap to fill")
             
         # Keep original data safe
-        self.set_field(span.stacked_data, 'orig')
+        self._set_field_(span.stacked_data, 'orig')
         
         # Start filling?
         if run: self.fill(**kwargs)
@@ -86,15 +73,10 @@ class Filler(Logger):
         kwargs['keep_invalids'] = True
         kwargs.setdefault('nvalid', 1)
         kwargs.setdefault('quiet', True)
-        print '+span'
-        print 'len(data)', len(data)
-        print 'args', npcamax, nmssamax, kwargs
         kwargs['npca'] = npcamax
         kwargs['nmssa'] = nmssamax
         span = self.span = Analyzer(data, sequential=False, logger=self.logger, **kwargs)
         span.update_params()
-#        if mssa: span.update_params(anatype='mssa')
-        print '-span'
         return span
         
 
@@ -129,82 +111,106 @@ class Filler(Logger):
     
         
         # Parameters
+        self._kwfill.update(nitermax=nitermax, errchmax=errchmax, fillmode=fillmode, 
+            testmode=testmode, mssa=mssa, full=full, cvregen=cvregen, 
+            skipat=skipat, nreana=nreana, **kwargs)
         kwgencv = dict_filter(kwargs, 'cvfield_')
         span = self.span
         if fillmode==0:
             fillmode = "none"
         fillmode = str(fillmode).lower()
         kwargs['zerofill'] = 0 if fillmode.startswith('n') else 2
+        kwargs['prepca'] = True # always PCA
         self.debug('Filling mode: %s (%i)'%(fillmode, kwargs['zerofill']))
         span.update_params(**kwargs)
         
         # which analyzes types?
         analyzes = []
-        if not mssa or span.prepca: analyzes.append('pca')
+#        if not mssa or span.prepca: 
+        analyzes.append('pca')
         if mssa: analyzes.append('mssa')
+        self._analyzes = analyzes
         
         import pylab as P
         # Which modes?
         testmode = str(testmode).lower()
         if testmode.startswith('c'):
             kwgencv['regen'] = cvregen
-            self.gen_cvfield(**kwgencv)
             anamodes = [2, 0]
         else:
             anamodes = [1]
             
         # Loop on analysis modes
-        print 'anamodes', anamodes
-        modes = {}
+        self._nmodes = {}
+        self._errors = {}
         for anamode in anamodes:
             self.debug('Analysis mode: '+['NORMAL', 'SELF-VALIDATION', 'CROSS-VALIDATION'][anamode])
             
-            # Initialization according to analysis mode
-            if anamode!=2:
-                self.load_field('orig')
-            if anamode!=0:
-                if anamode==2:
-                    self.load_field('cvfield')
-#                modes = {}
-#                if 'pca' in analyzes: modes['pca'] = range(span.npca)
-#                if 'mssa' in analyzes: modes['mssa'] = range(span.nmssa)
-        
             # Loop on analysis types (PCA, MSSA)
-            print '---------------------\n modes', modes
+            self._errors[anamode] = {}
             for self._ana in analyzes:
-                self.debug('Running '+self._ana.upper())
+                self.debug(' Running '+self._ana.upper())
                 
                 # Update the number of pre-PCA modes for MSSA
-                if self._ana=='mssa' and span.prepca:
+                if self._ana=='mssa':
                     span.update_params(prepca = imode+1)
                     
+                # Link to appropriate data
+                
+                # - reference data
+                self._link_field_('orig' if self._ana=='pca' else 'pcs', 'ref') 
+                rmask = self._refm.mask
+                saxis = int(self._ana=='mssa')
+                if rmask is npy.ma.nomask or not (rmask.all(axis=saxis)|rmask.any(axis=saxis)).any():
+                    self.warning(' No gap to fill -> just analyzing with all modes')
+                    self._get_func_()()
+                    self._nmodes.setdefault(self._ana, [[self.span.nmssa]])
+                    break
+                
+                # - data to fill
+                if anamode==2: # cross-validation
+                    self._gen_cvfield_(**kwgencv)
+                    self._link_field_('cvfield', 'current')
+                else: # normal, self-validation
+                    self._link_field_('ref', 'current')
+                    
+                if self._ana=='mssa':
+                    pass
+                    
+                # Initialize raw data
+                self._set_raw_(self._currentm.data)
+                
                 # Reanalyses loop
+                self._errors[anamode][self._ana] = []
                 for irf in xrange(nreana):
                     
-                    self.debug('Analysis (%i/%i)'%(i+1, nrena))                        
+                    self.debug('  Analysis (%i/%i)'%(irf+1, nreana))                        
                 
                     # Run analysis to get EOFs
-                    self.get_func()(force=True)
+                    self._get_func_()(force=True)
                     
                     # CV loop on EC estimation (not for PCA with T-EOF)?
                     ecloop = self._ana!= 'pca' or not self.span.useteof
                     niterec = nitermax if ecloop else 1
                     
                     # Number of modes to retain
-                    modes.setdefault(self._ana, [])
-                    amodes = modes[self._ana]
+                    self._nmodes.setdefault(self._ana, [])
+                    amodes = self._nmodes[self._ana]
                     if len(amodes)<irf+1:
                         amodes.append(range(getattr(self.span, 'n'+self._ana))) # test all
                     
                     # Loop on the number of modes 
                     last_mode_err = None
                     self._last_pcs_mode = {}
+                    self._errors[anamode][self._ana].append([])
                     for imode in amodes[irf]:
-                        verb = 'Reconstructing' if anamode==0 else 'Trying'
+                        verb = '   Reconstructing' if anamode==0 else '   Trying'
                         self.debug(verb+' with %i mode%s'%(imode+1, 's'*(imode>0)))
                         
                         # Inits
-                        self.iter_init()
+                        self._recm = default_missing_value
+                        if hasattr(self, '_necmiss'): del self._necmiss
+                        if hasattr(self, '_necmiss_old'): del self._necmiss_old
                         last_iter_err = None
                         skiplast = False
                         if anamode==1 and imode>0:
@@ -213,33 +219,35 @@ class Filler(Logger):
                         self._last_pcs_iter = {}
                         
                         # Convergence loop for expansion coefficients
+                        self._errors[anamode][self._ana][-1].append([])
                         for istep in xrange(niterec):
-                            if ecloop: self.debug(' EC convergence step: %i'%istep)
+                            if ecloop: self.debug('    EC convergence step: %i'%istep)
                             
                             # Reconstruct
                             if anamode==1 and istep>0:
                                 self._last_pcs_iter[self._ana] = \
                                     getattr(self.span, '_%s_raw_pc'%self._ana)
-                            self.rec(imode)
+                            self._rec_(imode)
         
                             # Current error
-                            err = self.get_error(anamode)
+                            err = self._get_error_(anamode)
+                            self._errors[anamode][self._ana][-1][-1].append(err)
                             
                             # Check MSSA full filling
                             if self._ana=='mssa' and full:
-                                nem, nemch = self.get_necmiss()
+                                nem, nemch = self._get_necmiss_()
                                 if nem and (nemch or nemch is None):
-                                    self.debug('  Still %i missing values in %s PCs'%
+                                    self.debug('    Still %i missing values in %s PCs'%
                                         (nem, self._ana.upper()))
                                     last_iter_err = err
                                     continue
         
                             # Check convergence error for EC
                             if ecloop:
-                                self.debug('  Current error: %.1f%%'%err)
+                                self.debug('    Current error: %.1f%%'%err)
                                 if istep>0 and last_iter_err is not None:
                                     errch = err - last_iter_err
-                                    self.debug('  Error change: %g%%'%errch)
+                                    self.debug('    Error change: %g%%'%errch)
                                     if errch>=errchmax:
                                         if errch>0:
                                             self.debug('  Error change > 0: unstable mode -> step skipped')
@@ -247,13 +255,14 @@ class Filler(Logger):
                                             if anamode==1:
                                                 setattr(self.span, '_%s_raw_pc'%self._ana, 
                                                     self._last_pcs_iter[self._ana])
-                                            self.debug('Recovered PCs from last step')
+                                            self.debug('    Recovered PCs from last step')
+                                            self._errors[anamode][self._ana][-1][-1] *= -1
         #                                    skiplast = True
                                         else:
-                                            self.debug('  Error change > threshold -> stopping convergence'%errch)
+                                            self.debug('    Error change > threshold -> stopping convergence'%errch)
                                         break
                             else:
-                                self.debug('  Error: %.1f%%'%err)
+                                self.debug('    Error: %.1f%%'%err)
                                 break
                             last_iter_err = err
                         
@@ -266,86 +275,159 @@ class Filler(Logger):
                                 errch = 1
                             else:
                                 errch = err-last_mode_err
-                                self.debug(' Error change between %i and %i modes: %g'%
+                                self.debug('   Error change between %i and %i modes: %g'%
                                     (imode, imode+1, errch))
                             if errch>errchmax:
                                 imode -= 1
-                                self.debug(' Best number of %s modes: %i'%(self._ana.upper(), imode+1))
-    #                            getattr(self.span, '_%s_raw_pc'%self._ana)[0] = self._last_pcs
+                                self.debug('   Best number of %s modes: %i'%(self._ana.upper(), imode+1))
                                 if anamode==1:
                                     setattr(self.span, '_%s_raw_pc'%self._ana, 
                                         self._last_pcs_mode[self._ana])
-                                    self.debug('Recovered PCs from last mode')
+                                    self.debug('   Recovered PCs from last mode')
+                                    if self._errors[anamode][self._ana][-1][-1] >0:
+                                        self._errors[anamode][self._ana][-1][-1] *= -1
                                 break    
                         last_mode_err = err
                     else:
-                        self.debug(' Reached max number of %s modes (%i)'%(self._ana.upper(), imode+1))
+                        if imode>0:
+                            self.debug('   Reached max number of %s modes (%i)'%(self._ana.upper(), imode+1))
                  
                     # Refill
                     if nreana>0:
-                        self.span.stacked_data = npy.where(self._orig_mask, 
-                            self._rec.filled(default_missing_value), self._orig)
+                        self._set_raw_(self._currentm.filled(self._recm.data))
        
                     # Store optimal number of modes for normal analysis after cross-validation
                     if anamode==2:
-                        modes[self._ana][irf] = [imode]
-#                        print 'store modes[%s][%i] = %s'%(self._ana, irf, modes[self._ana])
-                        
-        # Final reconstruction
-        rec_meth = getattr(self.span, self._ana+'_rec')
-        self.filtered = rec_meth(modes=-imode)
+                        self._nmodes[self._ana][irf] = [imode]
 
-    def get_error(self, anamode):
-        diff = self._origm-self._rec
-        field = self._origm
+                    # -> NMODES
+
+                # -> REANA
+
+                # Store PCA pcs for MSSA
+                if self._ana=='pca' and 'mssa' in analyzes:
+                    self.span.prepca = imode+1
+                    self._set_field_(self.span._pca_raw_pc[:, :imode+1].T, 'pcs', mean=True, std=False)
+                
+            # -> PCA/MSSA
+            
+        # -> NORM/SELF/CV
+               
+        
+    def get_filtered(self, mssa=None, **kwargs):
+        if not self._analyzes:
+            kw = self._kwfill.copy()
+            kw.update(kwargs, mssa=mssa is not False)
+            self.fill(**kw)
+        if mssa is False:
+            ana = 'pca'
+        elif mssa is None:
+            ana = self._ana
+        elif 'mssa' not in self._analyzes:
+            kw = self._kwfill.copy()
+            kw.update(kwargs, mssa=True)
+            self.fill(mssa=True, **kwargs)
+            ana = 'mssa'
+        rec_meth = getattr(self.span, ana+'_rec')
+        return rec_meth(modes=-self._nmodes[ana][-1][0])
+        
+    filtered = property(fget=get_filtered, doc='Filtered data')
+        
+    def get_filled(self, mssa=None, **kwargs):
+        filtered = self.get_filtered(mssa=mssa, **kwargs)
+        return self.span.fill_invalids(self._data, self.filtered)
+        
+    filled = property(fget=get_filled, doc='Data filled with filtered data where missing')
+
+
+    def _set_field_(self, field, name, mean=True, std=False):
+        """Put a field in self._<name>*"""
+        fieldm = npy.ma.masked_values(field, default_missing_value, copy=False)
+        setattr(self, '_%sm'%name, fieldm)
+        if std:
+            setattr(self, '_%s_std'%name, fieldm.std())
+        if mean:
+            setattr(self, '_%s_mean'%name, fieldm.mean(axis=1).reshape(-1, 1))
+
+    def _link_field_(self, name, to='current'):
+        """
+        1.) Put a stored field and its attributes in self._current
+        2.) Put data it in the current field to be analyzed (stacked data or PCs)
+        """
+        # Put it in self._current*
+        if self._ana=='mssa':
+            pass
+        for att in 'm', '_mask', '_std', '_mean':
+            if hasattr(self, '_%s'%name+att):
+                setattr(self, '_'+to+att, getattr(self, '_'+name+att))
+
+    def _set_raw_(self, data):
+        if self._ana=='mssa':
+            data = data.T
+            raw_name = '_pca_raw_pc'
+        else:
+            raw_name = 'stacked_data'
+        if npy.ma.isMA(data): data = data.data
+        setattr(self.span, raw_name, data)
+        
+
+#        # Put it in analyzed field
+#        if self._ana=="mssa":
+#            self.span._pca_raw_pc = self._current
+#        else:
+#            self.span.stacked_data = self._current
+    
+        
+    def _get_error_(self, anamode):
+        """Get current reconstruction error"""
+        diffm = self._refm-self._recm
+        fieldm = self._refm
         if anamode==2:
-            diff = npy.ma.masked_where(self._cvfield_kept, diff)
-            field = npy.ma.masked_where(self._cvfield_kept, field)
-            goodcv = ~diff.mask
-        print 'get_error: anamode', anamode, npy.ma.count(diff)*1./diff.size
-        return 100*diff.std()/field.std()
+            diffm = npy.ma.masked_where(self._cvfield_kept, diffm, copy=False)
+            fieldm = npy.ma.masked_where(self._cvfield_kept, fieldm, copy=False)
+        return 100*diffm.compressed().std()/fieldm.compressed().std()
         
      
-    def iter_init(self):
-        self._rec = default_missing_value
-        if hasattr(self, '_necmiss'): del self._necmiss
-        if hasattr(self, '_necmiss_old'): del self._necmiss_old
+    def _rec_(self, imode):
+        """Get PCA or MSSA recontruction
         
-    def rec(self, imode):
-        # Merge
-        data = npy.where(self._current_mask, self._rec, self._current)
+        For PCA, output is same as raw input.
+        For MSSA, output is same as PCA PCs input
+        """
         
         # Expansion coefficients
         self._last_pcs = {} #getattr(self.span, '_%s_raw_pc'%self._ana)[0]
-        if (self._ana=='pca' or self.span.prepca) and not self.span.useteof:
-            xxx
-            self.span.pca_ec(raw=True, xraw=True, xdata=data, replace=True, demean=False)
-        if self._ana=='mssa':
-            kw = dict(xdata=data, xraw=True) if not self.span.prepca else {}
-            self.span.mssa_ec(raw=True, replace=True, demean=False, **kw)
-        del data
+        if self._ana=='mssa' or not self.span.useteof: 
+            
+            # Fill masked point with reconstructed data
+            rec = self._recm.data if hasattr(self._recm, 'data') else self._recm
+            data =  self._currentm.filled(rec)
+            
+            if self._ana=='mssa': # MSSA rec
+            
+                kw = dict(xdata=data, xraw=True) if not self.span.prepca else {}
+                self.span.mssa_ec(raw=True, replace=True, demean=False, **kw)
+                
+            else: # PCA rec
+            
+                self.span.pca_ec(raw=True, xraw=True, xdata=data, replace=True, demean=False)
+                
+            del data
     
-        # Reconstruction
-        recfunc = self.get_func('rec')
-        self._rec = recfunc(modes=-imode, raw=2, rescale=False, unmap=False)
+        # Reconstruction (masked)
+        recfunc = self._get_func_('rec')
+        self._recm = recfunc(modes=-imode, raw=1, rescale=False, unmap=False)
         if hasattr(self, '_current_mean'):
-            mean = npy.repeat(self._current_mean, self._rec.shape[1], axis=1)
-#            mean = mean.filled(default_missing_value)
-            self._rec += mean
-            del mean
-        
-#        if self._ana=="mssa":
-#            P.plot(self._currentm[0], 'g')
-#            P.plot(self._rec[0], 'r')
-#            P.show()
+            self._recm += self._current_mean
     
-    def get_func(self, suf=None):
+    def _get_func_(self, suf=None):
+        """Get a PCA or MSSA related generic function (method)"""
         ana = self._ana
         if suf is not None:
             ana += '_'+suf
         return getattr(self.span, ana)
         
-    def get_necmiss(self):
+    def _get_necmiss_(self):
         """Get the number of missing values of current expansion coefficents"""
         if not hasattr(self,  '_ana'): return None, None
         if hasattr(self, '_necmiss'): self._necmiss_old = self._necmiss
@@ -359,8 +441,8 @@ class Filler(Logger):
         else:
             necmissch = self._necmiss-self._necmiss_old
         return self._necmiss, necmissch
-
-    def gen_cvfield(self, mask=None, level=15, sscale=1, tscale=1, minrelscale=0.2, regen=False):
+        
+    def _gen_cvfield_(self, mask=None, level=5, sscale=1, tscale=1, minrelscale=0.2, regen=False):
         """Generate false missing values
         
         Field used for analysis is stored using `set_field('cvfield')`.
@@ -372,13 +454,15 @@ class Filler(Logger):
               analysis. These rejected values are used to cross-validation.
               If not set, it is randomly generated.
         """
-        if not regen and hasattr(self, '_cvfield'): return
+        if not regen and hasattr(self, '_cvfield') and self._cvfield_ana==self._ana: return
 
         # Generate the mask
         if mask is None:
             
             # Smooth scale
-            ns, nt = self._orig.shape
+            ns, nt = self._refm.shape
+            transp = self._ana=='mssa'
+            if transp: ns, nt = nt, ns
             if sscale<0:
                 sscale = -int(ns*sscale/100.)
             if sscale > minrelscale*ns:
@@ -393,7 +477,7 @@ class Filler(Logger):
                 tscale = tscale/2*2+1
             
             # Random values
-            tmp = npy.random.random((ns, nt)).astype('f')
+            tmp = npy.random.random(self._refm.shape).astype('f')
             
             # Apply smoothing
             if tscale>1 or sscale>1:
@@ -402,11 +486,13 @@ class Filler(Logger):
                 kernel = npy.ones(sscale, 'f')
                 if sscale>1:
                     for i in xrange(nt):
-                        tmp[:, i] = convolve(tmp[:, i], kernel, 'same') / convolve(ww[:, i], kernel, 'same')
+                        thist = (slice(None), i)[::1-2*reverse]
+                        tmp[thist] = convolve(tmp[thist], kernel, 'same') / convolve(ww[thist], kernel, 'same')
                 kernel = npy.ones(tscale, 'f')
                 if tscale>1:
                     for i in xrange(ns):
-                        tmp[i] = convolve(tmp[i], kernel, 'same') / convolve(ww[i], kernel, 'same')
+                        thiss = (i, slice(None))[::1-2*reverse]
+                        tmp[thiss] = convolve(tmp[thiss], kernel, 'same') / convolve(ww[thiss], kernel, 'same')
                 del ww
             
             # Get max value for noisy field
@@ -420,102 +506,9 @@ class Filler(Logger):
             del tmp
         
         # Apply mask
-        cvfield = npy.where(mask, default_missing_value, self._orig)
-        self.set_field(cvfield, 'cvfield', mean=True)
+        cvfield = npy.where(mask, default_missing_value, self._refm)
+        self._set_field_(cvfield, 'cvfield', mean=True, std=False)
         self._cvfield_kept = ~mask
-        
-    def set_field(self, field, name, mean=False):
-        setattr(self, '_%s'%name, field)
-        fieldm = npy.ma.masked_values(field, default_missing_value)
-        setattr(self, '_%sm'%name, fieldm)
-        setattr(self, '_%s_mask'%name, npy.ma.getmaskarray(fieldm))
-        setattr(self, '_%s_std'%name, fieldm.std())
-        if mean:
-            setattr(self, '_%s_mean'%name, fieldm.mean(axis=1).reshape(field.shape[0], -1))
-
-    def load_field(self, name):
-        """Load a stored field to the current field into 
-        self.span.stacked_data and self._current
-        """
-        for att in '', 'm', '_mask', '_std', '_mean':
-            if hasattr(self, '_%s'%name+att):
-                setattr(self, '_current'+att, getattr(self, '_%s'%name+att))
-        self.span.stacked_data = getattr(self, '_current')
-    
+        self._cvfield_ana = self._ana
         
         
-#                    # check convergence
-#                    self.cv = (energy-last_energy)/energy
-#                    if npy.isnan(self.cv): xxxxx
-#    #                self.debug('Change rate: %s%%'%(self.cv*100))
-#                    print '>>>>>>>>>>> Change rate: %s%%'%(self.cv*100)
-#                    print '1'
-#                    if self.cv < 0 or npy.abs(self.cv) < cvmax/100.:
-#                        self.info('Convergence reached: %.2f%% (%i iterations)'%(100*self.cv, self.nstep))
-#                        break
-#                    last_energy = energy
-#                
-#                # Reconstruction
-#                print '+fillerrec'
-#    #            drec = span.mssa_rec()
-#    #            print '>'*10, 'pca_ec'
-#    #            ec = span.pca_ec(xdata=data, replace=True)
-#                print '>'*10, 'mssa_ec'
-#                ecm = span.mssa_ec(xdata=data, replace=True)
-#                print '>'*10, 'mssa_rec'
-#                datarec = span.mssa_rec()
-#    #            datarec = span.pca_rec()
-#    #            print '-fillerrec', datarec.sum()
-#    #            import pylab as P
-#    ##            P.plot(span.mssa_pc())
-#    #            P.plot(datarec)
-#    #            P.show()
-#    #            xxxxx
-#                mdatarec = span.remap(datarec)
-#    #            print '-rec'
-#    
-#                # Replace invalid data with reconstructed field
-#    #            print '+replace'
-#                for ivar in xrange(len(mdatarec)):
-#                    if invalids[ivar] is not None:
-#                        if callable(filter):
-#                            mdatarec[ivar][:] = filter(mdatarec[ivar])
-#                        mdata[ivar][:] = eval(span[ivar].array_type).where(invalids[ivar], 
-#                            mdatarec[ivar], mdata[ivar])
-#    #            print '-replace'
-#    
-#                # Save current filtered state
-#                if getfiltsteps: self.filtsteps.append(datarec)
-#                            
-#    #            print '+unmap'
-#                data = span.unmap(mdata)
-#    #            data = span._unmap_([mdata])
-#    #            old_span = span                    
-#    #            print '-unmap'
-#        
-#                # Check iteration limit
-#                if self.nstep >= nitermax:
-#    #                self.warning('Convergence not reached %i%% (%i iterations)'%(100*self.cv, self.nstep))
-#                    break
-#                
-#        # Output
-#        span = old_span if old_span is not None else span
-#        self.span = span
-#        self.nmssa = span.nmssa()
-#        self.npca = span.npca()
-#        self.filled = data
-#        self.filtered = datarec
-##        print '+ids'
-#        if span[0].has_cdat(): # Ids for CDAT variables
-#            if isinstance(self.filled, list):
-#                for i, data in enumerate(span[0]):
-#                    if not data.has_cdat(): continue
-#                    self.filled[i].id +='_filled'
-#                    self.filtered[i].id += '_filtered'
-#            else:
-#                self.filled.id += '_filled'
-#                self.filled.id += '_filtered'
-##        print '-ids'
-#        return data
-
-      
