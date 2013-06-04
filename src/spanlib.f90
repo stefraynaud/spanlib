@@ -97,10 +97,10 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
     integer, allocatable :: valid(:,:)!, cvalid(:)
     integer :: zuseteof, znkeepmax, i, la_info, lwork, im, nc, no, &
         & nsv, ntv, it, ncf, ic, io
-    integer, allocatable :: iselect(:)
+    integer, allocatable :: iselect(:), iselect2(:)
     character(len=120) :: msg
     character(len=1) :: trflag
-    real(8) :: zmv, zdmv, zevsum, w0
+    real(8) :: zmv, zdmv, zevsumt, zevsums, w0
     logical :: zusetpc
 
     ! Setups
@@ -166,7 +166,7 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
             zuseteof=0
         endif
     endif
-    zusetpc = zuseteof==1 .and. (.not. present(notpc) .or. notpc==0)
+    zusetpc = present(pc) .and. zuseteof==1 .and. (.not. present(notpc) .or. notpc==0)
     znkeepmax=100
     if(zuseteof==1)then
         nc = ntv
@@ -191,6 +191,11 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
     
     ! Valid channels
     allocate(iselect(nc))
+    iselect = pack((/(ic,ic=1,ncf)/), any(valid==1, dim=odim))
+    if(zuseteof==1)then
+        allocate(iselect2(ns))
+        iselect2 = pack((/(ic,ic=1,ns)/), any(valid==1, dim=2))
+    endif
     iselect = pack((/(ic,ic=1,ncf)/), any(valid==1, dim=odim))
     if(nkeep>nc)then
         if(present(errmsg))then
@@ -235,8 +240,9 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
     ! EOF decomposition
     ! =================
 
-    ! Covariance
-    ! -----------
+    ! Covariances and variances
+    ! -------------------------
+    ! Covariances
     allocate(nn(nc,nc))
     allocate(cov(nc,nc))
     cov = 0d0
@@ -245,16 +251,22 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
     call dsyrk('U', trflag, nc, no, 1d0, dble(valid), nsv, 0d0, nn, nc)
     where(nn>0d0) cov = cov / nn
     deallocate(nn)
-    if(.not.present(pc))deallocate(valid)
+    ! Variances
+    zevsums = 0d0
+    do i = 1, ns
+        if(any(valid(i, :)==1))then
+            zevsums = zevsums + sum(zvar(i, :)**2)/ dble(sum(valid(i, :)))
+        endif
+    enddo
     if(zuseteof==1)then
-        zevsum = 0d0
-        do i = 1, nsv
-            if(any(valid(i, iselect)==1))then
-                zevsum = zevsum + sum(zvar(i, :)**2)/ &
-                    & dble(sum(valid(i, iselect))) !FIXME: ?
+        zevsumt = 0d0
+        do i = 1, nt
+            if(any(valid(:, i)==1))then
+                zevsumt = zevsumt + sum(zvar(:, i)**2)/ dble(sum(valid(:, i)))
             endif
         enddo
     endif
+    if(.not.present(pc))deallocate(valid)
    
     ! Diagonalization (cov: input=cov, output=eof)
     ! --------------------------------------------
@@ -283,7 +295,7 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
     ! -----------
 !     if(zuseteof==1) zev = zev * dble(ntv) / dble(nsv)
     zev = merge(0d0, zev, zev<0)
-    if(zuseteof==1)zev = zev * zevsum / sum(zev)
+    if(zuseteof==1)zev = zev * zevsums / zevsumt
     if(present(ev))ev = zev(nc:nc-nkeep+1:-1)
     
     ! EOFs
@@ -304,12 +316,12 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
             deallocate(zvar)
             
             ! Direct PC
-            if(present(pc) .and. zusetpc)then
+            if(zusetpc)then
             
-                if(present(zerofill).and.zerofill==2)then
-                    pc = zmv
-                else
+                if(present(zerofill).and.zerofill>=1)then
                     pc = 0d0
+                else
+                    pc = zmv
                 endif
                 pc(iselect,:) = subcov
                 do im = 1, nkeep
@@ -344,16 +356,19 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
     
     ! First channel of an EOF is >= 0
     do im = 1, nkeep 
-        if(zeof(iselect(1), im)<0)then
-            zeof(:, im) = -zeof(:, im)
-            if(present(pc) .and. zusetpc) pc(:, im) = -pc(:, im)
-        endif
+        if(zuseteof==1 .and. zeof(iselect2(1), im)<0)then
+            zeof(iselect2, im) = -zeof(iselect2, im)
+            if(zusetpc) pc(iselect, im) = -pc(iselect, im)
+        else if(zeof(iselect(1), im)<0)then
+            zeof(iselect, im) = -zeof(iselect, im)
+        endif        
     enddo
+    if(zuseteof==1)deallocate(iselect2)
 
        
     ! Sum of all eigenvalues (useful for percentils)
     ! ----------------------------------------------
-    if(present(ev_sum)) ev_sum = sum(zev)
+    if(present(ev_sum)) ev_sum = zevsums
 
     ! Free eof array
     ! --------------
