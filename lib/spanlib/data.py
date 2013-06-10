@@ -235,7 +235,7 @@ class Data(Logger):
                 pdata = npy.atleast_2d(pdata)
             else:
                 pdata.shape = pdata.size, 1
-        return pdata
+        return npy.asfortranarray(pdata)
         
     def scale(self, data, copy=False, mean=None, norm=None, mode=None):
         """Remove mean and normalize unpacked data"""

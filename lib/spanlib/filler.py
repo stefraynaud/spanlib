@@ -65,23 +65,22 @@ class Filler(Logger):
         # Start filling?
         if run: self.fill(**kwargs)
         
-    def analyze(self, data=None, npcamax=20, nmssamax=15, **kwargs):
+    def analyze(self, data=None, npcamax=15, nmssamax=15, **kwargs):
         # Setup analyzer
-#            kwargs['keep_invalids'] = False
-#            kwargs['nvalid'] = None
         if data is None: data = self._data
         kwargs['keep_invalids'] = True
         kwargs.setdefault('nvalid', 1)
         kwargs.setdefault('quiet', True)
-        kwargs['npca'] = npcamax
-        kwargs['nmssa'] = nmssamax
+        kwargs.setdefault('npca', kwargs.pop('npca', npcamax))
+        kwargs.setdefault('nmssa', kwargs.pop('nmssa', nmssamax))
+        kwargs.setdefault('window', kwargs.pop('win', None))
         span = self.span = Analyzer(data, sequential=False, logger=self.logger, **kwargs)
         span.update_params()
         return span
         
 
     def fill(self, nitermax=20, errchmax=-0.01, fillmode='normal', testmode='crossvalid', 
-        mssa=True, full=True, cvregen=False, skipat=2, nreana=3, **kwargs):
+        mssa=True, full=True, cvregen=False, nreanapca=4, nreanamssa=4, errchmaxreana=-1, **kwargs):
         """Run the filler with a convergence loop
         
         Results are accessible in the following attributes:
@@ -113,7 +112,7 @@ class Filler(Logger):
         # Parameters
         self._kwfill.update(nitermax=nitermax, errchmax=errchmax, fillmode=fillmode, 
             testmode=testmode, mssa=mssa, full=full, cvregen=cvregen, 
-            skipat=skipat, nreana=nreana, **kwargs)
+            nreanapca=nreanapca, nreanamssa=nreanamssa, **kwargs)
         kwgencv = dict_filter(kwargs, 'cvfield_')
         span = self.span
         if fillmode==0:
@@ -123,6 +122,7 @@ class Filler(Logger):
         kwargs['prepca'] = True # always PCA
         self.debug('Filling mode: %s (%i)'%(fillmode, kwargs['zerofill']))
         span.update_params(**kwargs)
+        nreana = dict(pca=nreanapca, mssa=nreanamssa)
         
         # which analyzes types?
         analyzes = []
@@ -131,7 +131,6 @@ class Filler(Logger):
         if mssa: analyzes.append('mssa')
         self._analyzes = analyzes
         
-        import pylab as P
         # Which modes?
         testmode = str(testmode).lower()
         if testmode.startswith('c'):
@@ -174,17 +173,15 @@ class Filler(Logger):
                 else: # normal, self-validation
                     self._link_field_('ref', 'current')
                     
-                if self._ana=='mssa':
-                    pass
-                    
                 # Initialize raw data
                 self._set_raw_(self._currentm.data)
                 
                 # Reanalyses loop
                 self._errors[anamode][self._ana] = []
-                for irf in xrange(nreana):
+                last_reana_err = None
+                for ira in xrange(nreana[self._ana]):
                     
-                    self.debug('  Analysis (%i/%i)'%(irf+1, nreana))                        
+                    self.debug('  Analysis (%i/%i)'%(ira+1, nreana[self._ana]))                        
                 
                     # Run analysis to get EOFs
                     self._get_func_()(force=True)
@@ -196,14 +193,14 @@ class Filler(Logger):
                     # Number of modes to retain
                     self._nmodes.setdefault(self._ana, [])
                     amodes = self._nmodes[self._ana]
-                    if len(amodes)<irf+1:
+                    if len(amodes)<ira+1:
                         amodes.append(range(getattr(self.span, 'n'+self._ana))) # test all
                     
                     # Loop on the number of modes 
                     last_mode_err = None
                     self._last_pcs_mode = {}
                     self._errors[anamode][self._ana].append([])
-                    for imode in amodes[irf]:
+                    for imode in amodes[ira]:
                         verb = '   Reconstructing' if anamode==0 else '   Trying'
                         self.debug(verb+' with %i mode%s'%(imode+1, 's'*(imode>0)))
                         
@@ -291,19 +288,39 @@ class Filler(Logger):
                     else:
                         if imode>0:
                             self.debug('   Reached max number of %s modes (%i)'%(self._ana.upper(), imode+1))
-                 
-                    # Refill
-                    if nreana>0:
-                        self._set_raw_(self._currentm.filled(self._recm.data))
-       
-                    # Store optimal number of modes for normal analysis after cross-validation
-                    if anamode==2:
-                        self._nmodes[self._ana][irf] = [imode]
-
+                            
                     # -> NMODES
-
+                 
+                    # Refill for next reana
+                    if ira<nreana[self._ana]-1:
+                        self.debug('  Filling for next reanalysis')
+                        self._set_raw_(self._currentm.filled(self._recm.data))
+                        
+                    # Store optimal number of modes info for normal analysis after cross-validation
+                    if anamode==2:
+                        self._nmodes[self._ana][ira] = [imode]
+                        
+                    # Error check
+                    if ira>0:
+                        
+                        errch = err-last_reana_err
+                        self.debug('  Error change since last analysis: %.2g'%errch)
+                        if errch>errchmaxreana:
+                            self.debug('  Stopping reanalyzes')
+                            break
+                            
+                    last_reana_err = err
+                
+                else:
+                    self.debug('  Reached max number of reanalyzes for %s (%i)'%(self._ana.upper(), ira+1))
+       
                 # -> REANA
+                
+                # Store number of reanalyzes for normal analysis after cross-validation
+                if anamode==2:
+                    nreana[self._ana] = ira+1
 
+                
                 # Store PCA pcs for MSSA
                 if self._ana=='pca' and 'mssa' in analyzes:
                     self.span.prepca = imode+1
