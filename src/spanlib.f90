@@ -94,10 +94,10 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
     real(8), allocatable :: cov(:,:), subcov(:,:), nn(:,:)
     real(8), allocatable :: zeof(:,:), zvar(:,:), zmean(:)
     real(8), allocatable :: zev(:), work(:)
-    integer, allocatable :: valid(:,:)!, cvalid(:)
+    integer(4), allocatable :: valid(:,:)
     integer :: zuseteof, znkeepmax, i, la_info, lwork, im, nc, no, &
-        & nsv, ntv, it, ncf, ic, io
-    integer, allocatable :: iselect(:), iselect2(:)
+        & nsv, ntv, it, ic, io
+    integer(4), allocatable :: iselects(:), iselectt(:)
     character(len=120) :: msg
     character(len=1) :: trflag
     real(8) :: zmv, zdmv, zevsumt, zevsums, w0
@@ -119,19 +119,6 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
         endif
         return
     end if
-
-    ! What does the user want?
-    ! ------------------------
-    if(.not.present(xeof).and..not.present(pc)&
-      &.and..not.present(ev))then
-        if(present(errmsg))&
-            & errmsg = sl_errmsg(ierr_warning, 'pca', 'Nothing to do. Quit.')
-        return
-    end if
-
-
-    ! Valid data in 2D space
-    ! ----------------------
     
     ! Missing value
     if(present(mv))then
@@ -145,20 +132,48 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
         zdmv = 1d0/zmv
     endif
     
+
+    ! What does the user want?
+    ! ------------------------
+    if(present(xeof))xeof=zmv
+    if(present(pc))pc=zmv
+    if(present(ev))ev=0d0
+    if(present(ev_sum))ev_sum=0d0
+    if(.not.present(xeof).and..not.present(pc)&
+      &.and..not.present(ev))then
+        if(present(errmsg))&
+            & errmsg = sl_errmsg(ierr_warning, 'pca', 'Nothing to do. Quit.')
+        return
+    end if
+
+
+    ! Valid data in 2D space
+    ! ----------------------
+    
     ! Valid in the 2D space
     allocate(valid(ns, nt))
     if(present(zerofill).and.zerofill==1)then
         valid = 1
     else
-        valid = merge(0, 1, abs((var-zmv)*zdmv)<=mvtol)
+        valid = merge(0, 1, abs((var-zmv)*zdmv)<=mvtol*100)
+    endif
+    if(all(valid==0))then
+        if(present(errmsg))&
+            & errmsg = sl_errmsg(ierr_warning, 'pca', 'All data are masked. Quit.')
+        return
     endif
 
-    ! By default, T-EOF decompostion if ns > nt
-    ! -----------------------------------------
+    ! Selections
+    nsv = count( any(valid==1, dim=2) )
+    ntv = count( any(valid==1, dim=1) )
+    allocate(iselects(nsv),iselectt(ntv))
+    iselects = pack((/(i,i=1,ns)/), any(valid==1, dim=2))
+    iselectt = pack((/(i,i=1,nt)/), any(valid==1, dim=1))
+    
+    ! By default, T-EOF decompostion if nsv > ntv
+    ! -------------------------------------------
     zuseteof = -1
     if(present(useteof))zuseteof = useteof
-    ntv = count(any(valid==1, dim=1))
-    nsv = count(any(valid==1, dim=2))
     if(zuseteof<0)then     
         if(nsv>ntv)then
             zuseteof=1
@@ -170,17 +185,13 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
     znkeepmax=100
     if(zuseteof==1)then
         nc = ntv
-        ncf = nt
-        no = ns
-        nsv = ns
+        no = nsv
         trflag = 'T'
         odim = 1
         cdim = 2
     else ! classic
         nc = nsv
-        ncf = ns
-        no = nt
-        ntv = nt
+        no = ntv
         trflag = 'N'
         odim = 2
         cdim = 1
@@ -188,15 +199,8 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
   
     ! Case where data are always missing
     ! ----------------------------------
-    
+
     ! Valid channels
-    allocate(iselect(nc))
-    iselect = pack((/(ic,ic=1,ncf)/), any(valid==1, dim=odim))
-    if(zuseteof==1)then
-        allocate(iselect2(ns))
-        iselect2 = pack((/(ic,ic=1,ns)/), any(valid==1, dim=2))
-    endif
-    iselect = pack((/(ic,ic=1,ncf)/), any(valid==1, dim=odim))
     if(nkeep>nc)then
         if(present(errmsg))then
             if(zuseteof==1)then
@@ -213,25 +217,13 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
         
     ! Working var array
     allocate(zvar(nsv, ntv))
-    zvar = 0d0
-    if(zuseteof==1)then
-        zvar = var(:, iselect)
-    else
-        zvar = var(iselect, :) ! classic
-    endif
+    zvar = var(iselects, iselectt)
     zvar = merge(0d0, zvar, abs((zvar-zmv)*zdmv)<=mvtol)
-  
-    if(zuseteof==0)deallocate(zvar)
 
     ! Remove the mean along T
     ! -----------------------
     allocate(zmean(nsv))
-    zmean = sum(zvar, dim=2)
-    if(zuseteof==1)then
-        zmean = zmean / dble(sum(valid(:, iselect), dim=2))
-    else ! classic
-        zmean = zmean / dble(sum(valid(iselect, :), dim=2))
-    endif
+    zmean = sum(zvar, dim=2) / dble(sum(valid(iselects,iselectt), dim=2))
     do i = 1, ntv
         zvar(:, i) = zvar(:, i) - zmean
     enddo
@@ -242,28 +234,26 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
 
     ! Covariances and variances
     ! -------------------------
+    
     ! Covariances
     allocate(nn(nc,nc))
     allocate(cov(nc,nc))
     cov = 0d0
     nn = 0d0
     call dsyrk('U', trflag, nc, no, 1d0, zvar, nsv, 0d0, cov, nc)
-    call dsyrk('U', trflag, nc, no, 1d0, dble(valid), nsv, 0d0, nn, nc)
+    call dsyrk('U', trflag, nc, no, 1d0, dble(valid(iselects,iselectt)), nsv, 0d0, nn, nc)
     where(nn>0d0) cov = cov / nn
     deallocate(nn)
+
     ! Variances
     zevsums = 0d0
-    do i = 1, ns
-        if(any(valid(i, :)==1))then
-            zevsums = zevsums + sum(zvar(i, :)**2)/ dble(sum(valid(i, :)))
-        endif
+    do i = 1, nsv
+        zevsums = zevsums + sum(zvar(i, :)**2)/dble(sum(valid(iselects(i), iselectt)))
     enddo
     if(zuseteof==1)then
         zevsumt = 0d0
-        do i = 1, nt
-            if(any(valid(:, i)==1))then
-                zevsumt = zevsumt + sum(zvar(:, i)**2)/ dble(sum(valid(:, i)))
-            endif
+        do i = 1, ntv
+            zevsumt = zevsumt + sum(zvar(:, i)**2)/dble(sum(valid(iselects, iselectt(i))))
         enddo
     endif
     if(.not.present(pc))deallocate(valid)
@@ -287,6 +277,7 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
         if(present(errmsg))&
             & errmsg = sl_errmsg(ierr_error, 'pca', &
             &   la_info=la_info, la_fname='DSYEV')
+            write(*,*)errmsg
         return
     endif
     deallocate(work) 
@@ -311,8 +302,9 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
             allocate(subcov(nc,nkeep))
             subcov = cov(:,nc:nc-nkeep+1:-1)
             deallocate(cov)
-            call dgemm('N', 'N', ns, nkeep, nc, 1d0, &
-                & zvar, ns, subcov, nc, 0d0, zeof, ns)
+            zeof(iselects,:) = matmul(zvar, subcov)
+!            call dgemm('N', 'N', nsv, nkeep, nc, 1d0, &
+!                & zvar, nsv, subcov, nc, 0d0, zeof, nsv)
             deallocate(zvar)
             
             ! Direct PC
@@ -323,67 +315,65 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
                 else
                     pc = zmv
                 endif
-                pc(iselect,:) = subcov
+                pc(iselectt,:) = subcov
                 do im = 1, nkeep
-                    pc(iselect, im) = pc(iselect, im)*sqrt(dble(nc)*zev(nc-im+1))
+                    pc(iselectt, im) = pc(iselectt, im)*sqrt(dble(nc)*zev(nc-im+1))
                 end do
                 
             end if
             
             ! Effect of mask
-            do i = 1, ns
+            do i = 1, nsv
                 do im = 1, nkeep
-                    w0 = sum(subcov(:, im)**2*dble(valid(i, iselect)))
-                    if(w0>tiny(0d0))zeof(i, im) = zeof(i, im) / w0
+                    w0 = sum(subcov(:, im)**2*dble(valid(iselects(i), iselectt)))
+                    if(w0>tiny(0d0))zeof(iselects(i), im) = zeof(iselects(i), im) / w0
                 enddo
             enddo
             deallocate(subcov)
             
             ! Norm
             do im = 1, nkeep
-                zeof(:,im) = zeof(:,im) / sqrt(sum(zeof(:,im)**2 ))
+                zeof(iselects,im) = zeof(iselects,im) / sqrt(sum(zeof(iselects,im)**2 ))
             end do
             
         else ! S-EOF
         
-            zeof(iselect,:) = cov(:,nc:nc-nkeep+1:-1)
+            zeof(iselects,:) = cov(:,nc:nc-nkeep+1:-1)
             
         end if
     
     else
         deallocate(cov)
     endif
-    
+
     ! First channel of an EOF is >= 0
     do im = 1, nkeep 
-        if(zuseteof==1 .and. zeof(iselect2(1), im)<0)then
-            zeof(iselect2, im) = -zeof(iselect2, im)
-            if(zusetpc) pc(iselect, im) = -pc(iselect, im)
-        else if(zeof(iselect(1), im)<0)then
-            zeof(iselect, im) = -zeof(iselect, im)
+        if(zuseteof==1 .and. zeof(iselects(1), im)<0)then
+            zeof(iselects, im) = -zeof(iselects, im)
+            if(zusetpc) pc(iselectt, im) = -pc(iselectt, im)
+        else if(zeof(iselects(1), im)<0)then
+            zeof(iselects, im) = -zeof(iselects, im)
         endif        
     enddo
-    if(zuseteof==1)deallocate(iselect2)
 
        
     ! Sum of all eigenvalues (useful for percentils)
     ! ----------------------------------------------
     if(present(ev_sum)) ev_sum = zevsums
 
-    ! Free eof array
-    ! --------------
-    if(present(xeof))then
-        xeof = zeof
-        if(.not.present(pc) .or. zusetpc) deallocate(zeof)
-    end if
+    ! Final eof
+    ! ---------
+    if(present(xeof)) xeof = zeof
 
     ! Finally get PCs
     ! ===============
     if(present(pc) .and. .not.zusetpc)then
+            
         call sl_pca_getec(var, zeof, pc, mv=zmv, &
             & ev=zev(nc:nc-nkeep+1:-1), minvalid=minecvalid, &
             & zerofill=merge(1,0,present(zerofill).and.zerofill==2), &
             & demean=1)
+            
     end if
 
 end subroutine sl_pca
@@ -430,11 +420,11 @@ subroutine sl_pca_getec(var, xeof, ec, mv, ev, minvalid, zerofill, demean)
     real(8), allocatable :: zvar(:,:), norm(:), zeof(:,:), zmean(:)
     real(8) :: zmv, zdmv
     integer :: ns, nt, nkeep, im, it, nc, ic
-    integer,allocatable :: valid(:,:), zcount(:)
+    integer,allocatable :: valid(:,:)
     integer :: zminvalid
     logical :: zf
     logical, allocatable :: cvalid(:)
-    integer, allocatable :: iselect(:)
+    integer(4), allocatable :: iselect(:), zcount(:)
 
     ! Computations
     ! ============
@@ -605,7 +595,7 @@ subroutine sl_pca_rec(xeof, pc, varrec, istart, iend, mv, errmsg)
         if(present(errmsg))then
             write(msg,*)'iend greater than the number '//&
                 &'of avalaible modes => reduced to ',ziend
-            errmsg = errmsg // msg // ' | '
+            errmsg = trim(errmsg) // trim(msg) // ' | '
         endif
     end if
     if(zistart>ziend)then
@@ -613,7 +603,7 @@ subroutine sl_pca_rec(xeof, pc, varrec, istart, iend, mv, errmsg)
         ziend=zistart
         zistart=itmp
         if(present(errmsg)) &
-            & errmsg = errmsg // 'istart > iend => inversion | '
+            & errmsg = trim(errmsg) // 'istart > iend => inversion | '
     end if
     if(present(errmsg).and.len_trim(errmsg)>0)then
         if(len_trim(errmsg)>3) errmsg = errmsg(:len_trim(errmsg)-3)
@@ -1152,7 +1142,7 @@ subroutine sl_mssa_rec(steof, stpc, nwindow, varrec, istart, &
         if(present(errmsg))then
             write(msg,*)'iend greater than the number of '// &
                 &     'avalaible modes => reduced to',iend
-            errmsg = errmsg // msg // ' | '
+            errmsg = trim(errmsg) // trim(msg) // ' | '
         endif
     end if
     if(zistart>ziend)then
@@ -1160,7 +1150,7 @@ subroutine sl_mssa_rec(steof, stpc, nwindow, varrec, istart, &
         ziend   = zistart
         zistart = itmp
         if(present(errmsg))&
-            & errmsg = errmsg // 'istart > iend => inversion | '
+            & errmsg = trim(errmsg) // 'istart > iend => inversion | '
     end if
     if(present(errmsg).and.len_trim(errmsg)>0)then
         if(len_trim(errmsg)>3) errmsg = errmsg(:len_trim(errmsg)-3)        
@@ -1730,19 +1720,19 @@ function sl_errmsg(ierr, fname, msg, la_info, la_fname)
     end select
     
     ! Routine name
-    if(present(fname))sl_errmsg = sl_errmsg // fname // ': '
+    if(present(fname))sl_errmsg = trim(sl_errmsg) // ' ' // trim(fname) // ': '
     
     ! Main message
-    if(present(msg))sl_errmsg = sl_errmsg // msg
+    if(present(msg))sl_errmsg = trim(sl_errmsg) // trim(msg)
     
     ! Lapack
     zla_msg = ''
     if(present(la_info).and.la_info/=0 .and. &
         & present(la_fname).and.len_trim(la_fname)>0)then
-        if(len_trim(sl_errmsg)>0)sl_errmsg = sl_errmsg // ': '
+        if(len_trim(sl_errmsg)>0)sl_errmsg = trim(sl_errmsg) // ': '
         write(zla_msg,*)'Error running LAPACK routine '//&
             & trim(la_fname)//' (info=', la_info, ')'
-        sl_errmsg = sl_errmsg // zla_msg
+        sl_errmsg = trim(sl_errmsg) // trim(zla_msg)
     endif
                 
 end function sl_errmsg
