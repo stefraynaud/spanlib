@@ -79,7 +79,7 @@ class Filler(Logger):
         return span
         
 
-    def fill(self, nitermax=20, errchmax=-0.01, fillmode='normal', testmode='crossvalid', 
+    def fill(self, nitermax=20, errchmax=-0.01, fillmode='masked', testmode='crossvalid', 
         mssa=True, full=True, cvregen=False, nreanapca=4, nreanamssa=4, errchmaxreana=-1, **kwargs):
         """Run the filler with a convergence loop
         
@@ -95,7 +95,7 @@ class Filler(Logger):
             
         :Parameters:
         
-            - **fillmode**: "zeros" or "normal"
+            - **fillmode**: "zeros" or "masked"
             - **nitermax**: Maximal number of iterations
             - **cvmax**: Convergence criterion (%)
             - **npca**: Number of PCA modes (see :class:`Analyzer`)
@@ -118,7 +118,11 @@ class Filler(Logger):
         if fillmode==0:
             fillmode = "none"
         fillmode = str(fillmode).lower()
-        kwargs['zerofill'] = 0 if fillmode.startswith('n') else 2
+        if fillmode.startswith('n') or fillmode.startswith('m'): 
+            fillmode = "masked"
+        elif fillmode.startswith('z'):
+            fillmode = "zeros"
+        kwargs['zerofill'] = 0 if fillmode=="masked" else 2
         kwargs['prepca'] = True # always PCA
         self.debug('Filling mode: %s (%i)'%(fillmode, kwargs['zerofill']))
         span.update_params(**kwargs)
