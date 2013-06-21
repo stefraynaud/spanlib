@@ -24,7 +24,7 @@
 import copy
 import gc
 from warnings import warn
-import spanlib_fort
+import _fortran
 import numpy as N
 npy = numpy
 from data import has_cdat_support, cdms2_isVariable, Data, Dataset, default_missing_value
@@ -211,7 +211,7 @@ class DualAnalyzer(_BasicAnalyzer_, Logger):
         left = npy.asfortranarray(left, 'd')
         right = npy.asfortranarray(right, 'd')
         raw_eof_left, raw_eof_right, raw_pc_left, raw_pc_right, raw_ev, ev_sum, errmsg = \
-            spanlib_fort.svd(left, right, self._nsvd, lweights, rweights, int(usecorr))
+            _fortran.svd(left, right, self._nsvd, lweights, rweights, int(usecorr))
         self.check_fortran_errmsg(errmsg)
         if info != 0:
             self.error('Error when running fortran SVD',  'svd')
@@ -443,7 +443,7 @@ class DualAnalyzer(_BasicAnalyzer_, Logger):
             raw_data = npy.asfortranarray(raw_data)
             raw_eof = npy.asfortranarray(raw_eof[:, :self._nsvd])
             raw_weights = npy.ones(raw_data.shape[0])
-            raw_ec = spanlib_fort.pca_getec(raw_data, raw_eof, raw_weights, default_missing_value)
+            raw_ec = _fortran.pca_getec(raw_data, raw_eof, raw_weights, default_missing_value)
             if raw:
                 fmt_ec[iset] = raw_ec
                 continue

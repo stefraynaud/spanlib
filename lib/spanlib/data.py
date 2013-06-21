@@ -21,7 +21,7 @@
 #################################################################################
 import numpy
 npy = numpy
-import spanlib_fort
+import _fortran
 try:
     import cdms2 ,MV2
     MV = MV2
