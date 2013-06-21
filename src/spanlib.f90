@@ -346,14 +346,12 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
         deallocate(cov)
     endif
 
-    ! First channel of an EOF is >= 0
+    ! First valid channel of an EOF is >= 0
     do im = 1, nkeep 
-        if(zuseteof==1 .and. zeof(iselects(1), im)<0)then
+        if(zeof(iselects(1), im)<0)then
             zeof(iselects, im) = -zeof(iselects, im)
-            if(zusetpc) pc(iselectt, im) = -pc(iselectt, im)
-        else if(zeof(iselects(1), im)<0)then
-            zeof(iselects, im) = -zeof(iselects, im)
-        endif        
+            if(zusetpc)pc(iselectt, im) = -pc(iselectt, im)
+        endif
     enddo
 
        
