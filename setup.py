@@ -1,59 +1,37 @@
 ######################################################################
-## SpanLib, Raynaud 2006-2011
+## SpanLib, Raynaud 2006-2013
 ######################################################################
 
 import os
 import sys
 import re
 from ConfigParser import SafeConfigParser
+from numpy.distutils.core import setup, Extension
+from numpy.f2py import crackfortran
+sys.path.insert(0, 'lib/spanlib') ; from version import __version__ ; del sys.path[0]
 
 # Some info
-version='0.9' # Like 0.1
-description='Python extension to spanlib fortran library'
+version = __version__
+description='Python extension to the spanlib fortran library'
 author = 'Stephane Raynaud and Charles Doutriaux'
 author_email = 'stephane.raynaud@gmail.com'
 url="http://spanlib.sf.net"
-from numpy.distutils.core import setup, Extension
 
+# Gather up all the files we need
+spanlib_files = ['src/spanlib.pyf', 'src/spanlib_pywrap.f90', 'src/spanlib.f90',  'src/anaxv.f90']
+anaxv_files = ['src/anaxv.pyf', 'src/anaxv.f90']
 
-# Gather up all the files we need.
-files = ['src/spanlib.pyf', 'src/spanlib_pywrap.f90', 'src/spanlib.f90']
-
-# Generate pyf file
-fw = open('src/spanlib_pywrap.f90')
-fp = open('src/spanlib.pyf','w')
-def add_nextline(ntab=0,nnl=1):
-    global i
-    fline = ntab*'\t'+lines[i]
-    while lines[i].endswith('&'):
-        i+=1
-        fline += lines[i]
-    fline = fline.replace('&','')+'\n'*nnl
-    fp.write(fline)
-    i+=1
-redec = re.compile('(real|logical|integer)')
-fp.write("! -*- Mode: f90 -*-\n\npython module spanlib_fort\ninterface\n")
-lines = [l[:-1].strip() for l in fw.xreadlines()]
-i = 0
-while i < len(lines):
-    # Find subroutine blocks
-    if "subroutine" in lines[i].lower():
-        
-        # Subroutine declaration
-        add_nextline()
-        
-        # Variales
-        while redec.search(lines[i]) is None: i+=1
-        while len(lines[i]): add_nextline(ntab=1)
-        
-        # End subroutine
-        while 'end subroutine' not in lines[i].lower(): i+=1
-        add_nextline(nnl=2)
-        
-    i+=1
-fw.close()
-fp.write("end interface\nend python module\n\n")
-fp.close()
+# Generate pyf files
+crackfortran.f77modulename = '_fortran'
+pyfcode = crackfortran.crack2fortran(crackfortran.crackfortran(['src/spanlib_pywrap.f90']))
+f = open('src/spanlib.pyf', 'w')
+f.write(pyfcode)
+f.close()
+crackfortran.f77modulename = 'anaxv'
+pyfcode = crackfortran.crack2fortran(crackfortran.crackfortran(['src/anaxv.f90']))
+f = open('src/anaxv.pyf', 'w')
+f.write(pyfcode)
+f.close()
 
 
 # Paths for libs
@@ -88,21 +66,6 @@ if len(site_incdirs): incdirs = site_incdirs
 print 'incdirs',incdirs
 print 'libdirs',libdirs    
 
-## Lapack95 modules and functions
-#l95mod = {'mod':'f95_lapack', 'pre':'la_'}
-#for tt in 'mod', 'pre':
-    #if os.getenv('LAPACK95_'+tt.upper()) is not None:
-        #l95mod[tt] = os.getenv('LAPACK95_'+tt.upper())
-    #elif cfg.has_option('blaslapack', 'lapack95_'+tt):
-        #l95mod[tt] = cfg.get('blaslapack', 'lapack95_'+tt)
-#f = open('src/template.spanlib_lapack95.f90')
-#txt = f.read()
-#f.close()
-#txt = re.sub(r'\b(?i)f95_lapack\b', l95mod['mod'], txt)
-#txt = re.sub(r'\b(?i)la_(\S+)', r'la_\1 => %s\1'%l95mod['pre'], txt)
-#f = open('src/spanlib_lapack95.f90', 'w')
-#f.write(txt)
-#f.close()
 
 
 # Some useful directories.  
@@ -114,6 +77,8 @@ print 'libdirs',libdirs
 extra_link_args=[]
 if sys.platform=='darwin':
     extra_link_args += ['-bundle','-bundle_loader '+sys.prefix+'/bin/python']
+kwext = dict(libraries=libs, library_dirs=libdirs, include_dirs=incdirs, extra_link_args=extra_link_args)
+
     
 # Setup the python module
 s = setup(name="spanlib",
@@ -127,33 +92,29 @@ s = setup(name="spanlib",
 
     # Fortran wrapper
     ext_modules = [
-        Extension('spanlib.spanlib_fort',
-            files,
-            libraries=libs,
-            library_dirs=libdirs,
-            include_dirs=incdirs,
-            extra_link_args=extra_link_args,
-        ),
+        Extension('spanlib._fortran', spanlib_files, **kwext), 
+        Extension('spanlib.anaxv', anaxv_files, **kwext)
     ],
       
     # Install these to their own directory
-    package_dir={'spanlib':'lib'},
+    package_dir={'spanlib':'lib/spanlib'},
     packages = ["spanlib"],
       
 )
 
 # Save info
-cfgfile = 'config.cfg'
-cfg = SafeConfigParser()
-cfg.read(cfgfile)
-if not cfg.has_section('paths'):
-    cfg.add_section('paths')
-cfg.set('paths', 'build_lib', os.path.abspath(s.command_obj['build'].build_lib)) 
-if os.path.exists(cfgfile):
-    os.remove(cfgfile)
-f = open(cfgfile, 'w')
-cfg.write(f)
-f.close()
+if 'build' in s.command_obj:
+    cfgfile = 'config.cfg'
+    cfg = SafeConfigParser()
+    cfg.read(cfgfile)
+    if not cfg.has_section('paths'):
+        cfg.add_section('paths')
+    cfg.set('paths', 'build_lib', os.path.abspath(s.command_obj['build'].build_lib)) 
+    if os.path.exists(cfgfile):
+        os.remove(cfgfile)
+    f = open(cfgfile, 'w')
+    cfg.write(f)
+    f.close()
 
 
 
