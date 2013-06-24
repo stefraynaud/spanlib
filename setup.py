@@ -43,48 +43,47 @@ anaxv_files = ['src/anaxv.pyf', 'src/anaxv.f90']
 
 # Paths for libs
 libs = ['lapack', 'blas']
-liddirs = ['/usr/local/lib']
+libdirs = ['usr/lib','/usr/local/lib']
 incdirs =  ['/usr/local/include']
 cfg = SafeConfigParser()
 cfg.read('setup.cfg')
 site_libs = []
 site_libdirs = []
-site_incdirs = []
 for libname in libs:
     lib = libdir =  ''
+    
     # - Libraries
     if os.getenv(libname.upper()) is not None:
         lib = os.getenv(libname.upper())
     elif cfg.has_option('blaslapack', libname):
         lib = cfg.get('blaslapack', libname)
-    if lib.startswith('-l'): lib = lib[2:]
+    local_dir = None
+    m = re.match('(.*%s)?lib%s.a'%(os.path.sep, libname), lib)
+    if m:
+        lib = libname
+        local_dir = m.group(1)
+    elif lib.startswith('-l'): lib = lib[2:]
     if lib: site_libs.append(lib) 
+    
     # - Library dirs
     if os.getenv(libname.upper()+'_LIB') is not None:
         libdir = os.getenv(libname.upper()+'_LIB')
     elif cfg.has_option('blaslapack', libname+'_lib'):
         libdir = cfg.get('blaslapack', libname+'_lib')
     if libdir.startswith('-L'): libdir = libdir[2:]
-    if libdir: site_libdirs.append(libdir)      
+    if libdir: site_libdirs.append(libdir) 
+    if local_dir: site_libdirs.append(local_dir) 
+    
 # - final setup
 if len(site_libs): libs = site_libs
-if len(site_libdirs): libdirs = site_libdirs
-if len(site_incdirs): incdirs = site_incdirs
-print 'incdirs',incdirs
-print 'libdirs',libdirs    
+if len(site_libdirs): libdirs.extend(site_libdirs)
 
-
-
-# Some useful directories.  
-## from distutils.sysconfig import get_python_inc, get_python_lib
-## python_incdir = os.path.join( get_python_inc(plat_specific=1) )
-## python_libdir = os.path.join( get_python_lib(plat_specific=1) )
 
 # Special setups
 extra_link_args=[]
 if sys.platform=='darwin':
     extra_link_args += ['-bundle','-bundle_loader '+sys.prefix+'/bin/python']
-kwext = dict(libraries=libs, library_dirs=libdirs, include_dirs=incdirs, extra_link_args=extra_link_args)
+kwext = dict(libraries=libs, library_dirs=libdirs, extra_link_args=extra_link_args)
 
 if __name__=='__main__':
     
