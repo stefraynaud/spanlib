@@ -24,8 +24,6 @@ from filler import *
 from util import * 
 import analyzer
 del docs
-__doc__ = analyzer.__doc__
-
-from version import __version__
+__version__ = "2.0"
 
 __all__ = ['Data', 'Dataset', 'SpAn', 'SVDModel', 'RedNoise', 'Filler',  'freqfilter', 'SpanlibError', 'phase_composites']
