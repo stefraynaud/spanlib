@@ -226,7 +226,7 @@ class Logger(object):
         
     def _get_loglevel_(self, level):
         if level is None: level = 'debug'
-        if isinstance(level, str): 
+        if isinstance(level, basestr): 
             level = getattr(logging, level.upper(), 'DEBUG')
         return level
 
