@@ -26,12 +26,12 @@ import gc
 from warnings import warn
 import _fortran
 import numpy as N
-npy = numpy
+npy = N
 from data import has_cdat_support, cdms2_isVariable, Data, Dataset, default_missing_value
 if has_cdat_support: import MV2, cdms2
 import pylab as P
 from spanlib.util import Logger, broadcast, SpanlibIter, dict_filter
-from spanlib_python import _BasicAnalyzer_, Analyzer
+from analyzer import _BasicAnalyzer_, Analyzer, docs, _filldocs_
 
 class DualAnalyzer(_BasicAnalyzer_, Logger):
     
@@ -158,7 +158,6 @@ class DualAnalyzer(_BasicAnalyzer_, Logger):
             %(prepca)s
             - *usecorr*: bool
                 Use correlations instead of covariances.
-            %(iset)s
         """
 
         if self.nd<2:
@@ -237,7 +236,6 @@ class DualAnalyzer(_BasicAnalyzer_, Logger):
         :Parameters:
             %(scale)s
             %(raw)s
-            %(iset)s
             
         :SVD parameters:
             %(nsvd)s
@@ -327,7 +325,7 @@ class DualAnalyzer(_BasicAnalyzer_, Logger):
         If SVD was not performed, it is done with all parameters sent to :meth:`svd`
         
         :Parameters:
-            %(iset)s
+            %(raw)s
             
         :SVD parameters:
             %(nsvd)s
@@ -386,7 +384,7 @@ class DualAnalyzer(_BasicAnalyzer_, Logger):
         """Get expansion coefficients from SVD analysis
         
         :Parameters:
-            %(iset)s
+            %(raw)s
 
         :SVD parameters:
             %(nsvd)s
@@ -482,7 +480,6 @@ class DualAnalyzer(_BasicAnalyzer_, Logger):
           %(relative)s
           %(sum)s
           %(cumsum)s
-          %(iset)s
         
             
         :SVD parameters:
@@ -539,7 +536,6 @@ class DualAnalyzer(_BasicAnalyzer_, Logger):
         """Reconstruction of SVD modes
         
         :Parameters:
-            %(iset)s
             %(modes)s
             %(raw)s
             
@@ -638,7 +634,7 @@ class DualAnalyzer(_BasicAnalyzer_, Logger):
         return self._unmap_(fmt_rec, grouped=raw)   
     
 
-class SVDModel(SpAn):
+class SVDModel(DualAnalyzer):
     """
     :Params:
         - **method**, optional: Method of reconstruction [default: 'std']. 
@@ -649,8 +645,7 @@ class SVDModel(SpAn):
 
     def __init__(self,predictor, predictand, method='std', **kwargs):
 
-        kwargs['sequential'] = True
-        SpAn.__init__(self,(predictor,predictand) ,**kwargs)
+        DualAnalyzer.__init__(self, predictor, predictand ,**kwargs)
 
         # Perform an SVD between the first two datasets
         self.learn(nsvd=None, npca=None)
