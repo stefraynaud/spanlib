@@ -1,0 +1,5 @@
+include COPYING setup.cfg.example 
+exclude test/test*.py
+include test/test_pca.py test/test_mssa.py test/test_data.py test/test_dataset.py
+include lib/spanlib_extra.py
+

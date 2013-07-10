@@ -42,9 +42,15 @@ anaxv_files = ['src/anaxv.pyf', 'src/anaxv.f90']
 
 
 # Paths for libs
+# - standard and detected
 libs = ['lapack', 'blas']
-libdirs = ['usr/lib','/usr/local/lib']
-incdirs =  ['/usr/local/include']
+libdirs = []
+uvcdat_extlibdir = os.path.join(sys.prefix, 'Externals', 'lib')
+if os.path.exists(uvcdat_extlibdir):
+    libdirs.append(uvcdat_extlibdir)
+libdirs += os.environ.get('LD_LIBRARY_PATH', '').split(':')
+libdirs += ['usr/lib','/usr/local/lib']
+# - user specified
 cfg = SafeConfigParser()
 cfg.read('setup.cfg')
 site_libs = []
