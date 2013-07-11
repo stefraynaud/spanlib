@@ -49,7 +49,7 @@ AC_ARG_WITH(blas-lib,
             AS_VAR_SET(BLAS_LIB,$with_blas_lib))
 )
 AS_VAR_SET_IF(BLAS_LIB,,[
-    AS_IF(test AS_VAR_GET(prefix) != "None/include",
+    AS_IF(test AS_VAR_GET(prefix) != "NONE",
         AS_VAR_SET(BLAS_LIB,AS_VAR_GET(prefix)/lib))
 ])
 AS_VAR_SET_IF([BLAS_LIB],[
@@ -57,7 +57,7 @@ AS_VAR_SET_IF([BLAS_LIB],[
         -L*):;;
         *)AS_VAR_SET(BLAS_LIB,"-L$BLAS_LIB");;
     esac
-    AS_VAR_SET(FCFLAGS,"$BLAS_LIB $FCFLAGS")
+    AS_VAR_SET(LIBS,"$BLAS_LIB $FCFLAGS")
 ])
 AC_MSG_RESULT(AS_VAR_GET(BLAS_LIB))
 

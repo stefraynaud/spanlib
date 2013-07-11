@@ -17,10 +17,6 @@ AC_DEFUN([AC_SR_SPANLIB_FORTRAN],[
     AC_CHECK_TOOL(AR, ar, ar)
     AS_IF([test "AS_VAR_GET(AR)" = "no"],
         [AC_SR_ERROR([You need ar to build the library])])
-
-#     # Setup the sources for lapack95 usage
-#     AC_MSG_NOTICE(Generating sources for lapack95 usage...)
-#     sed -r -e 's/f95_lapack/AS_VAR_GET(LAPACK95_MOD)/' -e 's/\bla_(\S+)/la_\1 => (AS_VAR_GET(LAPACK95_PRE)\1/g' src/template.spanlib_lapack95.f90 > src/spanlib_lapack95.f90
  
     # Install fortran library?
     AC_MSG_CHECKING([whether the pure fortran library should be compilated and installed])

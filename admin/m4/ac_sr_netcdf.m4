@@ -8,6 +8,11 @@ AC_DEFUN([AC_SR_NETCDF],
 AS_VAR_SET(save_libs,AS_VAR_GET(LIBS))
 AS_VAR_SET(save_fcflags,AS_VAR_GET(FCFLAGS))
 
+# nc-config
+AC_ARG_WITH(nf-config,
+    AC_HELP_STRING(--with-nf-config=PATH,  [Full path to nf-config]),
+)
+    
 
 # Module location
 AC_ARG_VAR([NETCDF_INC],[Location of netCDF module (compile-time)])
@@ -20,7 +25,7 @@ AC_ARG_WITH(netcdf-inc,
 	]
 )
 AS_VAR_SET_IF(NETCDF_INC,,[
-	AS_IF(test AS_VAR_GET(prefix) != None,
+	AS_IF(test AS_VAR_GET(prefix) != NONE,
 		AS_VAR_SET(NETCDF_INC,AS_VAR_GET(prefix)/include))
 ])
 AS_VAR_SET_IF(NETCDF_INC,[
