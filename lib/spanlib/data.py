@@ -442,7 +442,7 @@ class Data(Logger):
             data[:] = mdata # just to be sure
         else:
             if self.nsdim==0 and pdata.ndim>len(firstdims): pdata = pdata[first_slices+(0, )]
-            data[:] = pdata
+            data[:] = pdata.reshape(data.shape)
         del pdata
         # - mask
         data[:] = npy.ma.masked_values(data, default_missing_value,  copy=0) 

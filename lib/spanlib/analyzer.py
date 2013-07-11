@@ -29,7 +29,6 @@ from data import has_cdat_support, cdms2_isVariable, Data, Dataset, default_miss
 if has_cdat_support:
     import MV2, cdms2
 import pylab as P
-#print _fortran.__file__
 #from .util import Logger, broadcast, SpanlibIter, dict_filter
 #from spanlib.util import Logger, broadcast, SpanlibIter, dict_filter
 from util import Logger, broadcast, SpanlibIter, dict_filter
@@ -667,7 +666,6 @@ class Analyzer(_BasicAnalyzer_, Dataset):
                 atts = self[idata].atts
                 if atts.has_key('long_name'):
                     eof.long_name += ' of '+atts['long_name']
-                print 'scale', scale
                 if scale and atts.has_key('units'):
                     eof.units = atts['units']
                 
