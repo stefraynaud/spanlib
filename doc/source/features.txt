@@ -1,0 +1,14 @@
+
+
+- **PCA** for extracting dominant spatial pattern of variability.
+- **SSA/MSSA** which is like PCA but for extracting spatio-temporal patterns.
+- **Joined SVD** which is like PCA but for extracting the common variability of two variables (using cross-covariances).
+- **SVD model** deduce a predictand from a predictor using SVD.
+- Full missing value support.
+.. - PCA analysis can be **weighted** at each channel.
+- **Switch of space and time** for PCA analyses performed on a large number of channels.
+- For analysis, empirical orthogonal functions (**EOFs**), principal componants (**PCs**), expansion coefficient (**ECs**) and **reconstructions** of signal are available.
+- Analyses can be performed on **several variables**  at the same time, with normalisation coefficents [python].
+- **Pre-PCA** analysis to reduct the d-o-f before analysing huge datasets with MSSA or SVD.
+- Monte-Carlo test for (M)SSA (**MC-SSA**).
+- Full **CDAT** support [python].

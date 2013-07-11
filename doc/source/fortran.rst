@@ -1,7 +1,7 @@
-##############
-Fortran module
-##############
+Fortran interface
+=================
 
 .. toctree::
 
-	fortran.module
+    fortran.api
+    

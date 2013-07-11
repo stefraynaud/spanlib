@@ -1,19 +1,15 @@
-.. _python:
+.. _user:
 
-#############
-Python module
-#############
+
+Python interface
+================
 
 .. toctree::
 
-	python.schematic
-	python.module
-	python.examples
+    python.usage
+    python.examples
+    python.api
 	
 
-.... automodule:: spanlib.spanlib_python
-....        :members:
-....        :undoc-members:
-....        :show-inheritance:
 
 

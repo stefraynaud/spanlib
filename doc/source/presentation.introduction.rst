@@ -2,6 +2,9 @@
 Introduction
 ************
 
+The goal
+--------
+
 Observed or simulated multi-channel timeseries generally include
 a sum of different signals that can be hardly distinguished one another,
 even if their respective origin is fundamentally different.
@@ -22,7 +25,12 @@ that calls the F90 library and gives the user a set of useful functions
 to perform analyses.
 
 
-In its future version, SpanLib will also include others methods
-(such as Principal Oscillation Pattern analysis) and languages
-(C, Java).
+.. In its future version, SpanLib will also include others methods
+  (such as Principal Oscillation Pattern analysis) and languages
+  (C, Java).
 
+
+Features
+--------
+
+.. include:: features.txt

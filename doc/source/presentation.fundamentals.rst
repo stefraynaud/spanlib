@@ -23,8 +23,16 @@ and their associated PCs are the coefficients that regulate these patterns.
 
 For more information, see for example [Preisendorfer_1988]_ and [Wilks_95]_.
 
+.. _dof:
+Finally, PCA may be used also to simply reduce the number of degree-of-freedom (d-o-f) of a dataset.
+For example, you can keep the first PC that explain a 70% of the variance.
+These PCs are then used as an input dataset for other analysis.
+This methodology is useful for MSSA and SVD since the eigen problem solving
+may be very time consuming: we are now able, for example, to potentially reduce the
+number of channels from several hundred or thounsand, to less than 20.
+
 MSSA
-===
+====
 
 Single channel analysis (SSA)
 -----------------------------
@@ -99,6 +107,9 @@ associated modes must be rejected.
 SVD
 ===
 
+Basic analysis
+--------------
+
 Singular Value Decomposition
 works in a similar way to PCA, except that two different datasets are
 decomposed at the same time.
@@ -113,12 +124,28 @@ A reconstructed mode is the "multiplication" of its EOF by its PC, and
 it has the same dimension of the initial dataset.
 Such operation is necessary to go back from the EOF space to the physical space.
 
-.. _dof:
-Finally, PCA may be used also to simply reduce the number of degree-of-freedom (d-o-f) of a dataset.
-For example, you can keep the first PC that explain a 70% of the variance.
-These PCs are then used as an input dataset for other analysis.
-This methodology is useful for MSSA and SVD since the eigen problem solving
-may be very time consuming: we are now able, for example, to potentially reduce the
-number of channels from several hundred or thounsand, to less than 20.
 
+SVD model
+---------
 
+A SVD model is a statistical model that relates one field to another based
+on their common variability (see [Syu_and_Neelin_1995]_ or [Harrisson_et al_2002]_).
+
+To each mode of variability of a joined SVD analysis are associated 
+left and right EOFs, left and right PCS, and a single
+eigen value.
+Therefore, the dominant modes of variability can be used to deduce a right snapshot (predictand)
+from a left one (predictor).
+
+The model is built (learning phase) using a simple SVD analysis of two variables (left and right).
+The model proceeds as following:
+
+    - The predictor is projected on left SVD EOFs to get right expansion coefficients.
+    - These"right coefficients are converted to left coefficient using left and right PCs of the model.
+    - The predictor is reconstructed using right SVD EOFs and right expansion coefficients.
+
+.. note::
+
+    If the predictor is the left variable using during the learning phase,
+    the predictand should be exactly the right variable of the learning phase.
+    
