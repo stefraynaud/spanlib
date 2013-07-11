@@ -4,13 +4,7 @@
 if ENABLE_FORTRAN
 lib_LIBRARIES = libspanlib.a
 endif
-if UPPER_CASE_MOD
-# nodist_include_HEADERS=SPANLIB_LAPACK95.mod SPANLIB.mod
-nodist_include_HEADERS=SPANLIB.mod
-else
 nodist_include_HEADERS=spanlib.mod
-# nodist_include_HEADERS=spanlib_lapack95.mod spanlib.mod
-endif
 # nodist_libspanlib_a_SOURCES=spanlib_lapack95.f90
 dist_libspanlib_a_SOURCES=spanlib.f90
 CLEANFILES=*.pyf setup.cfg *.mod 
@@ -32,13 +26,8 @@ AM_F90FLAGS=$(AM_FCFLAGS) -fPIC
 
 all-local: $(LIBRARIES) $(HEADERS) #$(PYTHON_LIBRARY)
 
-# if UPPER_CASE_MOD
-# spanlib.o: SPANLIB_LAPACK95.mod
-# SPANLIB_LAPACK95.mod: spanlib_lapack95.o
-# else
 # spanlib.o: spanlib_lapack95.mod
 # spanlib_lapack95.mod: spanlib_lapack95.o
-# endif
 
 # spanlib_lapack95.f90: check-lapack95
 
