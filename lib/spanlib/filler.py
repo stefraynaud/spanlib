@@ -24,7 +24,7 @@
 import numpy as npy
 from util import Logger, broadcast, SpanlibIter, dict_filter
 from analyzer import Analyzer, default_missing_value
-import pylab as P
+#import pylab as P
 
 class Filler(Logger):
     """Class to fill missing value with a MSSA filtered version of the data
@@ -76,11 +76,13 @@ class Filler(Logger):
         kwargs.setdefault('window', kwargs.pop('win', None))
         span = self.span = Analyzer(data, sequential=False, logger=self.logger, **kwargs)
         span.update_params()
+        self.mask = span.invalids
         return span
         
 
     def fill(self, nitermax=20, errchmax=-0.01, fillmode='masked', testmode='crossvalid', 
-        mssa=True, full=True, cvregen=False, nreanapca=4, nreanamssa=4, errchmaxreana=-1, **kwargs):
+        mssa=True, full=True, cvregen=False, nreanapca=15, nreanamssa=15, errchmaxreana=-1, 
+        remode=False, **kwargs):
         """Run the filler with a convergence loop
         
         Results are accessible in the following attributes:
@@ -197,15 +199,20 @@ class Filler(Logger):
                     # Number of modes to retain
                     self._nmodes.setdefault(self._ana, [])
                     amodes = self._nmodes[self._ana]
+                    trymodes = anamode!=0
                     if len(amodes)<ira+1:
-                        amodes.append(range(getattr(self.span, 'n'+self._ana))) # test all
+                        if remode or ira==0:
+                            amodes.append(range(getattr(self.span, 'n'+self._ana))) # test all
+                        else:
+                            trymodes = False
+                            amodes.append(amodes[0]) # same as for first analysis
                     
                     # Loop on the number of modes 
                     last_mode_err = None
                     self._last_pcs_mode = {}
                     self._errors[anamode][self._ana].append([])
-                    for imode in amodes[ira]:
-                        verb = '   Reconstructing' if anamode==0 else '   Trying'
+                    for im, imode in enumerate(amodes[ira]):
+                        verb = '   Reconstructing' if not trymodes else '   Trying'
                         self.debug(verb+' with %i mode%s'%(imode+1, 's'*(imode>0)))
                         
                         # Inits
@@ -214,7 +221,7 @@ class Filler(Logger):
                         if hasattr(self, '_necmiss_old'): del self._necmiss_old
                         last_iter_err = None
                         skiplast = False
-                        if anamode==1 and imode>0:
+                        if anamode==1 and im>0: # save previous pcs
                             self._last_pcs_mode[self._ana] = \
                                 getattr(self.span, '_%s_raw_pc'%self._ana)
                         self._last_pcs_iter = {}
@@ -271,7 +278,7 @@ class Filler(Logger):
                             self.debug('  Reached max number of iterations for EC convergence loop')
                                         
                         # Check mode truncature error
-                        if anamode!=0 and imode>0:
+                        if anamode!=0 and im:
                             if skiplast: 
                                 errch = 1
                             else:
@@ -290,7 +297,7 @@ class Filler(Logger):
                                 break    
                         last_mode_err = err
                     else:
-                        if imode>0:
+                        if trymodes:
                             self.debug('   Reached max number of %s modes (%i)'%(self._ana.upper(), imode+1))
                             
                     # -> NMODES
@@ -455,7 +462,6 @@ class Filler(Logger):
         pc0 = npy.ma.masked_values(getattr(self.span, '_%s_raw_pc'%self._ana)[:, 0], 
             default_missing_value)
         self._necmiss =  pc0.size-npy.ma.count(pc0)
-        self._necmiss =  pc0.size-npy.ma.count(pc0)
         del pc0
         if not hasattr(self, '_necmiss_old'):  
             necmissch = None
@@ -463,7 +469,7 @@ class Filler(Logger):
             necmissch = self._necmiss-self._necmiss_old
         return self._necmiss, necmissch
         
-    def _gen_cvfield_(self, mask=None, level=5, sscale=1, tscale=1, minrelscale=0.2, regen=False):
+    def _gen_cvfield_(self, mask=None, level=0.05, regen=False, ntries=5):
         """Generate false missing values
         
         Field used for analysis is stored using `set_field('cvfield')`.
@@ -474,57 +480,30 @@ class Filler(Logger):
             - **mask**, optional: Mask set to True where values are not retained for
               analysis. These rejected values are used to cross-validation.
               If not set, it is randomly generated.
+            - **level**, optional: Approximate percentile of missing values. 
         """
         if not regen and hasattr(self, '_cvfield') and self._cvfield_ana==self._ana: return
 
         # Generate the mask
         if mask is None:
             
-            # Smooth scale
+            # Data mask
+            dmask = npy.ma.getmaskarray(self._refm)
             ns, nt = self._refm.shape
-            transp = self._ana=='mssa'
-            if transp: ns, nt = nt, ns
-            if sscale<0:
-                sscale = -int(ns*sscale/100.)
-            if sscale > minrelscale*ns:
-                sscale = 1
-            else:
-                sscale = sscale/2*2+1
-            if tscale<0:
-                tscale = -int(nt*tscale/100.)
-            if tscale > minrelscale*nt:
-                tscale = 1
-            else:
-                tscale = tscale/2*2+1
+            transp = self._ana=='pca'
+            if transp: dmask = dmask.T # to have (nt,ns) shape for gen_cv_mask()
             
-            # Random values
-            tmp = npy.random.random(self._refm.shape).astype('f')
+            # Generate new mask
+            for itry in xrange(min(1, ntries)):
+                
+                # Get new mask
+                mask = gen_cv_mask(dmask, level, merged=True)
+                
+                # Check consistency
+                if ntries<0 or not (mask.all(axis=0).any() or mask.all(axis=1).any()):
+                    break
             
-            # Apply smoothing
-            if tscale>1 or sscale>1:
-                ww = npy.ones((ns, nt), 'f')
-                from numpy import convolve
-                kernel = npy.ones(sscale, 'f')
-                if sscale>1:
-                    for i in xrange(nt):
-                        thist = (slice(None), i)[::1-2*reverse]
-                        tmp[thist] = convolve(tmp[thist], kernel, 'same') / convolve(ww[thist], kernel, 'same')
-                kernel = npy.ones(tscale, 'f')
-                if tscale>1:
-                    for i in xrange(ns):
-                        thiss = (i, slice(None))[::1-2*reverse]
-                        tmp[thiss] = convolve(tmp[thiss], kernel, 'same') / convolve(ww[thiss], kernel, 'same')
-                del ww
-            
-            # Get max value for noisy field
-            sorted = npy.sort(tmp.ravel())
-            nlevel = int(npy.round(tmp.size*level/100.))
-            maxval = sorted[max(0, nlevel-1)]
-            del sorted
-            
-            # Mask
-            mask = tmp<maxval
-            del tmp
+            if transp: mask = mask.T
         
         # Apply mask
         cvfield = npy.where(mask, default_missing_value, self._refm)
@@ -533,3 +512,51 @@ class Filler(Logger):
         self._cvfield_ana = self._ana
         
         
+def gen_cv_mask(dmask, level, merged=True):
+    """Generate a cross validation mask with density depending on time availability
+    
+    :Params:
+    
+        - **dmask**: Record/channel (2D) data mask: True if masked.
+        - **level**: Percent of cross-validation points in valid data.
+        - **merged**, optional: Merge data mask and cv mask? Some of the data points
+          chosen of cross-validation becomes masked.
+        
+    :Return: Depends on ``merge``:
+        
+        - True: ``mask``: False at cross-validation points only.
+        - False: ``dmask``: Data mask with cross-validation points marked as False.
+    """
+    # Data mask
+    if npy.ma.isMA(dmask):
+        dmask = npy.ma.getmaskarray(dmask)
+    good = ~dmask 
+    
+    # Availability
+    davail = npy.resize(good.mean(axis=0), dmask.shape)
+
+    # Max probability
+    davail /= davail.max()
+    problim = davail[good] 
+    ngood = problim.shape[0]
+    probbad = problim==0.
+    problim[probbad] = 1.
+    prand = npy.random.uniform(0, 1, size=ngood)/problim
+    prand[probbad] = 1
+    psort = npy.argsort(prand)
+    ncv = max(1, int(ngood*0.01*level))
+    ccv = npy.zeros(problim.shape, '?')
+    ccv[psort[:ncv]] = True
+    cv = npy.zeros(dmask.shape, '?')
+    cv[good] = ccv #; del good
+
+    # Merge
+    if merged:
+        mask = dmask.copy()
+        mask[cv] = True
+    else:
+        mask = ~cv
+    
+    return mask
+
+    

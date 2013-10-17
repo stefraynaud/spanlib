@@ -164,7 +164,7 @@ class Data(Logger):
         # - save as 0/1
         self.ns = long(count.sum())
         self.compress = count.size != self.ns
-        self.good = count>0
+        self.good = count>0 # points in space where is are enough data in time
         self.minvalid = self.nvalid = minvalid
         
         # Scale unpacked data
@@ -185,11 +185,12 @@ class Data(Logger):
         # Fill data
         # - fill with missing value or mean (0.) where possible
         if minvalid != self.nt: 
-            invalids = bmask & self.good
+#            invalids = bmask & self.good # invalids = masked data that will be analyzed
 #            data[invalids] = 0. if zerofill else default_missing_value
-            data[invalids] = default_missing_value
+#            data[invalids] = default_missing_value
+            data[:, ~self.good] = default_missing_value
             if keep_invalids: 
-                self.invalids = invalids
+                self.invalids = bmask & self.good # invalids = masked data that will be analyzed
             else: 
                 self.invalids = None
                 del invalids
@@ -611,7 +612,8 @@ class Dataset(Logger):
             for i, pdata in enumerate(packs)]
             
     def fill_invalids(self, dataref, datafill, raw=False,  copy=False, unmap=True):
-        if self.invalids is None: return data 
+        if self.invalids is None: 
+            return dataref.clone() if copy else dataref
         
         # Re stack to have raw data
         if not raw:
@@ -628,7 +630,7 @@ class Dataset(Logger):
         if copy: dataref = dataref.copy()
         
         # Put it at invalid points
-        dataref[:] = npy.where(self.invalids, datafill,dataref)
+        dataref[:] = npy.where(self.invalids, datafill, dataref)
         
         # Unstack ?
         if raw:
