@@ -22,9 +22,12 @@
 #################################################################################
 
 import numpy as npy
-from util import Logger, broadcast, SpanlibIter, dict_filter
+from util import Logger, broadcast, SpanlibIter, dict_filter, SpanlibError
 from analyzer import Analyzer, default_missing_value
-#import pylab as P
+import pylab as P
+
+class FillerError(SpanlibError):
+    pass
 
 class Filler(Logger):
     """Class to fill missing value with a MSSA filtered version of the data
@@ -81,7 +84,7 @@ class Filler(Logger):
         
 
     def fill(self, nitermax=20, errchmax=-0.01, fillmode='masked', testmode='crossvalid', 
-        mssa=True, full=True, cvregen=False, nreanapca=15, nreanamssa=15, errchmaxreana=-1, 
+        mssa=True, full=True, cvregen=False, nreanapca=3, nreanamssa=2, errchmaxreana=-1, 
         remode=False, **kwargs):
         """Run the filler with a convergence loop
         
@@ -102,6 +105,7 @@ class Filler(Logger):
             - **cvmax**: Convergence criterion (%)
             - **npca**: Number of PCA modes (see :class:`Analyzer`)
             - **nmssa**: Number of MSSA modes (see :class:`Analyzer`)
+            - **cvfield_level**: Percent of data used for cross-validation.
             - Other parameters are passed to :class:`Analyzer`
             
         :Returns:
@@ -245,7 +249,7 @@ class Filler(Logger):
                             if self._ana=='mssa' and full:
                                 nem, nemch = self._get_necmiss_()
                                 if nem and (nemch or nemch is None):
-                                    self.debug('    Still %i missing values in %s PCs'%
+                                    self.debug('    Still %i missing values in %s MSSA PCs'%
                                         (nem, self._ana.upper()))
                                     last_iter_err = err
                                     continue
@@ -413,7 +417,11 @@ class Filler(Logger):
         if anamode==2:
             diffm = npy.ma.masked_where(self._cvfield_kept, diffm, copy=False)
             fieldm = npy.ma.masked_where(self._cvfield_kept, fieldm, copy=False)
-        return 100*diffm.compressed().std()/fieldm.compressed().std()
+        err = 100*diffm.compressed().std()/fieldm.compressed().std()
+        if npy.isnan(err):
+            raise FillerError('Error is NaN. Stop.')
+
+        return err
         
      
     def _rec_(self, imode):
@@ -469,7 +477,7 @@ class Filler(Logger):
             necmissch = self._necmiss-self._necmiss_old
         return self._necmiss, necmissch
         
-    def _gen_cvfield_(self, mask=None, level=0.05, regen=False, ntries=5):
+    def _gen_cvfield_(self, mask=None, level=5., regen=False, ntries=50):
         """Generate false missing values
         
         Field used for analysis is stored using `set_field('cvfield')`.
@@ -488,23 +496,30 @@ class Filler(Logger):
         if mask is None:
             
             # Data mask
-            dmask = npy.ma.getmaskarray(self._refm)
+            data = self._refm
             ns, nt = self._refm.shape
             transp = self._ana=='pca'
-            if transp: dmask = dmask.T # to have (nt,ns) shape for gen_cv_mask()
+            
             
             # Generate new mask
+            if ntries>=0:
+                dmask = npy.ma.getmaskarray(data)
+                da0 = dmask.all(axis=0)
+                da1 = dmask.all(axis=1)
+                del dmask
             for itry in xrange(min(1, ntries)):
                 
                 # Get new mask
-                mask = gen_cv_mask(dmask, level, merged=True)
+                mask = gen_cv_mask(data, level, merged=True)
                 
                 # Check consistency
-                if ntries<0 or not (mask.all(axis=0).any() or mask.all(axis=1).any()):
+                if ntries<0 or (
+                    npy.ma.allclose(mask.all(axis=0), da0) and 
+                    npy.ma.allclose(mask.all(axis=1), da1)):
                     break
+            else:
+                self.warning('Mask does not preserve total minimal along both axes')
             
-            if transp: mask = mask.T
-        
         # Apply mask
         cvfield = npy.where(mask, default_missing_value, self._refm)
         self._set_field_(cvfield, 'cvfield', mean=True, std=False)
@@ -512,12 +527,12 @@ class Filler(Logger):
         self._cvfield_ana = self._ana
         
         
-def gen_cv_mask(dmask, level, merged=True):
+def gen_cv_mask(data, level, merged=True, nmin=10):
     """Generate a cross validation mask with density depending on time availability
     
     :Params:
     
-        - **dmask**: Record/channel (2D) data mask: True if masked.
+        - **dmask**: Channel/record (2D) data mask: True if masked.
         - **level**: Percent of cross-validation points in valid data.
         - **merged**, optional: Merge data mask and cv mask? Some of the data points
           chosen of cross-validation becomes masked.
@@ -528,23 +543,22 @@ def gen_cv_mask(dmask, level, merged=True):
         - False: ``dmask``: Data mask with cross-validation points marked as False.
     """
     # Data mask
-    if npy.ma.isMA(dmask):
-        dmask = npy.ma.getmaskarray(dmask)
+    dmask = npy.ma.getmaskarray(data)
     good = ~dmask 
     
-    # Availability
-    davail = npy.resize(good.mean(axis=0), dmask.shape)
+    # Weights
+    weights = npy.resize((data**2).sum(axis=1), data.shape[::-1]).T
+    weights /= weights.max()
 
     # Max probability
-    davail /= davail.max()
-    problim = davail[good] 
+    problim = weights[good] 
     ngood = problim.shape[0]
     probbad = problim==0.
     problim[probbad] = 1.
     prand = npy.random.uniform(0, 1, size=ngood)/problim
     prand[probbad] = 1
     psort = npy.argsort(prand)
-    ncv = max(1, int(ngood*0.01*level))
+    ncv = max(nmin, int(ngood*0.01*level))
     ccv = npy.zeros(problim.shape, '?')
     ccv[psort[:ncv]] = True
     cv = npy.zeros(dmask.shape, '?')
@@ -558,5 +572,19 @@ def gen_cv_mask(dmask, level, merged=True):
         mask = ~cv
     
     return mask
+
+
+
+if __name__=='__main__':
+    N=npy
+    s=N.sin(N.arange(500))
+    c = N.linspace(5, 0.01, 6)
+    data = N.dot(c.reshape(-1, 1), s.reshape(1, -1))
+    mask =  gen_cv_mask(data, 5.)
+    P.subplot(211)
+    P.plot((mask).sum(axis=1));P.title('mask');
+    P.subplot(212)
+    P.plot((data**2).sum(axis=1));P.show()
+#    
 
     
