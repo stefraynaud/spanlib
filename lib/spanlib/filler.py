@@ -24,7 +24,7 @@
 import numpy as npy
 from util import Logger, broadcast, SpanlibIter, dict_filter, SpanlibError
 from analyzer import Analyzer, default_missing_value
-import pylab as P
+#import pylab as P
 
 class FillerError(SpanlibError):
     pass
