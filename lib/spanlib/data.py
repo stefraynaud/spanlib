@@ -193,7 +193,7 @@ class Data(Logger):
                 self.invalids = bmask & self.good # invalids = masked data that will be analyzed
             else: 
                 self.invalids = None
-                del invalids
+                #del invalids
         else:
             self.invalids = None
         # - finally fill with missing values at zero
@@ -362,7 +362,7 @@ class Data(Logger):
                 - ``2`` or ``"full"``: Add attributes. 
                 - else, does not format.
                 
-            - **firstaxes**, optional: Set thes axes as the first ones.
+            - **firstaxes**, optional: Set the axes as the first ones.
               If ``firstaxes is None`` and ``firstdims is None``, it defaults
               to the first axis of analyzed array.
               You may also provide integers instead of axes, which are then
@@ -458,6 +458,22 @@ class Data(Logger):
         """Was input array of CDAT type (:mod:`MV2`)?"""
         return self.array_type == "MV2"
 
+    def _time_axis_(self, nt=None):
+        """Get the time axis of an input variable  
+        
+        If CDAT is not used, length of axis is returned or nt if different.
+        """
+        axis = self.taxis
+        if not isinstance(axis, int) and nt is not None and nt!=self.nt:
+            dt = npy.median(npy.diff(axis[:]))
+            axiso = cdms2.createAxis(npy.arange(nt)*dt+axis[0])
+            for att, val in axis.attributes.items():
+                setattr(axiso, att, val)
+            axiso.id = axis.id
+            return axiso
+        if isinstance(axis, int) and nt is not None and axis!=nt: 
+            return nt
+        return axis
           
 class Dataset(Logger):
     """Class to handle one or a list of variables
@@ -611,9 +627,12 @@ class Dataset(Logger):
             firstdims=firstdims, firstaxes=firstaxes)
             for i, pdata in enumerate(packs)]
             
-    def fill_invalids(self, dataref, datafill, raw=False,  copy=False, unmap=True):
-        if self.invalids is None: 
-            return dataref.clone() if copy else dataref
+    def fill_invalids(self, dataref, datafill, raw=False,  copy=False, unmap=True, 
+        missing=False):
+        """Fill ``dataref`` with ``datafill`` at registered invalid points 
+        or current missing points """
+#        if self.invalids is None: 
+#            return dataref.clone() if copy else dataref # FIXME: 
         
         # Re stack to have raw data
         if not raw:
@@ -630,7 +649,12 @@ class Dataset(Logger):
         if copy: dataref = dataref.copy()
         
         # Put it at invalid points
-        dataref[:] = npy.where(self.invalids, datafill, dataref)
+        if missing:
+            mask = npy.ma.masked_values(dataref, default_missing_value, shrink=False).mask
+        else:
+            mask = self.invalids
+        dataref[:] = npy.where(mask, datafill, dataref)            
+        del mask
         
         # Unstack ?
         if raw:
@@ -651,7 +675,8 @@ class Dataset(Logger):
         
         # Fill
         return self.fill_invalids(self.stacked_data, datafill, raw=True, copy=False)
-        
+      
+       
         
     
 #    def get_time(self, idata=0):
@@ -711,5 +736,13 @@ class Dataset(Logger):
         for d in self.data:
             if d.has_cdat(): return True
         return False
+
+    def _time_axis_(self, idata=0, nt=None):
+        """Get the time axis of an input variable  
+        
+        If CDAT is not used, length of axis is returned.
+        """
+        return self[idata]._time_axis_(nt)
+            
 
 
