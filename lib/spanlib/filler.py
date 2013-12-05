@@ -56,10 +56,7 @@ class Filler(Logger):
         span = self.analyze(**kwargs)
         
         # Checks
-        for invalid in span.invalids:
-            if invalid is not None and invalid.any():
-                break
-        else:
+        if not span.invalids.any():
             self.warning("No gap to fill")
             
         # Keep original data safe
@@ -77,7 +74,7 @@ class Filler(Logger):
         kwargs.setdefault('npca', kwargs.pop('npca', npcamax))
         kwargs.setdefault('nmssa', kwargs.pop('nmssa', nmssamax))
         kwargs.setdefault('window', kwargs.pop('win', None))
-        span = self.span = Analyzer(data, sequential=False, logger=self.logger, **kwargs)
+        span = self.span = Analyzer(data, logger=self.logger, **kwargs)
         span.update_params()
         self.mask = span.invalids
         return span
@@ -140,6 +137,7 @@ class Filler(Logger):
         analyzes.append('pca')
         if mssa: analyzes.append('mssa')
         self._analyzes = analyzes
+        self._nomssaneeded = False
         
         # Which modes?
         testmode = str(testmode).lower()
@@ -171,10 +169,15 @@ class Filler(Logger):
                 rmask = self._refm.mask
                 saxis = int(self._ana=='mssa')
                 if rmask is npy.ma.nomask or not (rmask.all(axis=saxis)|rmask.any(axis=saxis)).any():
-                    self.warning(' No gap to fill -> just analyzing with all modes')
-                    self._get_func_()()
+                    self.warning('%s: No gap to fill -> skipping'%self._ana.upper())
+                    analyzes.remove('mssa')
+                    self._nomssaneeded = True
                     self._nmodes.setdefault(self._ana, [[self.span.nmssa]])
                     break
+#                    self.warning('%s: No gap to fill -> just analyzing with all modes'%self._ana.upper())
+#                    self._get_func_()() # exec
+#                    self._nmodes.setdefault(self._ana, [[self.span.nmssa]])
+#                    break
                 
                 # - data to fill
                 if anamode==2: # cross-validation
@@ -347,6 +350,7 @@ class Filler(Logger):
                
         
     def get_filtered(self, mssa=None, **kwargs):
+        """Get a filtered version of the original dataset"""
         if not self._analyzes:
             kw = self._kwfill.copy()
             kw.update(kwargs, mssa=mssa is not False)
@@ -355,19 +359,73 @@ class Filler(Logger):
             ana = 'pca'
         elif mssa is None:
             ana = self._ana
-        elif 'mssa' not in self._analyzes:
-            kw = self._kwfill.copy()
-            kw.update(kwargs, mssa=True)
-            self.fill(mssa=True, **kwargs)
+        else:
             ana = 'mssa'
+            if 'mssa' not in self._analyzes:
+                if self._nomssaneeded: # MSSA not needed to fill but we run it
+                    self.span.mssa()
+                else: # Refill with MSSA
+                    kw = self._kwfill.copy()
+                    kw.update(kwargs, mssa=True)
+                    self.fill(mssa=True, **kwargs)            
         rec_meth = getattr(self.span, ana+'_rec')
         return rec_meth(modes=-self._nmodes[ana][-1][0])
         
     filtered = property(fget=get_filtered, doc='Filtered data')
         
-    def get_filled(self, mssa=None, **kwargs):
+    def get_filled(self, mode="mssa", **kwargs):
+        """Get a version of the original dataset where missing data are
+        filled with the filtered version
+        
+        :Params:
+        
+            - **mode**: Filling mode.
+            
+                - ``"best"``: Keep original values where they are present,
+                  then fill with PCA reconstruction where possible, 
+                  finally fill with MSSA reconstruction.
+                - ``"pca[+]"``: Filled only with PCA reconstruction. 
+                  If ``mode`` has a ``+``, the filtered version  is returned
+                  instead of the filled version.
+                - ``"mssa[+]"``: Filled with MSSA reconstruction.
+                  If ``mode`` has a ``+``, the filtered version  is returned
+                  instead of the filled version.
+                - ``"both"`` or ``"best+"``: Use the PCA reconstruction as a basis,
+                  and fill it with MSSA reconstruction.
+                - ``None`` or ``"auto[+]"``: It depends on current analyzes, and try to use the 
+                  ``"mssa"`` mode.
+                  If ``mode`` has a ``+``, the filtered version  is returned
+                  instead of the filled version.
+
+        """ 
+        mode = str(mode).lower()
+        
+        if mode=='best':
+            pcafiltered = self.get_filtered(mssa=False)
+            out = self.span.fill_invalids(self._data, pcafiltered, copy=True)
+            del pcafiltered
+            mssafiltered = self.get_filtered(mssa=True)
+            out =  self.span.fill_invalids(out, mssafiltered, copy=False, missing=True)   
+            return out
+            
+        if mode=='both' or ('best' in mode and '+' in mode):
+            pcafiltered = self.get_filtered(mssa=False, unmap=False)
+            mssafiltered = self.get_filtered(mssa=True, unmap=False)
+            out = []
+            for vp, vm in zip(pcafiltered, mssafiltered):
+                out.append(vp)
+                vp[:] = npy.ma.where(vp.mask, vm, vp)
+            return self.span.unmap(out)
+            
+        if 'none' in mode or 'auto' in mode or mode=='+':
+            mssa = None
+        elif 'pca' in mode:
+            mssa = False
+        elif 'mssa' not in mode:
+            raise FillerError('Unknown filling mode: '+mode)
         filtered = self.get_filtered(mssa=mssa, **kwargs)
-        return self.span.fill_invalids(self._data, self.filtered)
+        if '+' in mode: return filtered
+        return self.span.fill_invalids(self._data, filtered)
         
     filled = property(fget=get_filled, doc='Data filled with filtered data where missing')
 
@@ -477,7 +535,7 @@ class Filler(Logger):
             necmissch = self._necmiss-self._necmiss_old
         return self._necmiss, necmissch
         
-    def _gen_cvfield_(self, mask=None, level=5., regen=False, ntries=50):
+    def _gen_cvfield_(self, mask=None, level=1.0, regen=False, ntries=50, ncvmin=5):
         """Generate false missing values
         
         Field used for analysis is stored using `set_field('cvfield')`.
@@ -488,7 +546,8 @@ class Filler(Logger):
             - **mask**, optional: Mask set to True where values are not retained for
               analysis. These rejected values are used to cross-validation.
               If not set, it is randomly generated.
-            - **level**, optional: Approximate percentile of missing values. 
+            - **level**, optional: Approximate percentile of cross validation points. 
+            - **mincv**, optional: Minimal number of cross-validation points.
         """
         if not regen and hasattr(self, '_cvfield') and self._cvfield_ana==self._ana: return
 
@@ -500,25 +559,32 @@ class Filler(Logger):
             ns, nt = self._refm.shape
             transp = self._ana=='pca'
             
-            
             # Generate new mask
             if ntries>=0:
                 dmask = npy.ma.getmaskarray(data)
                 da0 = dmask.all(axis=0)
                 da1 = dmask.all(axis=1)
                 del dmask
-            for itry in xrange(min(1, ntries)):
-                
-                # Get new mask
-                mask = gen_cv_mask(data, level, merged=True)
-                
-                # Check consistency
-                if ntries<0 or (
-                    npy.ma.allclose(mask.all(axis=0), da0) and 
-                    npy.ma.allclose(mask.all(axis=1), da1)):
-                    break
-            else:
-                self.warning('Mask does not preserve total minimal along both axes')
+            for reduc in npy.arange(1, 0, -0.1):
+                for itry in xrange(min(1, ntries)):
+                    
+                    # Get new mask
+                    mask = gen_cv_mask(data, level*reduc, merged=True, nmin=ncvmin)
+                    
+                    # Check consistency
+                    if ntries<0 or (
+                        npy.ma.allclose(mask.all(axis=0), da0) and 
+                        npy.ma.allclose(mask.all(axis=1), da1)):
+                        break
+                else:
+                    msg = 'Mask does not preserve minimal availability along axes'
+                    if reduc!=0.1:
+                        self.warning(msg+
+                            'trying with  %i%% of level of cross validation points'%(reduc*100))
+                    else:
+                        self.warning(msg+'skipping.')
+                    continue
+                break
             
         # Apply mask
         cvfield = npy.where(mask, default_missing_value, self._refm)
