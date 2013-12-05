@@ -250,13 +250,6 @@ class Analyzer(_BasicAnalyzer_, Dataset):
     ## Get datasets info
     #################################################################
     
-    def _time_axis_(self, idata=0):
-        """Get the time axis of an input variable  
-        
-        If CDAT is not used, length of axis is returned.
-        """
-        return self[idata].taxis
-
     def _mssa_channel_axis_(self):
         """Get the MSSA channel axis  
         
@@ -419,6 +412,8 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         """
             
         # Initialize old values and defaults changed to False
+        if 'win' in kwargs:
+            kwargs['window'] = kwargs.pop('win')
         old = {}
         for param in self._all_params:
             old[param] = getattr(self, '_'+param, None)
@@ -1484,8 +1479,19 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         kw = {} if not evrenorm else {'ev':raw_ev}
         raw_rec, smodes = self._raw_rec_(raw_eof, raw_pc, modes, **kw)
         
+        # Back to physical space and format
+        return self._mssa_rec_format_(raw_rec, raw, phases, rescale, format, 
+            unmap, xpc, smodes)
+        
+        
+    def _mssa_rec_format_(self, raw_rec, raw=False, phases=False, rescale=True, 
+        format=2, unmap=True, xpc=None, smodes=''): 
+        """Format data from an MSSA reconstruction"""
+        
+        
         # Mask
-        raw_rec = npy.ma.masked_values(raw_rec,  default_missing_value, copy=False)
+        if not npy.ma.isMA(raw_rec):
+            raw_rec = npy.ma.masked_values(raw_rec,  default_missing_value, copy=False)
 
         # Phases composites
         if phases:
@@ -1499,23 +1505,35 @@ class Analyzer(_BasicAnalyzer_, Dataset):
                 taxis = nt
             del raw_rec_t
         else:
-#                taxis = self._time_axis_()
-#                nt = len(taxis)
-            nt = self.nt
-            
+            if raw_rec.shape[1]==self.nt and (xpc is None or xpc is self._mssa_raw_pc):
+                taxis = self._time_axis_()
+            else:
+                taxis = self._time_axis_(nt=raw_rec.shape[1])
+                
         # Get raw data back to physical space (nchan,nt)
         if not self.prepca: # No pre-PCA performed
             if raw:
+                
                 mssa_fmt_rec = raw_rec
+                
+                if format and self.has_cdat() and int(raw)==12: # Formatted
+                
+                    mssa_fmt_rec = [cdms2.createVariable(raw_rec.T)]
+                    mssa_fmt_rec[0].setAxisList([taxis, self._mode_axis_('mssa')])
+                
+                return mssa_fmt_rec
+                
             else:
-                mssa_fmt_rec = self.unstack(raw_rec, rescale=rescale, format=format)
+                mssa_fmt_rec = self.unstack(raw_rec, rescale=rescale, format=format,
+                    firstaxes=[taxis])
             
         else: # With pre-pca
             
             # Add back the pre-PCs mean
-            pca_raw_pc_mean = npy.repeat(self._pca_raw_pc_mean, raw_rec.shape[1], 1)
-            raw_rec += pca_raw_pc_mean
-            del pca_raw_pc_mean
+            if rescale:
+                pca_raw_pc_mean = npy.repeat(self._pca_raw_pc_mean, raw_rec.shape[1], 1)
+                raw_rec += pca_raw_pc_mean
+                del pca_raw_pc_mean
             
             # No PCA reprojection
             if int(raw)==1 or int(raw)==12: # Force direct result from MSSA
@@ -1523,7 +1541,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
                 if format and self.has_cdat() and int(raw)==12: # Formatted
                 
                     mssa_fmt_rec = [cdms2.createVariable(raw_rec.T)]
-                    mssa_fmt_rec[0].setAxisList(0,[taxis,self._mode_axis_('mssa')])
+                    mssa_fmt_rec[0].setAxisList([taxis,self._mode_axis_('mssa')])
                     
                 else: # Pure raw
                 
@@ -1541,7 +1559,8 @@ class Analyzer(_BasicAnalyzer_, Dataset):
                     mssa_fmt_rec = proj_rec
                     
                 else: # Back to original format
-                    mssa_fmt_rec = self.unstack(proj_rec, rescale=rescale, format=format)
+                    mssa_fmt_rec = self.unstack(proj_rec, rescale=rescale, format=format,
+                        firstaxes=[taxis])
                 
         del  raw_rec
         
@@ -1724,7 +1743,13 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         self.update_params(window=window)
     win = window = property(get_window, set_window, doc="Size of MSSA window")
 
-
+    def get_nc(self):
+        """Get :attr:`nc`"""
+        if self.prepca:
+            return self.prepca
+        return self.ns
+    nc = property(get_nc, 
+        doc="Number of channels used for MSSA: either :attr:`prepca` or :attr:`ns`")
 
 #    #################################################################
 #    ## Organize datasets
