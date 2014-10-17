@@ -70,16 +70,20 @@ class Data(Logger):
         # Guess data type and copy
         if cdms2_isVariable(data):
             self.array_type = 'MV2'
+            self.array_mod = MV2
             data = data.clone()
         elif npy.ma.isMA(data):
             self.array_type = 'numpy.ma'
+            self.array_mod = numpy.ma
             data = data.copy()
         else:
             self.array_type = 'numpy'
             data = data.copy()
+            self.array_mod = numpy
         self.data = data
         self.dtype = data.dtype
         data = data.astype('d')
+        
             
          # Shape
         self.shape = data.shape
@@ -144,6 +148,17 @@ class Data(Logger):
                 setattr(self, att, data.attributes[att])
         
 
+        # Masking nans
+        nans = npy.isnan(data)
+        if nans.any():
+            self.warning("Masking %i NaNs"%nans.sum())
+            if self.array_type == 'numpy':
+                self.array_type = 'numpy.ma'
+                data = npy.ma.array(data, mask=nans, copy=False)
+            else:
+                data[nans] = npy.ma.masked
+            self.data = data
+            
         # Mask (1 means good)
         # - real good values
         bmask = npy.ma.getmaskarray(data)
@@ -164,23 +179,28 @@ class Data(Logger):
         # - save as 0/1
         self.ns = long(count.sum())
         self.compress = count.size != self.ns
-        self.good = count>0 # points in space where is are enough data in time
+        self.good = count>0 # points in space where there are enough data in time
         self.minvalid = self.nvalid = minvalid
         
         # Scale unpacked data
-        # - mean
-        self.mean = data.mean(axis=0)
-        # - normalisation factor
-        if norm is True or norm is None:
-            norm = self.data.std() # Standard norm
-        elif norm is not False:
-            if norm <0: # Relative norm, else strict norm
-                norm = abs(norm)*self.data.std()
+        if not self.good.any():
+            self.warning('No valid data')
+            self.norm = 1.
+            self.mean = 0
         else:
-            norm = 1.
-        self.norm = norm
-        # - apply
-        self.scale(data)
+            # - mean
+            self.mean = data.mean(axis=0)
+            # - normalisation factor
+            if norm is True or norm is None:
+                norm = self.data.std() # Standard norm
+            elif norm is not False:
+                if norm <0: # Relative norm, else strict norm
+                    norm = abs(norm)*self.data.std()
+            else:
+                norm = 1.
+            self.norm = norm
+            # - apply
+            self.scale(data)
             
         # Fill data
         # - fill with missing value or mean (0.) where possible
@@ -458,8 +478,8 @@ class Data(Logger):
         """Was input array of CDAT type (:mod:`MV2`)?"""
         return self.array_type == "MV2"
 
-    def _time_axis_(self, nt=None):
-        """Get the time axis of an input variable  
+    def get_time(self, nt=None, offset=0):
+        """Get the time axis or dimension of an input variable
         
         If CDAT is not used, length of axis is returned or nt if different.
         """
@@ -470,13 +490,17 @@ class Data(Logger):
             for att, val in axis.attributes.items():
                 setattr(axiso, att, val)
             axiso.id = axis.id
+            axiso[:] += offset
             return axiso
-        if isinstance(axis, int) and nt is not None and axis!=nt: 
+        if not isinstance(axis, int) and offset:
+            axis = axis.clone()
+            axis[:] += offset
+        elif isinstance(axis, int) and nt is not None and axis!=nt: 
             return nt
         return axis
           
 class Dataset(Logger):
-    """Class to handle one or a list of variables
+    """Class to handle one variable or a list of variables
     
     This fonction concatenates several dataset that have the
     same time axis. It is useful for analysing for example
@@ -506,6 +530,7 @@ class Dataset(Logger):
             dataset = [dataset]
             self.map = 0
         self.ndataset = self.nd = len(dataset)
+        self.dataset = dataset
 
         # Inits
         self.data = []
@@ -630,16 +655,30 @@ class Dataset(Logger):
     def fill_invalids(self, dataref, datafill, raw=False,  copy=False, unmap=True, 
         missing=False):
         """Fill ``dataref`` with ``datafill`` at registered invalid points 
-        or current missing points """
+        or current missing points 
+        
+        
+        :Params:
+        
+            - **dataref**: Reference dataset than must be filled.
+            - **datafill**: Dataset used to fill reference.
+            - **raw**, optional: Input data (and mask through missing) are aleardy packed.
+            - **missing**, optional: If True, gaps are defined by ``dataref``
+              missing values. If False, gaps are those of original data. If an array,
+              it is used as the mask to define gaps.
+        """
 #        if self.invalids is None: 
 #            return dataref.clone() if copy else dataref # FIXME: 
         
         # Re stack to have raw data
         if not raw:
-            dataref = self.restack(dataref)
+            if dataref!='stacked_data': 
+                dataref = self.restack(dataref)
             datafill = self.restack(datafill)
             copy = False
-         
+        if dataref=='stacked_data': 
+             dataref = self.stacked_data
+             
         # Check raw shape
         if dataref.shape!=datafill.shape:
             self.error("Can't replace with raw data because of wrong shape (%s!=%s)"%
@@ -649,7 +688,12 @@ class Dataset(Logger):
         if copy: dataref = dataref.copy()
         
         # Put it at invalid points
-        if missing:
+        if missing is not False and missing is not True:
+            if raw:
+                mask = missing
+            else:
+                mask = self.restack(missing)
+        elif missing:
             mask = npy.ma.masked_values(dataref, default_missing_value, shrink=False).mask
         else:
             mask = self.invalids
@@ -657,7 +701,7 @@ class Dataset(Logger):
         del mask
         
         # Unstack ?
-        if raw:
+        if int(raw)>0:
             data = npy.asfortranarray(dataref)
         else:
             data = self.unstack(dataref)
@@ -737,12 +781,12 @@ class Dataset(Logger):
             if d.has_cdat(): return True
         return False
 
-    def _time_axis_(self, idata=0, nt=None):
+    def get_time(self, nt=None, offset=0, idata=0):
         """Get the time axis of an input variable  
         
         If CDAT is not used, length of axis is returned.
         """
-        return self[idata]._time_axis_(nt)
+        return self[idata].get_time(nt, offset)
             
 
 
