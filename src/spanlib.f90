@@ -1404,7 +1404,7 @@ subroutine sl_svd(ll, rr, nkeep, leof, reof, lpc, rpc, &
     call dgemm('N', 'T', nslv, nsrv, nt, 1d0, &
         zll, nslv, zrr, nsrv, 0d0, cov, nslv)
     call dgemm('N', 'T', nslv, nsrv, nt, 1d0, &
-        dble(lvalid), nslv, dble(rvalid), nsrv, 0d0, cov, nslv)
+        dble(lvalid), nslv, dble(rvalid), nsrv, 0d0, nn, nslv)
     where(nn>0d0) cov = cov / nn
     deallocate(nn)
     if(.not.present(lpc)) deallocate(zll, zls)
