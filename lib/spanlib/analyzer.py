@@ -127,7 +127,8 @@ class _BasicAnalyzer_:
         newv = getattr(self, param)
         if oldv is None: return
         if param in self._int_params: return newv > oldv
-        return oldv != newv        
+        return oldv != newv  
+  
         
     def _mode_axis_(self, analysis_type):
         """Get a mode axis according to the type of modes (pca, mssa, svd)  
@@ -168,6 +169,17 @@ class _BasicAnalyzer_:
     def replace_invalids(self, data, raw=False, copy=False):
         self.clean()
         return Dataset.replace_invalids(self, data, raw=raw, copy=copy)
+
+
+    def _cleanattr_(self, att, init=None):
+        """Delete an attribute and set it to None"""
+        if not hasattr(self, att) or \
+            ((callable(init) and not isinstance(getattr(self, att), init))) or \
+            getattr(self, att) is not init:
+            if callable(init): init = init()
+            if hasattr(self, att): delattr(self, att)
+            setattr(self, att, init)
+
 
 class Analyzer(_BasicAnalyzer_, Dataset):
     """ Prepare the Spectral Analysis Object
@@ -212,7 +224,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
     _nmssa_default = _nsvd_default = 8
     _nmssa_max = 20 #_nsvd_max = 20
     _window_default = 1/3. # Relative to time length
-    _pca_params = ['npca', 'prepca', 'minecvalid', 'zerofill', 'useteof', 'notpc']
+    _pca_params = ['npca', 'prepca', 'minecvalid', 'zerofill', 'useteof', 'notpc', 'pcapf']
     _mssa_params = _pca_params+['nmssa', 'prepca', 'window']
 #    _svd_params = _pca_params+['nsvd']
     _params = dict(pca=_pca_params, mssa=_pca_params+_mssa_params)#, svd=_pca_params+_svd_params)
@@ -284,7 +296,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             self._mssa_pctime_axes = cdms2.createAxis(npy.arange(nt).astype('d'))
             self._mssa_pctime_axes.id = 'mssa_pctime'
             self._mssa_pctime_axes.long_name = 'MSSA PC time'
-            taxis = self._time_axis_(idata)
+            taxis = self[idata].get_time()
             if hasattr(taxis,'units') and taxis.units.split()[0].lower() in \
                 ['seconds','minutes','hours','days','months','years']:
                 self._mssa_pctime_axes.units = taxis.units.split()[0].lower() + ' since 0001-01-01'
@@ -583,6 +595,11 @@ class Analyzer(_BasicAnalyzer_, Dataset):
                 useteof=self._useteof, notpc=self._notpc, minecvalid=self._minecvalid, 
                 zerofill=self._zerofill)  
             self.check_fortran_errmsg(errmsg)
+            
+        # Post filtering
+        if callable(self._pcapf):
+            print 'PCAPF'
+            self._pcapf(pdata, raw_eof, raw_pc, raw_ev, default_missing_value)
 
         # Save results
         self._pca_raw_pc = raw_pc
@@ -704,7 +721,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         if format and self.has_cdat():
             pc = cdms2.createVariable(pc)
             pc.setAxis(0, self._mode_axis_('pca'))
-            pc.setAxis(1, self._time_axis_(0))
+            pc.setAxis(1, self[0].get_time())
             pc.id = pc.name = 'pca_pc'
             pc.standard_name = 'principal_components_of_pca'
             pc.long_name = 'PCA principal components of '
@@ -796,7 +813,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             ec = cdms2.createVariable(ec)
             ec.setAxis(0, self._mode_axis_('pca'))
             if ndim==2 and ec.shape[1]==self.nt:
-                ec.setAxis(1, self._time_axis_(0))
+                ec.setAxis(1, self[0].get_time())
             ec.id = ec.name = 'pca_ec'
             ec.long_name = 'PCA expansion coefficients'
             atts = self[0].atts
@@ -960,6 +977,37 @@ class Analyzer(_BasicAnalyzer_, Dataset):
     #################################################################
     # MSSA
     #################################################################
+    
+    
+    
+    def preproc_raw_output(self, force=False):
+        """Get preprocessing raw output
+        
+        It is either the original data (:attr:`stacked_data`) 
+        if not pre-PCA must be performed or the first attr:`prepca`
+        PCA PCs :attr:`_pca_raw_pcs` with mean removed.
+        """
+        # Pre-PCA case
+        if self._prepca:
+        
+            # PCA
+            self.pca(force=int(force)==2)
+            
+            # Compute the pre-PCs mean (not always zero!) for future reconstructions
+            pca_raw_pc = self._pca_raw_pc[:, :self._prepca]
+            pca_raw_pc_masked = npy.ma.masked_values(pca_raw_pc, 
+                default_missing_value, copy=False)
+            self._pca_raw_pc_mean = pca_raw_pc_masked.mean(axis=0).filled(0.)
+            del pca_raw_pc_masked
+            pca_raw_pc -= self._pca_raw_pc_mean
+            self._pca_raw_pc_mean.shape = -1, 1
+            return npy.asfortranarray(pca_raw_pc.T)
+            
+              
+        # Direct MSSA case        
+        return npy.asfortranarray(self.stacked_data)
+
+    
 
     @_filldocs_
     def mssa(self, force=False, **kwargs):
@@ -985,38 +1033,15 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         for att in 'raw_eof','raw_pc','raw_ev','ev_sum':
             self._cleanattr_('_mssa_'+att)
 
-        # Compute MSSA
-        if self._prepca: # Pre-PCA case
+        # Get input to MSSA
+        raw_input = self.preproc_raw_output(force=force)
         
-            # PCA
-            self.pca(force=int(force)==2)
-            
-            # Compute the pre-PCs mean (not always zero!) for future reconstructions
-            pca_raw_pc = self._pca_raw_pc[:, :self._prepca]
-            pca_raw_pc_masked = npy.ma.masked_values(pca_raw_pc, 
-                default_missing_value, copy=False)
-            self._pca_raw_pc_mean = pca_raw_pc_masked.mean(axis=0).filled(0.)
-            del pca_raw_pc_masked
-#            pca_raw_pc -= self._pca_raw_pc_mean
-            self._pca_raw_pc_mean.shape = -1, 1
-            pca_raw_pc = npy.asfortranarray(pca_raw_pc.T)
-            
-            # MSSA
-            raw_eof, raw_pc, raw_ev, ev_sum, errmsg = \
-                _fortran.mssa(pca_raw_pc, self._window, self._nmssa, 
-                    default_missing_value, minecvalid=self._minecvalid, 
-                    zerofill=self._zerofill)
-            self.check_fortran_errmsg(errmsg)
-            del pca_raw_pc
-              
-        else: # Direct MSSA case
-        
-            pdata = npy.asfortranarray(self.stacked_data)
-            raw_eof, raw_pc, raw_ev, ev_sum, errmsg = \
-                _fortran.mssa(pdata, self._window, self._nmssa, 
-                    default_missing_value, minecvalid=self._minecvalid, 
-                    zerofill=self._zerofill)
-            self.check_fortran_errmsg(errmsg)
+        # Run MSSA
+        raw_eof, raw_pc, raw_ev, ev_sum, errmsg = \
+            _fortran.mssa(raw_input, self._window, self._nmssa, 
+                default_missing_value, minecvalid=self._minecvalid, 
+                zerofill=self._zerofill)
+        self.check_fortran_errmsg(errmsg)
 
         # Save results
         self._mssa_raw_pc = raw_pc
@@ -1053,9 +1078,9 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         # Update params
         self.update_params('mssa', **kwargs)
 
-        # EOF already available 
-        if not raw and self._mssa_fmt_eof is not None:
-            return self._mssa_fmt_eof
+#        # EOF already available 
+#        if not raw and self._mssa_fmt_eof is not None:
+#            return self._mssa_fmt_eof
             
         # No analyses performed?
         if self._mssa_raw_eof is None: self.mssa()
@@ -1139,9 +1164,9 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         # Update params
         self.update_params('mssa', **kwargs)
 
-        # PC already available 
-        if not raw and self._mssa_fmt_pc is not None:
-            return self._mssa_fmt_pc
+#        # PC already available 
+#        if not raw and self._mssa_fmt_pc is not None:
+#            return self._mssa_fmt_pc
             
         # No analyses performed?
         if self._mssa_raw_pc is None: self.mssa()
@@ -1506,9 +1531,9 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             del raw_rec_t
         else:
             if raw_rec.shape[1]==self.nt and (xpc is None or xpc is self._mssa_raw_pc):
-                taxis = self._time_axis_()
+                taxis = self.get_time()
             else:
-                taxis = self._time_axis_(nt=raw_rec.shape[1])
+                taxis = self.get_time(nt=raw_rec.shape[1])
                 
         # Get raw data back to physical space (nchan,nt)
         if not self.prepca: # No pre-PCA performed
@@ -1633,15 +1658,6 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 #            warnings.warn('Yet no statistics performed, so nothing to reconstruct!')
 #        else:
 #            return getattr(self,self._last_anatype+'_rec')(*args,**kwargs)
-
-    def _cleanattr_(self, att, init=None):
-        """Delete an attribute and set it to None"""
-        if not hasattr(self, att) or \
-            ((callable(init) and not isinstance(getattr(self, att), init))) or \
-            getattr(self, att) is not init:
-            if callable(init): init = init()
-            if hasattr(self, att): delattr(self, att)
-            setattr(self, att, init)
 
     def clean(self, pca=True, mssa=True):
         """(Re-)Initialization"""
