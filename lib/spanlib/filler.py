@@ -24,6 +24,7 @@
 import numpy as npy
 from util import Logger, broadcast, SpanlibIter, dict_filter, SpanlibError
 from analyzer import Analyzer, default_missing_value
+from data import has_cdat_support, cdms2_isVariable
 #import pylab as P
 
 class FillerError(SpanlibError):
@@ -65,14 +66,14 @@ class Filler(Logger):
         # Start filling?
         if run: self.fill(**kwargs)
         
-    def analyze(self, data=None, npcamax=15, nmssamax=15, **kwargs):
+    def analyze(self, data=None, npca=15, nmssa=15, **kwargs):
         # Setup analyzer
         if data is None: data = self._data
         kwargs['keep_invalids'] = True
         kwargs.setdefault('nvalid', 1)
         kwargs.setdefault('quiet', True)
-        kwargs.setdefault('npca', kwargs.pop('npca', npcamax))
-        kwargs.setdefault('nmssa', kwargs.pop('nmssa', nmssamax))
+        npca = kwargs.pop('npcamax', npca)
+        nmssa = kwargs.pop('nmssamax', nmssa)
         kwargs.setdefault('window', kwargs.pop('win', None))
         span = self.span = Analyzer(data, logger=self.logger, **kwargs)
         span.update_params()
@@ -349,8 +350,16 @@ class Filler(Logger):
         # -> NORM/SELF/CV
                
         
-    def get_filtered(self, mssa=None, **kwargs):
-        """Get a filtered version of the original dataset"""
+    def get_filtered(self, mssa=None, unmap=True,  geterr=False, **kwargs):
+        """Get a filtered version of the original dataset
+        
+        :Params:
+        
+            - **mssa**, optional: Only PCA or also MSSA reconstruction?
+            - **geterr**, optional: Get RMS error between reconstruction and original.
+        """
+        
+        # Fill
         if not self._analyzes:
             kw = self._kwfill.copy()
             kw.update(kwargs, mssa=mssa is not False)
@@ -367,13 +376,27 @@ class Filler(Logger):
                 else: # Refill with MSSA
                     kw = self._kwfill.copy()
                     kw.update(kwargs, mssa=True)
-                    self.fill(mssa=True, **kwargs)            
+                    self.fill(mssa=True, **kwargs)    
+            
+        # Reconstruction
         rec_meth = getattr(self.span, ana+'_rec')
-        return rec_meth(modes=-self._nmodes[ana][-1][0])
+        filtered = rec_meth(modes=-self._nmodes[ana][-1][0], unmap=False)
+        if geterr is False: return  self.span.unmap(filtered) if unmap else filtered
+        
+        # Errors
+        errs = []
+        for i, (orig, filt) in enumerate(zip(self._data, filtered)):
+            err = self.span[i].create_array()
+            err[:] = self.span[i].array_mod.resize((filt-orig).std(axis=0), err.shape)
+            if npy.ma.isMA(filt):
+                err[:] = npy.ma.masked_where(filt.mask, err, copy=0)
+            errs.append(err)
+        return self.span.unmap(filtered) if unmap else filtered, \
+            self.span.unmap(errs) if unmap else errs
         
     filtered = property(fget=get_filtered, doc='Filtered data')
         
-    def get_filled(self, mode="mssa", **kwargs):
+    def get_filled(self, mode="best", reffull=False, unmap=True, geterr=False, **kwargs):
         """Get a version of the original dataset where missing data are
         filled with the filtered version
         
@@ -396,36 +419,86 @@ class Filler(Logger):
                   ``"mssa"`` mode.
                   If ``mode`` has a ``+``, the filtered version  is returned
                   instead of the filled version.
+            
+            - **reffull**: Use the full dataset, or the "stacked" dataset (where locations
+              with a too low number of available data are removed)?
 
         """ 
         mode = str(mode).lower()
         
+        ref = self._data if reffull else 'stacked_data'
+        
+        # obs>pca>mssa
         if mode=='best':
-            pcafiltered = self.get_filtered(mssa=False)
-            out = self.span.fill_invalids(self._data, pcafiltered, copy=True)
+            
+            # pca
+            pcafiltered = self.get_filtered(mssa=False, unmap=False, geterr=geterr)
+            if geterr is not False:
+                pcafiltered, pcaerr = pcafiltered
+            out = self.span.fill_invalids('stacked_data', pcafiltered, copy=True, unmap=False)
             del pcafiltered
-            mssafiltered = self.get_filtered(mssa=True)
-            out =  self.span.fill_invalids(out, mssafiltered, copy=False, missing=True)   
+            if geterr is not False:
+                if geterr is not True:
+                    err = self.span.unmap(geterr)
+                    geterr = True
+                else:
+                    err = [(self.span[i].data*0) for i in xrange(len(self.span))]
+                err = self.span.fill_invalids(err, pcaerr, copy=False, unmap=False)
+                del pcaerr
+            
+            # mssa
+            mssafiltered = self.get_filtered(mssa=True, unmap=False, geterr=geterr)
+            if geterr:
+                mssafiltered, mssaerr = mssafiltered
+            out =  self.span.fill_invalids(out, mssafiltered, copy=False, missing=True, 
+                unmap=unmap)
+            if geterr:
+                err = self.span.fill_invalids(err, mssaerr, copy=False, missing=True)
+                return out, err
             return out
-            
+          
+        # pca>mssa filtered
         if mode=='both' or ('best' in mode and '+' in mode):
-            pcafiltered = self.get_filtered(mssa=False, unmap=False)
-            mssafiltered = self.get_filtered(mssa=True, unmap=False)
-            out = []
-            for vp, vm in zip(pcafiltered, mssafiltered):
-                out.append(vp)
-                vp[:] = npy.ma.where(vp.mask, vm, vp)
-            return self.span.unmap(out)
-            
+            pcafiltered = self.get_filtered(mssa=False, unmap=False, geterr=geterr)
+            mssafiltered = self.get_filtered(mssa=True, unmap=False, geterr=geterr)
+            out = pcafiltered
+            if geterr: 
+                pcafiltered, pcaerr = pcafiltered
+                mssafiltered, mssaerr = mssafiltered
+                err = pcaerr
+            for i, (vp, vm) in enumerate(zip(pcafiltered, mssafiltered)):
+                out[i][:] = npy.ma.where(vp.mask, vm, vp)
+                if geterr:
+                    err[i][:] = npy.ma.where(vp.mask, mssaerr[i], pcaerr[i])
+            out = self.span.unmap(out) if unmap else out
+            if geterr:
+                err = self.span.unmap(err) if unmap else err
+                return out, err
+            return out
+         
+        # pca or mssa
         if 'none' in mode or 'auto' in mode or mode=='+':
             mssa = None
         elif 'pca' in mode:
             mssa = False
         elif 'mssa' not in mode:
             raise FillerError('Unknown filling mode: '+mode)
-        filtered = self.get_filtered(mssa=mssa, **kwargs)
+        filtered = self.get_filtered(mssa=mssa, unmap=False, geterr=geterr, **kwargs)
         if '+' in mode: return filtered
-        return self.span.fill_invalids(self._data, filtered)
+        if geterr is not False:
+            filtered, anaerr = filtered
+            if geterr is not True:
+                err = self.span.restack(geterr)
+                geterr = True
+            else:
+                err = [(self.span[i].stacked_data*0) for i in xrange(len(self.span))]
+            err = self.span.fill_invalids(err, anaerr, copy=False)
+        out = self.span.fill_invalids('stacked_data', filtered, unmap=unmap)
+        if geterr:
+                err = self.span.fill_invalids(err, pcaerr, copy=False, unmap=unmap)
+                del anaerr
+                return out, err
+        return out
         
     filled = property(fget=get_filled, doc='Data filled with filtered data where missing')
 
