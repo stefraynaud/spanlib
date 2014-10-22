@@ -636,7 +636,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         
         # EOF already available 
         if not raw and self._pca_fmt_eof is not None:
-            return self._pca_fmt_eof
+            return self._pca_fmt_eof if not unmap else self.unmap(self._pca_fmt_eof)
             
         # First PCA analysis?
         if self._pca_raw_eof is None: self.pca()
@@ -681,9 +681,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
                 if scale and atts.has_key('units'):
                     eof.units = atts['units']
                 
-                
-        if unmap: return self.unmap(self._pca_fmt_eof)
-        return self._pca_fmt_eof
+        return self._pca_fmt_eof if not unmap else self.unmap(self._pca_fmt_eof)
 
 
     @_filldocs_
@@ -736,7 +734,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 
         return pc
  
-    def pca_ec(self, xdata=None, xeof=None, scale=False, ev=None, 
+    def pca_ec(self, xdata=None, xeof=None, scale=False, ev=False, 
         xraw=False, xscale=True, raw=False, unmap=True, format=True, 
         replace=False, **kwargs):
         """Get expansion coefficient using current PCA decomposition
@@ -786,7 +784,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
                 
         # Eigenvalues for normalisation
         if ev is None: ev = self._pca_raw_ev
-        if ev is False: ev = ev*0-1
+        if ev is False: ev = self._pca_raw_ev*0-1
 
         # Projection
         raw_data = npy.asfortranarray(raw_data)
