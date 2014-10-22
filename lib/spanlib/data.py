@@ -458,7 +458,8 @@ class Data(Logger):
         first_slices = (slice(None), )*max(1, len(firstdims))
         if self.compress:
             mdata = data.asma() if self.array_type=='MV2' else data
-            slices = first_slices+(self.good, )
+#            slices = first_slices+(self.good, )
+            slices = (Ellipsis, self.good)
             mdata[slices] = pdata
             data[:] = mdata # just to be sure
         else:
