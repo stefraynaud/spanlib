@@ -1,14 +1,12 @@
 import unittest
 import numpy as N
 import os, sys
-from util import insert_local_path
-insert_local_path()
 sys.path.insert(0, '../lib')
 
-from spanlib_python import Data
+from spanlib.data import Data
 
 
-class TestSequenceFunctions(unittest.TestCase):
+class TSF(unittest.TestCase):
     
     def setup_data(self):
         self.d = Data(self.data, nvalid=20, weights=self.weights, norm=self.norm)
@@ -59,3 +57,5 @@ class TestSequenceFunctions(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+#    ts = unittest.TestSuite()
+#    ts.addTest(TSF('test_unpack_notime'))
