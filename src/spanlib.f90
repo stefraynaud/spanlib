@@ -506,8 +506,8 @@ subroutine sl_pca_getec(var, xeof, ec, mv, ev, minvalid, zerofill, demean)
         if(present(ev) .and. any(ec>tiny(1d0)))then
             if(ev(im)>tiny(1d0))then
                 ec(:,im) = ec(:,im) * sqrt(dble(nt)*ev(im)/sum(ec(:,im)**2))
-            else
-                ec(:,im) = 0d0
+!            else
+!                ec(:,im) = 0d0
             endif
         endif
         
