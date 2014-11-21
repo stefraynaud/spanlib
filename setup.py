@@ -127,20 +127,5 @@ if __name__=='__main__':
           
     )
     
-    # Save info
-    if 'build' in s.command_obj:
-        cfgfile = 'config.cfg'
-        cfg = SafeConfigParser()
-        cfg.read(cfgfile)
-        if not cfg.has_section('paths'):
-            cfg.add_section('paths')
-        cfg.set('paths', 'build_lib', os.path.abspath(s.command_obj['build'].build_lib)) 
-        if os.path.exists(cfgfile):
-            os.remove(cfgfile)
-        f = open(cfgfile, 'w')
-        cfg.write(f)
-        f.close()
-
-
 
 
