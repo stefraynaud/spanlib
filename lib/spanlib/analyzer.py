@@ -2,7 +2,7 @@
 # File: spanlib_python.py
 #
 # This file is part of the SpanLib library.
-# Copyright (C) 2006-2011  Stephane Raynaud, Charles Doutriaux
+# Copyright (C) 2006-2014  Stephane Raynaud, Charles Doutriaux
 # Contact: stephane dot raynaud at gmail dot com
 #
 # This library is free software; you can redistribute it and/or
@@ -22,62 +22,61 @@
 import copy
 import gc
 from warnings import warn
-import _fortran
 import numpy as N
 npy = N
 from data import has_cdat_support, cdms2_isVariable, Data, Dataset, default_missing_value
 if has_cdat_support:
     import MV2, cdms2
-import pylab as P
 #from .util import Logger, broadcast, SpanlibIter, dict_filter
 #from spanlib.util import Logger, broadcast, SpanlibIter, dict_filter
-from util import Logger, broadcast, SpanlibIter, dict_filter
+import _core
+from .util import Logger, broadcast, SpanlibIter, dict_filter
 
 docs = dict(
     npca = """- *npca*: int | ``None``
-                Number of PCA modes to keep in analysis (defaults to 10).""", 
+                Number of PCA modes to keep in analysis (defaults to 10).""",
     prepca = """- *prepca*: int | bool | ``None``
                 Number of pre-PCA modes to keep before MSSA and SVD analyses (defaults to ``npca`` if ``True``).
-                If the number of input channels is greater than 30, it is automatically switch to ``True``.""", 
+                If the number of input channels is greater than 30, it is automatically switch to ``True``.""",
     nmssa = """- *nmssa*: int | ``None``
-                Number of MSSA modes to keep in analysis (defaults to 10).""", 
+                Number of MSSA modes to keep in analysis (defaults to 10).""",
     window = """- *window*: int | ``None``
-                Size of the MSSA window parameter (defaults to 1/3 the time length).""", 
+                Size of the MSSA window parameter (defaults to 1/3 the time length).""",
     nsvd = """- *nsvd*: int | ``None``
-                Number of SVD modes to keep in analysis (defaults to 10).""", 
+                Number of SVD modes to keep in analysis (defaults to 10).""",
     modes = """- *modes*: int | list | tuple
-                If ``None``, all modes are summed. 
+                If ``None``, all modes are summed.
                 Example of other usages:
-                
+
                     - ``4`` or ``[4]`` or ``(4,)``: only mode 4
                     - ``-4``: modes 1 to 4
-                    - ``(1,3,-5)``: modes 1, 3, 4 and 5 (``-`` means "until")""", 
+                    - ``(1,3,-5)``: modes 1, 3, 4 and 5 (``-`` means "until")""",
     raw = """- *raw*: bool
                 When pre-PCA is used and ``raw`` is ``True``, it prevents from
-                going back to physical space (expansion to PCA EOFs space).""", 
+                going back to physical space (expansion to PCA EOFs space).""",
     scale = """- *scale*: bool | float
                 Apply a factor to EOFs or PCs. This is essentially useful to add
                 a quantitative meaning. If ``True``, ``scale`` is chosen so that
                 the standard deviation of the mode (EOF or PC) is the square of
-                the associated eigen value.""", 
+                the associated eigen value.""",
     relative = """- *relative*: bool
-                Return percentage of variance instead of its absolute value.""", 
+                Return percentage of variance instead of its absolute value.""",
     sum = """- *sum*: bool
-                Return the sum of ALL (not only the selected modes) eigen values (total variance).""", 
+                Return the sum of ALL (not only the selected modes) eigen values (total variance).""",
     cumsum = """- *cumsum*: bool
-                Return the cumulated sum of eigen values.""", 
+                Return the cumulated sum of eigen values.""",
 )
 
 def _filldocs_(func):
     func.__doc__ = func.__doc__ % docs
     return func
- 
+
 
 class _BasicAnalyzer_:
-    
+
     @staticmethod
     def _get_imodes_(imode, nmode):
-        
+
         # Which modes
         if imode is None:
             imode = range(0, nmode+1)
@@ -86,7 +85,7 @@ class _BasicAnalyzer_:
         else:
             if isinstance(imode,int):
                 imode = [imode,]
-    
+
         # Rearrange modes (imode=[0,3,4,5,9] -> [0,0],[3,5],[9,9])
         imode = [im for im in imode if im < nmode]
         imode.sort(cmp=lambda x,y: cmp(abs(x),abs(y)))
@@ -106,16 +105,16 @@ class _BasicAnalyzer_:
             im += 1
             imodes.append([imode1,imode2])
         return imodes
-    
+
 #    @staticmethod
 #    def _check_length_(input, mylen, fillvalue):
 #        return broadcast(input, mylen, fillvalue)
-    
+
     def _has_changed_(self, old, param):
         """Check if a parameter has changed
-        
+
         :Returns:
-        
+
             - ``None`` if the parameter is new
             - ``False`` if not integer and not changed
             - ``True`` if not intager and changed
@@ -127,12 +126,12 @@ class _BasicAnalyzer_:
         newv = getattr(self, param)
         if oldv is None: return
         if param in self._int_params: return newv > oldv
-        return oldv != newv  
-  
-        
+        return oldv != newv
+
+
     def _mode_axis_(self, analysis_type):
-        """Get a mode axis according to the type of modes (pca, mssa, svd)  
-        
+        """Get a mode axis according to the type of modes (pca, mssa, svd)
+
         If CDAT is not used, length of axis is returned.
         """
         if analysis_type not in self._mode_axes:
@@ -149,8 +148,8 @@ class _BasicAnalyzer_:
         return self._mode_axes[analysis_type]
 
     def _channel_axis_(self, name, **kwargs):
-        """Get the channel axis for one dataset (MSSA or SVD)  
-        
+        """Get the channel axis for one dataset (MSSA or SVD)
+
         If CDAT is not used, length of axis is returned.
         """
         if not self._prepca:
@@ -213,7 +212,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
       analysis_object :: SpAn object created for further analysis
     :::
     """
-    
+
     _npca_default = 10
     _npca_max = 200
     _nprepca_max = 30
@@ -232,26 +231,26 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 #    _common_params = ['nsvd'] # common to all datasets
     _int_params = ['npca', 'nmssa', 'prepca', 'window', 'nsvd']
 
-    def __init__(self, dataset, weights=None, norms=None, 
-        minvalid=None, clean_weights=True, keep_invalids=False, zerofill=0, 
+    def __init__(self, dataset, weights=None, norms=None,
+        minvalid=None, clean_weights=True, keep_invalids=False, zerofill=0,
         logger=None, loglevel=None, **kwargs):
-        
-#        # Loggers        
+
+#        # Loggers
 #        Logger.__init__(self, logger=logger, loglevel=loglevel, **dict_filter(kwargs, 'log_'))
-        
-#        # Form data, weights and norms for :class:`Dataset` 
+
+#        # Form data, weights and norms for :class:`Dataset`
 #        self._map_(datasets, sequential)
 #        weights = self._remap_(weights)
 #        norms = self._remap_(norms)
 
         # Create Dataset instance
-        Dataset.__init__(self, dataset, weights=weights, norms=norms, zerofill=zerofill, 
+        Dataset.__init__(self, dataset, weights=weights, norms=norms, zerofill=zerofill,
             minvalid=minvalid, clean_weights=clean_weights, keep_invalids=keep_invalids)
         self._quiet=False
-                
+
         # Init results
         self.clean()
-        
+
         # Check and save parameters
         if zerofill==2:
             kwargs['zerofill'] = 2
@@ -261,17 +260,17 @@ class Analyzer(_BasicAnalyzer_, Dataset):
     #################################################################
     ## Get datasets info
     #################################################################
-    
+
     def _mssa_channel_axis_(self):
-        """Get the MSSA channel axis  
-        
+        """Get the MSSA channel axis
+
         If CDAT is not used, length of axis is returned.
         """
         return _channel_axis_('mssa')
 
     def _mssa_window_axis_(self, update=False):
-        """Get the MSSA window axis for one dataset  
-        
+        """Get the MSSA window axis for one dataset
+
         If CDAT is not used, length of axis is returned.
         """
         if not self.has_cdat():
@@ -285,7 +284,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 
     def _mssa_pctime_axis_(self, idata=0):
         """Get the MSSA PCs time axis for one dataset
-        
+
         If CDAT is not used, length of axis is returned.
         """
         nt = self.nt - self._window + 1
@@ -302,7 +301,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
                 self._mssa_pctime_axes.units = taxis.units.split()[0].lower() + ' since 0001-01-01'
                 self._mssa_pctime_axes.designateTime()
         return self._mssa_pctime_axes
-        
+
 #    def _check_dataset_tag_(self, name, key=None, long_name=True, id=True, svd=False):
 #        """Mark some attributes as specific to a dataset (only if there are more then one dataset)
 #            iset:: ID of the dataset
@@ -319,7 +318,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 #            if not cdms2_isVariable(target): return
 #            if svd:
 #                svdtag = ['left', 'right'][iset]
-#            if id: 
+#            if id:
 #                if svd:
 #                    target.id  = '%s_%s'%(svdtag, target.id)
 #                else:
@@ -329,8 +328,8 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 #                    target.long_name += ' for %s dataset'%svdtag
 #                else:
 #                    target.long_name += ' for dataset #%i'%iset
-                    
-    def _cdat_ev_(self, ev, analysis_type, relative, cumsum, 
+
+    def _cdat_ev_(self, ev, analysis_type, relative, cumsum,
         id=None, long_name=None, standard_name=None,  atts=None):
         """Format eigenvalues as CDAT variable"""
         if not self.has_cdat(): return ev
@@ -342,7 +341,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             if cumsum:
                 id += '_cumsum'
                 long_name.append('cumulative')
-            if relative: 
+            if relative:
                 id += '_rel'
                 long_name.append('relative')
         ev.id = ev.name = id
@@ -363,14 +362,14 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         if relative:
             ev.units = '% of total variance'
         return ev
-                    
+
 
 
     def _cdat_inside_(self, idata=None):
         """Check if a data var has CDAT support"""
         # Not at all
         if not has_cdat_support: return False
-        
+
         # Single var
         if idata is not None:
             return self[idata].has_cdat()
@@ -382,12 +381,12 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         """Check if an analysis has already run"""
         if anatype is None: return False
         return getattr(self, '_%s_raw_eof'%anatype) is not None
-    
+
     def _has_changed_(self, old, param):
         """Check if a parameter has changed
-        
+
         :Returns:
-        
+
             - ``None`` if the parameter is new
             - ``False`` if not integer and not changed
             - ``True`` if not intager and changed
@@ -399,30 +398,30 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         newv = getattr(self, '_'+param)
         if oldv is None: return
         if param in self._int_params: return newv > oldv
-        return oldv != newv        
-        
+        return oldv != newv
+
     def update_params(self, anatype=None, checkprepca=False, **kwargs):
         """Initialize, update and check statistical paremeters.
         A value of  ``None`` is converted to an optimal value.
         Analyses are re-ran if needed by checking dependencies.
-        
+
         :Params:
-        
+
             - **anatype**, optional: current analysis type.
-            
+
                 - ``None``: Simple initialization with ``None``
                 - ``"pca"``: Check PCA parameters.
                 - ``"mssa"``: Check MSSA parameters.
                 - ``"svd"``: Check SVD parameters.
-               
+
               If different from ``None``, analysis may be ran again
               if parameters are changed.
-              
+
             - Other keywords are interpreted as analysis parameters.
 
         :Output: A dictionary of (param name, change status) items.
         """
-            
+
         # Initialize old values and defaults changed to False
         if 'win' in kwargs:
             kwargs['window'] = kwargs.pop('win')
@@ -431,7 +430,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             old[param] = getattr(self, '_'+param, None)
             setattr(self, '_'+param, kwargs.pop(param, old[param]))
 
-        # Number of PCA modes       
+        # Number of PCA modes
         # - Guess a value
         if self._npca is None:
             if self._prepca is not None:
@@ -443,7 +442,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             self._npca = max(self._npca, self._prepca)
         # - max
         self._npca = npy.clip(self._npca, 1, min(SpAn._npca_max, self.ns, self.nt))
-            
+
         # Number of pre-PCA modes before MSSA and SVD
         if self._prepca is None: # Default: pre-PCA needed over max (for MSSA and SVD)
             self._prepca = self.ns > SpAn._nprepca_max
@@ -460,7 +459,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             self._prepca = min(self._prepca, self.ns, self.nt)
         if self._prepca == 0:
             self._prepca = False
-            
+
         # Dependency rules between prepca and npca
         if self._prepca and self._npca < self._prepca:
             if not self._quiet  and self._prepca:
@@ -468,27 +467,27 @@ class Analyzer(_BasicAnalyzer_, Dataset):
                         ' than the number of PCA modes (%i), so we adjust the latter.' \
                         % (self._prepca, self._npca))
             self._npca = self._prepca
-        
+
         # Use T-EOF?
-        if self._useteof is None: 
+        if self._useteof is None:
 #            self._useteof = SpAn._useteof_default
             self._useteof = self.ns > self.nt
-        if self._notpc is None: 
+        if self._notpc is None:
             self._notpc = SpAn._notpc_default
-            
+
         # Fill with zeros?
-        if self._zerofill is None: 
+        if self._zerofill is None:
             self._zerofill = SpAn._zerofill_default
-            
+
         # Min number of values for expansion coefficients?
-        if self._minecvalid is None: 
+        if self._minecvalid is None:
             self._minecvalid = SpAn._minecvalid_default
-            
+
         # Window extension of MSSA
         if self._window is None: # Initialization
             self._window = int(self.nt*SpAn._window_default)
         self._window = npy.clip(self._window, 1, max(1, self.nt))
-                    
+
         # Number of MSSA modes
         if self._nmssa is None: # Initialization
             # Guess a value
@@ -504,12 +503,12 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         rerun = {}
         rerun['pca'] = self._has_run_('pca') and (
             self._has_changed_(old, 'npca')>0 or
-            self._has_changed_(old, 'useteof') or 
+            self._has_changed_(old, 'useteof') or
             self._has_changed_(old, 'notpc')
         )
         rerun['mssa'] = self._has_run_('mssa') and (
-            self._has_changed_(old, 'nmssa')<0 or 
-            self._has_changed_(old, 'window') or 
+            self._has_changed_(old, 'nmssa')<0 or
+            self._has_changed_(old, 'window') or
             (self._prepca and rerun['pca'])
         )
         # - PCA
@@ -520,13 +519,13 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         if rerun['mssa']:
             self.debug('Re-running MSSA because some important parameters changed')
             self.mssa()
-                            
+
         # Inform what has reran
         return rerun
-        
+
 #    def _check_isets_(self,iset):
 #        """Check if an iset is associated to a a valid dataset.
-#        
+#
 #        It can be a list, and it is returned as a list.
 #        If an iset is invalid, it is removed from the output list.
 #        """
@@ -556,10 +555,10 @@ class Analyzer(_BasicAnalyzer_, Dataset):
     #################################################################
     @_filldocs_
     def pca(self, force=False, **kwargs):
-        """ 
+        """
         Principal Components Analysis (PCA)
-        
-        It is called everytime needed by :meth:`pca_eof`, :meth:`pca_pc`, 
+
+        It is called everytime needed by :meth:`pca_eof`, :meth:`pca_pc`,
         :meth:`pca_ev` and :meth:`pca_rec`.
         Thus, since results are stored in cache, it not necessary call it explicitly.
 
@@ -591,14 +590,13 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 #            weights = npy.asfortranarray(self.stacked_weights)
 #            pdata = npy.asfortranarray(pdata)
             raw_eof, raw_pc, raw_ev, ev_sum, errmsg = \
-                _fortran.pca(pdata, self._npca, default_missing_value, 
-                useteof=self._useteof, notpc=self._notpc, minecvalid=self._minecvalid, 
-                zerofill=self._zerofill)  
+                _core.pca(pdata, self._npca, default_missing_value,
+                useteof=self._useteof, notpc=self._notpc, minecvalid=self._minecvalid,
+                zerofill=self._zerofill, optec=-1)
             self.check_fortran_errmsg(errmsg)
-            
+
         # Post filtering
         if callable(self._pcapf):
-            print 'PCAPF'
             self._pcapf(pdata, raw_eof, raw_pc, raw_ev, default_missing_value)
 
         # Save results
@@ -606,7 +604,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         self._pca_raw_eof = raw_eof
         self._pca_raw_ev = raw_ev
         self._pca_ev_sum = ev_sum
-        
+
         # Delete formatted variables
         for vtype in 'pc', 'eof':
             self._cleanattr_('_pca_fmt_'+vtype)
@@ -622,41 +620,41 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         :Parameters:
             %(scale)s
             %(raw)s
-            
+
         :PCA parameters:
             %(npca)s
-            
+
         :Returns:
             Arrays with shape ``(npca,...)``
         """
-    
+
         # Update params
         self.update_params('pca', **kwargs)
-            
-        
-        # EOF already available 
+
+
+        # EOF already available
         if not raw and self._pca_fmt_eof is not None:
-            return self._pca_fmt_eof if not unmap else self.unmap(self._pca_fmt_eof)
-            
+            return self._pca_fmt_eof
+
         # First PCA analysis?
         if self._pca_raw_eof is None: self.pca()
-            
+
         # Raw
         eof = self._pca_raw_eof
         if raw:
             return eof
-            
+
         # Mask
         eof = npy.ascontiguousarray(eof)
         eof = npy.ma.masked_values(eof, default_missing_value, copy=False)
-        
+
         # Back to physical space
-        self._pca_fmt_eof = self.unstack(eof, rescale=False, 
+        self._pca_fmt_eof = self.unstack(eof, rescale=False,
             firstaxes=self._mode_axis_('pca'))
-        
+
         # Set attributes and scale
         for idata,eof in enumerate(self._pca_fmt_eof):
-            
+
             # Scaling
             if scale:
                 if scale is True: # Std dev of EOF is sqrt(ev)
@@ -665,7 +663,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
                         eof[imode] *= scale[imode]
                 else:
                     eof *= scale
-                    
+
             # Attributes (CDAT)
             if format and cdms2_isVariable(eof):
                 if not self[idata].id.startswith('variable_'):
@@ -680,29 +678,31 @@ class Analyzer(_BasicAnalyzer_, Dataset):
                     eof.long_name += ' of '+atts['long_name']
                 if scale and atts.has_key('units'):
                     eof.units = atts['units']
-                
-        return self._pca_fmt_eof if not unmap else self.unmap(self._pca_fmt_eof)
+
+
+        if unmap: return self.unmap(self._pca_fmt_eof)
+        return self._pca_fmt_eof
 
 
     @_filldocs_
     def pca_pc(self, scale=False, raw=False, format=True, **kwargs):
         """Get principal components (PCs) from current PCA decomposition
-        
+
         :Parameters:
 
         :PCA parameters:
             %(npca)s
-            
+
         :Returns:
             Arrays with the shape ``(npca,nt)``
         """
         # Update params
         self.update_params('pca', **kwargs)
-        
-        # PC already available 
+
+        # PC already available
         if self._pca_fmt_pc is not None:
             return self._pca_fmt_pc
-        
+
         # First PCA analysis?
         if self._pca_raw_pc is None: self.pca()
 
@@ -710,10 +710,10 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         if raw:
             return self._pca_raw_pc[:,:self._npca]
 
-        # Mask 
+        # Mask
         pc = npy.ascontiguousarray(self._pca_raw_pc[:,:self._npca].T)
         pc = npy.ma.masked_values(pc, default_missing_value, copy=False)
-        
+
         # Format (CDAT)
         #TODO: scale pca_pc
         if format and self.has_cdat():
@@ -724,32 +724,32 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             pc.standard_name = 'principal_components_of_pca'
             pc.long_name = 'PCA principal components of '
             atts = self[0].atts
-            if len(self)==1 and  atts.has_key('long_name'): 
+            if len(self)==1 and  atts.has_key('long_name'):
                 pc.long_name += atts['long_name']
             if scale and (len(self) == 1 or npy.allclose(self.norms, 1.)) and atts.has_key('units'):
                 pc.units = atts['units']
-            
-        
+
+
         self._pca_fmt_pc = pc
 
         return pc
- 
-    def pca_ec(self, xdata=None, xeof=None, scale=False, ev=False, 
-        xraw=False, xscale=True, raw=False, unmap=True, format=True, 
+
+    def pca_ec(self, xdata=None, xeof=None, scale=False, ev=None,
+        xraw=False, xscale=True, raw=False, unmap=True, format=True,
         replace=False, **kwargs):
         """Get expansion coefficient using current PCA decomposition
-        
+
         Expansion coefficients are the projection of data onto EOFs.
         By default, it uses input data and computed EOFs, and thus
-        returns principal components. 
+        returns principal components.
         You can bypass this default behaviour using ``xeof`` and ``xdata``
         keyword parameters.
-        
+
         :Parameters:
 
         :PCA parameters:
             %(npca)s
-            
+
         :Returns:
             Arrays with the shape ``(npca,nt)``
         """
@@ -757,7 +757,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         if not xraw:
             if xeof is not None: xeof = self.remap(xeof)
             if xdata is not None: xdata = self.remap(xdata)
-            
+
         # EOFs used for projection
         if xeof is None: # From PCA
             if self._pca_raw_eof is None: self.pca()
@@ -767,7 +767,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         else: # We format then use
             eofs = self.remap(xeof)
             raw_eof = self.restack(eofs, scale=False)
-        
+
         # Data to project on EOFs
         if xdata is None: # From input
             raw_data = self.stacked_data
@@ -781,31 +781,31 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             ndim = raw_data.ndim
             if raw_data.ndim>2:
                 raw_data = npy.reshape(raw_data, (raw_data.shape[0], -1))
-                
+
         # Eigenvalues for normalisation
         if ev is None: ev = self._pca_raw_ev
-        if ev is False: ev = self._pca_raw_ev*0-1
+        if ev is False: ev = ev*0-1
 
         # Projection
         raw_data = npy.asfortranarray(raw_data)
         raw_eof = npy.asfortranarray(raw_eof)
-        raw_ec = _fortran.pca_getec(raw_data, raw_eof, mv=default_missing_value, 
-            ev=ev, minvalid=self._minecvalid, zerofill=self._zerofill)
-            
+        raw_ec = _core.pca_getec(raw_data, raw_eof, mv=default_missing_value,
+            ev=ev, minvalid=self._minecvalid, zerofill=self._zerofill, optimize=-1)
+
         # Replace current pc with computed ec
-        if replace: 
+        if replace:
             self._pca_raw_pc = raw_ec
-            if self._pca_fmt_pc is None: 
+            if self._pca_fmt_pc is None:
                 self._cleanattr_('_pca_fmt_pc')
-                
+
         # Raw?
         if raw:
             return raw_ec
-            
+
         # Mask
         ec = npy.ascontiguousarray(raw_ec.T)
         ec = npy.ma.masked_values(ec, default_missing_value, copy=False)
-        
+
         # Format (CDAT)
         if format and self.has_cdat():
             ec = cdms2.createVariable(ec)
@@ -815,13 +815,13 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             ec.id = ec.name = 'pca_ec'
             ec.long_name = 'PCA expansion coefficients'
             atts = self[0].atts
-            if len(self)==1 and atts.has_key('long_name'): 
+            if len(self)==1 and atts.has_key('long_name'):
                 ec.long_name += ' of '+atts['long_name']
             if scale and (len(self)==1 or npy.allclose(self.norms, 1.)) and atts.has_key('units'):
                 ec.units = atts['units']
-            
+
         return ec
-            
+
 
     @_filldocs_
     def pca_ev(self, relative=False, sum=False, cumsum=False, format=True, **kwargs):
@@ -831,11 +831,11 @@ class Analyzer(_BasicAnalyzer_, Dataset):
           %(relative)s
           %(sum)s
           %(cumsum)s
-        
-            
+
+
         :PCA parameters:
             %(npca)s
-            
+
         :Returns:
             Arrays with shape ``(npca,)`` or a float
         """
@@ -845,27 +845,27 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 
         # First PCA analysis?
         if self._pca_raw_eof is None: self.pca()
-            
+
         # We only want the sum
         if sum:
             return self._pca_ev_sum
-            
+
         # Data
         ev = self._pca_raw_ev[:self._npca]
         if cumsum:
             ev = ev.cumsum()
-        if relative: 
+        if relative:
             ev = 100.*ev/self._pca_ev_sum
 
         # Format (CDAT)
         if format and self.has_cdat():
-            
+
             id = 'pca_ev'
             long_name = []
             if cumsum:
                 id += '_cumsum'
                 long_name.append('cumulative')
-            if relative: 
+            if relative:
                 id += '_rel'
                 long_name.append('relative')
             ev = cdms2.createVariable(ev)
@@ -885,33 +885,33 @@ class Analyzer(_BasicAnalyzer_, Dataset):
                     if ev.units.find(ss) != -1:
                         ev.units = '(%s)^2' % ev.units
                         break
-                        
+
         return ev
 
 
     @_filldocs_
-    def pca_rec(self, modes=None, raw=False, xpc=None, xeof=None, xraw=False, 
+    def pca_rec(self, modes=None, raw=False, xpc=None, xeof=None, xraw=False,
         rescale=True, format=2, unmap=True, **kwargs):
         """Reconstruct a set of modes from PCA decomposition
 
         :Parameters:
             %(modes)s
             %(raw)s
-            
+
         :PCA parameters:
             %(npca)s
-            
+
         :Returns:
             Arrays with the same shape as input arrays.
         """
         # Update params
         self.update_params('pca', **kwargs)
-        
+
         # Remap alternate arrays
         if not xraw:
             if xeof is not None: xeof = self.remap(xeof)
 #        xpc = self.remap(xpc)
-            
+
         # First PCA analysis?
         if self._pca_raw_pc is None: self.pca()
 
@@ -923,7 +923,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         else: # We format then use
             eofs = self.remap(xeof)
             raw_eof = self.restack(eofs, scale=False)
-            
+
         # PCs
         if xpc is None: # From PCA
             raw_pc = self._pca_raw_pc
@@ -931,17 +931,17 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             raw_pc = xpc
         else:
             raw_pc = xpc.T
-            
+
         # Reconstruction
         reof = raw_eof[:,:self._npca]
         rpc = raw_pc[:,:self._npca]
         raw_rec, smodes = self._raw_rec_(reof, rpc, modes)
-        
+
         # Raw?
         if raw:
             return raw_rec
-        
-        
+
+
         # Back to physical space
         if rescale: rescale = 2
         pca_fmt_rec = self.unstack(raw_rec, rescale=rescale, format=format)
@@ -967,45 +967,45 @@ class Analyzer(_BasicAnalyzer_, Dataset):
                     rec.long_name += ' of '+atts['long_name']
                 if atts.has_key('units'):
                     rec.units = atts['units']
-                    
+
         if not unmap: return pca_fmt_rec
-        return self.unmap(pca_fmt_rec)   
-    
+        return self.unmap(pca_fmt_rec)
+
 
     #################################################################
     # MSSA
     #################################################################
-    
-    
-    
+
+
+
     def preproc_raw_output(self, force=False):
         """Get preprocessing raw output
-        
-        It is either the original data (:attr:`stacked_data`) 
+
+        It is either the original data (:attr:`stacked_data`)
         if not pre-PCA must be performed or the first attr:`prepca`
         PCA PCs :attr:`_pca_raw_pcs` with mean removed.
         """
         # Pre-PCA case
         if self._prepca:
-        
+
             # PCA
             self.pca(force=int(force)==2)
-            
+
             # Compute the pre-PCs mean (not always zero!) for future reconstructions
             pca_raw_pc = self._pca_raw_pc[:, :self._prepca]
-            pca_raw_pc_masked = npy.ma.masked_values(pca_raw_pc, 
+            pca_raw_pc_masked = npy.ma.masked_values(pca_raw_pc,
                 default_missing_value, copy=False)
             self._pca_raw_pc_mean = pca_raw_pc_masked.mean(axis=0).filled(0.)
             del pca_raw_pc_masked
             pca_raw_pc -= self._pca_raw_pc_mean
             self._pca_raw_pc_mean.shape = -1, 1
             return npy.asfortranarray(pca_raw_pc.T)
-            
-              
-        # Direct MSSA case        
+
+
+        # Direct MSSA case
         return npy.asfortranarray(self.stacked_data)
 
-    
+
 
     @_filldocs_
     def mssa(self, force=False, **kwargs):
@@ -1026,18 +1026,18 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         # Check if old results can be used when nmssa is lower
         if not force and self._mssa_raw_pc is not None and self._mssa_raw_pc.shape[-1] >= self._nmssa:
             return
-        
+
         # Remove old results
         for att in 'raw_eof','raw_pc','raw_ev','ev_sum':
             self._cleanattr_('_mssa_'+att)
 
         # Get input to MSSA
         raw_input = self.preproc_raw_output(force=force)
-        
+
         # Run MSSA
         raw_eof, raw_pc, raw_ev, ev_sum, errmsg = \
-            _fortran.mssa(raw_input, self._window, self._nmssa, 
-                default_missing_value, minecvalid=self._minecvalid, 
+            _core.mssa(raw_input, self._window, self._nmssa,
+                default_missing_value, minecvalid=self._minecvalid,
                 zerofill=self._zerofill)
         self.check_fortran_errmsg(errmsg)
 
@@ -1050,25 +1050,25 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         # Delete formmated variables
         for vtype in 'pc', 'eof':
             self._cleanattr_('_mssa_fmt_'+vtype)
-                
+
         self._last_anatype = 'mssa'
         gc.collect()
 
     @_filldocs_
     def mssa_eof(self, scale=False, raw=False, format=True, unmap=True, **kwargs):
         """Get EOFs from MSSA analysis
-        
+
         Shape: (window*nchan,nmssa)
 
         :Parameters:
             %(scale)s
             %(raw)s
-            
+
         :MSSA parameters:
             %(nmssa)s
             %(window)s
             %(prepca)s
-            
+
         :Returns:
             Arrays with shape ``(nmssa,nt-window+1,...)``
         """
@@ -1076,51 +1076,51 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         # Update params
         self.update_params('mssa', **kwargs)
 
-#        # EOF already available 
+#        # EOF already available
 #        if not raw and self._mssa_fmt_eof is not None:
 #            return self._mssa_fmt_eof
-            
+
         # No analyses performed?
         if self._mssa_raw_eof is None: self.mssa()
-        
+
         # Raw eof
         raw_eof = self._mssa_raw_eof[:, :self._nmssa]
         nlxnw, nm = raw_eof.shape
         nw = self._window
         nl = nlxnw/nw
         raw_eof = raw_eof.reshape((nl, nw, nm))
-        
+
         if raw: # Do not go back to physical space
-        
+
             self._mssa_fmt_eof = [npy.ascontiguousarray(raw_eof.T)]
-            
+
             if format and self.has_cdat(): # Fromat (CDAT)
                 self._mssa_fmt_eof[0] = cdms2.createVariable(self._mssa_fmt_eof)
                 self._mssa_fmt_eof[0].setAxisList(
                     [self._mode_axis_('mssa'),self._mssa_channel_axis_()])
-                
+
         else: # Get raw data back to physical space
-        
+
             raw_eof = npy.ascontiguousarray(raw_eof) # (nl, nw, nm)
             firstaxes = (self._mode_axis_('mssa'), self._mssa_window_axis_())
             if not self._prepca: # No pre-PCA performed
-                self._mssa_fmt_eof = self.unstack(raw_eof, rescale=False, 
+                self._mssa_fmt_eof = self.unstack(raw_eof, rescale=False,
                     format=format, firstaxes=firstaxes)
-                    
+
             else: # With pre-PCA
-            
-                proj_eof, smodes = self._raw_rec_(self._pca_raw_eof, 
+
+                proj_eof, smodes = self._raw_rec_(self._pca_raw_eof,
                     raw_eof.T.reshape((nm*nw, nl)))
-                self._mssa_fmt_eof = self.unstack(proj_eof, 
+                self._mssa_fmt_eof = self.unstack(proj_eof,
                     rescale=False, format=format, firstaxes = firstaxes)
-                
+
         # Scaling
         if scale:
             if scale is True:
                 scale = npy.ma.sqrt(self._mssa_raw_ev)*nl*nw
             for idata, eof in enumerate(self._mssa_fmt_eof):
                 eof[:] *= scale
-                
+
         # Format (CDAT)
         if format :
             for idata, eof in enumerate(self._mssa_fmt_eof):
@@ -1138,8 +1138,8 @@ class Analyzer(_BasicAnalyzer_, Dataset):
                             eof.long_name += ' of '+atts['long_name']
                         if scale and atts.has_key('units'):
                             eof.units = atts['units']
-                
-            
+
+
         gc.collect()
         if not unmap or raw: return self._mssa_fmt_eof
         return self.unmap(self._mssa_fmt_eof)
@@ -1147,14 +1147,14 @@ class Analyzer(_BasicAnalyzer_, Dataset):
     @_filldocs_
     def mssa_pc(self, raw=False, unmap=True, format=True, **kwargs):
         """Get PCs from MSSA analysis
-        
+
         :Parameters:
 
         :MSSA parameters:
             %(nmssa)s
             %(window)s
             %(prepca)s
-            
+
         :Returns:
             Arrays with the shape ``(nmssa,nt)``
         """
@@ -1162,25 +1162,25 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         # Update params
         self.update_params('mssa', **kwargs)
 
-#        # PC already available 
+#        # PC already available
 #        if not raw and self._mssa_fmt_pc is not None:
 #            return self._mssa_fmt_pc
-            
+
         # No analyses performed?
         if self._mssa_raw_pc is None: self.mssa()
-        
+
         # Raw?
         raw_pc = self._mssa_raw_pc[:,:self._nmssa]
         if raw:
             return raw_pc
-                    
+
         # Mask
         pc = npy.ascontiguousarray(raw_pc.T)
         pc = npy.ma.masked_values(pc, default_missing_value, copy=False)
-        
+
         # Format (CDAT)
         if format and self.has_cdat():
-            
+
             pc = cdms2.createVariable(pc)
             pc.setAxis(0,self._mode_axis_('mssa'))
             pc.setAxis(1,self._mssa_pctime_axis_())
@@ -1188,25 +1188,25 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             pc.standard_name = 'principal_components_of_mssa of '
             pc.long_name = 'MSSA principal components'
             atts = self[0].atts
-            if len(self)==1 and atts.has_key('long_name'): 
+            if len(self)==1 and atts.has_key('long_name'):
                 pc.long_name += atts['long_name']
             #if (len(self)==1 or npy.allclose(self.norms, 1.)) and atts.has_key('units'):
             #   pc.units = atts['units']
 
         self._mssa_fmt_pc = pc
         return pc
-            
-    def mssa_ec(self, xdata=None, xeof=None, xraw=False, 
+
+    def mssa_ec(self, xdata=None, xeof=None, xraw=False,
         raw=False, unmap=True, format=True, replace=False, demean=True, **kwargs):
         """Get expansion coefficients from MSSA analysis
-        
+
         :Parameters:
 
         :MSSA parameters:
             %(nmssa)s
             %(window)s
             %(prepca)s
-            
+
         :Returns:
             Arrays with the shape ``(nmssa,nt)``
         """
@@ -1215,11 +1215,11 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         self.update_params('mssa', **kwargs)
 
         # Remap
-        if not xraw: 
+        if not xraw:
             if xeof is not None: xeof = self.remap(xeof)
             if xdata is not None: xdata = self.remap(xdata)
         xraw = int(xraw)
-           
+
         # ST-EOFs used for projection
         if xeof is None:
             if self._mssa_raw_eof is None: self.mssa()
@@ -1227,14 +1227,14 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         elif xraw:
             raw_eof = xeof
         elif self._prepca: # After PCA
-            raw_eof = self.pca_ec(xdata=xeof, xscale=False, raw=True, 
+            raw_eof = self.pca_ec(xdata=xeof, xscale=False, raw=True,
                 unmap=False, demean=0).T
             raw_eof.shape = -1, self._nmssa
         else:
             eofs = self.remap(xeof)
             raw_eof = npy.ascontiguousarray(self.restack(eofs, scale=False))
             raw_eof.shape = -1, raw_eof.shape[-1] # (nc*nw, nm)
-            del eofs                
+            del eofs
         if self._prepca:
             nw = self._window
             nc = raw_eof.shape[0]/nw
@@ -1242,7 +1242,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
                 raw_eof = raw_eof.reshape(nc, nw, -1)
                 raw_eof = raw_eof[:self._prepca]
                 raw_eof = raw_eof.reshape(self._prepca*nw, -1)
-            
+
         # Data to project on ST-EOFs
         if xdata is None: # From input
             if not self._prepca: # Input data
@@ -1252,32 +1252,32 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         elif int(xraw)==1: # Direct use
             raw_data = xdata
         elif self._prepca: # After PCA
-            raw_data = self.pca_ec(xdata=xdata, raw=True, unmap=False, 
+            raw_data = self.pca_ec(xdata=xdata, raw=True, unmap=False,
                 xraw=xraw==2, demean=int(demean)).T[:self._prepca]
         else:
             data = self.remap(xdata)
             raw_data = self.restack(data, scale=True)
-                
-        
+
+
         # Projection
         raw_data = npy.asfortranarray(raw_data)
         raw_eof = npy.asfortranarray(raw_eof[:, :self._nmssa])
-        raw_ec = _fortran.mssa_getec(raw_data, raw_eof, self.window, 
-            default_missing_value, 
+        raw_ec = _core.mssa_getec(raw_data, raw_eof, self.window,
+            default_missing_value,
             minvalid=self._minecvalid, zerofill=self._zerofill)
-        if replace: 
+        if replace:
             self._cleanattr_('_mssa_raw_pc', raw_ec)
             self._cleanattr_('_mssa_fmt_pc')
         if raw:
             return raw_ec
-            
+
         # Mask
         ec = npy.ascontiguousarray(raw_ec.T) ; del raw_ec
         ec = npy.ma.masked_values(ec, default_missing_value, copy=False)
-        
+
         # Format
         if format and self.has_cdat():
-            
+
             ec = cdms2.createVariable(ec)
             ec.setAxis(0,self._mode_axis_('mssa'))
 #                ec.setAxis(1,self._mssa_pctime_axis_())
@@ -1285,29 +1285,29 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 #                ec.standard_name = 'expansion coefficient_of_mssa of '
             ec.long_name = 'MSSA principal components'
             atts = self[0].atts
-            if len(self)==1 and atts.has_key('long_name'): 
+            if len(self)==1 and atts.has_key('long_name'):
                 ec.long_name += atts['long_name']
             #if (len(self)==1 or npy.allclose(self.norms, 1.)) and atts.has_key('units'):
             #   ec.units = atts['units']
-            
- 
+
+
         return ec
 
 
     @_filldocs_
-    def mssa_ev(self, relative=False, sum=False, cumsum=False, 
+    def mssa_ev(self, relative=False, sum=False, cumsum=False,
         mctest=False, mcnens=100, mcqt=90, format=True, unmap=True, **kwargs):
         """Get eigen values from current MSSA decomposition
 
         :Options:
-        
+
           %(relative)s
           %(sum)s
           %(cumsum)s
-        
-            
+
+
         :MSSA options:
-        
+
             %(nmssa)s
             %(window)s
             %(prepca)s
@@ -1318,22 +1318,22 @@ class Analyzer(_BasicAnalyzer_, Dataset):
                 Size of the ensemble fo compute quantiles.
             - *mcqt*: float|int
                 Value of the higher quantile in %% (the lower is ``100-mcqt``).
-            
+
         :Returns:
-            
+
             - Arrays with shape ``(nmssa,)`` or a float
             - Optionally, ``(ev, evmin, evmax)`` if ``mctest is True``
-            
+
         :Basic example:
-        
+
         >>> span = SpAn(data)
         >>> ev = span.mssa_ev()
         >>> ev_sum = span.mssa_ev(sum=True)
         >>> ev_cumsum = span.mssa_ev(cumsum=True)
         >>> ev_rel = span.mssa_ev(relative=True)
-        
+
         :Monte-Carlo test example:
-        
+
         >>> span = SpAn(data)
         >>> ev, mc_evmin, mc_evmax = span.mssa_ev(mctest=True, mcqt=95, mcnens=100)
         >>> print (ev<evmin)|(ev>evmax)
@@ -1341,49 +1341,49 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 
         # Update params
         self.update_params('mssa', **kwargs)
-        
+
         # No analyses performed?
         if self._mssa_raw_eof is None: self.mssa()
 
         # We only want the sum
         if sum:
             return self._mssa_ev_sum
-            
+
         # Data
         ev = [self._mssa_raw_ev[:self._nmssa], ]
-        
+
         # Mont-Carlo test
         if mctest:
-            
+
             # Get reference data
             if self._prepca:
                 data = self._pca_raw_pc
             else:
                 data = self.stacked_data
-            
+
             # Inits
             rn = RedNoise(data.T) # red noise generator
             mcev = npy.zeros((mcnens, self.nmssa))
-            
+
             # Generate and ensemble of surrogate data
             for iens in xrange(mcnens):
-                
+
                 # Create a sample red noise (nt,nchan)
                 red_noise = rn.sample().T
-                
+
                 # Block-covariance matrix (nchan*nwindow,nchan*nwindow,)
-                cov = _fortran.stcov(npy.asfortranarray(red_noise), 
+                cov = _core.stcov(npy.asfortranarray(red_noise),
                     self.window, default_missing_value)
                 cov = npy.ascontiguousarray(cov)
                 del red_noise
-                
+
                 # Fake eigen values (EOFt.COV.EOF)
                 ce = npy.dot(cov, self._mssa_raw_eof) #; del cov
                 evmat = npy.dot(self._mssa_raw_eof.T, ce) #; del ce
                 mcev[iens] = npy.diag(evmat)[:nmssa] ; del evmat
 
             mcev.sort(axis=0) # Sort by value inside ensemble
-            
+
             # Confidence interval
             # - min
             imini, iminf = divmod((1-mcqt/100.)*(mcnens-1), 1)
@@ -1396,35 +1396,35 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             if int(imaxi) != mcnens-1:
                 evmax += (1-imaxf)*mcev[int(imaxi)] + imaxf*mcev[int(imaxi)+1]
             ev.extend([evmin, evmax])
-            
+
         # Special outputs
         if cumsum:
             ev = [e.cumsum() for e in ev]
-        if relative: 
+        if relative:
             ev = [(100.*e/self._mssa_ev_sum) for e in ev]
 
         # Format the variables
         if format and self.has_cdat():
-            
+
             for i, e in enumerate(ev):
                 ev[i] = self._cdat_ev_(e,  'mssa', relative, cumsum)
             if mctest:
                 ev[1].id += '_mclow'
-                ev[1].long_name += ': lower bound of MC confidence interval (%g%%)'%mcqt 
+                ev[1].long_name += ': lower bound of MC confidence interval (%g%%)'%mcqt
                 ev[2].id += '_mchigh'
                 ev[2].long_name += ': upper bound of MC confidence interval (%g%%)'%(100-mcqt)
-                
+
         return ev[0] if not mctest else ev
 
-            
+
 
 
     @_filldocs_
-    def mssa_rec(self, modes=None, raw=False, 
-        xpc=None, xeof=None, xev=None, xraw=False, 
+    def mssa_rec(self, modes=None, raw=False,
+        xpc=None, xeof=None, xev=None, xraw=False,
         phases=False, rescale=True, format=2, unmap=True, evrenorm=False, **kwargs):
         """Reconstruction of MSSA modes
-        
+
         :Parameters:
             %(modes)s
             %(raw)s
@@ -1432,12 +1432,12 @@ class Analyzer(_BasicAnalyzer_, Dataset):
                 Return phases composites of the reconstructed field.
                 By default, 8 phases are computed. You can psecify
                 the number of phases by passing an integer.
-            
+
         :MSSA parameters:
             %(nmssa)s
             %(window)s
             %(prepca)s
-            
+
         :Returns:
             Arrays with the same shape as input arrays.
         """
@@ -1447,11 +1447,11 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             self._nphase = phases
         elif phases is not False:
             phases = self._nphase
-        
+
         # Remap alternate arrays
         if not xraw and xeof is not None:
             xeof = self.remap(xeof)
-           
+
         # Loop on datasets
         mssa_fmt_rec = {}
         raw = int(raw)
@@ -1479,7 +1479,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         raw_eof = raw_eof.reshape((nc, nw, nm))
         if self._prepca and nc > self.prepca:
             raw_eof = raw_eof[:self.prepca]
-            
+
         # PCs
         if xpc is None: # From PCA
             if self._mssa_raw_pc is None: self.mssa()
@@ -1491,27 +1491,27 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         if npy.ma.isMA(raw_pc):
             raw_pc = raw_pc.filled(default_missing_value)
         raw_pc = raw_pc[:, :self.nmssa]
-        
+
         # Eigenvalues
-        if xev is None: 
+        if xev is None:
             raw_ev = self._mssa_raw_ev
         else:
             raw_ev = npy.asarray(xev)
-        
+
         # Projection
         kw = {} if not evrenorm else {'ev':raw_ev}
         raw_rec, smodes = self._raw_rec_(raw_eof, raw_pc, modes, **kw)
-        
+
         # Back to physical space and format
-        return self._mssa_rec_format_(raw_rec, raw, phases, rescale, format, 
+        return self._mssa_rec_format_(raw_rec, raw, phases, rescale, format,
             unmap, xpc, smodes)
-        
-        
-    def _mssa_rec_format_(self, raw_rec, raw=False, phases=False, rescale=True, 
-        format=2, unmap=True, xpc=None, smodes=''): 
+
+
+    def _mssa_rec_format_(self, raw_rec, raw=False, phases=False, rescale=True,
+        format=2, unmap=True, xpc=None, smodes=''):
         """Format data from an MSSA reconstruction"""
-        
-        
+
+
         # Mask
         if not npy.ma.isMA(raw_rec):
             raw_rec = npy.ma.masked_values(raw_rec,  default_missing_value, copy=False)
@@ -1532,61 +1532,61 @@ class Analyzer(_BasicAnalyzer_, Dataset):
                 taxis = self.get_time()
             else:
                 taxis = self.get_time(nt=raw_rec.shape[1])
-                
+
         # Get raw data back to physical space (nchan,nt)
         if not self.prepca: # No pre-PCA performed
             if raw:
-                
+
                 mssa_fmt_rec = raw_rec
-                
+
                 if format and self.has_cdat() and int(raw)==12: # Formatted
-                
+
                     mssa_fmt_rec = [cdms2.createVariable(raw_rec.T)]
                     mssa_fmt_rec[0].setAxisList([taxis, self._mode_axis_('mssa')])
-                
+
                 return mssa_fmt_rec
-                
+
             else:
                 mssa_fmt_rec = self.unstack(raw_rec, rescale=rescale, format=format,
                     firstaxes=[taxis])
-            
+
         else: # With pre-pca
-            
+
             # Add back the pre-PCs mean
             if rescale:
                 pca_raw_pc_mean = npy.repeat(self._pca_raw_pc_mean, raw_rec.shape[1], 1)
                 raw_rec += pca_raw_pc_mean
                 del pca_raw_pc_mean
-            
+
             # No PCA reprojection
             if int(raw)==1 or int(raw)==12: # Force direct result from MSSA
-        
+
                 if format and self.has_cdat() and int(raw)==12: # Formatted
-                
+
                     mssa_fmt_rec = [cdms2.createVariable(raw_rec.T)]
                     mssa_fmt_rec[0].setAxisList([taxis,self._mode_axis_('mssa')])
-                    
+
                 else: # Pure raw
-                
+
                     mssa_fmt_rec = raw_rec
-                    
+
                 return raw_rec
-                
+
             else: # Reprojection
-            
+
                 # Project
                 proj_rec, spcamodes = \
                     self._raw_rec_(self._pca_raw_eof[:, :self.prepca], raw_rec.T)
-                    
+
                 if int(raw)==2: # Raw results from PCA rec
                     mssa_fmt_rec = proj_rec
-                    
+
                 else: # Back to original format
                     mssa_fmt_rec = self.unstack(proj_rec, rescale=rescale, format=format,
                         firstaxes=[taxis])
-                
+
         del  raw_rec
-        
+
         # Remove the mean for phases
         if phases:
             if raw:
@@ -1594,7 +1594,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             else:
                 for rec in mssa_fmt_rec:
                     rec[:] -= rec.mean(axis=0)
-        
+
         # Set attributes
         if format:
             for idata,rec in enumerate(mssa_fmt_rec):
@@ -1613,35 +1613,35 @@ class Analyzer(_BasicAnalyzer_, Dataset):
                 atts = self[idata].atts
                 if atts.has_key('long_name'):
                     rec.long_name += ' of '+atts['long_name']
-                    
+
         if unmap: return self.unmap(mssa_fmt_rec)
         return mssa_fmt_rec
-    
+
     def mssa_phases(self, pair, nphase=8, format=True, unmap=True, **kwargs):
         """Build phase composites using an MSSA pair
-        
+
         .. note::
-        
+
             This method is special call to :meth:`mssa_rec`
             where ``nphase`` is not zero and ``modes`` are set
             to ``pair``.
-        
+
         :Parameters:
-        
+
             - *pair*: A tuple designating the pair of mode to
               reconstruct. If a integer is given, this mode and the
               the following are used.
-              
+
         :Options:
-        
+
             - *iset*: the dataset to work on.
             - *nphase*: The number of phase composites.
             - Other options are passed to :meth:`mssa_rec`
-            
+
         """
         if isinstance(pair, int):
             pair = (pair, pair+1)
-        
+
         return self.mssa_rec(modes=pair, phases=nphase, format=format, remap=remap)
 
 #    def rec(self, anatype=None, *args, **kwargs):
@@ -1660,12 +1660,12 @@ class Analyzer(_BasicAnalyzer_, Dataset):
     def clean(self, pca=True, mssa=True):
         """(Re-)Initialization"""
         anatypes = []
-        if pca: 
+        if pca:
             anatypes.append('pca')
             mssa = True
-        if mssa: 
+        if mssa:
             anatypes.append('mssa')
-        
+
         # Register what to clean
         nones = []
         for aa in anatypes:
@@ -1684,7 +1684,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         for ll,init in [(nones, None), (dicts, dict)]:#,(lists,list):
             for att in ll:
                 self._cleanattr_(att, init)
-                
+
         # Integers
 #        self.nd = 0
         self._nphase = 8
@@ -1694,10 +1694,10 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 
     def get_npca(self):
         """Get :attr:`npca`
-        
+
         :Returns:
             integer
-        """ 
+        """
         return self._npca
     def set_npca(self, npca):
         """Set :attr:`npca`"""
@@ -1706,17 +1706,17 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 
     def get_prepca(self):
         """Get :attr:`prepca`
-        
+
         :Returns:
             integer
-        """ 
+        """
         return self._prepca
     def set_prepca(self, prepca):
         """Set :attr:`prepca`"""
         self.update_params(prepca=prepca)
-    prepca = property(get_prepca, set_prepca, 
+    prepca = property(get_prepca, set_prepca,
         doc="Number of PCA modes used before MSSA or SVD for d.o.f reduction")
-        
+
     def get_useteof(self):
         return self._useteof
     def set_useteof(self, value):
@@ -1724,10 +1724,10 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         return self._useteof
     useteof = property(fget=get_useteof, fset=set_useteof, doc="Use T-EOFs for PCA?")
 
-                
+
     def get_nmssa(self):
         """Get :attr:`nmssa`
-        
+
         :Returns:
             integer or tuple
         """
@@ -1736,15 +1736,15 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         """Set :attr:`nmssa`"""
         self.update_params(nmssa=nmssa)
     nmssa = property(get_nmssa, set_nmssa, doc="Number of MSSA modes")
-        
+
     def get_window(self, absolute=False):
         """Get :attr:`window`
-        
-        :Options: 
-        
-            - *absolute*: if False, return the window relative to time length, 
+
+        :Options:
+
+            - *absolute*: if False, return the window relative to time length,
               else return the effective window (multiplied by nt)
-        
+
         :Returns:
             integer or tuple
         """
@@ -1762,7 +1762,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         if self.prepca:
             return self.prepca
         return self.ns
-    nc = property(get_nc, 
+    nc = property(get_nc,
         doc="Number of channels used for MSSA: either :attr:`prepca` or :attr:`ns`")
 
 #    #################################################################
@@ -1771,7 +1771,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 #
 #    def _map_(self, datasets, sequential):
 #        """Make datasets in the right form (a list of variables or lists of variables)"""
-#        
+#
 #         # Input data tree type
 #        if not isinstance(datasets, (tuple, list)):
 #            self.tree_type = 0
@@ -1783,43 +1783,43 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 #                    break
 #            else:
 #                if sequential: self.tree_type = 2
-#                
+#
 #        # Group variables if needed
 #        if self.tree_type < 2:
 #            datasets = [datasets]
-#            
+#
 #        self._datasets = datasets
 #        self.nd = len(datasets)
-            
+
 #    def _remap_(self, values, reshape=True, fill_value=None, grouped=False):
 #        """Makes sure that values is a list (or tuple) of length :attr:`ndatasets`
-#        
+#
 #        :func:`broadcast` is called when reshaping.
-#        """ 
+#        """
 #        # We always need a sequence
 #        if not isinstance(values, (tuple, list)):
 #            values = [values]
-#           
+#
 #        # Check length
 #        if not grouped and values[0] is not None and not isinstance(values[0], (tuple, list)):
 #            values = [values]
-#        if len(values)!=len(self): 
+#        if len(values)!=len(self):
 #            if not reshape:
 #                self.error('Wrong number of input items (%i instead of %i)'
 #                    %(len(values), len(self)))
 #            values = broadcast(values, len(self), fill_value)
-#            
+#
 #        return values
-        
+
 #    def _unmap_(self, values, grouped=None):
 #        """Return values as input dataset (depth and shapes)
-#        
+#
 #        :Params:
-#        
+#
 #            - **values**: List, list of lists or dictionary with integers as keys.
 #            - **grouped**, optional: Do not unmap as the :class:`Dataset` level.
 #        """
-#        
+#
 #        # Convert list to dictionary
 #        if isinstance(values, list):
 #            if grouped is None: grouped = not isinstance(values[0], list)
@@ -1830,22 +1830,22 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 #        else:
 #            if grouped is None: grouped = False
 #            values = copy.copy(values)
-#        
-#        # Loop on datasets  
+#
+#        # Loop on datasets
 #        ret = ()
 #        for iset in sorted(values.keys()):
 #            val = values[iset]
 #            if not grouped:
 #                val = self[iset].unmap(val)
-#            ret += val, 
-#            
+#            ret += val,
+#
 #        if self.tree_type<2:
 #            return ret[0]
 #        return ret
 
-        
-        
-    
+
+
+
 #    def _input_raw_(self, input, alt):
 #        if input is None:
 #            return alt
@@ -1863,10 +1863,10 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 #                out[i] = input
 #        return out
 
-        
+
     def _raw_rec_(self, raw_eof, raw_pc, imodes=None, ev=None):
         """Generic raw reconstruction of modes for pure PCA, MSSA or SVD, according to EOFs and PCs, for ONE DATASET
-        
+
         raw_eof: (nspace,nmode)
         raw_pc: (nt,nmode)
         """
@@ -1874,7 +1874,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 #        # Get EOFs and PCs for one dataset
 #        if isinstance(raw_eof, (list, tuple, dict)): raw_eof = raw_eof[iset]
 #        if isinstance(raw_pc, (list, tuple, dict)): raw_pc = raw_pc[iset]
-#        
+#
         # Sizes
         ns = raw_eof.shape[0]
         nt = raw_pc.shape[0]
@@ -1883,46 +1883,46 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             raw_eof = raw_eof.reshape((ns*nw, -1))
             nt += nw-1
         else:
-            nw = 0            
-           
+            nw = 0
+
         # Which modes
         nmode = raw_eof.shape[-1]
         imodes = self._get_imodes_(imodes, nmode)
 
         # Function of reconstruction
         if nw:
-            function = _fortran.mssa_rec # MSSA
+            function = _core.mssa_rec # MSSA
         else:
-            function = _fortran.pca_rec  # PCA/SVD
+            function = _core.pca_rec  # PCA/SVD
 
         # Arguments
-        if npy.ma.isMA(raw_pc): 
+        if npy.ma.isMA(raw_pc):
             raw_pc = raw_pc.filled(default_missing_value)
-        if npy.ma.isMA(raw_eof): 
+        if npy.ma.isMA(raw_eof):
             raw_eof = raw_eof.filled(default_missing_value)
         args = [npy.asfortranarray(var) for var in [raw_eof, raw_pc]]
         if nw:
             args.extend([ns, nt, nw])
-            
+
         # Loop no modes
         smodes = []
         ffrec = 0.
         for j, ims in enumerate(imodes):
-            
+
             # python -> fortran index
             ims[0] += 1
             ims[1] += 1
-            
+
             # check modes
             if ims[0] > nmode: break
             if ims[1] > nmode: ims = (ims[0], nmode)
-            
+
             # add modes to args
             targs = args+list(ims)
             targs += [default_missing_value]
             if ev is not None:
                 targs += [ev]
-            
+
             # fortran call
             try:
                 raw_rec, errmsg = function(*targs)
@@ -1931,14 +1931,14 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             self.check_fortran_errmsg(errmsg)
             raw_rec = npy.ascontiguousarray(raw_rec) # (nc,nt)
             ffrec += npy.ma.masked_values(raw_rec, default_missing_value, copy=False)
-            
+
             # mode specs as a string
             if ims[0] == ims[1]:
                 smode = str(ims[0])
             else:
                 smode = '%i-%i'%tuple(ims)
             smodes.append(smode)
-            
+
         return ffrec,'+'.join(smodes)
 
 
@@ -1964,15 +1964,15 @@ def phase_composites(data,  nphase=8, minamp=.5, firstphase=0, index=None, forma
       synthetic view of a reconstructed MSSA oscillation.
 
     :Parameters:
-    
+
         - *data*: A variable with a time as the first dimension.
-          
+
     :Options:
-    
+
         - *nphase*: Number of phases (divisions of the cycle)
         - *minamp*: Minimal value of retained data, relative to standard deviation.
         - *firstphase*: Position of the first phase in the 360 degree cycle.
-        - *index*: Index to identify phases. If ``None``, the first PC is used 
+        - *index*: Index to identify phases. If ``None``, the first PC is used
            (see :meth:`SpAn.pca_pc`).
         - *format: If ``data`` is not a :class:`MV2.array` (CDAT) array,
           and CDAT is supported, output is a class:`MV2.array` array.
@@ -1980,7 +1980,7 @@ def phase_composites(data,  nphase=8, minamp=.5, firstphase=0, index=None, forma
     :Returns:
         A ``numpy.ma.array`` (masked array).
     """
-    
+
     # Get the first PC and its smoothed derivative
     if index is None:
         pc = SpAn(data).pca_pc(npca=1, quiet=True, format=False)[0]
@@ -1993,7 +1993,7 @@ def phase_composites(data,  nphase=8, minamp=.5, firstphase=0, index=None, forma
     if len(pc) > 2: # 1,2,1 smooth
         dpc[1:-1] = npy.convolve(dpc, [.25, .5, .25], 'valid')
     dpc[:] = dpc/dpc.std() # normalization
-    
+
     # Get amplitude and phase indexes
     amplitudes = npy.hypot(pc, dpc)
     angles = npy.arctan2(dpc, pc)
@@ -2001,10 +2001,10 @@ def phase_composites(data,  nphase=8, minamp=.5, firstphase=0, index=None, forma
     angles[:] = npy.where(angles >= 2*npy.pi-dphase*.5, angles-dphase*.5, angles)
     marks = dphase * (npy.arange(nphase+1) - .5) + firstphase*npy.pi/360.
     angles = (angles-marks[0])%(npy.pi*2)+marks[0]
-    
+
     # Count
     indexes = npy.digitize(angles,marks)-1
-    
+
     # Initialize output variable
     if format or cdms2_isVariable(data):
         if not cdms2_isVariable(data): data = MV2.asarray(data)
@@ -2022,7 +2022,7 @@ def phase_composites(data,  nphase=8, minamp=.5, firstphase=0, index=None, forma
         data = npy.ma.asarray(data)
         phases = npy.resize(data[0], (nphase, )+data.shape[1:])
     phases[:] = MV2.masked
-    
+
     # Loop on circular bins to make composites
     slices = [slice(None), ]*phases.ndim
     idx = npy.arange(data.shape[itaxis])
@@ -2032,80 +2032,80 @@ def phase_composites(data,  nphase=8, minamp=.5, firstphase=0, index=None, forma
         inbin &= angles >= marks[iphase]
         inbin &= angles < marks[iphase+1]
         phases[tuple(slices)] = data.compress(inbin, axis=itaxis).mean(axis=itaxis)
-        
+
     return phases
 
- 
+
 
 class RedNoise(object):
     """Create a red noise generated based on lag-0 and lag-1 autocovariances of a variable
-        
+
     :Algorithmm: The algorithm method follows [Allen_and_Smith_1996] use the following formula.
-    
+
         - The red noise is an autoregressive process of order 1 (AR(1)):
-        
+
           .. math:: u_t = u_0 + \gamma(u_{t-1}-u_0) + \alpha z_t
-          
+
           where :math:`z` is a white noise of unit variance.
 
         - Its Lag-l autocovariance is:
-        
+
           .. math:: c_l = \frac{\alpha^2\gamma^l}{1-\gamma^2}
-        
-        - Estimator of the lag-l autocovariance of a sample: 
+
+        - Estimator of the lag-l autocovariance of a sample:
 
           .. math:: \hat{c}_l = \frac{1}{N-l} \sum_{i=1}^{N-l} (d_i-\bar{d})(d_{i+l}-\bar{d})
 
         - Bias of the variance of surrogates generated using :math:`\gamma` and :math:`\alpha`:
-        
-          .. math:: 
-          
+
+          .. math::
+
             \mu^2(\gamma) = \frac{1}{N} + \frac{1}{N^2} \left[ \frac{N-\gamma^N}{1-\gamma}-
             \frac{\gamma(1-\gamma^{N-1})}{(1-\gamma)^2} \right]
-            
+
         - Corrected estimator of the lag-l covariance:
-        
+
           .. math:: \tilde{c}_l \equiv \hat{c}_l + \hat{c}_0 \gamma^2
-          
+
         - Corrected :math:`\tilde{\gamma}` is the solution of :
-        
-          .. math:: 
-          
-            \frac{\hat{c}_1}{\hat{c}_0}  = 
+
+          .. math::
+
+            \frac{\hat{c}_1}{\hat{c}_0}  =
             \frac{\tilde{\gamma}-\mu^2(\tilde{\gamma})}{1-\mu^2(\tilde{\gamma})}
-            
+
           using a Newton-Raphson algorithm.
-            
+
         - We now have : :math:`\tilde{c}_0 = \hat{c}_0/(1-\mu^2(\tilde{\gamma}))` .
         - :math:`\tilde{\alpha}` is estimated using the second equation.
         - The red noise is then generated using the first formula above.
-    
+
     :Parameters: *data*: array with time as first dimension
-    
+
     :Example:
-    
+
     >>> noiser = RedNoise(data)
     >>> noise1 = noiser.sample()
     >>> noise2 = noiser.sample()
     """
-    
+
     # Bias
     mu2 = classmethod(lambda cls,  g, N: -1./N + 2./N**2 * ( (N-g**N)/(1-g) + (g**N-g)/(1-g)**2 ))
-    
+
     # Derivative of the bias with respect to gamma
     dmu2dg = classmethod(lambda cls, g, N: 2.*( -(N+1)*g**N + (N-1)*g**(N+1) + (N+1)*g -N+1 ) / ( N**2*(g-1)**3 ))
-    
+
     # Newtown iterations
     nitermax = 6
-    
+
     # Unbiased gamma
     ubg = classmethod(lambda cls, g, N: (g-RedNoise.mu2(g, N))/(1-RedNoise.mu2(g, N)))
-    
-    # Derivative of the unbiased gamma with respect to gamma 
+
+    # Derivative of the unbiased gamma with respect to gamma
     dubgdg = classmethod(lambda cls, g, N: (1-RedNoise.mu2(g, N)-RedNoise.dmu2dg(g, N)*(1-g)) / (1-RedNoise.mu2(g, N))**2)
-    
+
     def __init__(self, data):
-        
+
         # Get biased statistics (nchan)
         data = data-data.mean(axis=0)
         nt = data.shape[0]
@@ -2114,14 +2114,14 @@ class RedNoise(object):
         c1 /= (nt-1)
         self.shape = data.shape
         del data
-        
+
         # Find the bias and gamma (Newton-Raphson algo)
         gamma0 = c1/c0
         self.gamma = c1/c0
         for i in xrange(0, self.nitermax):
             self.gamma -= (self.ubg(self.gamma, nt)-gamma0)/self.dubgdg(self.gamma, nt)
         self.bias = self.mu2(self.gamma, nt)
-        
+
         # Corrections
         c0 /= (1-self.bias)
 
@@ -2132,7 +2132,7 @@ class RedNoise(object):
         self.gg = npy.repeat(self.gamma[npy.newaxis, :], nt, axis=0) # (nt,nchan)
         self.gg = self.gg.cumprod(axis=0, out=self.gg)
 
-    
+
     def sample(self):
         """Get a red noise sample fitted to input data"""
         white_noise = npy.random.randn(*self.shape) # (nt,nchan)
@@ -2159,4 +2159,4 @@ def freqfilter(data, low_freq, high_freq, **kwargs):
         if freq_max < low_freq or freq_max > high_freq:
             modes.append(mode)
     return span.mssa_rec(modes=modes)
-        
+

@@ -1,8 +1,6 @@
 import unittest
 import numpy as N
 import os, sys
-from util import insert_local_path
-insert_local_path()
 sys.path.insert(0, '../lib')
 
 from spanlib_python import Dataset

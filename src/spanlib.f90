@@ -21,12 +21,13 @@
 module spanlib
 
     implicit none
-    
+
     integer, parameter :: ierr_warning=0, ierr_error=1
     real(8), parameter :: default_missing_value=1d20, &
-        & mvtol=epsilon(1.)
-    
-    
+        & mvtol=epsilon(1d0)
+
+!    private :: pca_optec_funjac
+
 contains
 
     ! ############################################################
@@ -39,7 +40,7 @@ contains
 !     & minecvalid=minecvalid, zerofill=zerofill, errmsg=errmsg)
 
 subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
-    notpc, minecvalid, zerofill, errmsg)
+    notpc, minecvalid, zerofill, optec, errmsg)
     ! **Principal Component Analysis**
     !
     ! :Description:
@@ -49,7 +50,7 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
     !    By default, the analysis computes  "temporal" (T) or classical
     !    spatial (S) EOFs depending on if the space dimension is greater
     !    than the time dimension. This default behavior can be overridden.
-    
+
     !
     ! :Necessary arguments:
     !
@@ -63,10 +64,12 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
     !    - *ev (nkeep)*: Mode array of eigen values (variances)
     !    - *ev_sum*: Sum of all egein values (even thoses not returned)
     !    - *useteof*: To force the use of T or S EOFs [0 = T, 1 = S, -1 = default]
+    !    - *optec*: Optimize expansion coefficients [1 = True, 0 = False, -1 =
+    !                 True if gaps]
     !    - *mv**: Missing value
     !
     ! :Dependencies:
-    !    :func:`dgemm` (BLAS) :func:`dsyrk` (BLAS) :func:`dsyev` (LAPACK) 
+    !    :func:`dgemm` (BLAS) :func:`dsyrk` (BLAS) :func:`dsyev` (LAPACK)
 
 
     ! Declarations
@@ -85,7 +88,7 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
     integer,  intent(in),  optional :: useteof, & ! Use Spatial or Temporal EOFs  [0 = T, 1 = S, -1 = default]?
                                     notpc
     real(8), intent(out), optional :: ev_sum ! Sum of eigen values (total variance)
-    integer, intent(in), optional :: zerofill, minecvalid
+    integer, intent(in), optional :: zerofill, minecvalid, optec
     character(len=120), intent(out), optional :: errmsg ! Logging message (len=120)
 
     ! Internal
@@ -93,14 +96,14 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
     integer               :: ns, nt, odim, cdim
     real(8), allocatable :: cov(:,:), subcov(:,:), nn(:,:)
     real(8), allocatable :: zeof(:,:), zvar(:,:), zmean(:)
-    real(8), allocatable :: zev(:), work(:)
+    real(8), allocatable :: zev(:), work(:), ztmp(:,:)
     integer(4), allocatable :: valid(:,:)
     integer :: zuseteof, znkeepmax, i, la_info, lwork, im, nc, no, &
-        & nsv, ntv, it, ic, io
+        & nsv, ntv, it, ic, io, zoptec
     integer(4), allocatable :: iselects(:), iselectt(:)
     character(len=120) :: msg
     character(len=1) :: trflag
-    real(8) :: zmv, zdmv, zevsumt, zevsums, w0
+    real(8) :: zmv, zdmv, zevsumt, zevsums, w0, znorm
     logical :: zusetpc
 
     ! Setups
@@ -119,7 +122,7 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
         endif
         return
     end if
-    
+
     ! Missing value
     if(present(mv))then
         zmv = mv
@@ -131,7 +134,8 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
     else
         zdmv = 1d0/zmv
     endif
-    
+    zoptec = -1
+    if(present(optec)) zoptec = optec
 
     ! What does the user want?
     ! ------------------------
@@ -149,13 +153,13 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
 
     ! Valid data in 2D space
     ! ----------------------
-    
+
     ! Valid in the 2D space
     allocate(valid(ns, nt))
     if(present(zerofill).and.zerofill==1)then
         valid = 1
     else
-        valid = merge(0, 1, abs((var-zmv)*zdmv)<=mvtol*100)
+        valid = merge(0, 1, abs((var-zmv)*zdmv)<=mvtol)
     endif
     if(all(valid==0))then
         if(present(errmsg))&
@@ -169,12 +173,12 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
     allocate(iselects(nsv),iselectt(ntv))
     iselects = pack((/(i,i=1,ns)/), any(valid==1, dim=2))
     iselectt = pack((/(i,i=1,nt)/), any(valid==1, dim=1))
-    
+
     ! By default, T-EOF decompostion if nsv > ntv
     ! -------------------------------------------
     zuseteof = -1
     if(present(useteof))zuseteof = useteof
-    if(zuseteof<0)then     
+    if(zuseteof<0)then
         if(nsv>ntv)then
             zuseteof=1
         else
@@ -196,7 +200,7 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
         odim = 2
         cdim = 1
     endif
-  
+
     ! Case where data are always missing
     ! ----------------------------------
 
@@ -214,7 +218,7 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
     end if
 100     format('You want to keep a number of PCs greater than the number of valid', &
         & A, X, I2)
-        
+
     ! Working var array
     allocate(zvar(nsv, ntv))
     zvar = var(iselects, iselectt)
@@ -234,7 +238,7 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
 
     ! Covariances and variances
     ! -------------------------
-    
+
     ! Covariances
     allocate(nn(nc,nc))
     allocate(cov(nc,nc))
@@ -257,7 +261,7 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
         enddo
     endif
     if(.not.present(pc))deallocate(valid)
-   
+
     ! Diagonalization (cov: input=cov, output=eof)
     ! --------------------------------------------
     allocate(zev(nc))
@@ -280,7 +284,7 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
             write(*,*)errmsg
         return
     endif
-    deallocate(work) 
+    deallocate(work)
 
     ! Eigenvalues
     ! -----------
@@ -288,73 +292,94 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
     zev = merge(0d0, zev, zev<0)
     if(zuseteof==1)zev = zev * zevsums / zevsumt
     if(present(ev))ev = zev(nc:nc-nkeep+1:-1)
-    
+
     ! EOFs
     ! ----
     if(present(pc).or.present(xeof))then
-        
+
         allocate(zeof(ns,nkeep))
         zeof = zmv
-        
+
         if(zuseteof==1)then ! T-EOF
-        
-            ! PC->EOF: ZVAR*PC=EOF (USE PCA_GETEC ?)
+
+            ! PC->EOF: ZVAR*PC=EOF
             allocate(subcov(nc,nkeep))
             subcov = cov(:,nc:nc-nkeep+1:-1)
             deallocate(cov)
-            zeof(iselects,:) = matmul(zvar, subcov)
-!            call dgemm('N', 'N', nsv, nkeep, nc, 1d0, &
-!                & zvar, nsv, subcov, nc, 0d0, zeof, nsv)
+            allocate(ztmp(no,nkeep))
+!            ztmp = matmul(zvar, subcov)
+            call sl_pca_getec( &
+                & transpose(merge(zvar, zmv, valid(iselects,iselectt)==1)), &
+                & subcov, ztmp, zmv, demean=0, optimize=optec)
             deallocate(zvar)
-            
+            zeof(iselects,:) = ztmp
+            deallocate(ztmp)
+
+
+!            ! Direct PC
+!            if(zusetpc)then
+!
+!                if(present(zerofill).and.zerofill>=1)then
+!                    pc = 0d0
+!                else
+!                    pc = zmv
+!                endif
+!                pc(iselectt,:) = subcov
+!                do im = 1, nkeep
+!                    pc(iselectt, im) = pc(iselectt, im)*sqrt(dble(nc)*zev(nc-im+1))
+!                end do
+!
+!            end if
+
+!            ! Effect of mask
+!            do i = 1, nsv
+!                do im = 1, nkeep
+!                    w0 = sum(subcov(:, im)**2*dble(valid(iselects(i), iselectt)))
+!                    if(w0>tiny(0d0))zeof(iselects(i), im) = zeof(iselects(i), im) / w0
+!                enddo
+!            enddo
+!            deallocate(subcov)
+
+            ! Normalize EOFs
+            do im = 1, nkeep
+                znorm = sqrt(sum(zeof(iselects,im)**2))
+                zeof(iselects,im) = zeof(iselects,im) / znorm
+                if(zusetpc) subcov(iselectt, im) = subcov(iselectt, im) * znorm
+            end do
+
+
             ! Direct PC
-            if(zusetpc)then
-            
+            if(zusetpc )then
                 if(present(zerofill).and.zerofill>=1)then
                     pc = 0d0
                 else
                     pc = zmv
                 endif
                 pc(iselectt,:) = subcov
-                do im = 1, nkeep
-                    pc(iselectt, im) = pc(iselectt, im)*sqrt(dble(nc)*zev(nc-im+1))
-                end do
-                
-            end if
-            
-            ! Effect of mask
-            do i = 1, nsv
-                do im = 1, nkeep
-                    w0 = sum(subcov(:, im)**2*dble(valid(iselects(i), iselectt)))
-                    if(w0>tiny(0d0))zeof(iselects(i), im) = zeof(iselects(i), im) / w0
-                enddo
-            enddo
+
+            endif
             deallocate(subcov)
-            
-            ! Norm
-            do im = 1, nkeep
-                zeof(iselects,im) = zeof(iselects,im) / sqrt(sum(zeof(iselects,im)**2 ))
-            end do
-            
-        else ! S-EOF
-        
+
+
+        else ! S-EOF (classic case)
+
             zeof(iselects,:) = cov(:,nc:nc-nkeep+1:-1)
-            
+
         end if
-    
+
     else
         deallocate(cov)
     endif
 
     ! First valid channel of an EOF is >= 0
-    do im = 1, nkeep 
+    do im = 1, nkeep
         if(zeof(iselects(1), im)<0)then
             zeof(iselects, im) = -zeof(iselects, im)
             if(zusetpc)pc(iselectt, im) = -pc(iselectt, im)
         endif
     enddo
 
-       
+
     ! Sum of all eigenvalues (useful for percentils)
     ! ----------------------------------------------
     if(present(ev_sum)) ev_sum = zevsums
@@ -366,12 +391,12 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
     ! Finally get PCs
     ! ===============
     if(present(pc) .and. .not.zusetpc)then
-            
+
         call sl_pca_getec(var, zeof, pc, mv=zmv, &
             & ev=zev(nc:nc-nkeep+1:-1), minvalid=minecvalid, &
             & zerofill=merge(1,0,present(zerofill).and.zerofill==2), &
-            & demean=1)
-            
+            & demean=1, optimize=optec)
+
     end if
 
 end subroutine sl_pca
@@ -382,7 +407,7 @@ end subroutine sl_pca
 !############################################################
 
 
-subroutine sl_pca_getec(var, xeof, ec, mv, ev, minvalid, zerofill, demean)
+subroutine sl_pca_getec(var, xeof, ec, mv, ev, minvalid, zerofill, demean, optimize)
     ! **Compute PCA expansion coefficients**
     !
     ! :Description:
@@ -410,16 +435,15 @@ subroutine sl_pca_getec(var, xeof, ec, mv, ev, minvalid, zerofill, demean)
     real(8), intent(in)           :: var(:,:), xeof(:,:)
     real(8), intent(out)          :: ec(size(var,2),size(xeof,2))
     real(8), intent(in), optional :: mv, ev(size(xeof,2))
-    integer, intent(in), optional :: minvalid, zerofill
-    integer, intent(in), optional :: demean
+    integer, intent(in), optional :: minvalid, zerofill, demean, optimize
 
     ! Internal
     ! --------
     real(8), allocatable :: zvar(:,:), norm(:), zeof(:,:), zmean(:)
     real(8) :: zmv, zdmv
     integer :: ns, nt, nkeep, im, it, nc, ic
-    integer,allocatable :: valid(:,:)
-    integer :: zminvalid
+    integer, allocatable :: valid(:,:)
+    integer :: zminvalid, zoptimize
     logical :: zf
     logical, allocatable :: cvalid(:)
     integer(4), allocatable :: iselect(:), zcount(:)
@@ -432,10 +456,11 @@ subroutine sl_pca_getec(var, xeof, ec, mv, ev, minvalid, zerofill, demean)
     ns = size(var,1)
     nt = size(var,2)
     nkeep = size(xeof,2)
+!print*,'getec ns nt',ns,nt
 
     ! Missing values
     ! --------------
-    
+
     ! Missing value
     if(present(mv))then
         zmv = mv
@@ -447,7 +472,7 @@ subroutine sl_pca_getec(var, xeof, ec, mv, ev, minvalid, zerofill, demean)
     else
         zdmv = 1d0/zmv
     endif
-    
+
     ! Valid data and compression
     allocate(valid(ns,nt), cvalid(ns))
     cvalid = abs((xeof(ns,1)-zmv)*zdmv)>mvtol
@@ -460,13 +485,13 @@ subroutine sl_pca_getec(var, xeof, ec, mv, ev, minvalid, zerofill, demean)
     zvar = merge(var(iselect,:), 0d0, valid(iselect,:)==1)
     zeof = xeof(iselect, :)
     where(abs((zeof-zmv)*zdmv)<=mvtol)zeof = 0d0
-    
+
     ! Min number of valid values for projections
     if(present(minvalid).and.minvalid/=0)then
         zminvalid = minvalid
-        
+
     else
-        zminvalid = -50
+        zminvalid = 1
     endif
     zminvalid = max(zminvalid, -100)
     if(zminvalid<0)zminvalid = -nc*zminvalid/100
@@ -490,29 +515,37 @@ subroutine sl_pca_getec(var, xeof, ec, mv, ev, minvalid, zerofill, demean)
     ! ----------
     call dgemm('T', 'N', nt, nkeep, nc, 1d0, zvar, nc, zeof, nc, 0d0, ec, nt)
     deallocate(zvar)
-    
+
     ! Normalisations
     ! --------------
-    allocate(norm(nt))
-    do im = 1, nkeep
-    
-        ! Scale each time step depending on mask
-        do it=1, nt
-            norm(it) =  sum(zeof(:,im)**2 * dble(merge(1,valid(iselect,it),zf)))
-        enddo       
-        ec(:,im) = ec(:,im) / merge(norm, 1d0, norm/=0d0)
-        
-        ! Norm using eigenvalues
-        if(present(ev) .and. any(ec>tiny(1d0)))then
-            if(ev(im)>tiny(1d0))then
-                ec(:,im) = ec(:,im) * sqrt(dble(nt)*ev(im)/sum(ec(:,im)**2))
-!            else
-!                ec(:,im) = 0d0
-            endif
-        endif
-        
-    end do
-    deallocate(norm,zeof)
+!    allocate(norm(nt))
+!    do im = 1, nkeep
+!
+!        ! Scale each time step depending on mask
+!        do it=1, nt
+!            norm(it) =  sum(zeof(:,im)**2 * dble(merge(1,valid(iselect,it),zf)))
+!        enddo
+!        ec(:,im) = ec(:,im) / merge(norm, 1d0, norm/=0d0)
+!
+!        ! Norm using eigenvalues
+!        if(.false. .and. present(ev) .and. any(ec>tiny(1d0)))then
+!            if(ev(im)>tiny(1d0))then
+!                ec(:,im) = ec(:,im) * sqrt(dble(nt)*ev(im)/sum(ec(:,im)**2))
+!!            else
+!!                ec(:,im) = 0d0
+!            endif
+!        endif
+!
+!    end do
+!    deallocate(norm,zeof)
+
+
+    ! Optimize
+    ! --------
+    zoptimize = -1
+    if(present(optimize)) zoptimize = optimize
+    if(zoptimize==-1 .and. any(valid(iselect,:)==0) ) zoptimize = 1
+    if(zoptimize==1) call sl_pca_optec(var, xeof, ec, mv, demean=demean)
 
     ! Mask insignificant value
     ! ------------------------
@@ -523,6 +556,178 @@ subroutine sl_pca_getec(var, xeof, ec, mv, ev, minvalid, zerofill, demean)
 
 end subroutine sl_pca_getec
 
+
+!############################################################
+!############################################################
+!############################################################
+
+
+subroutine sl_pca_optec(var, xeof, ec, mv, demean)
+
+    ! **Get expansion coefficients when there are gaps in var**
+    !
+    ! :Description:
+    !
+    !    The optimization is minimizes the reconstruction error.
+    !
+    ! :Necessary arguments:
+    !
+    !    - *var (ns,nt)*: Space-time data array
+    !    - *xeof (ns,nm)*: Space-mode array of EOFs
+    !    - *ec (nt,nm)*: Time-mode of expansion coefficients (inout)
+    !    - *mv*: Missing value
+    !
+
+    ! External
+    implicit none
+    real(kind=8), intent(in) :: xeof(:,:), var(:,:)
+    real(kind=8), intent(out) :: ec(:,:)
+    real(kind=8), intent(in), optional :: mv
+    integer, intent(in), optional :: demean
+
+    ! Local
+    integer :: ns, nt, nm, m, IPRINT(2), IFLAG, icall, it, MP, LP, zdemean
+    parameter(m=7)
+    real(kind=8), allocatable :: diff(:), G(:), W(:), DIAG(:), zvar(:,:), &
+        & zmean(:), zcount(:)
+    logical :: diagco
+    logical, allocatable :: beof(:), bec(:), bvar(:,:)
+    real(kind=8) :: F, GTOL, STPMIN, STPMAX, EPS, XTOL, norm, zmv
+    EXTERNAL LB2
+    COMMON /LB3/MP, LP, GTOL, STPMIN, STPMAX
+
+    ! Dimensions
+    ! ----------
+    ns = size(var, 1)
+    nt = size(var, 2)
+    nm = size(xeof, 2)
+!print*,'optec ns,nt,nm ',ns,nt,nm
+    ! Gaps
+    ! ----
+    if(present(mv))then
+        zmv = mv
+    else
+        zmv = default_missing_value
+    endif
+    allocate(beof(ns), bec(nt), bvar(ns,nt))
+    bvar = abs(var-zmv)>abs(mvtol*zmv)
+    beof = abs(xeof(:,1)-zmv)>abs(mvtol*zmv)
+    bec = abs(ec(:,1)-zmv)>abs(mvtol*zmv)
+    do it = 1, nt
+        bvar(:, it) = bvar(:, it) .and. beof
+    enddo
+    allocate(zvar(ns,nt))
+    zvar = merge(var, 0d0, bvar)
+    if(.not.any(bvar))then
+        ec = zmv
+        return
+    endif
+
+    ! Remove the mean along T
+    ! -----------------------
+    zdemean = 1
+    if(present(demean))zdemean = demean
+    if(zdemean==1)then
+        allocate(zmean(ns), zcount(ns))
+        zcount = sum(merge(1d0, 0d0, bvar), dim=2)
+        zmean = sum(zvar, dim=2) / merge(1d0, zcount, zcount==0)
+        do it = 1, nt
+            zvar(:,it) = zvar(:,it) - zmean
+        enddo
+        deallocate(zmean, zcount)
+    endif
+
+    ! First guess
+    ! -----------
+    ec = matmul(transpose(zvar), merge(xeof, 0d0, spread(beof, 2, nm)))
+    deallocate(beof)
+
+    ! Scale
+    ! -----
+    norm = sum(sqrt(sum(ec**2, dim=1)))/sum(merge(1d0, 0d0, any(bvar, dim=1)))
+!    print*,'before',ec(:10,1)
+!    ec = ec * 100d0 / norm
+    ec = 0d0
+    zvar = zvar * 100d0 / norm
+
+
+    ! Params for optimizer
+    ! --------------------
+    DIAGCO= .FALSE.
+    EPS= 1.0D-5 ! 1.0D-5
+    XTOL= mvtol ! 1.0D-16
+    IPRINT(1)= -1
+    IPRINT(2)= 0
+    IFLAG=0
+
+    allocate(diff(ns), G(nm), W(nm*(2*m+1)+2*m), diag(nm))
+    !$OMP PARALLEL &
+    !$OMP SHARED(xeof,ec,zvar,bvar,diagco,eps,xtol,nt,nm) &
+    !$OMP PRIVATE(it,icall,F,G,W,IFLAG,norm)
+    !$OMP DO
+    do it=1,nt
+
+        if(any(bvar(:,it)))then
+
+!            ! Already optimized?
+!            call pca_optec_funjac(F, G, zvar(:,it), xeof, ec(it,:), bvar(:,it))
+!            if(.true. .or. sqrt(sum(G**2)) >= max(1d0,sqrt(sum(ec(it,:)**2, dim=1))))then
+
+                ! Optimize
+                IFLAG = 0
+!                print*,'err avant',sum(merge( matmul(xeof, ec(it,:))-zvar(:,it), 0d0, bvar(:,it))**2)
+                do icall=1,2000
+
+
+                    call pca_optec_funjac(F, G, zvar(:,it), xeof, ec(it,:), bvar(:,it))
+!    print*,'G',sqrt(sum(G**2, dim=1))
+!    print*,'X',sqrt(sum(ec(it,:)**2, dim=1))
+                    call LBFGS(nm,M,ec(it,:),F,G,DIAGCO,DIAG,IPRINT,EPS,XTOL,W,IFLAG)
+
+                    if(IFLAG==0)exit
+
+                end do
+!                print*,'err apres',sum(merge( matmul(xeof, ec(it,:))-zvar(:,it), 0d0, bvar(:,it))**2)
+
+    !print*,'apres',ec(it,:5)
+    !stop
+
+!            endif
+
+            ec(it,: ) = ec(it,: ) * norm / 100d0
+
+        else
+
+            ec(it, :) = zmv
+
+        end if
+
+    end do
+    !$OMP END DO
+    !$OMP END PARALLEL
+
+    deallocate(zvar, diff, G, W, bec, bvar, diag)
+!    print*,'final',ec(:10,1)
+
+end subroutine sl_pca_optec
+
+
+subroutine pca_optec_funjac(F, G, var, xeof, ec, valid)
+    ! Compute function and gradient for sl_pca_optec at a single time step
+
+    real(kind=8), intent(in) :: xeof(:,:), var(size(xeof,1)), ec(size(xeof,2))
+    real(kind=8), intent(out) :: F, G(size(xeof,1))
+    logical, intent(in) :: valid(size(xeof,1))
+
+    real(kind=8) :: diff(size(xeof,1))
+
+    diff = matmul(xeof, ec)
+    diff = merge(diff-var, 0d0, valid)
+
+    F = sum(diff**2)
+    G = 2*matmul(transpose(xeof), diff)
+
+end subroutine pca_optec_funjac
 
 !############################################################
 !############################################################
@@ -623,10 +828,10 @@ subroutine sl_pca_rec(xeof, pc, varrec, istart, iend, mv, errmsg)
 
     ! Computation
     ! ===========
-    
+
     ! Product
     ! -------
-    allocate(zpc(nt, ziend-zistart+1), zeof(ns, ziend-zistart+1))  
+    allocate(zpc(nt, ziend-zistart+1), zeof(ns, ziend-zistart+1))
     zpc = pc(:, zistart:ziend)
     zpc = merge(0d0,zpc, abs((zpc-zmv)*zdmv)<=mvtol)
     zeof = xeof(:, zistart:ziend)
@@ -634,7 +839,7 @@ subroutine sl_pca_rec(xeof, pc, varrec, istart, iend, mv, errmsg)
     call dgemm('N', 'T', ns, nt, ziend-zistart+1, 1d0, &
         & xeof(:, zistart:ziend), ns, zpc, nt, 0d0, varrec, ns)
     deallocate(zpc,zeof)
-    
+
     ! Masking
     ! -------
     do i = 1, nt
@@ -643,9 +848,8 @@ subroutine sl_pca_rec(xeof, pc, varrec, istart, iend, mv, errmsg)
     do i = 1, ns
         if(abs((xeof(i,1)-zmv)*zdmv)<=mvtol) varrec(i,:) = zmv
     enddo
-    
-end subroutine sl_pca_rec
 
+end subroutine sl_pca_rec
 
 
 
@@ -712,7 +916,7 @@ subroutine sl_mssa(var, nwindow, nkeep, steof, stpc, ev, ev_sum, mv, &
     real(8) :: zmv
     character(len=120) :: msg
 
-    
+
     ! Setup
     ! =====
 
@@ -789,7 +993,7 @@ subroutine sl_mssa(var, nwindow, nkeep, steof, stpc, ev, ev_sum, mv, &
             &   la_info=la_info, la_fname='DSYEV')
         return
     endif
-    deallocate(work)            
+    deallocate(work)
 
 
     ! Get ST-EOFs and eigenvalues
@@ -840,14 +1044,14 @@ subroutine sl_stcov(var, cov, mv)
 
 
     implicit none
-    
+
     ! Declarations
     ! ------------
-    
+
     real(8), intent(in)  :: var(:, :)
     real(8), intent(out) :: cov(:, :)
     real(8), intent(in), optional :: mv
-    
+
     real(8), allocatable :: zvar(:,:)
     integer, allocatable :: valid(:,:), nn(:,:)
     integer ::  nchan, nt, nsteof, nwindow
@@ -860,7 +1064,7 @@ subroutine sl_stcov(var, cov, mv)
     nt = size(var, 2)
     nsteof = size(cov, 1)
     nwindow = nsteof/nchan
-    
+
     ! Missing values
     ! --------------
     if(present(mv))then
@@ -871,7 +1075,7 @@ subroutine sl_stcov(var, cov, mv)
     allocate(valid(nchan,nt), zvar(nchan,nt))
     valid = merge(0, 1, abs((var-zmv)/zmv)<=mvtol)
     zvar = merge(0d0, var, valid==0)
-   
+
     ! Anomaly
     ! -------
     zvar = zvar-spread(sum(zvar, dim=2)/sum(dble(valid), dim=2), ncopies=nt, dim=2)
@@ -879,11 +1083,11 @@ subroutine sl_stcov(var, cov, mv)
     ! Covariances
     ! -----------
     allocate(nn(size(cov,1),size(cov,2)))
-    
+
     !$OMP PARALLEL &
     !$OMP SHARED(zvar,cov,nchan,nwindow,valid,nn,nt) &
     !$OMP PRIVATE(iw, iw1, iw2, i1, i2, ic1, ic2)
-    !$OMP DO 
+    !$OMP DO
     do ic1 = 1, nchan
         do ic2 = 1, nchan
             do iw2 = 1, nwindow
@@ -908,20 +1112,20 @@ subroutine sl_stcov(var, cov, mv)
     cov = merge(cov/dble(nn), 0d0, nn>0)
     deallocate(nn)
 
-    
+
 !            do i2 = 1, nwindow
 !                do i1 = 1, iw2
 !                    iw = i2 - i1 + 1
 !                    cov(i1,i2) = &
 !                        & dot_product(zvar(1  : nt-iw+1),  &
-!                        &             zvar(iw : nt     ))! 
+!                        &             zvar(iw : nt     ))!
 !                    cov(i2,i1) = cov(i1,i2)
 !                    nn(i1,i2) = dot_product(valid(1  : nt-iw+1), &
 !                                            valid(iw : nt     ))
 !                    nn(i2,i1) = nn(i1,i2)
 !                end do
 !            end do
-   
+
 end subroutine sl_stcov
 
 
@@ -948,12 +1152,12 @@ subroutine sl_mssa_getec(var, steof, nwindow, stec, mv, minvalid, zerofill)
     !
     ! :Dependencies:
     !    [sd]gemm(BLAS)
-    
+
     implicit none
-    
+
     ! Declarations
     ! ============
-    
+
     ! External
     ! --------
     real(8), intent(in)  :: var(:,:), steof(:,:)
@@ -963,7 +1167,7 @@ subroutine sl_mssa_getec(var, steof, nwindow, stec, mv, minvalid, zerofill)
     real(8), intent(in), optional :: mv
     integer, intent(in), optional :: zerofill, & ! Fill var missing values with zeros?
         & minvalid ! Minimal number of data available at one time step during projection
-    
+
     ! Internal
     ! --------
     integer :: nt, nkeep, im, iw, nchan, ntpc, it, zminvalid
@@ -973,7 +1177,7 @@ subroutine sl_mssa_getec(var, steof, nwindow, stec, mv, minvalid, zerofill)
 
     ! Computations
     ! ============
-  
+
     ! Initialisations
     ! ---------------
     stec = 0d0
@@ -997,7 +1201,7 @@ subroutine sl_mssa_getec(var, steof, nwindow, stec, mv, minvalid, zerofill)
     zminvalid = max(zminvalid, -100)
     if(zminvalid<0)zminvalid = -nchan*nwindow*zminvalid/100
     zminvalid = max(1, zminvalid)
-    
+
     ! Main stuff
     ! ----------
     do im = 1, nkeep
@@ -1007,7 +1211,7 @@ subroutine sl_mssa_getec(var, steof, nwindow, stec, mv, minvalid, zerofill)
             substeof = steof(iw:iw+(nchan-1)*nwindow:nwindow, im)
             call dgemm('T', 'N', nt-nwindow+1, 1, nchan, 1d0,&
                 & subvar, nchan, substeof, nchan, 0d0, wpc, ntpc)
-            stec(:, im)  =  stec(:, im) + wpc                    
+            stec(:, im)  =  stec(:, im) + wpc
         end do
         do it=1, ntpc
             zvalid = merge(0d0, 1d0, abs((var(:, it:it+nwindow-1)-zmv)/zmv)<=mvtol)
@@ -1016,15 +1220,15 @@ subroutine sl_mssa_getec(var, steof, nwindow, stec, mv, minvalid, zerofill)
                     norm(it, im) = 1d0
                 else
                     norm(it, im) = sum(transpose(reshape(steof(:,im)**2, &
-                        &(/nwindow, nchan/))) * zvalid) 
-                endif 
+                        &(/nwindow, nchan/))) * zvalid)
+                endif
             endif
         end do
         !stec(:, im) = stec(:, im) / sum(steof(:,im)**2)
     end do
     deallocate(subvar, substeof, zvalid, wpc)
     stec = merge(stec/norm, zmv, norm/=0d0)
-    
+
 end subroutine sl_mssa_getec
 
 
@@ -1049,13 +1253,13 @@ subroutine sl_mssa_rec(steof, stpc, nwindow, varrec, istart, &
     ! :Optional arguments:
     !    - istart: Index of the first component to use
     !    - iend:   Index of the last component to use
-    
+
     implicit none
-    
-    
+
+
     ! Declarations
     ! ============
-    
+
     ! External
     ! --------
     real(8),   intent(in)  :: steof(:,:), stpc(:,:)
@@ -1065,7 +1269,7 @@ subroutine sl_mssa_rec(steof, stpc, nwindow, varrec, istart, &
     integer,intent(in), optional :: istart, iend
     real(8), intent(in), optional :: mv, ev(size(steof, 2))
     character(len=120), intent(out), optional :: errmsg ! Logging message
-        
+
     ! Internal
     ! --------
     integer :: ntpc, nchan, nt, ic, im, iw, nkept, &
@@ -1074,12 +1278,12 @@ subroutine sl_mssa_rec(steof, stpc, nwindow, varrec, istart, &
     real(8), allocatable :: zeof(:), epc(:,:), zpc(:,:), zev(:)
     real(8) :: zmv
     logical, allocatable :: valid(:,:), pvalid(:,:), pcvalid(:,:)
-    
-    
+
+
     ! Setup
     ! =====
     ddof = 0
-  
+
     ! Sizes
     ! -----
     ntpc  = size(stpc, 1)
@@ -1102,7 +1306,7 @@ subroutine sl_mssa_rec(steof, stpc, nwindow, varrec, istart, &
     allocate(pcvalid(ntpc,nkept))
     pcvalid = abs((stpc-zmv)/zmv)>mvtol
     zpc = merge(stpc, 0d0, pcvalid)
-    
+
     ! Renormalization of ST-PCs using eigenvalues
     ! -------------------------------------------
     if(present(ev).and..not.all(ev==0d0))then
@@ -1112,11 +1316,11 @@ subroutine sl_mssa_rec(steof, stpc, nwindow, varrec, istart, &
 !        do ic = 1, nkept
 !            zpc(:, ic) = zpc(:, ic) * sqrt(zev(ic) * &
 !                & dble(count(pcvalid(:,1))) / sum(zpc(:, ic)**2))
-!            
+!
 !        end do
         deallocate(zev)
     end if
-    
+
     ! Range
     ! -----
     if(present(iend))then
@@ -1151,56 +1355,56 @@ subroutine sl_mssa_rec(steof, stpc, nwindow, varrec, istart, &
             & errmsg = trim(errmsg) // 'istart > iend => inversion | '
     end if
     if(present(errmsg).and.len_trim(errmsg)>0)then
-        if(len_trim(errmsg)>3) errmsg = errmsg(:len_trim(errmsg)-3)        
+        if(len_trim(errmsg)>3) errmsg = errmsg(:len_trim(errmsg)-3)
         errmsg = sl_errmsg(ierr_warning, errmsg)
     endif
-    
+
     ! Computation
     ! ===========
     varrec = 0d0
     valid = .false.
     do im = zistart, ziend ! sum over the selection of modes
-    
+
         ! (ntpc-nwindow+1) length slices
         do iw = 1, nwindow
             epc(iw,:) = zpc(iw : iw+ntpc-nwindow, im)
             pvalid(iw,:) = pcvalid(iw : iw+ntpc-nwindow, im)
         end do
-    
+
         do ic = 1, nchan ! sum over the channels (= space, or PCs from PCA)
-    
+
             ! reversed eof
             zeof = steof(nwindow+(ic-1)*nwindow : 1+(ic-1)*nwindow : -1, im)
-    
+
             ! * middle * [nwindow length projections]
             varrec(ic, nwindow : ntpc) =  varrec(ic, nwindow : ntpc) + &
                 & matmul(zeof, epc) / dble(max(count(pvalid, dim=1),1))! dble(nwindow)
             valid(ic, nwindow : ntpc) = valid(ic, nwindow : ntpc) .or. &
                 & any(pvalid, dim=1)
-                    
+
             do iw = 1, nwindow-1
-!    
+!
                 ! * beginning * [iw length projections]
                 varrec(ic, iw) = varrec(ic, iw) + &
                     & dot_product(zeof(nwindow-iw+1:nwindow), &
                     & zpc               (1:iw, im)) / &
                     & dble(max(count(pcvalid(1:iw, im)), 1)) !dble(iw)
                 valid(ic, iw) = valid(ic, iw) .or. any(pcvalid(1:iw, im))
-                
-                ! * end * [iw length projections]                      
+
+                ! * end * [iw length projections]
                 varrec(ic, nt-iw+1) = varrec(ic, nt-iw+1) + &
                     & dot_product(zeof(1:iw), &
                     & zpc               (ntpc-iw+1:ntpc, im)) / &
                     & dble(max(count(pcvalid(ntpc-iw+1:ntpc, im)),1)) !dble(iw)
                 valid(ic, nt-iw+1) = valid(ic, nt-iw+1) .or. any(pcvalid(ntpc-iw+1:ntpc, im))
-                
+
             end do
 
-    
+
         end do
-    
+
     end do
-    
+
     deallocate(zeof, zpc, epc, pvalid, pcvalid)
     where(.not.valid) varrec = zmv
     deallocate(valid)
@@ -1239,15 +1443,15 @@ subroutine sl_svd(ll, rr, nkeep, leof, reof, lpc, rpc, &
     !
     ! :Dependencies:
     !    :func:`sdgemm` (BLAS) :func:`dgesvd` (LAPACK) :func:`dgesdd` (LAPACK)
-    
-    
+
+
     ! Declarations
     ! ============
-    
+
     !     use spanlib_lapack95, only: la_gesdd, la_gesvd
-    
+
     implicit none
-    
+
     ! External
     ! --------
     real(8), intent(in)           :: ll(:,:),rr(:,:)
@@ -1260,7 +1464,7 @@ subroutine sl_svd(ll, rr, nkeep, leof, reof, lpc, rpc, &
     real(8), intent(out), optional :: ev_sum
     integer, intent(in), optional :: minecvalid
     character(len=120), intent(out), optional :: errmsg ! Logging message
-    
+
     ! Internal
     ! --------
     integer               :: ns,nsl,nsr,nt,nslv,nsrv
@@ -1274,8 +1478,8 @@ subroutine sl_svd(ll, rr, nkeep, leof, reof, lpc, rpc, &
     character(len=120) :: msg
     real(8) :: zmv, zdmv
     integer, allocatable :: ilselect(:),irselect(:)
-    
-    
+
+
     ! Sizes
     ! -----
     la_info = 0
@@ -1289,7 +1493,7 @@ subroutine sl_svd(ll, rr, nkeep, leof, reof, lpc, rpc, &
                 & 'Left and right arrays have incompatible sizes')
         return
     end if
-    
+
     ! What does the user want?
     ! ------------------------
     if(.not.present(leof).and..not.present(lpc).and.&
@@ -1305,10 +1509,10 @@ subroutine sl_svd(ll, rr, nkeep, leof, reof, lpc, rpc, &
     else
         zbcorr = 0
     endif
-    
+
     ! Valid data in 2D space
     ! ----------------------
-    
+
     ! Missing value
     if(present(mv))then
         zmv = mv
@@ -1320,7 +1524,7 @@ subroutine sl_svd(ll, rr, nkeep, leof, reof, lpc, rpc, &
     else
         zdmv = 1d0/zmv
     endif
-    
+
     ! Selection
     allocate(lvalid(nsl,nt),rvalid(nsr,nt))
     lvalid = merge(0, 1, abs((ll-zmv)*zdmv)<=mvtol)
@@ -1338,7 +1542,7 @@ subroutine sl_svd(ll, rr, nkeep, leof, reof, lpc, rpc, &
     zrr = rr(irselect, :)
     zll = merge(0d0, zll, abs((zll-zmv)*zdmv)<=mvtol)
     zrr = merge(0d0, zrr, abs((zrr-zmv)*zdmv)<=mvtol)
-        
+
     ! Channels versus number of modes
     ns = min(nslv,nsrv)
     znkeepmax = 100
@@ -1358,21 +1562,21 @@ subroutine sl_svd(ll, rr, nkeep, leof, reof, lpc, rpc, &
         endif
         return
     end if
-            
+
     ! Remove the mean
     ! ---------------
     allocate(zlmean(nslv))
     allocate(zrmean(nsrv))
     zll = ll
     zrr = rr
-    zlmean = sum(ll,dim=2)/dble(slvalid(ilselect)) 
+    zlmean = sum(ll,dim=2)/dble(slvalid(ilselect))
     zrmean = sum(rr,dim=2)/dble(srvalid(irselect))
     do it = 1, nt
         zll(:,it) = zll(:,it) - zlmean
         zrr(:,it) = zrr(:,it) - zrmean
     end do
     deallocate(zlmean,zrmean)
-    
+
     ! Standard deviation for correlations
     ! -----------------------------------
     allocate(zls(nslv),zrs(nsrv))
@@ -1385,17 +1589,17 @@ subroutine sl_svd(ll, rr, nkeep, leof, reof, lpc, rpc, &
         zls = 1d0
         zrs = 1d0
     end if
-    
+
     ! Computations
     ! ============
-    
+
     ! Correlation
     ! -----------
     do i = 1, nt
         zll(:,i) = zll(:,i) / zls
         zrr(:,i) = zrr(:,i) / zrs
     end do
-    
+
     ! Cross-covariances
     ! -----------------
     allocate(cov(nslv,nsrv),nn(nslv,nsrv))
@@ -1409,7 +1613,7 @@ subroutine sl_svd(ll, rr, nkeep, leof, reof, lpc, rpc, &
     deallocate(nn)
     if(.not.present(lpc)) deallocate(zll, zls)
     if(.not.present(rpc)) deallocate(zrr, zrs)
-    
+
     ! SVD
     ! ---
     allocate(zleof(nslv, ns), zev(ns))
@@ -1434,20 +1638,20 @@ subroutine sl_svd(ll, rr, nkeep, leof, reof, lpc, rpc, &
         return
     endif
     deallocate(work)
-    
+
     ! Get output arrays
     ! =================
-    
+
     ! Sum of all eigenvalues (useful for percentils)
     ! ----------------------------------------------
     if(present(ev_sum)) ev_sum = sum(zev)
-    
+
     ! Eigen values
     ! ------------
     where(zev<0d0) zev=0d0
     if(present(ev)) ev = zev(1:nkeep)
     deallocate(zev)
-    
+
     ! EOFs
     ! ----
     if(present(leof).or.present(lpc))then
@@ -1464,7 +1668,7 @@ subroutine sl_svd(ll, rr, nkeep, leof, reof, lpc, rpc, &
         end do
         deallocate(cov)
     end if
-        
+
     ! PCs
     ! ---
     if(present(lpc))then
@@ -1520,13 +1724,13 @@ subroutine sl_svd_model_setup(ll, rr, lPcaEof, rPcaEof,&
     !    - rPcsPc:   Right pre-PCA PCs
     !    - lPcsPc:   Left SVD PCs
     !    - rPcsPc:   Right SVD PCs
-    
-    
+
+
     ! Declarations
     ! ============
-    
+
     implicit none
-    
+
     ! External
     ! --------
     real(8), intent(in) :: ll(:,:), rr(:,:)
@@ -1539,11 +1743,11 @@ subroutine sl_svd_model_setup(ll, rr, lPcaEof, rPcaEof,&
      & rSvdPc(size(ll,2),size(rSvdEof,2)), mv
     integer, intent(in), optional :: minecvalid
     character(len=120), intent(out), optional :: errmsg ! Logging message (len=120)
-    
+
     ! Internal
     ! --------
     integer :: i,nt,nkeepPca, nkeepSvd, nsl, nsr
-    
+
     ! Sizes
     ! -----
     nt = size(ll,2)
@@ -1551,7 +1755,7 @@ subroutine sl_svd_model_setup(ll, rr, lPcaEof, rPcaEof,&
     nkeepSvd = size(lSvdEof,2)
     nsl = size(ll,1)
     nsr = size(rr,1)
-    
+
     !    ! Missing value
     !    ! -------------
     !    if(present(mv))then
@@ -1559,23 +1763,23 @@ subroutine sl_svd_model_setup(ll, rr, lPcaEof, rPcaEof,&
     !    else
     !        zmv = default_missing_value
     !    endif
-    
+
     ! Computations
     ! ============
-    
+
     ! Pre-PCA
     ! -------
     call sl_pca(ll, nkeepPca, xeof=lPcaEof, pc=lPcaPc, mv=mv, &
         & minecvalid=minecvalid, errmsg=errmsg)
     call sl_pca(rr, nkeepPca, xeof=rPcaEof, pc=rPcaPc, mv=mv, &
         & minecvalid=minecvalid, errmsg=errmsg)
-    
+
     ! SVD
     ! ---
     call sl_svd(transpose(lPcaPc),transpose(rPcaPc),nkeepSvd, &
         & leof=lSvdEof, reof=rSvdEof, lpc=lSvdPc, rpc=rSvdPc, &
         & minecvalid=minecvalid, errmsg=errmsg)
-    
+
     ! Scale factors based on standard deviations
     ! -----------------------------------------
     do i = 1, nkeepSVD
@@ -1614,13 +1818,13 @@ subroutine sl_svd_model_run(ll,rr,&
     !
     ! :Dependencies:
     !    sl_pca_getec sl_pca_rec
-    
-    
+
+
     ! Declarations
     ! ============
-    
+
     implicit none
-    
+
     ! External
     ! --------
     real(8), intent(in) :: ll(:), lPcaEof(:,:), rPcaEof(:,:),&
@@ -1628,22 +1832,22 @@ subroutine sl_svd_model_run(ll,rr,&
     real(8), intent(out) :: rr(:)
     integer, intent(in), optional :: minecvalid
     character(len=120), intent(out), optional :: errmsg ! Logging message (len=120)
-    
+
     ! Internal
     ! --------
     integer :: i,nt,nkeepPca, nkeepSvd
     real(8), allocatable :: zlPcaEc(:,:),zlSvdEc(:,:),&
         & zrSvdEc(:,:),zrPcaPc(:,:),zll(:,:),zrr(:,:)
-    
+
     ! Computations
     ! ============
-    
+
     ! Size
     ! ----
     nt = 1
     nkeepPca = size(lPcaEof,2)
     nkeepSvd = size(rSvdEof,2)
-    
+
     ! Get expansion coefficients from re-PCA
     ! --------------------------------------
     allocate(zll(size(ll,1),1),zlPcaEc(nt,nkeepPca))
@@ -1654,7 +1858,7 @@ subroutine sl_svd_model_run(ll,rr,&
     call sl_pca_getec(transpose(zlPcaEc),lSvdEof,zlSvdEc, &
         & mv=mv, minvalid=minecvalid, demean=0)
     deallocate(zll,zlPcaEc)
-    
+
     ! Scale factorisation from left to right
     ! --------------------------------------
     allocate(zrSvdEc(nt,nkeepSvd))
@@ -1662,7 +1866,7 @@ subroutine sl_svd_model_run(ll,rr,&
         zrSvdEc(:,i) = l2r(i) * zlSvdEc(:,i)
     end do
     deallocate(zlSvdEc)
-    
+
     ! Reconstructions
     ! ---------------
     allocate(zrPcaPc(nkeepPca,nt))
@@ -1684,7 +1888,7 @@ end subroutine sl_svd_model_run
 
 function sl_errmsg(ierr, fname, msg, la_info, la_fname)
     ! Generate an error message
-    
+
     ! External
     integer, intent(in), optional :: ierr, & ! Error id
         la_info ! Lapack error id
@@ -1692,10 +1896,10 @@ function sl_errmsg(ierr, fname, msg, la_info, la_fname)
         msg, & ! Error message
         la_fname ! Lapack routine name
     character(len=120) :: sl_errmsg ! Output error message
-    
+
     ! Internal
     character(len=120) :: zla_fname, zmsg, prefix, zla_msg
-    
+
     ! Optional arguments
     if(.not.present(msg))then
         zmsg = ''
@@ -1708,7 +1912,7 @@ function sl_errmsg(ierr, fname, msg, la_info, la_fname)
         zla_fname = la_fname
     endif
     sl_errmsg = ''
-    
+
     ! Prefix
     select case(ierr)
         case(ierr_warning)
@@ -1716,13 +1920,13 @@ function sl_errmsg(ierr, fname, msg, la_info, la_fname)
         case(ierr_error)
             sl_errmsg = '[error] '
     end select
-    
+
     ! Routine name
     if(present(fname))sl_errmsg = trim(sl_errmsg) // ' ' // trim(fname) // ': '
-    
+
     ! Main message
     if(present(msg))sl_errmsg = trim(sl_errmsg) // trim(msg)
-    
+
     ! Lapack
     zla_msg = ''
     if(present(la_info).and.la_info/=0 .and. &
@@ -1732,9 +1936,9 @@ function sl_errmsg(ierr, fname, msg, la_info, la_fname)
             & trim(la_fname)//' (info=', la_info, ')'
         sl_errmsg = trim(sl_errmsg) // trim(zla_msg)
     endif
-                
+
 end function sl_errmsg
-        
+
 
 subroutine sl_phasecomp(varrec, np, phases, offset, firstphase, mv)
     ! Title:
@@ -1763,20 +1967,20 @@ subroutine sl_phasecomp(varrec, np, phases, offset, firstphase, mv)
     !
     ! :Dependencies:
     !    sl_pca
-    
-    
+
+
     implicit none
-    
+
     ! Declarations
     ! ============
-    
+
     ! External
     ! --------
     integer,       intent(in)           :: np
     real(8), intent(in)           :: varrec(:,:)
     real(8), intent(in), optional :: offset, firstphase, mv
     real(8), intent(out)          :: phases(size(varrec, 1),np)
-    
+
     ! Internal
     ! --------
     real(8), allocatable :: pc(:,:)
@@ -1788,8 +1992,8 @@ subroutine sl_phasecomp(varrec, np, phases, offset, firstphase, mv)
      &         select_phase(size(varrec,2))
     integer :: itime(size(varrec,2)), nsel, i, ns
     integer, allocatable :: isel(:)
-    
-    
+
+
     ! Setup
     ! =====
     nt = size(varrec,2)
@@ -1806,7 +2010,7 @@ subroutine sl_phasecomp(varrec, np, phases, offset, firstphase, mv)
     !    else
     !        zmv = default_missing_value
     !    endif
-    
+
     ! Find the first PC and its derivative
     ! ====================================
     allocate(pc(nt,1))
@@ -1817,11 +2021,11 @@ subroutine sl_phasecomp(varrec, np, phases, offset, firstphase, mv)
     dpc((/1,nt/)) = dpc((/1,nt/)) * 2d0
     dpc = dpc * sqrt(dble(nt)/sum(dpc**2))
     amp = sqrt(pc(:,1)**2 + dpc**2)
-    
-    
+
+
     ! Compute the maps
     ! ================
-    
+
     ! Define the marks
     ! ----------------
     deltarad = 2d0 * pi / dble(np)
@@ -1832,7 +2036,7 @@ subroutine sl_phasecomp(varrec, np, phases, offset, firstphase, mv)
     end if
     angles = (/ (dble(iphase), iphase=0,np-1) /) * deltarad + &
      &       zfirstphase
-    
+
     ! Compute the phase maps
     ! ----------------------
     phases = 0d0

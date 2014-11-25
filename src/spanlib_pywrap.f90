@@ -22,7 +22,7 @@
 ! ================
 
 subroutine pca(var, ns, nt, nkeep, xeof, pc, ev, ev_sum, &
-    & mv, useteof, notpc, minecvalid, zerofill, errmsg)
+    & mv, useteof, notpc, minecvalid, zerofill, optec, errmsg)
 
     use spanlib, only: sl_pca
 
@@ -39,18 +39,18 @@ subroutine pca(var, ns, nt, nkeep, xeof, pc, ev, ev_sum, &
     real(8),    intent(out) :: ev_sum
     integer, intent(in), optional  :: useteof, notpc
     character(len=120), intent(out), optional :: errmsg
-    integer, intent(in), optional :: zerofill, minecvalid
-        
+    integer, intent(in), optional :: zerofill, minecvalid, optec
+
     ! Call to original subroutine
     ! ---------------------------
     call sl_pca(var, nkeep, xeof=xeof, pc=pc, ev=ev, ev_sum=ev_sum,&
-     & mv=mv, useteof=useteof, notpc=notpc, &
+     & mv=mv, useteof=useteof, notpc=notpc, optec=optec, &
      & minecvalid=minecvalid, zerofill=zerofill, errmsg=errmsg)
 
 end subroutine pca
 
 subroutine pca_getec(var, xeof, ns, nt, nkept, ec, mv, &
-    & ev, minvalid, zerofill, demean)
+    & ev, minvalid, zerofill, demean, optimize)
 
     use spanlib, only: sl_pca_getec
 
@@ -62,16 +62,33 @@ subroutine pca_getec(var, xeof, ns, nt, nkept, ec, mv, &
     real(8),    intent(in)  :: var(ns,nt), xeof(ns,nkept), mv
     real(8),    intent(out) :: ec(nt,nkept)
     real(8), intent(in), optional :: ev(nkept)
-    integer, intent(in), optional :: zerofill, minvalid, demean
-
+    integer, intent(in), optional :: zerofill, minvalid, demean, optimize
 
     ! Call to original subroutine
     ! ---------------------------
     call sl_pca_getec(var, xeof, ec, mv=mv, ev=ev, &
-        & minvalid=minvalid, zerofill=zerofill, demean=demean)
+        & minvalid=minvalid, zerofill=zerofill, demean=demean, optimize=optimize)
 
 end subroutine pca_getec
 
+subroutine pca_optec(var, xeof, ec, mv, demean, ns, nt, nkept)
+
+    use spanlib, only: sl_pca_optec
+
+    implicit none
+
+    ! External
+    ! --------
+    integer, intent(in)  :: ns, nt, nkept
+    real(kind=8), intent(in) :: var(ns,nt), xeof(ns,nkept), mv
+    real(kind=8), intent(out) :: ec(nt,nkept)
+    integer, intent(in), optional :: demean
+
+    ! Call to original subroutine
+    ! ---------------------------
+    call sl_pca_optec(var, xeof, ec, mv=mv, demean=demean)
+
+end subroutine pca_optec
 
 subroutine pca_rec(xeof, pc, ns, nt, nkept, varrec, istart, iend, &
     & mv, errmsg)
@@ -123,9 +140,9 @@ end subroutine mssa
 subroutine stcov(var, cov, nchan, nt, nwindow, mv)
 
     use spanlib, only: sl_stcov
-    
+
     implicit none
-    
+
     ! External
     ! --------
     integer, intent(in)  :: nchan, nt, nwindow
@@ -243,7 +260,7 @@ end subroutine svd
 ! =========
 
 subroutine chan_pack(varNd, mask, nstot, nt, var2d, ns)
-    
+
     implicit none
 
     ! External
@@ -270,7 +287,7 @@ subroutine chan_unpack(varNd, mask, nstot, nt, var2d, ns, &
   & missing_value)
 
     implicit none
-    
+
     ! External
     ! --------
     integer, intent(in)  :: nstot, nt, ns

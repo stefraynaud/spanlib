@@ -1,8 +1,6 @@
-Version 1.1 [sep 19, 2006]
-- F90 library: now compliant with standards
-- Python module: reconstructions are clever and integrate phase composites
-- Python examples: switched example1.py to example2.py, added new example1.py
-- Autoconf: fixes, improvements for documentation
+In developpement
+- F90: added EC optimization for gappy data
+
 Version 1.2
 - Python module: now uses f2py instead of pyfort
 - F90 library: Singular value decomposition added + SVD model subroutine
@@ -14,3 +12,10 @@ Version 1.2
 - Python module: now use local spanlib module for examples
 - Python module: added getPairs
 - Python module: added SVDModel class
+
+Version 1.1 [sep 19, 2006]
+- F90 library: now compliant with standards
+- Python module: reconstructions are clever and integrate phase composites
+- Python examples: switched example1.py to example2.py, added new example1.py
+- Autoconf: fixes, improvements for documentation
+

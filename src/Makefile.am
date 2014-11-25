@@ -6,7 +6,7 @@ lib_LIBRARIES = libspanlib.a
 endif
 nodist_include_HEADERS=spanlib.mod
 # nodist_libspanlib_a_SOURCES=spanlib_lapack95.f90
-dist_libspanlib_a_SOURCES=spanlib.f90
+dist_libspanlib_a_SOURCES=spanlib.f90 lbfgs.f
 CLEANFILES=*.pyf setup.cfg *.mod 
 # $(nodist_libspanlib_a_SOURCES)
 #AM_FCFLAGS=$(LAPACK95_INC) -fPIC

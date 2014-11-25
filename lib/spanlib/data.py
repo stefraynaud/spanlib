@@ -21,7 +21,6 @@
 #################################################################################
 import numpy
 npy = numpy
-import _fortran
 try:
     import cdms2 ,MV2
     MV = MV2
@@ -225,6 +224,7 @@ class Data(Logger):
         # Pack 
         # - data
         self.packed_data = self.core_pack(data_num, force2d=True)
+        self.masked = npy.isclose(self.packed_data, default_missing_value).any()
         # - weights
         self.packed_weights = self.core_pack(weights)
         
@@ -458,8 +458,7 @@ class Data(Logger):
         first_slices = (slice(None), )*max(1, len(firstdims))
         if self.compress:
             mdata = data.asma() if self.array_type=='MV2' else data
-#            slices = first_slices+(self.good, )
-            slices = (Ellipsis, self.good)
+            slices = first_slices+(self.good, )
             mdata[slices] = pdata
             data[:] = mdata # just to be sure
         else:
@@ -540,15 +539,18 @@ class Dataset(Logger):
         norms = self.remap(norms, reshape=True)
         if self.ndataset==1 and norms[0] is None: norms = [False]
         self._invalids = []
+        self.masked = False
     
         # Loop on datasets
         for idata,data in enumerate(dataset):
     
             # Create the Data instance and pack array
             dd = Data(data, norm=norms[idata], weights=weights[idata], 
-                keep_invalids=keep_invalids, minvalid=minvalid, clean_weights=clean_weights, zerofill=zerofill)
+                keep_invalids=keep_invalids, minvalid=minvalid, clean_weights=clean_weights, 
+                zerofill=zerofill)
             self.data.append(dd)
             self._invalids.append(dd.invalids)
+            self.masked |= dd.masked
             
             # Check nt
             if self.nt is None:
