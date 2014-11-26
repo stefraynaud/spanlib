@@ -174,6 +174,11 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
     iselects = pack((/(i,i=1,ns)/), any(valid==1, dim=2))
     iselectt = pack((/(i,i=1,nt)/), any(valid==1, dim=1))
 
+    ! EC optimization?
+    ! ----------------
+    if(zoptec==-1 .and. any(valid(iselects,iselectt)==0)) zoptec = 1
+
+
     ! By default, T-EOF decompostion if nsv > ntv
     ! -------------------------------------------
     zuseteof = -1
@@ -310,46 +315,50 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
 !            ztmp = matmul(zvar, subcov)
             call sl_pca_getec( &
                 & transpose(merge(zvar, zmv, valid(iselects,iselectt)==1)), &
-                & subcov, ztmp, zmv, demean=0, optimize=optec)
+                & subcov, ztmp, mv=zmv, demean=0, optimize=zoptec, normalize=0)
             deallocate(zvar)
             zeof(iselects,:) = ztmp
             deallocate(ztmp)
 
+            if(zoptec==0)then
 
-!            ! Direct PC
-!            if(zusetpc)then
-!
-!                if(present(zerofill).and.zerofill>=1)then
-!                    pc = 0d0
-!                else
-!                    pc = zmv
-!                endif
-!                pc(iselectt,:) = subcov
-!                do im = 1, nkeep
-!                    pc(iselectt, im) = pc(iselectt, im)*sqrt(dble(nc)*zev(nc-im+1))
-!                end do
-!
-!            end if
+                ! Direct PC
+                if(zusetpc)then
 
-!            ! Effect of mask
-!            do i = 1, nsv
-!                do im = 1, nkeep
-!                    w0 = sum(subcov(:, im)**2*dble(valid(iselects(i), iselectt)))
-!                    if(w0>tiny(0d0))zeof(iselects(i), im) = zeof(iselects(i), im) / w0
-!                enddo
-!            enddo
-!            deallocate(subcov)
+                    if(present(zerofill).and.zerofill>=1)then
+                        pc = 0d0
+                    else
+                        pc = zmv
+                    endif
+                    pc(iselectt,:) = subcov
+                    do im = 1, nkeep
+                        pc(iselectt, im) = pc(iselectt, im)*sqrt(dble(nc)*zev(nc-im+1))
+                    end do
+
+                end if
+
+                ! Effect of mask
+                do i = 1, nsv
+                    do im = 1, nkeep
+                        w0 = sum(subcov(:, im)**2*dble(valid(iselects(i), iselectt)))
+                        if(w0>tiny(0d0))zeof(iselects(i), im) = zeof(iselects(i), im) / w0
+                    enddo
+                enddo
+                deallocate(subcov)
+
+            endif
 
             ! Normalize EOFs
             do im = 1, nkeep
                 znorm = sqrt(sum(zeof(iselects,im)**2))
                 zeof(iselects,im) = zeof(iselects,im) / znorm
-                if(zusetpc) subcov(iselectt, im) = subcov(iselectt, im) * znorm
+                if(zusetpc .and. zoptec==1) subcov(iselectt, im) = &
+                    & subcov(iselectt, im) * znorm
             end do
 
 
             ! Direct PC
-            if(zusetpc )then
+            if(zusetpc.and. zoptec==1)then
                 if(present(zerofill).and.zerofill>=1)then
                     pc = 0d0
                 else
@@ -357,8 +366,8 @@ subroutine sl_pca(var, nkeep, xeof, pc, ev, ev_sum, mv, useteof, &
                 endif
                 pc(iselectt,:) = subcov
 
+                deallocate(subcov)
             endif
-            deallocate(subcov)
 
 
         else ! S-EOF (classic case)
@@ -407,7 +416,8 @@ end subroutine sl_pca
 !############################################################
 
 
-subroutine sl_pca_getec(var, xeof, ec, mv, ev, minvalid, zerofill, demean, optimize)
+subroutine sl_pca_getec(var, xeof, ec, mv, ev, minvalid, zerofill, demean, &
+    & normalize, optimize)
     ! **Compute PCA expansion coefficients**
     !
     ! :Description:
@@ -435,7 +445,7 @@ subroutine sl_pca_getec(var, xeof, ec, mv, ev, minvalid, zerofill, demean, optim
     real(8), intent(in)           :: var(:,:), xeof(:,:)
     real(8), intent(out)          :: ec(size(var,2),size(xeof,2))
     real(8), intent(in), optional :: mv, ev(size(xeof,2))
-    integer, intent(in), optional :: minvalid, zerofill, demean, optimize
+    integer, intent(in), optional :: minvalid, zerofill, demean, optimize, normalize
 
     ! Internal
     ! --------
@@ -443,7 +453,7 @@ subroutine sl_pca_getec(var, xeof, ec, mv, ev, minvalid, zerofill, demean, optim
     real(8) :: zmv, zdmv
     integer :: ns, nt, nkeep, im, it, nc, ic
     integer, allocatable :: valid(:,:)
-    integer :: zminvalid, zoptimize
+    integer :: zminvalid, zoptimize, znormalize
     logical :: zf
     logical, allocatable :: cvalid(:)
     integer(4), allocatable :: iselect(:), zcount(:)
@@ -491,7 +501,7 @@ subroutine sl_pca_getec(var, xeof, ec, mv, ev, minvalid, zerofill, demean, optim
         zminvalid = minvalid
 
     else
-        zminvalid = 1
+        zminvalid = nkeep
     endif
     zminvalid = max(zminvalid, -100)
     if(zminvalid<0)zminvalid = -nc*zminvalid/100
@@ -516,36 +526,51 @@ subroutine sl_pca_getec(var, xeof, ec, mv, ev, minvalid, zerofill, demean, optim
     call dgemm('T', 'N', nt, nkeep, nc, 1d0, zvar, nc, zeof, nc, 0d0, ec, nt)
     deallocate(zvar)
 
-    ! Normalisations
-    ! --------------
-!    allocate(norm(nt))
-!    do im = 1, nkeep
-!
-!        ! Scale each time step depending on mask
-!        do it=1, nt
-!            norm(it) =  sum(zeof(:,im)**2 * dble(merge(1,valid(iselect,it),zf)))
-!        enddo
-!        ec(:,im) = ec(:,im) / merge(norm, 1d0, norm/=0d0)
-!
-!        ! Norm using eigenvalues
-!        if(.false. .and. present(ev) .and. any(ec>tiny(1d0)))then
-!            if(ev(im)>tiny(1d0))then
-!                ec(:,im) = ec(:,im) * sqrt(dble(nt)*ev(im)/sum(ec(:,im)**2))
-!!            else
-!!                ec(:,im) = 0d0
-!            endif
-!        endif
-!
-!    end do
-!    deallocate(norm,zeof)
 
+    ! EC rectifications
+    ! -----------------
 
-    ! Optimize
-    ! --------
     zoptimize = -1
     if(present(optimize)) zoptimize = optimize
     if(zoptimize==-1 .and. any(valid(iselect,:)==0) ) zoptimize = 1
-    if(zoptimize==1) call sl_pca_optec(var, xeof, ec, mv, demean=demean)
+    if(zoptimize==1) then
+
+        ! Optimization
+        ! ------------
+        deallocate(zeof)
+        call sl_pca_optec(var, xeof, ec, mv, demean=demean)
+
+    else
+
+        ! Normalisations
+        ! --------------
+        znormalize = 1
+        if(present(normalize)) znormalize = normalize
+        if(znormalize==1)then
+            allocate(norm(nt))
+
+            do im = 1, nkeep
+
+                ! Scale each time step depending on mask
+                do it=1, nt
+                    norm(it) =  sum(zeof(:,im)**2 * dble(merge(1,valid(iselect,it),zf)))
+                enddo
+                ec(:,im) = ec(:,im) / merge(norm, 1d0, norm/=0d0)
+
+                ! Norm using eigenvalues
+                if(present(ev) .and. any(ec>tiny(1d0)))then
+                    if(ev(im)>tiny(1d0))then
+                        ec(:,im) = ec(:,im) * sqrt(dble(nt)*ev(im)/sum(ec(:,im)**2))
+        !            else
+        !                ec(:,im) = 0d0
+                    endif
+                endif
+
+            end do
+            deallocate(norm)
+        endif
+
+    endif
 
     ! Mask insignificant value
     ! ------------------------

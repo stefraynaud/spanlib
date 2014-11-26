@@ -220,10 +220,12 @@ class Analyzer(_BasicAnalyzer_, Dataset):
     _notpc_default = 0
     _minecvalid_default = 0
     _zerofill_default = 0
+    _optimec_default = 0
     _nmssa_default = _nsvd_default = 8
     _nmssa_max = 20 #_nsvd_max = 20
     _window_default = 1/3. # Relative to time length
-    _pca_params = ['npca', 'prepca', 'minecvalid', 'zerofill', 'useteof', 'notpc', 'pcapf']
+    _pca_params = ['npca', 'prepca', 'minecvalid', 'zerofill', 'useteof',
+        'notpc', 'pcapf', 'optimec']
     _mssa_params = _pca_params+['nmssa', 'prepca', 'window']
 #    _svd_params = _pca_params+['nsvd']
     _params = dict(pca=_pca_params, mssa=_pca_params+_mssa_params)#, svd=_pca_params+_svd_params)
@@ -475,6 +477,10 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         if self._notpc is None:
             self._notpc = SpAn._notpc_default
 
+        # Optimize PCA EC?
+        if self._optimec is None:
+            self._optimec = SpAn._optimec_default
+
         # Fill with zeros?
         if self._zerofill is None:
             self._zerofill = SpAn._zerofill_default
@@ -504,7 +510,8 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         rerun['pca'] = self._has_run_('pca') and (
             self._has_changed_(old, 'npca')>0 or
             self._has_changed_(old, 'useteof') or
-            self._has_changed_(old, 'notpc')
+            self._has_changed_(old, 'notpc') or
+            self._has_changed_(old, 'optimec')
         )
         rerun['mssa'] = self._has_run_('mssa') and (
             self._has_changed_(old, 'nmssa')<0 or
@@ -592,7 +599,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             raw_eof, raw_pc, raw_ev, ev_sum, errmsg = \
                 _core.pca(pdata, self._npca, default_missing_value,
                 useteof=self._useteof, notpc=self._notpc, minecvalid=self._minecvalid,
-                zerofill=self._zerofill, optec=-1)
+                zerofill=self._zerofill, optec=self._optimec)
             self.check_fortran_errmsg(errmsg)
 
         # Post filtering
@@ -790,7 +797,8 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         raw_data = npy.asfortranarray(raw_data)
         raw_eof = npy.asfortranarray(raw_eof)
         raw_ec = _core.pca_getec(raw_data, raw_eof, mv=default_missing_value,
-            ev=ev, minvalid=self._minecvalid, zerofill=self._zerofill, optimize=-1)
+            ev=ev, minvalid=self._minecvalid, zerofill=self._zerofill,
+            optimize=self._optimec)
 
         # Replace current pc with computed ec
         if replace:
@@ -1723,6 +1731,14 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         self.update_params(useteof=value)
         return self._useteof
     useteof = property(fget=get_useteof, fset=set_useteof, doc="Use T-EOFs for PCA?")
+
+    def get_optimec(self):
+        return self._optimec
+    def set_optimec(self, value):
+        self.update_params(optimec=value)
+        return self._optimec
+    optimec = property(fget=get_optimec, fset=set_optimec,
+        doc="Optimize PCA EC for gappy data?")
 
 
     def get_nmssa(self):

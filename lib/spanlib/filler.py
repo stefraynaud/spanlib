@@ -397,7 +397,7 @@ class Filler(Logger):
 
     filtered = property(fget=get_filtered, doc='Filtered data')
 
-    def get_filled(self, mode="best", reffull=False, unmap=True, geterr=False, **kwargs):
+    def get_filled(self, mode="best+", reffull=False, unmap=True, geterr=False, **kwargs):
         """Get a version of the original dataset where missing data are
         filled with the filtered version
 
@@ -405,9 +405,11 @@ class Filler(Logger):
 
             - **mode**: Filling mode.
 
-                - ``"best"``: Keep original values where they are present,
+                - ``"best[+]"``: Keep original selected values where they are present,
                   then fill with PCA reconstruction where possible,
                   finally fill with MSSA reconstruction.
+                  If ``mode`` has a ``+``, ALL original values are kept,
+                  not only channels having a sufficient number of data.
                 - ``"pca[+]"``: Filled only with PCA reconstruction.
                   If ``mode`` has a ``+``, the filtered version  is returned
                   instead of the filled version.
@@ -430,7 +432,7 @@ class Filler(Logger):
         ref = self._data if reffull else 'stacked_data'
 
         # obs>pca>mssa
-        if mode=='best':
+        if 'best' in mode:
 
             # pca
             pcafiltered = self.get_filtered(mssa=False, unmap=False, geterr=geterr)
@@ -438,6 +440,7 @@ class Filler(Logger):
                 pcafiltered, pcaerr = pcafiltered
             out = self.span.fill_invalids('stacked_data', pcafiltered, copy=True, unmap=False)
             del pcafiltered
+
             if geterr is not False:
                 if geterr is not True:
                     err = self.span.unmap(geterr)
@@ -452,14 +455,30 @@ class Filler(Logger):
             if geterr:
                 mssafiltered, mssaerr = mssafiltered
             out =  self.span.fill_invalids(out, mssafiltered, copy=False, missing=True,
-                unmap=unmap)
+                unmap=False)
             if geterr:
-                err = self.span.fill_invalids(err, mssaerr, copy=False, missing=True)
+                err = self.span.fill_invalids(err, mssaerr, copy=False, missing=True,
+                    unmap=False)
+
+            # orig (unpacked)
+            if '+' in mode:
+                for i, do in enumerate(out):
+                    if self.span[i].masked:
+                        do[:] = npy.ma.where(npy.ma.getmaskarray(do),
+                            self.span[i].data, do)
+
+            # unmap
+            if unmap:
+                out = self.span.unmap(out)
+                if geterr:
+                    err = self.span.unmap(err)
+
+            if geterr:
                 return out, err
             return out
 
         # pca>mssa filtered
-        if mode=='both' or ('best' in mode and '+' in mode):
+        if mode=='both':# or ('best' in mode and '+' in mode):
             pcafiltered = self.get_filtered(mssa=False, unmap=False, geterr=geterr)
             mssafiltered = self.get_filtered(mssa=True, unmap=False, geterr=geterr)
             out = pcafiltered
@@ -591,6 +610,7 @@ class Filler(Logger):
 
         # Reconstruction (masked)
         recfunc = self._get_func_('rec')
+        import pylab as P
         self._recm = recfunc(modes=-imode, raw=1, rescale=False, unmap=False)
         if hasattr(self, '_current_mean'):
             self._recm += self._current_mean
