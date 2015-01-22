@@ -76,12 +76,13 @@ class _BasicAnalyzer_:
 
     @staticmethod
     def _get_imodes_(imode, nmode):
+        """First mode at 0"""
 
         # Which modes
         if imode is None:
-            imode = range(0, nmode+1)
-        elif isinstance(imode,slice):
-            imode = range(imode.start, imode.stop, imode.step)
+            imode = range(0, nmode)#+1)
+        elif isinstance(imode, slice):
+            imode = range(*imode.indices(nmode))
         else:
             if isinstance(imode,int):
                 imode = [imode,]
@@ -491,8 +492,12 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 
         # Window extension of MSSA
         if self._window is None: # Initialization
-            self._window = int(self.nt*SpAn._window_default)
-        self._window = npy.clip(self._window, 1, max(1, self.nt))
+            self._window = SpAn._window_default
+        if self.window <0:
+            self._window = int(npy.round(npy.clip(-self._window, 0., 100)*self.nt/100))
+        elif self._window<1:
+            self._window = int(npy.round(self._window*self.nt))
+        self._window = int(npy.clip(self._window, 1, max(1, self.nt)))
 
         # Number of MSSA modes
         if self._nmssa is None: # Initialization
@@ -502,8 +507,8 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             nchanmax = self._prepca # Input channels are from pre-PCA
         else:
             nchanmax = self.ns # Input channels are from real space
-        self._nmssa = npy.clip(self._nmssa,1,
-            min(SpAn._nmssa_max,nchanmax*self._window)) # Max
+        self._nmssa = int(npy.clip(self._nmssa,1,
+            min(SpAn._nmssa_max,nchanmax*self._window))) # Max
 
         # Re-run analyses when needed
         rerun = {}
