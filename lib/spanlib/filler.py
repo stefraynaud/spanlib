@@ -172,7 +172,8 @@ class Filler(Logger):
                 saxis = int(self._ana=='mssa')
                 if rmask is npy.ma.nomask or not (rmask.all(axis=saxis)|rmask.any(axis=saxis)).any():
                     self.warning('%s: No gap to fill -> skipping'%self._ana.upper())
-                    analyzes.remove('mssa')
+                    if 'mssa' in analyzes:
+                        analyzes.remove('mssa')
                     self._nomssaneeded = True
                     self._nmodes.setdefault(self._ana, [[self.span.nmssa]])
                     break
