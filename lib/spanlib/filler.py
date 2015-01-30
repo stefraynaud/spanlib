@@ -668,7 +668,11 @@ class Filler(Logger):
                 da1 = dmask.all(axis=1)
                 del dmask
             for reduc in npy.arange(1, 0, -0.1):
-                for itry in xrange(min(1, ntries)):
+                for itry in xrange(max(1, ntries)):
+
+                    # Last chance!
+                    if itry==ntries-1 and reduc==0.1:
+                        ncvmin = 1
 
                     # Get new mask
                     mask = gen_cv_mask(data, level*reduc, merged=True, nmin=ncvmin)
@@ -679,14 +683,16 @@ class Filler(Logger):
                         npy.ma.allclose(mask.all(axis=1), da1)):
                         break
                 else:
-                    msg = 'Mask does not preserve minimal availability along axes'
+                    msg = 'Mask does not preserve minimal availability along both axes. '
                     if reduc!=0.1:
                         self.warning(msg+
-                            'trying with  %i%% of level of cross validation points'%(reduc*100))
+                            'Trying with  %i%% of initial level of cross validation points'%(reduc*100))
                     else:
-                        self.warning(msg+'skipping.')
+                        self.warning(msg+'Skipping.')
                     continue
                 break
+            self.debug('Generated cross-validation mask with max(%i%%,%i) of valid points'
+                % (level*reduc, ncvmin))
 
         # Apply mask
         cvfield = npy.where(mask, default_missing_value, self._refm)
