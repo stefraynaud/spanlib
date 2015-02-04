@@ -1,5 +1,16 @@
-In developpement
-- F90: added EC optimization for gappy data
+Version 2.3.0
+- Added: [F90] added EC optimization for gappy data with pca_optec.
+- Added: [F90] added normalize option to pca_getec.
+- Added: negative win.
+- Fixed: nmssa for floats.
+- Fixes: minvalid.
+- Fixed: cross-validation mask generation of Filler.
+- Fixed: pca_eof cached unmaping.
+- Fixed: unmaping of Data when no time.
+
+Version 2.X.X
+- Added Filler.
+- Better missing value handling.
 
 Version 1.2
 - Python module: now uses f2py instead of pyfort
@@ -13,7 +24,7 @@ Version 1.2
 - Python module: added getPairs
 - Python module: added SVDModel class
 
-Version 1.1 [sep 19, 2006]
+Version 1.1
 - F90 library: now compliant with standards
 - Python module: reconstructions are clever and integrate phase composites
 - Python examples: switched example1.py to example2.py, added new example1.py
