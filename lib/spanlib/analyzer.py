@@ -269,7 +269,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 
         If CDAT is not used, length of axis is returned.
         """
-        return _channel_axis_('mssa')
+        return self._channel_axis_('mssa')
 
     def _mssa_window_axis_(self, update=False):
         """Get the MSSA window axis for one dataset
@@ -623,6 +623,10 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         gc.collect()
 
         self._last_anatype = 'pca'
+
+    def pca_has_run(self):
+        """Check if PCA has run"""
+        return self._has_run_('pca')
 
 
     @_filldocs_
@@ -1067,6 +1071,10 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         self._last_anatype = 'mssa'
         gc.collect()
 
+    def mssa_has_run(self):
+        """Check if MSSA has run"""
+        return self._has_run_('mssa')
+
     @_filldocs_
     def mssa_eof(self, scale=False, raw=False, format=True, unmap=True, **kwargs):
         """Get EOFs from MSSA analysis
@@ -1105,12 +1113,13 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 
         if raw: # Do not go back to physical space
 
-            self._mssa_fmt_eof = [npy.ascontiguousarray(raw_eof.T)]
+            return raw_eof
+#            self._mssa_fmt_eof = [npy.ascontiguousarray(raw_eof.T)]
 
-            if format and self.has_cdat(): # Fromat (CDAT)
-                self._mssa_fmt_eof[0] = cdms2.createVariable(self._mssa_fmt_eof)
-                self._mssa_fmt_eof[0].setAxisList(
-                    [self._mode_axis_('mssa'),self._mssa_channel_axis_()])
+#            if format and self.has_cdat(): # Fromat (CDAT)
+#                self._mssa_fmt_eof[0] = cdms2.createVariable(self._mssa_fmt_eof)
+#                self._mssa_fmt_eof[0].setAxisList(
+#                    [self._mode_axis_('mssa'),self._mssa_channel_axis_()])
 
         else: # Get raw data back to physical space
 
