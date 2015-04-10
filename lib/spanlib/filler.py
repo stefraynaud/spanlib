@@ -383,7 +383,8 @@ class Filler(Logger):
         # Reconstruction
         rec_meth = getattr(self.span, ana+'_rec')
         filtered = rec_meth(modes=-self._nmodes[ana][-1][0], unmap=False)
-        if geterr is False: return  self.span.unmap(filtered) if unmap else filtered
+        if geterr is False:
+            return  self.span.unmap(filtered) if unmap else filtered
 
         # Errors
         errs = []
@@ -393,8 +394,8 @@ class Filler(Logger):
             if npy.ma.isMA(filt):
                 err[:] = npy.ma.masked_where(filt.mask, err, copy=0)
             errs.append(err)
-        return self.span.unmap(filtered) if unmap else filtered, \
-            self.span.unmap(errs) if unmap else errs
+        return (self.span.unmap(filtered) if unmap else filtered,
+            self.span.unmap(errs) if unmap else errs)
 
     filtered = property(fget=get_filtered, doc='Filtered data')
 
@@ -505,19 +506,19 @@ class Filler(Logger):
         elif 'mssa' not in mode:
             raise FillerError('Unknown filling mode: '+mode)
         filtered = self.get_filtered(mssa=mssa, unmap=False, geterr=geterr, **kwargs)
-        if '+' in mode: return filtered
+        if '+' in mode:
+            return filtered
         if geterr is not False:
             filtered, anaerr = filtered
-            if geterr is not True:
-                err = self.span.restack(geterr)
+            if geterr is not True: # an array of err as input
+                err = self.span.fill_invalids(geterr, anaerr, copy=True, unmap=unmap)
                 geterr = True
             else:
-                err = [(self.span[i].stacked_data*0) for i in xrange(len(self.span))]
-            err = self.span.fill_invalids(err, anaerr, copy=False)
+                err = anaerr
+                if unmap:
+                    err = self.span.unmap(err)
         out = self.span.fill_invalids('stacked_data', filtered, unmap=unmap)
         if geterr:
-                err = self.span.fill_invalids(err, pcaerr, copy=False, unmap=unmap)
-                del anaerr
                 return out, err
         return out
 
