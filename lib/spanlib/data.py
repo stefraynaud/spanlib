@@ -38,26 +38,26 @@ from util import Logger, dict_filter, broadcast
 class Data(Logger):
     """Class to handle a single variable
 
-        This class packs a variable in 2D space by removing
-        all masked points and storing a space-time array.
-        It performs this operation also on the weights.
-        It is used for removing unnecessary points and
-        simplifying the input format for analysis functions.
+    This class packs a variable in 2D space by removing
+    all masked points and storing a space-time array.
+    It performs this operation also on the weights.
+    It is used for removing unnecessary points and
+    simplifying the input format for analysis functions.
 
-        :Parameters:
+    :Parameters:
 
-            - **data**: masked array
-                Flatten in space an [x,y,t] array by
-                removing its masked point
-            - **weights**, optional: masked array
-                Flatten in space an [x,y,t] array by
-                removing its masked point
+        - **data**: masked array
+            Flatten in space an [x,y,t] array by
+            removing its masked point
+        - **weights**, optional: masked array
+            Flatten in space an [x,y,t] array by
+            removing its masked point
 
-        :Options:
+    :Options:
 
-            - **weights**: Weights to be flatten also
-            - **norm**: Normalisation coefficients
-            - **mask**: Integer mask where valid data = 1
+        - **weights**: Weights to be flatten also
+        - **norm**: Normalisation coefficients
+        - **mask**: Integer mask where valid data = 1
     """
     def __init__(self, data, weights=None, norm=None, keep_invalids=False,
         minvalid=None, clean_weights=True,
@@ -153,6 +153,7 @@ class Data(Logger):
             self.warning("Masking %i NaNs"%nans.sum())
             if self.array_type == 'numpy':
                 self.array_type = 'numpy.ma'
+                self.array_mod = numpy.ma
                 data = npy.ma.array(data, mask=nans, copy=False)
             else:
                 data[nans] = npy.ma.masked
@@ -522,7 +523,10 @@ class Dataset(Logger):
         logger=None, loglevel=None, zerofill=False, **kwargs):
 
         # Logger
-        Logger.__init__(self, logger=logger, loglevel=loglevel, **dict_filter(kwargs, 'log_'))
+        Logger.__init__(self, logger=logger, loglevel=loglevel,
+            **dict_filter(kwargs, 'log_'))
+
+        # Input shape
         if isinstance(dataset, (list, tuple)):
             dataset = list(dataset)
             self.map = len(dataset)
@@ -532,7 +536,7 @@ class Dataset(Logger):
         self.ndataset = self.nd = len(dataset)
         self.dataset = dataset
 
-        # Inits
+        # Other inits
         self.data = []
         self.nt = None
         weights = self.remap(weights, reshape=True)

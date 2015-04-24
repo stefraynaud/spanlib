@@ -46,8 +46,6 @@ class Filler(Logger):
         self._kwargs.setdefault('nvalid', 1)
         self._kwargs.setdefault('quiet', True)
         self._data = data
-#        self.filled = None
-#        self.filtered = None
         self.nstep = 0
         self.cv = 100
         self._analyzes = []
@@ -177,10 +175,6 @@ class Filler(Logger):
                     self._nomssaneeded = True
                     self._nmodes.setdefault(self._ana, [[self.span.nmssa]])
                     break
-#                    self.warning('%s: No gap to fill -> just analyzing with all modes'%self._ana.upper())
-#                    self._get_func_()() # exec
-#                    self._nmodes.setdefault(self._ana, [[self.span.nmssa]])
-#                    break
 
                 # - data to fill
                 if anamode==2: # cross-validation
@@ -413,11 +407,11 @@ class Filler(Logger):
                   If ``mode`` has a ``+``, ALL original values are kept,
                   not only channels having a sufficient number of data.
                 - ``"pca[+]"``: Filled only with PCA reconstruction.
-                  If ``mode`` has a ``+``, the filtered version  is returned
-                  instead of the filled version.
+                  If ``mode`` has a ``+``, the filled version  is returned
+                  instead of the filtered version.
                 - ``"mssa[+]"``: Filled with MSSA reconstruction.
-                  If ``mode`` has a ``+``, the filtered version  is returned
-                  instead of the filled version.
+                  If ``mode`` has a ``+``, the filled version  is returned
+                  instead of the filtered version.
                 - ``"both"`` or ``"best+"``: Use the PCA reconstruction as a basis,
                   and fill it with MSSA reconstruction.
                 - ``None`` or ``"auto[+]"``: It depends on current analyzes, and try to use the
@@ -506,7 +500,7 @@ class Filler(Logger):
         elif 'mssa' not in mode:
             raise FillerError('Unknown filling mode: '+mode)
         filtered = self.get_filtered(mssa=mssa, unmap=False, geterr=geterr, **kwargs)
-        if '+' in mode:
+        if '+' not in mode:
             return filtered
         if geterr is not False:
             filtered, anaerr = filtered
@@ -604,15 +598,10 @@ class Filler(Logger):
                     demean=False)
 
             del data
-#        #
-#        if self._ana=='pca': # Optimization for selected modes
-#            self.span._pca_raw_pc[:, :imode+1] = _core.pca_optec(self._currentm.data,
-#                self.span._pca_raw_eof[:, :imode+1], default_missing_value, demean=0)
 
 
         # Reconstruction (masked)
         recfunc = self._get_func_('rec')
-        import pylab as P
         self._recm = recfunc(modes=-imode, raw=1, rescale=False, unmap=False)
         if hasattr(self, '_current_mean'):
             self._recm += self._current_mean
@@ -652,7 +641,8 @@ class Filler(Logger):
             - **level**, optional: Approximate percentile of cross validation points.
             - **mincv**, optional: Minimal number of cross-validation points.
         """
-        if not regen and hasattr(self, '_cvfield') and self._cvfield_ana==self._ana: return
+        if not regen and hasattr(self, '_cvfield') and self._cvfield_ana==self._ana:
+            return
 
         # Generate the mask
         if mask is None:
@@ -667,7 +657,7 @@ class Filler(Logger):
                 dmask = npy.ma.getmaskarray(data)
                 da0 = dmask.all(axis=0)
                 da1 = dmask.all(axis=1)
-                del dmask
+#                del dmask
             for reduc in npy.arange(1, 0, -0.1):
                 for itry in xrange(max(1, ntries)):
 
@@ -680,8 +670,8 @@ class Filler(Logger):
 
                     # Check consistency
                     if ntries<0 or (
-                        npy.ma.allclose(mask.all(axis=0), da0) and
-                        npy.ma.allclose(mask.all(axis=1), da1)):
+                            (ns==1 or npy.ma.allclose(mask.all(axis=0), da0)) and
+                            (nt==1 or npy.ma.allclose(mask.all(axis=1), da1))):
                         break
                 else:
                     msg = 'Mask does not preserve minimal availability along both axes. '

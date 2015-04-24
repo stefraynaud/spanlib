@@ -22,7 +22,7 @@
 ! ================
 
 subroutine pca(var, ns, nt, nkeep, xeof, pc, ev, ev_sum, &
-    & mv, useteof, notpc, minecvalid, zerofill, optec, errmsg)
+    & mv, useteof, notpc, minecvalid, zerofill, errmsg)
 
     use spanlib, only: sl_pca
 
@@ -39,18 +39,18 @@ subroutine pca(var, ns, nt, nkeep, xeof, pc, ev, ev_sum, &
     real(8),    intent(out) :: ev_sum
     integer, intent(in), optional  :: useteof, notpc
     character(len=120), intent(out), optional :: errmsg
-    integer, intent(in), optional :: zerofill, minecvalid, optec
+    integer, intent(in), optional :: zerofill, minecvalid
 
     ! Call to original subroutine
     ! ---------------------------
     call sl_pca(var, nkeep, xeof=xeof, pc=pc, ev=ev, ev_sum=ev_sum,&
-     & mv=mv, useteof=useteof, notpc=notpc, optec=optec, &
+     & mv=mv, useteof=useteof, notpc=notpc, &
      & minecvalid=minecvalid, zerofill=zerofill, errmsg=errmsg)
 
 end subroutine pca
 
 subroutine pca_getec(var, xeof, ns, nt, nkept, ec, mv, &
-    & ev, minvalid, zerofill, demean, optimize)
+    & minvalid, zerofill, demean)
 
     use spanlib, only: sl_pca_getec
 
@@ -61,34 +61,91 @@ subroutine pca_getec(var, xeof, ns, nt, nkept, ec, mv, &
     integer, intent(in)  :: ns,nt,nkept
     real(8),    intent(in)  :: var(ns,nt), xeof(ns,nkept), mv
     real(8),    intent(out) :: ec(nt,nkept)
-    real(8), intent(in), optional :: ev(nkept)
-    integer, intent(in), optional :: zerofill, minvalid, demean, optimize
+    integer, intent(in), optional :: zerofill, minvalid, demean
 
     ! Call to original subroutine
     ! ---------------------------
-    call sl_pca_getec(var, xeof, ec, mv=mv, ev=ev, &
-        & minvalid=minvalid, zerofill=zerofill, demean=demean, optimize=optimize)
+    call sl_pca_getec(var, xeof, ec, mv=mv, &
+        & minvalid=minvalid, zerofill=zerofill, demean=demean)
 
 end subroutine pca_getec
 
-subroutine pca_optec(var, xeof, ec, mv, demean, ns, nt, nkept)
-
-    use spanlib, only: sl_pca_optec
-
-    implicit none
-
-    ! External
-    ! --------
-    integer, intent(in)  :: ns, nt, nkept
-    real(kind=8), intent(in) :: var(ns,nt), xeof(ns,nkept), mv
-    real(kind=8), intent(out) :: ec(nt,nkept)
-    integer, intent(in), optional :: demean
-
-    ! Call to original subroutine
-    ! ---------------------------
-    call sl_pca_optec(var, xeof, ec, mv=mv, demean=demean)
-
-end subroutine pca_optec
+!subroutine pca_optec(var, xeof, ec, mv, demean, ns, nt, nkept)
+!
+!    use spanlib, only: sl_pca_optec
+!
+!    implicit none
+!
+!    ! External
+!    ! --------
+!    integer, intent(in)  :: ns, nt, nkept
+!    real(kind=8), intent(in) :: var(ns,nt), xeof(ns,nkept), mv
+!    real(kind=8), intent(inout) :: ec(nt,nkept)
+!    integer, intent(in), optional :: demean
+!
+!    ! Call to original subroutine
+!    ! ---------------------------
+!    call sl_pca_optec(var, xeof, ec, mv=mv, demean=demean)
+!
+!end subroutine pca_optec
+!
+!
+!subroutine pca_optec_funjac(f, j, var, xeof, ec, valid, ns)
+!
+!    use spanlib, only: sl_pca_optec_funjac
+!
+!    implicit none
+!
+!    ! External
+!    ! --------
+!    integer, intent(in)  :: ns
+!    real(kind=8), intent(in) :: xeof(ns), var(ns), ec
+!    real(kind=8), intent(out) :: f, j
+!    logical, intent(in) :: valid(ns)
+!
+!    ! Call to original subroutine
+!    ! ---------------------------
+!    call sl_pca_optec_funjac(f, j, var, xeof, ec, valid)
+!
+!end subroutine pca_optec_funjac
+!
+!
+!subroutine pca_optec_funjac_test(jac, jacemp, var, xeof, ec, valid, pert, ns)
+!
+!    use spanlib, only: sl_pca_optec_funjac
+!
+!    implicit none
+!
+!    ! External
+!    ! --------
+!    integer, intent(in)  :: ns
+!    real(kind=8), intent(in) :: xeof(ns), var(ns), ec, pert
+!    real(kind=8), intent(out) :: jac, jacemp
+!    logical, intent(in) :: valid(ns)
+!
+!    ! Local
+!    ! -----
+!    real(kind=8) :: f
+!    integer :: i,is
+!
+!    ! Small perturbations
+!    ! -------------------
+!    jacemp = 0d0
+!    do is = -1,1,2
+!        call sl_pca_optec_funjac(f, jac, var, xeof, ec*(1.+dble(is)*pert), valid)
+!        jacemp = jacemp + dble(is)*f
+!    end do
+!    jacemp = jacemp / (2*pert)
+!
+!    ! Direct case
+!    ! -----------
+!    call sl_pca_optec_funjac(f, jac, var, xeof, ec, valid)
+!    print *,jac
+!
+!
+!end subroutine pca_optec_funjac_test
+!
+!
 
 subroutine pca_rec(xeof, pc, ns, nt, nkept, varrec, istart, iend, &
     & mv, errmsg)

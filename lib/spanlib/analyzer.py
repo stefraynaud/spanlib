@@ -184,13 +184,10 @@ class _BasicAnalyzer_:
 class Analyzer(_BasicAnalyzer_, Dataset):
     """ Prepare the Spectral Analysis Object
 
-    Description:::
+    Description:
       This function creates an object for future analyses.
       It optionally initializes some parameters.
-    :::
 
-    Usage:::
-    analysis_object = SpAn(datasets,weights=None,npca=None,window=None,nmssa=None)
 
       data  :: List of data on which to run the PC Analysis
         Last dimensions must represent the spatial dimensions.
@@ -206,12 +203,11 @@ class Analyzer(_BasicAnalyzer_, Dataset):
       nmssa   :: Number of MSSA modes retained [default: 4]
       nsvd  :: Number of SVD modes retained [default: 10]
       window  :: MSSA window parameter [default: time_length/3.]
-      sequential :: If we have a list (or tuple) of variables as "datasets", they are analysed independantly (sequential analyses in opposition to parallel analyses) if sequential is True [default: False]. If False, they are packed before being analysed.
-    :::
 
-    Output:::
+
+    Output:
       analysis_object :: SpAn object created for further analysis
-    :::
+
     """
 
     _npca_default = 10
@@ -221,12 +217,11 @@ class Analyzer(_BasicAnalyzer_, Dataset):
     _notpc_default = 0
     _minecvalid_default = 0
     _zerofill_default = 0
-    _optimec_default = 0
     _nmssa_default = _nsvd_default = 8
     _nmssa_max = 20 #_nsvd_max = 20
     _window_default = 1/3. # Relative to time length
     _pca_params = ['npca', 'prepca', 'minecvalid', 'zerofill', 'useteof',
-        'notpc', 'pcapf', 'optimec']
+        'notpc', 'pcapf']
     _mssa_params = _pca_params+['nmssa', 'prepca', 'window']
 #    _svd_params = _pca_params+['nsvd']
     _params = dict(pca=_pca_params, mssa=_pca_params+_mssa_params)#, svd=_pca_params+_svd_params)
@@ -237,14 +232,6 @@ class Analyzer(_BasicAnalyzer_, Dataset):
     def __init__(self, dataset, weights=None, norms=None,
         minvalid=None, clean_weights=True, keep_invalids=False, zerofill=0,
         logger=None, loglevel=None, **kwargs):
-
-#        # Loggers
-#        Logger.__init__(self, logger=logger, loglevel=loglevel, **dict_filter(kwargs, 'log_'))
-
-#        # Form data, weights and norms for :class:`Dataset`
-#        self._map_(datasets, sequential)
-#        weights = self._remap_(weights)
-#        norms = self._remap_(norms)
 
         # Create Dataset instance
         Dataset.__init__(self, dataset, weights=weights, norms=norms, zerofill=zerofill,
@@ -478,10 +465,6 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         if self._notpc is None:
             self._notpc = SpAn._notpc_default
 
-        # Optimize PCA EC?
-        if self._optimec is None:
-            self._optimec = SpAn._optimec_default
-
         # Fill with zeros?
         if self._zerofill is None:
             self._zerofill = SpAn._zerofill_default
@@ -515,8 +498,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         rerun['pca'] = self._has_run_('pca') and (
             self._has_changed_(old, 'npca')>0 or
             self._has_changed_(old, 'useteof') or
-            self._has_changed_(old, 'notpc') or
-            self._has_changed_(old, 'optimec')
+            self._has_changed_(old, 'notpc')
         )
         rerun['mssa'] = self._has_run_('mssa') and (
             self._has_changed_(old, 'nmssa')<0 or
@@ -604,7 +586,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             raw_eof, raw_pc, raw_ev, ev_sum, errmsg = \
                 _core.pca(pdata, self._npca, default_missing_value,
                 useteof=self._useteof, notpc=self._notpc, minecvalid=self._minecvalid,
-                zerofill=self._zerofill, optec=self._optimec)
+                zerofill=self._zerofill)
             self.check_fortran_errmsg(errmsg)
 
         # Post filtering
@@ -625,7 +607,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         self._last_anatype = 'pca'
 
     def pca_has_run(self):
-        """Check if PCA has run"""
+        """Check if PCA has already run"""
         return self._has_run_('pca')
 
 
@@ -806,8 +788,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         raw_data = npy.asfortranarray(raw_data)
         raw_eof = npy.asfortranarray(raw_eof)
         raw_ec = _core.pca_getec(raw_data, raw_eof, mv=default_missing_value,
-            ev=ev, minvalid=self._minecvalid, zerofill=self._zerofill,
-            optimize=self._optimec)
+            minvalid=self._minecvalid, zerofill=self._zerofill)
 
         # Replace current pc with computed ec
         if replace:
@@ -1072,7 +1053,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         gc.collect()
 
     def mssa_has_run(self):
-        """Check if MSSA has run"""
+        """Check if MSSA has already run"""
         return self._has_run_('mssa')
 
     @_filldocs_
@@ -1745,14 +1726,6 @@ class Analyzer(_BasicAnalyzer_, Dataset):
         self.update_params(useteof=value)
         return self._useteof
     useteof = property(fget=get_useteof, fset=set_useteof, doc="Use T-EOFs for PCA?")
-
-    def get_optimec(self):
-        return self._optimec
-    def set_optimec(self, value):
-        self.update_params(optimec=value)
-        return self._optimec
-    optimec = property(fget=get_optimec, fset=set_optimec,
-        doc="Optimize PCA EC for gappy data?")
 
 
     def get_nmssa(self):

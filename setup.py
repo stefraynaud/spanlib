@@ -38,7 +38,7 @@ url="http://spanlib.sf.net"
 
 # Gather up all the files we need
 spanlib_files = ['src/spanlib.pyf', 'src/spanlib_pywrap.f90',
-    'src/spanlib.f90',  'src/anaxv.f90', 'src/lbfgs.f']
+    'src/spanlib.f90',  'src/anaxv.f90']
 anaxv_files = ['src/anaxv.pyf', 'src/anaxv.f90']
 #optimec_files = ['src/optimec.pyf', 'src/optimec.f90', 'src/lbfgs.f']
 

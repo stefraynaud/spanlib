@@ -26,7 +26,8 @@ class TSF(unittest.TestCase):
 #        P.subplot(212)
 #        P.pcolor(rec, vmin=data.min(), vmax=data.max())
 #        P.show()
-        self.assertAlmostEqual(((data-rec)**2).sum(), 0.60431810315122336)
+        self.assertAlmostEqual(((data-rec)**2).sum()/(data**2).sum()*100,
+            0.064630381956367611)
 
 
     def test_fill_simple(self):
@@ -37,8 +38,9 @@ class TSF(unittest.TestCase):
         withholes[25:35, 50:60] = npy.ma.masked
 
         # Fill
-        F = Filler(withholes, loglevel='error')
+        F = Filler(withholes, loglevel='error', cvfield_level=10., npca=2)
         filtered = F.filtered
+        del F
 
         # Check
 #        import pylab as P
@@ -51,10 +53,10 @@ class TSF(unittest.TestCase):
 #        P.show()
 #        print filtered.filled()[22:24,0]
         npy.testing.assert_almost_equal(filtered.filled()[22:24,0],
-            npy.array([-0.1513132,   -0.42184621]))
+            npy.array([-0.1510115, -0.421256]))
 
     def test_fill_double(self):
-        """Test hole filling and forecast estimation with a pair of variables"""
+        """Test gap filling and forecast estimate with a pair of variables"""
         # Init
         nt = 500
         tmax = 80.
@@ -64,14 +66,21 @@ class TSF(unittest.TestCase):
         withholes = ref.copy()
         withholes[200:215] = npy.ma.masked
         withholes[480:] = npy.ma.masked
-        # Fill
-        filled = Filler([withholes, withholes*100])
 #        import pylab as P
-#        P.plot(filled.filtered[0][:, 0], 'r')
+##        P.plot(filled.filtered[0][:, 0], 'r')
+#        P.pcolor(withholes)
+#        P.show()
+
+        # Fill
+        F = Filler([withholes, withholes*100], logger_level='erro')
+        filtered = F.filtered
+        del F
+#        import pylab as P
+#        P.plot(filtered[0][:, 0], 'r')
 #        P.plot(withholes[:, 0], 'b')
 #        P.show()
-        self.assertTrue(npy.allclose(filled.filtered[0].filled()[200:202,0],
-            npy.array([10.61834159,  10.73914392])))
+        npy.testing.assert_almost_equal(filtered[0].filled()[200:202,0],
+            npy.array([10.5865463,  10.7038984]))
 
 if __name__ == '__main__':
     unittest.main()
