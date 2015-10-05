@@ -1,7 +1,7 @@
 SpanLib - Spectral Analysis Library
 ===================================
 
-Intent:
+Purpose
 -------
 Provides a fortran 90 libraries and a python module
 to perform analyses such as Principal Component
@@ -10,31 +10,38 @@ Spectrum Analysis (MSSA).
 This packages is suitable for analysis studies of
 climate or financial variability.
 
-Web site:
----------
+Web site
+--------
 http://spanlib.sourceforge.net
 
-Authors:
---------
+Authors
+-------
 Stephane Raynaud
 Charles Doutriaux
 
-Licence:
---------
+Licence
+-------
 Lesser GNU Public Licence
 See COPYING file
 
-Documentation:
---------------
+Documentation
+-------------
 - In the package tree: doc/index.html or doc/spanlib.html
 - Once the packaged is installed, typically in:
   file://<prefix_dir>/share/spanlib/html
 - On the web: http://sourceforge.net/docman/index.php?group_id=168272
   (no html formatting)
 
-Quick installation:
--------------------
-Try ./configure && make && make install (as root)
+Quick installation
+------------------
+Fortran::
+
+    $ ./configure && make && make install #as root
+
+Python::
+
+    $ python setup.py install
+
 See INSTALL file
 
 
