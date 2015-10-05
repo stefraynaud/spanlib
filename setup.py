@@ -36,6 +36,12 @@ author = 'Stephane Raynaud and Charles Doutriaux'
 author_email = 'stephane.raynaud@gmail.com'
 url="http://spanlib.sf.net"
 
+# From files
+base = os.path.dirname(__file__)
+with open(os.path.join(base, 'requirements.txt')) as f:
+    requires = filter(None, f.read().split('\n'))
+
+
 # Gather up all the files we need
 spanlib_files = ['src/spanlib.pyf', 'src/spanlib_pywrap.f90',
     'src/spanlib.f90',  'src/anaxv.f90']
@@ -121,6 +127,7 @@ if __name__=='__main__':
         maintainer=author,
         maintainer_email=author_email,
         license="GNU LGPL",
+        install_requires=requires,
 
         # Fortran wrapper
         ext_modules = [
