@@ -1,4 +1,3 @@
-#################################################################################
 # File: spanlib_python.py
 #
 # This file is part of the SpanLib library.
@@ -18,13 +17,12 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-#################################################################################
-import copy
+
 import gc
-from warnings import warn
 import numpy as N
 npy = N
-from data import has_cdat_support, cdms2_isVariable, Data, Dataset, default_missing_value
+from data import (has_cdat_support, cdms2_isVariable, Data, Dataset,
+    default_missing_value)
 if has_cdat_support:
     import MV2, cdms2
 #from .util import Logger, broadcast, SpanlibIter, dict_filter
@@ -33,37 +31,37 @@ import _core
 from .util import Logger, broadcast, SpanlibIter, dict_filter
 
 docs = dict(
-    npca = """- *npca*: int | ``None``
+    npca="""- *npca*: int | ``None``
                 Number of PCA modes to keep in analysis (defaults to 10).""",
-    prepca = """- *prepca*: int | bool | ``None``
+    prepca="""- *prepca*: int | bool | ``None``
                 Number of pre-PCA modes to keep before MSSA and SVD analyses (defaults to ``npca`` if ``True``).
                 If the number of input channels is greater than 30, it is automatically switch to ``True``.""",
-    nmssa = """- *nmssa*: int | ``None``
+    nmssa="""- *nmssa*: int | ``None``
                 Number of MSSA modes to keep in analysis (defaults to 10).""",
-    window = """- *window*: int | ``None``
+    window="""- *window*: int | ``None``
                 Size of the MSSA window parameter (defaults to 1/3 the time length).""",
-    nsvd = """- *nsvd*: int | ``None``
+    nsvd="""- *nsvd*: int | ``None``
                 Number of SVD modes to keep in analysis (defaults to 10).""",
-    modes = """- *modes*: int | list | tuple
+    modes="""- *modes*: int | list | tuple
                 If ``None``, all modes are summed.
                 Example of other usages:
 
                     - ``4`` or ``[4]`` or ``(4,)``: only mode 4
                     - ``-4``: modes 1 to 4
                     - ``(1,3,-5)``: modes 1, 3, 4 and 5 (``-`` means "until")""",
-    raw = """- *raw*: bool
+    raw="""- *raw*: bool
                 When pre-PCA is used and ``raw`` is ``True``, it prevents from
                 going back to physical space (expansion to PCA EOFs space).""",
-    scale = """- *scale*: bool | float
+    scale="""- *scale*: bool | float
                 Apply a factor to EOFs or PCs. This is essentially useful to add
                 a quantitative meaning. If ``True``, ``scale`` is chosen so that
                 the standard deviation of the mode (EOF or PC) is the square of
                 the associated eigen value.""",
-    relative = """- *relative*: bool
+    relative="""- *relative*: bool
                 Return percentage of variance instead of its absolute value.""",
-    sum = """- *sum*: bool
+    sum="""- *sum*: bool
                 Return the sum of ALL (not only the selected modes) eigen values (total variance).""",
-    cumsum = """- *cumsum*: bool
+    cumsum="""- *cumsum*: bool
                 Return the cumulated sum of eigen values.""",
 )
 
@@ -72,7 +70,8 @@ def _filldocs_(func):
     return func
 
 
-class _BasicAnalyzer_:
+class _BasicAnalyzer_(object):
+    """Define fundamental methods for all analysers"""
 
     @staticmethod
     def _get_imodes_(imode, nmode):
@@ -210,6 +209,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 
     """
 
+    # pylint: disable=too-many-instance-attributes
     _npca_default = 10
     _npca_max = 200
     _nprepca_max = 30
@@ -230,8 +230,8 @@ class Analyzer(_BasicAnalyzer_, Dataset):
     _int_params = ['npca', 'nmssa', 'prepca', 'window', 'nsvd']
 
     def __init__(self, dataset, weights=None, norms=None,
-        minvalid=None, clean_weights=True, keep_invalids=False, zerofill=0,
-        logger=None, loglevel=None, **kwargs):
+            minvalid=None, clean_weights=True, keep_invalids=False, zerofill=0,
+            logger=None, loglevel=None, **kwargs):
 
         # Create Dataset instance
         Dataset.__init__(self, dataset, weights=weights, norms=norms, zerofill=zerofill,
