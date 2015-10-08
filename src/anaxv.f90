@@ -1,7 +1,7 @@
 ! File: anaxv.f90
 !
 ! This file is part of the SpanLib library.
-! Copyright (C) 2012  Stephane Raynaud
+! Copyright (C) 2012-2015  Stephane Raynaud
 ! Contact: stephane dot raynaud at gmail dot com
 !
 ! This library is free software; you can redistribute it and/or
@@ -38,14 +38,14 @@ subroutine write_anaxv_field(fname, t, x, ns, nt, mv)
     integer :: it, igap
     real :: zx(ns),zn
     logical :: bad(ns)
-    
+
     ! Write
-    zn = 0.
+    zn = -1.
     open(11,file=trim(fname),form='unformatted')
     do it = 1, nt
         zx = x(:, it)
         bad = zx==mv
-        where(bad)zx = 1./(zn*2)
+        where(bad)zx = sqrt(zn)
         if(all(bad))then
             igap = 0
         elseif(any(bad))then
@@ -56,14 +56,15 @@ subroutine write_anaxv_field(fname, t, x, ns, nt, mv)
         write(11) t(it), igap, zx
     end do
     close(11)
-    
+
 end subroutine write_anaxv_field
 
 
 subroutine read_anaxv_field(fname, t, x, ns, nt, mv)
+    ! t,x = read_anaxv_field(fname,ns,nt,mv)
 
     implicit none
-    
+
     ! Declarations
     ! - external
     integer, intent(in) ::  ns, &       ! Spatial (channel) dim
@@ -74,8 +75,8 @@ subroutine read_anaxv_field(fname, t, x, ns, nt, mv)
     real, intent(in) :: mv              ! Missing value
     ! - local
     integer :: it, igap
-    
-    
+
+
     ! Read
     open(11,file=trim(fname),form='unformatted',status='old')
     do it = 1, nt
@@ -87,7 +88,7 @@ subroutine read_anaxv_field(fname, t, x, ns, nt, mv)
         end if
     end do
     close(11)
-    
+
 end subroutine read_anaxv_field
 
 
@@ -95,7 +96,7 @@ subroutine read_anaxv_stcov(fname, cov, nc, nw)
     ! Read a square bloc
 
     implicit none
-    
+
     ! Declarations
     ! - external
     integer, intent(in) ::  nc, &           ! Number of channels
@@ -103,9 +104,9 @@ subroutine read_anaxv_stcov(fname, cov, nc, nw)
     character(len=*) :: fname               ! File name
     real, intent(out) :: cov(nc*nw, nc*nw)  ! Covariance matrix
     ! - local
-    integer :: ic, iw  
+    integer :: ic, iw
     real :: covar(nc, nc, nw)
-    
+
     ! Read
     open(11,file=trim(fname),form='unformatted',status='old')
     do iw = 1, nw
@@ -114,33 +115,33 @@ subroutine read_anaxv_stcov(fname, cov, nc, nw)
         end do
     end do
     close(11)
-    
+
     ! Form
     call stcovar2cov(covar, cov, nc, nw)
-    
+
 end subroutine read_anaxv_stcov
 
-    
-subroutine stcovar2cov(covar,cov,nchan,nwindow)
 
-    real covar(nchan,nchan,nwindow)
-    integer, intent(in) :: nchan,nwindow
-    real, intent(out) :: cov(nchan*nwindow,nchan*nwindow)
-    
+subroutine stcovar2cov(covar,cov,nchan,nw)
+
+    real covar(nchan,nchan,nw)
+    integer, intent(in) :: nchan,nw
+    real, intent(out) :: cov(nchan*nw,nchan*nw)
+
     integer :: ilign,icolo,nc1,nc2,nw2,nw1,nc2m,nc1m
-    
-    nsteof = nchan*nwindow
-    do nc1=1,nchan
-     do nc2=1,nchan
-        nc1m=(nc1-1)*nwindow
-        nc2m=(nc2-1)*nwindow
-        do nw2=1,nwindow
-           do nw1=1,nw2
+
+    nsteof = nchan*nw
+    do nc1=1, nchan
+     do nc2=1, nchan
+        nc1m=(nc1-1)*nw
+        nc2m=(nc2-1)*nw
+        do nw2=1, nw
+           do nw1=1, nw2
               ilign = nc1m + nw1
               icolo = nc2m + nw2
               idiag = nw2 - nw1 + 1
-              cov(ilign,icolo) = covar(nc1,nc2,idiag)
-              cov(icolo,ilign) = cov(ilign,icolo)
+              cov(ilign, icolo) = covar(nc1, nc2, idiag)
+              cov(icolo, ilign) = cov(ilign, icolo)
            enddo
         enddo
      enddo
@@ -148,19 +149,53 @@ subroutine stcovar2cov(covar,cov,nchan,nwindow)
 end subroutine stcovar2cov
 
 subroutine read_anaxv_eof(fname, xeof, neof)
+    ! EOF(ns,neof=ns) or EOF(nchan*nw,neof=nchan*nw)
 
     implicit none
-    
+
     ! Declarations
     ! - external
     integer, intent(in) ::  neof          ! Number of channels and EOFs
     character(len=*) :: fname             ! File name
     real, intent(out) :: xeof(neof, neof) ! Output data
-    
-    
+
+
     ! Read
     open(11,file=trim(fname),form='unformatted',status='old')
     read(11)xeof
     close(11)
-    
+
 end subroutine read_anaxv_eof
+
+
+subroutine eof2steof(xeof, steof, nsteof, nw, nkeep)
+    ! EOF(nsteof,nsteof) -> STEOF(neof,nw,nchan)
+    ! nsteof = nchan*nw
+
+    implicit none
+
+    ! Declarations
+    ! - external
+    integer, intent(in) ::  nsteof, &          ! Number EOFs
+        &   nw, & ! MSSA window size
+        &   nkeep  ! Number of MSSA first EOF to keep
+!        &   nchan, & ! NUmber of input channels to MSSA
+    real, intent(in) :: xeof(nsteof, nsteof) ! Input eof
+    real, intent(out) :: steof(nkeep, nw, nsteof/nw) ! Output ST-EOF
+    ! - internal
+    integer :: n1, n2, n, ilag, ipc, i, nc
+
+    ! Reshape
+    nc = nsteof/nw
+    do i=1, nkeep
+        do ilag=1, nw
+            do ipc=1, nc
+              n1 = nw-ilag+1
+              n2 = (ipc-1)*nw
+              n = n2+n1
+              steof(i, ilag, ipc) = xeof(n, i)
+            enddo
+        enddo
+    enddo
+
+end subroutine eof2steof
