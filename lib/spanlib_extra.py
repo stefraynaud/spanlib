@@ -4,40 +4,16 @@ import sys,  os
 from ConfigParser import SafeConfigParser
 import numpy as npy
 
-def insert_local_paths():
-    """Insert local library and build paths
-    
-    - The local library path is the :file:`lib/spanlib` directory of the distribution
-    - The local build path is provided by the file :file:`config.cfg`
-      found in the root directory of the distribution once the package is built.
-    """
-    base_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-    sys.path = [os.path.realpath(p) for p in sys.path]
-    local_lib_path = os.path.join(base_path, 'lib')
-    local_build_path = None
-    cfgfile = os.path.join(base_path, 'config.cfg')
-    if os.path.exists(cfgfile):
-        cfg = SafeConfigParser()
-        cfg.read(cfgfile)
-        if cfg.has_option('paths', 'build_lib'):
-            local_build_path = cfg.get('paths', 'build_lib')
-            local_build_path = os.path.join(local_build_path, 'spanlib')
-    for path in local_build_path, local_lib_path:
-        if path is None: continue
-        if path in sys.path:
-            sys.path.remove(path)
-        sys.path.insert(0, path)
-
 def setup_data1(nx=100, nt=120, xfreq=2, tfreq=3, xyfact=3, masked=True):
     """Generate space-time data sample with a single spatial dimension
-    
+
     Returned array has masked values if ``masked`` is set to ``True``
     """
     var = npy.zeros((nt,nx))
-    
+
     xx = npy.arange(nx,dtype='d')
     tt = npy.arange(nt,dtype='d')
-    
+
     for ifreq in [.5, 3]:
         tvar = (npy.cos(2*npy.pi * tfreq * tt/(nt-1))*tt/(nt-1)).reshape((nt,1))
         xvar = npy.cos(2*npy.pi * xfreq*ifreq * xx/(nx-1)).reshape((1,nx))
@@ -54,10 +30,10 @@ def setup_data1(nx=100, nt=120, xfreq=2, tfreq=3, xyfact=3, masked=True):
 
 def setup_data2(nx=30, ny=20, **kwargs):
     """Same as setup_data1 but with two spatial dimensions
-    
+
     Extra keywords are passed to setup_data1
     """
-    
+
     data1 = setup_data1(nx=nx*ny, **kwargs)
     return data1.reshape((-1, ny, nx))
 
@@ -81,7 +57,7 @@ def pca_numpy(var, nmode, cov=None, evsum=False):
             nn2 = npy.dot(nn.T, nn)
             cov /= nn2
             del nn, nn2
-        
+
     _ev, eof = npy.linalg.eigh(cov)
     isort = npy.argsort(_ev)[::-1]
     ev = _ev[isort][:nmode]
@@ -103,9 +79,9 @@ def svd_numpy(varl, varr, nmode):
 
 def gensin1d(per=50, nper=10, p=0.2):
     """Generate an 1D sinusoid as an numpy array of length ``nt``, period ``T`` and phase ``p``
-   
+
     :Params:
-        
+
         - **per**, optional: Period in time steps.
         - **nper**, optional: Sample size in number of periods.
         - **p**, optional: Phase relative to the period (within [-1,1]).
