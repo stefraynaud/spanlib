@@ -5,7 +5,7 @@
 import os
 import sys
 import re
-from ConfigParser import SafeConfigParser
+from configparser import SafeConfigParser
 from numpy.distutils.core import setup, Extension
 from numpy.f2py import crackfortran
 
@@ -57,7 +57,7 @@ uvcdat_extlibdir = os.path.join(sys.prefix, 'Externals', 'lib')
 if os.path.exists(uvcdat_extlibdir):
     libdirs.append(uvcdat_extlibdir)
 libdirs += os.environ.get('LD_LIBRARY_PATH', '').split(':')
-libdirs += ['usr/lib','/usr/local/lib']
+libdirs += ['/usr/lib','/usr/local/lib']
 # - user specified
 cfg = SafeConfigParser()
 cfg.read('setup.cfg')

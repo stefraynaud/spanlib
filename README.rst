@@ -36,6 +36,7 @@ Quick installation
 ------------------
 Fortran::
 
+    $ autoconf
     $ ./configure && make && make install #as root
 
 Python::
