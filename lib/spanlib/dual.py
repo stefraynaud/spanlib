@@ -24,14 +24,14 @@
 import copy
 import gc
 from warnings import warn
-# import _core
+import spanlib._core as _core
 import numpy as N
 npy = N
-from data import has_cdat_support, cdms2_isVariable, Data, Dataset, default_missing_value
+from spanlib.data import has_cdat_support, cdms2_isVariable, Data, Dataset, default_missing_value
 if has_cdat_support: import MV2, cdms2
 import pylab as P
 from spanlib.util import Logger, broadcast, SpanlibIter, dict_filter, SpanlibError
-from analyzer import _BasicAnalyzer_, Analyzer, docs, _filldocs_
+from spanlib.analyzer import _BasicAnalyzer_, Analyzer, docs, _filldocs_
 
 class DualSpanlibError(SpanlibError):
     pass
