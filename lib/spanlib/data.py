@@ -32,7 +32,7 @@ except:
     has_cdat_support = False
 
 default_missing_value = npy.ma.default_fill_value(0.)
-from util import Logger, dict_filter, broadcast
+from spanlib.util import Logger, dict_filter, broadcast
 
 
 class Data(Logger):
@@ -177,7 +177,8 @@ class Data(Logger):
         count[count<minvalid] = 0 # <minvalid -> 0
         count = npy.clip(count, 0, 1)
         # - save as 0/1
-        self.ns = long(count.sum())
+        # self.ns = long(count.sum())
+        self.ns = count.sum()
         self.compress = count.size != self.ns
         self.good = count>0 # points in space where there are enough data in time
         self.minvalid = self.nvalid = minvalid

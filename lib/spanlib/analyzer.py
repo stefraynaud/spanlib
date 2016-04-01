@@ -21,14 +21,14 @@
 import gc
 import numpy as N
 npy = N
-from data import (has_cdat_support, cdms2_isVariable, Data, Dataset,
+from spanlib.data import (has_cdat_support, cdms2_isVariable, Data, Dataset,
     default_missing_value)
 if has_cdat_support:
     import MV2, cdms2
 #from .util import Logger, broadcast, SpanlibIter, dict_filter
 #from spanlib.util import Logger, broadcast, SpanlibIter, dict_filter
 # import _core
-from .util import Logger, broadcast, SpanlibIter, dict_filter
+from spanlib.util import Logger, broadcast, SpanlibIter, dict_filter
 
 docs = dict(
     npca="""- *npca*: int | ``None``
