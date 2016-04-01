@@ -189,7 +189,7 @@ class Filler(Logger):
                 # Reanalyses loop
                 self._errors[anamode][self._ana] = []
                 last_reana_err = None
-                for ira in xrange(nreana[self._ana]):
+                for ira in range(nreana[self._ana]):
 
                     self.debug('  Analysis (%i/%i)'%(ira+1, nreana[self._ana]))
 
@@ -232,7 +232,7 @@ class Filler(Logger):
 
                         # Convergence loop for expansion coefficients
                         self._errors[anamode][self._ana][-1].append([])
-                        for istep in xrange(niterec):
+                        for istep in range(niterec):
                             if ecloop: self.debug('    EC convergence step: %i'%istep)
 
                             # Reconstruct
@@ -442,7 +442,7 @@ class Filler(Logger):
                     err = self.span.unmap(geterr)
                     geterr = True
                 else:
-                    err = [(self.span[i].data*0) for i in xrange(len(self.span))]
+                    err = [(self.span[i].data*0) for i in range(len(self.span))]
                 err = self.span.fill_invalids(err, pcaerr, copy=False, unmap=False)
                 del pcaerr
 
@@ -659,7 +659,7 @@ class Filler(Logger):
                 da1 = dmask.all(axis=1)
 #                del dmask
             for reduc in npy.arange(1, 0, -0.1):
-                for itry in xrange(max(1, ntries)):
+                for itry in range(max(1, ntries)):
 
                     # Last chance!
                     if itry==ntries-1 and reduc==0.1:

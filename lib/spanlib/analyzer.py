@@ -88,13 +88,14 @@ class _BasicAnalyzer_(object):
 
         # Rearrange modes (imode=[0,3,4,5,9] -> [0,0],[3,5],[9,9])
         imode = [im for im in imode if im < nmode]
-        imode.sort(key=lambda x,y: (abs(x) > abs(y)) - (abs(x) < abs(y)))
+        # imode.sort(key=lambda x,y: (abs(x) > abs(y)) - (abs(x) < abs(y)))
+        imode.sort()
         if imode[0]<0: imode.insert(0,0)
         imodes = []
         im = 0
         while im < len(imode):
             imode1 = imode2 = imode[im]
-            for imt in xrange(im+1,len(imode)):
+            for imt in range(im+1,len(imode)):
                 if imode[imt] > 0  and (imode[imt]-imode2) > 1: # end of group
                     im = imt-1
                     break
@@ -657,7 +658,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             if scale:
                 if scale is True: # Std dev of EOF is sqrt(ev)
                     scale = npy.sqrt(self._pca_raw_ev*(self.ns-1))
-                    for imode in xrange(eof.shape[0]):
+                    for imode in range(eof.shape[0]):
                         eof[imode] *= scale[imode]
                 else:
                     eof *= scale
@@ -1369,7 +1370,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
             mcev = npy.zeros((mcnens, self.nmssa))
 
             # Generate and ensemble of surrogate data
-            for iens in xrange(mcnens):
+            for iens in range(mcnens):
 
                 # Create a sample red noise (nt,nchan)
                 red_noise = rn.sample().T
@@ -1853,7 +1854,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 #        if input is None:
 #            return alt
 #        if isinstance(input, dict): # Explicit dictionary
-#            for i in xrange(self.nd):
+#            for i in range(self.nd):
 #                if not input.has_key(i) and alt.has_key(i):
 #                    input[i] = alt[i]
 #            return input
@@ -1862,7 +1863,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
 #            for i, data in enumerate(input):
 #                out[i] = data
 #        else: # Array (=> same for all dataset)
-#            for i in xrange(self.nd):
+#            for i in range(self.nd):
 #                out[i] = input
 #        return out
 
@@ -2029,7 +2030,7 @@ def phase_composites(data,  nphase=8, minamp=.5, firstphase=0, index=None, forma
     # Loop on circular bins to make composites
     slices = [slice(None), ]*phases.ndim
     idx = npy.arange(data.shape[itaxis])
-    for iphase in xrange(len(marks)-1):
+    for iphase in range(len(marks)-1):
         slices[itaxis] = iphase
         inbin = amplitudes > minamp
         inbin &= angles >= marks[iphase]
@@ -2121,7 +2122,7 @@ class RedNoise(object):
         # Find the bias and gamma (Newton-Raphson algo)
         gamma0 = c1/c0
         self.gamma = c1/c0
-        for i in xrange(0, self.nitermax):
+        for i in range(0, self.nitermax):
             self.gamma -= (self.ubg(self.gamma, nt)-gamma0)/self.dubgdg(self.gamma, nt)
         self.bias = self.mu2(self.gamma, nt)
 
