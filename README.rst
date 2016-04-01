@@ -41,7 +41,8 @@ Fortran::
 
 Python::
 
-    $ python setup.py install
+    $ [sudo] python setup.py install
+    $ [sudo] python setup.py build_ext --inplace
 
 See INSTALL file
 
