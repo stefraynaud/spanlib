@@ -177,7 +177,6 @@ class Data(Logger):
         count[count<minvalid] = 0 # <minvalid -> 0
         count = npy.clip(count, 0, 1)
         # - save as 0/1
-        # self.ns = long(count.sum())
         self.ns = int(count.sum())
         self.compress = count.size != self.ns
         self.good = count>0 # points in space where there are enough data in time
@@ -357,7 +356,7 @@ class Data(Logger):
                 elif not isinstance(firstaxes, list):
                     firstaxes = [firstaxes]
             if firstdims is None and firstaxes is not None:
-                firstdims = tuple([(isinstance(a, (int, long))  and a or len(a)) for a in firstaxes])
+                firstdims = tuple([(isinstance(a, int)  and a or len(a)) for a in firstaxes])
             shape = firstdims + shape
             if firstaxes and isinstance(firstaxes[0], int): # real axes, not ints
                 firstaxes = None
@@ -414,7 +413,7 @@ class Data(Logger):
                 data.setAxis(i+len(firstdims), axis)
             if firstdims is not False and firstaxes is not None:
                 for i, a in enumerate(firstaxes):
-                    if not isinstance(a, (int, long)):
+                    if not isinstance(a, int):
                         try:
                             data.setAxis(i, a)
                         except:
