@@ -88,7 +88,7 @@ class _BasicAnalyzer_(object):
 
         # Rearrange modes (imode=[0,3,4,5,9] -> [0,0],[3,5],[9,9])
         imode = [im for im in imode if im < nmode]
-        imode.sort(cmp=lambda x,y: cmp(abs(x),abs(y)))
+        imode.sort(key=lambda x,y: (abs(x) > abs(y)) - (abs(x) < abs(y)))
         if imode[0]<0: imode.insert(0,0)
         imodes = []
         im = 0
