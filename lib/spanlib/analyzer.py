@@ -27,7 +27,7 @@ if has_cdat_support:
     import MV2, cdms2
 #from .util import Logger, broadcast, SpanlibIter, dict_filter
 #from spanlib.util import Logger, broadcast, SpanlibIter, dict_filter
-import _core
+# import _core
 from .util import Logger, broadcast, SpanlibIter, dict_filter
 
 docs = dict(

@@ -25,7 +25,7 @@ import numpy as npy
 from .util import Logger, broadcast, SpanlibIter, dict_filter, SpanlibError
 from .analyzer import Analyzer, default_missing_value
 from .data import has_cdat_support, cdms2_isVariable
-import _core
+# import _core
 #import pylab as P
 
 class FillerError(SpanlibError):

@@ -36,7 +36,7 @@ def broadcast(input, mylen, fillvalue=None):
             if not input: return None
             return input[0]
         return input
-        
+
     # Multiple values as a list (or tuple)
     if not isinstance(input,(list,tuple)):
         fillvalue = input
@@ -52,14 +52,14 @@ def broadcast(input, mylen, fillvalue=None):
 
 class SpanlibError(Exception):
     """Reporter of exceptions
-    
+
     :Params:
-    
+
         - **what**: What is the error.
         - **where**, optional: Where the error occured.
-        
+
     :Example:
-    
+
         >>> SpanlibError('Bad number of channels', 'pca')
     """
     def __init__(self, what, where=None):
@@ -85,14 +85,14 @@ class SpanlibIter:
             return self.span[self.iset-1]
         del self.span._iter
         raise StopIteration
- 
+
 
 class Logger(object):
     """Class for logging facilities when subclassing.
     Logging may be sent to the console and/or a log file
-    
+
     :Params:
-    
+
         - **name**: Name of the logger.
         - **logfile**, optional: Log file.
         - **console**, optional: Log to the console.
@@ -102,18 +102,18 @@ class Logger(object):
         - **cfmt**, optional: Format of log message in console.
         - **asctime**, optional: Time format.
         - **level**, optional: Initialize logging level (see :meth:`set_loglevel`).
-    
+
     :See also: :mod:`logging` module
-    
+
     .. note:: Inspired from :class:`vacumm.misc.io.Logger`
     """
-    def __init__(self, name=None, logfile=None, console=True, maxlogsize=0, maxbackup=0, 
-        cfmt='%(name)s [%(levelname)-8s] %(message)s', 
-        ffmt='%(asctime)s: %(name)s [%(levelname)-8s] %(message)s', 
-        asctime='%Y-%m-%d %H:%M', 
-        loglevel='warning', logger=None, 
+    def __init__(self, name=None, logfile=None, console=True, maxlogsize=0, maxbackup=0,
+        cfmt='%(name)s [%(levelname)-8s] %(message)s',
+        ffmt='%(asctime)s: %(name)s [%(levelname)-8s] %(message)s',
+        asctime='%Y-%m-%d %H:%M',
+        loglevel='warning', logger=None,
         parser=None, announce=False):
-        
+
         # Setup the logger
         if logger is None:
             # Handlers
@@ -121,14 +121,14 @@ class Logger(object):
             if logfile is not None and logfile != '':
                 logdir = os.path.dirname(logfile)
                 if logdir != '' and not os.path.exists(logdir): os.makedirs(logdir)
-                file =  logging.handlers.RotatingFileHandler(logfile, 
+                file =  logging.handlers.RotatingFileHandler(logfile,
                     maxBytes=maxlogsize*1000, backupCount=maxbackup)
                 file.setFormatter(logging.Formatter(ffmt, asctime))
             # - console
             if console:
                 console = logging.StreamHandler()
                 console.setFormatter(logging.Formatter(cfmt))
-        
+
             # Logger
             if name is None: name = self.__class__.__name__.upper()
             logger = logging.getLogger(name)
@@ -136,50 +136,50 @@ class Logger(object):
             if console is not None: logger.addHandler(console)
         self.logger = logger
         self.parser = parser
-            
+
         # Set level
         self.set_loglevel(loglevel)
-        
+
         # Announce
         if announce: logger.debug('*** Start log session ***')
-        
+
     def debug(self, text, *args, **kwargs):
         """Send a debug message"""
         self.logger.debug(text, *args, **kwargs)
-        
+
     def info(self, text, *args, **kwargs):
         """Send a info message"""
         self.logger.info(text, *args, **kwargs)
-        
+
     def warning(self, text, *args, **kwargs):
         """Send a warning message"""
         self.logger.warning(text, *args, **kwargs)
-        
+
     def error(self, text, *args, **kwargs):
         """Send an error message and raise :class:`SpanLibError`
-        
+
         :Params:
-        
+
             - **text**: Text to display.
             - **errfunc**, optional: Callable function to display error once logged.
-              If ``errfunc`` is not passed and :attr:`parser` has been passed 
+              If ``errfunc`` is not passed and :attr:`parser` has been passed
               during initialization, :meth:`argparse.ArgumentParser.error` method is used.
             - **errxargs**: List of extra arguments for ``errfunc``.
-            
+
         :Raise:
-        
-            If ``errfunc`` is not provided or does not exit, :class:`SpanlibError` 
+
+            If ``errfunc`` is not provided or does not exit, :class:`SpanlibError`
             is raised.
-            
+
         :Examples:
-        
+
             >>> logger.Logger('mylogger')
             >>> logger.error('my error')
-            
+
             >>> myparser = ArgumentParser()
             >>> logger.Logger('mylogger', parser=myparser)
             >>> logger.error('my error') # implicit call to myparser.error
-            
+
             >>> myparser = ArgumentParser()
             >>> logger.Logger('mylogger')
             >>> logger.error('--myoption', errfunc=parser.ArgumentError,
@@ -190,7 +190,7 @@ class Logger(object):
         errfunc = kwargs.pop('errfunc', None)
         errargs = kwargs.pop('errxargs', [])
         if not callable(errfunc) and hasattr(self.parser, 'error'):
-           errfunc = self.parser.error 
+           errfunc = self.parser.error
            errxargs = []
         if callable(errfunc):
             if not isinstance(errxargs, (list, tuple)):
@@ -198,12 +198,12 @@ class Logger(object):
             errargs = [text]+list(errxargs)
             errfunc(*errargs)
         raise SpanlibError(text)
-        
+
     def set_loglevel(self, level=None, console=None, file=None):
         """Set the log level (DEBUG, INFO, WARNING, ERROR)
-        
+
         :Example:
-        
+
             >>> logger.set_loglevel('DEBUG', console='INFO')
         """
         if level is not None:
@@ -214,7 +214,7 @@ class Logger(object):
             elif console is not None and \
                 isinstance(handler, logging.StreamHandler):
                 handler.setLevel(self._get_loglevel_(console))
-                
+
     def get_loglevel(self, asstring=False):
         """Get the log level as an integer or a string"""
         if asstring:
@@ -223,10 +223,10 @@ class Logger(object):
                     return label
             return 'NOTSET'
         return self.logger.level
-        
+
     def _get_loglevel_(self, level):
         if level is None: level = 'debug'
-        if isinstance(level, basestring): 
+        if isinstance(level, basestring):
             level = getattr(logging, level.upper(), 'DEBUG')
         return level
 
@@ -240,15 +240,15 @@ class Logger(object):
 
 def dict_filter(kwargs, prefix, pop=True):
     """Filter a dictionary by keeping only items starting with a given prefix
-    
+
     :Example:
-    
-        >>> kwargs = dict(a=3, logfile='mylog.log', loglevel=0) 
+
+        >>> kwargs = dict(a=3, logfile='mylog.log', loglevel=0)
         >>> dict_filter(kwargs, 'log')
         {'file':'mylog.log','level':0}
         >>> kwargs
         {'a': 3}
-    
+
     """
     kwfilt = {}
     for key, val in kwargs.items():
@@ -256,6 +256,6 @@ def dict_filter(kwargs, prefix, pop=True):
             kwfilt[key[len(prefix):]] = val
             if pop: kwargs.pop(key)
     return kwfilt
-    
+
 
 
