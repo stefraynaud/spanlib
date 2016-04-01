@@ -178,7 +178,7 @@ class Data(Logger):
         count = npy.clip(count, 0, 1)
         # - save as 0/1
         # self.ns = long(count.sum())
-        self.ns = count.sum()
+        self.ns = int(count.sum())
         self.compress = count.size != self.ns
         self.good = count>0 # points in space where there are enough data in time
         self.minvalid = self.nvalid = minvalid
