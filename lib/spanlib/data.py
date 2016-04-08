@@ -356,7 +356,9 @@ class Data(Logger):
                 elif not isinstance(firstaxes, list):
                     firstaxes = [firstaxes]
             if firstdims is None and firstaxes is not None:
-                firstdims = tuple([(isinstance(a, int)  and a or len(a)) for a in firstaxes])
+                firstdims = tuple([(isinstance(a, int)  and a or a.size) for a in firstaxes])
+                print(firstaxes)
+                print(firstdims)
             shape = firstdims + shape
             if firstaxes and isinstance(firstaxes[0], int): # real axes, not ints
                 firstaxes = None
@@ -464,6 +466,7 @@ class Data(Logger):
             data[:] = mdata # just to be sure
         else:
             if self.nsdim==0 and pdata.ndim>len(firstdims): pdata = pdata[first_slices+(0, )]
+            print("data: {}, pdata: {}".format(data.shape, pdata.shape))
             data[:] = pdata.reshape(data.shape)
         del pdata
         # - mask
