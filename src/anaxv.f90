@@ -190,7 +190,7 @@ subroutine eof2steof(xeof, steof, nsteof, nw, nkeep)
     do i=1, nkeep
         do ilag=1, nw
             do ipc=1, nc
-              n1 = nw-ilag+1
+              n1 = ilag!nw-ilag+1
               n2 = (ipc-1)*nw
               n = n2+n1
               steof(i, ilag, ipc) = xeof(n, i)
