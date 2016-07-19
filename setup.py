@@ -1,5 +1,5 @@
 ######################################################################
-## SpanLib, Raynaud 2006-2013
+## SpanLib, Raynaud 2006-2016
 ######################################################################
 
 import os
@@ -11,7 +11,6 @@ from numpy.f2py import crackfortran
 
 # Revision number
 rootdir = os.path.dirname(__file__)
-# - from __init__.py
 f = open(os.path.join(rootdir, 'lib/spanlib/__init__.py'))
 for line in f:
     line = line[:-1].strip()
@@ -21,12 +20,6 @@ for line in f:
         break
 f.close()
 version_sphinx = release
-# - from svn
-if os.path.exists(os.path.join(rootdir,'.svn/entries')):
-    f = open('.svn/entries')
-    line = f.readlines()[3][:-1]
-    f.close()
-    release += '-svn%i'%eval(line)
 release_sphinx = release
 
 # Some info
@@ -34,7 +27,7 @@ version = release
 description='Python extension to the spanlib fortran library'
 author = 'Stephane Raynaud and Charles Doutriaux'
 author_email = 'stephane.raynaud@gmail.com'
-url="http://spanlib.sf.net"
+url = "http://spanlib.sf.net"
 
 # From files
 base = os.path.dirname(__file__)
@@ -43,10 +36,9 @@ with open(os.path.join(base, 'requirements.txt')) as f:
 
 
 # Gather up all the files we need
-spanlib_files = ['src/spanlib.pyf', 'src/spanlib_pywrap.f90',
-    'src/spanlib.f90',  'src/anaxv.f90']
-anaxv_files = ['src/anaxv.pyf', 'src/anaxv.f90']
-#optimec_files = ['src/optimec.pyf', 'src/optimec.f90', 'src/lbfgs.f']
+spanlib_files = ['lib/spanlib/spanlib.pyf', 'lib/spanli/spanlib_pywrap.f90',
+    'lib/spanlib/spanlib.f90',  'lib/spanli/anaxv.f90']
+anaxv_files = ['lib/spanlib/anaxv.pyf', 'lib/spanlib/anaxv.f90']
 
 
 # Paths for libs
@@ -57,7 +49,7 @@ uvcdat_extlibdir = os.path.join(sys.prefix, 'Externals', 'lib')
 if os.path.exists(uvcdat_extlibdir):
     libdirs.append(uvcdat_extlibdir)
 libdirs += os.environ.get('LD_LIBRARY_PATH', '').split(':')
-libdirs += ['usr/lib','/usr/local/lib']
+libdirs += ['/usr/lib','/usr/local/lib']
 # - user specified
 cfg = SafeConfigParser()
 cfg.read('setup.cfg')
@@ -104,19 +96,14 @@ if __name__=='__main__':
     # Generate pyf files
     crackfortran.f77modulename = '_core'
     pyfcode = crackfortran.crack2fortran(crackfortran.crackfortran(['src/spanlib_pywrap.f90']))
-    f = open('src/spanlib.pyf', 'w')
+    f = open('lib/spanlib/spanlib.pyf', 'w')
     f.write(pyfcode)
     f.close()
     crackfortran.f77modulename = 'anaxv'
     pyfcode = crackfortran.crack2fortran(crackfortran.crackfortran(['src/anaxv.f90']))
-    f = open('src/anaxv.pyf', 'w')
+    f = open('lib/spanlib/anaxv.pyf', 'w')
     f.write(pyfcode)
     f.close()
-#    crackfortran.f77modulename = '_optimec'
-#    pyfcode = crackfortran.crack2fortran(crackfortran.crackfortran(['src/optimec.f90']))
-#    f = open('src/optimec.pyf', 'w')
-#    f.write(pyfcode)
-#    f.close()
 
     # Setup the python module
     s = setup(name="spanlib",
@@ -133,7 +120,6 @@ if __name__=='__main__':
         ext_modules = [
             Extension('spanlib._core', spanlib_files, **kwext),
             Extension('spanlib.anaxv', anaxv_files, **kwext),
-#            Extension('spanlib._optimec', optimec_files, **kwext)
         ],
 
         # Install these to their own directory

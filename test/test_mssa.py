@@ -7,7 +7,7 @@ from spanlib_extra import setup_data2, setup_data1, setup_data0
 
 #import pylab as P
 
-class TestSequenceFunctions(unittest.TestCase):
+class MSSATSF(unittest.TestCase):
 
     def test_ssa(self):
         data = setup_data0()
@@ -29,15 +29,17 @@ class TestSequenceFunctions(unittest.TestCase):
         data = setup_data2(nx=3, ny=2)
         span = Analyzer(data)
         span.mssa(nmssa=4)
+        print data.reshape(120, 6).mask
+#        self.assertTrue(npy.allclose(
+#            span._mssa_raw_ev,
+#            npy.array([ 84.65284564,  39.94531834,  36.70936929,  21.49023578])))
+        print span._mssa_raw_pc[:2,:2]
         self.assertTrue(npy.allclose(
-            span._mssa_raw_ev[0],
-            npy.array([ 84.65284564,  39.94531834,  36.70936929,  21.49023578])))
-        self.assertTrue(npy.allclose(
-            span._mssa_raw_pc[0][:2,:2],
+            span._mssa_raw_pc[:2,:2],
             npy.array([[-13.66377591,   2.62887011],
        [-13.28622293,   2.74443558]])))
         self.assertTrue(npy.allclose(
-            span._mssa_raw_eof[0][:2,:2],
+            span._mssa_raw_eof[:2,:2],
             npy.array([[ 0.05067246,  0.10596479],
        [ 0.05300994,  0.10764546]])))
 
@@ -53,9 +55,9 @@ class TestSequenceFunctions(unittest.TestCase):
         data = setup_data2(nx=3, ny=2)
         span = Analyzer(data)
         steof = span.mssa_eof(nmssa=4)
-        stacked_eof = npy.ascontiguousarray(span[0].restack(steof, scale=False))
+        stacked_eof = npy.ascontiguousarray(span.restack(steof, scale=False))
         self.assertTrue(npy.allclose(steof[1,1].compressed(), stacked_eof[:,1,1]))
-        raw_eof = span._mssa_raw_eof[0].reshape(stacked_eof.shape)
+        raw_eof = span._mssa_raw_eof.reshape(stacked_eof.shape)
         self.assertTrue(npy.allclose(stacked_eof, raw_eof))
 
     def test_mssa_ec(self):
@@ -91,12 +93,17 @@ class TestSequenceFunctions(unittest.TestCase):
         self.assertTrue(npy.allclose(rec,xrec))
 
     def test_mssa_rec(self):
-        data = setup_data2(nx=3, ny=2)
+        data = setup_data2(nx=3, ny=2, xyfact=0)
         span = Analyzer(data)
-        rec = span.mssa_rec(nmssa=4)
+        rec = span.mssa_rec(nmssa=20)
+        print span.mssa_ev(cumsum=True, relative=True)
+#        import pylab as P;P.subplot(211);P.pcolormesh(data.reshape(-1, 6));P.subplot(212);P.pcolormesh(rec.reshape(-1, 6));P.show()
+        print rec[50].compressed()
+        print data[50].compressed()
+        print (rec-data).var()/data.var()
         self.assertTrue(npy.allclose(
-            rec[1].compressed(),
-            npy.array([ 0.56972385,  0.17638098,  0.2556532 ,  0.66645171,  0.81734079])))
+            rec[50].compressed(),
+            npy.array([0.30848007,   0.8622368,    0.96028445,   0.8236466,    0.56329503 ])))
 
     def test_mssa_xrec(self):
         data = setup_data2(nx=3, ny=2)
@@ -117,37 +124,6 @@ class TestSequenceFunctions(unittest.TestCase):
         self.assertTrue(npy.allclose(
             rec[:2,:2].ravel(),
             npy.array([ 0.5525298 ,  0.32848071,  0.15829024,  1.19338772])))
-
-    def test_mssa_parallel(self):
-        data1 = setup_data2(nx=3, ny=2)
-        data2 = data1**2
-        span = Analyzer([data1, data2])
-        span.mssa(nmssa=4)
-        self.assertTrue(npy.allclose(
-            span._mssa_raw_eof[0][:2,:2],
-            npy.array([[ 0.04298026,  0.06864925],
-       [ 0.04448111,  0.06906854]])))
-
-    def test_mssa_parallel_eof(self):
-        data1 = setup_data2(nx=3, ny=2)
-        data2 = data1**2
-        span = Analyzer([data1, data2])
-        span.mssa(nmssa=4)
-        eof1, eof2 = span.mssa_eof(nmssa=4)
-        self.assertTrue(npy.allclose(
-            eof1[1,1].compressed(),
-            npy.array([ 0.06906854, -0.05710377, -0.05434486,  0.02958842,  0.08265851])))
-        self.assertTrue(npy.allclose(
-            eof2[1,1].compressed(),
-            npy.array([ 0.05833788, -0.06212552, -0.06297591,  0.03415673,  0.08703455])))
-
-    def test_mssa_parallel_pc(self):
-        data1 = setup_data2(nx=3, ny=2)
-        data2 = data1**2
-        span = Analyzer([data1, data2])
-        span.mssa(nmssa=4)
-        pc = span.mssa_pc(nmssa=4)
-        self.assertTrue(npy.allclose(pc[1,:2], npy.array([ 3.44881773,  3.61397627])))
 
 
     def test_pca_mssa(self):

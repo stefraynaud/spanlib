@@ -763,6 +763,7 @@ subroutine sl_mssa(var, nwindow, nkeep, steof, stpc, ev, ev_sum, mv, &
     ! ========================================
     allocate(cov(nsteof, nsteof))
     call sl_stcov(merge(zmv, zvar, var==zmv), cov, zmv)
+    print*,'mssa ev sum from cov', sum( (/(cov(it,it),it=1,nsteof)/) )
 
     ! Diagonalisation
     ! ===============
@@ -809,6 +810,7 @@ subroutine sl_mssa(var, nwindow, nkeep, steof, stpc, ev, ev_sum, mv, &
         ev = zev(nsteof : nsteof-nkeep+1 : -1)
     end if
     if(present(ev_sum)) ev_sum = sum(zev)
+    print*,'mssa ev sum from ev',sum(zev)
     deallocate(zev)
 
 

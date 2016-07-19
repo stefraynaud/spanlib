@@ -28,6 +28,8 @@ def setup_data1(nx=100, nt=120, xfreq=2, tfreq=3, xyfact=3, masked=True):
 
     return var
 
+SMALL_DATA1_UNMASKED = setup_data1(nx=2, nt=7, masked=False)
+
 def setup_data2(nx=30, ny=20, **kwargs):
     """Same as setup_data1 but with two spatial dimensions
 
@@ -37,14 +39,14 @@ def setup_data2(nx=30, ny=20, **kwargs):
     data1 = setup_data1(nx=nx*ny, **kwargs)
     return data1.reshape((-1, ny, nx))
 
-def setup_data0(nt = 300):
+def setup_data0(nt = 300, p0=23.):
     """Get a 1D signal suitable for SSA tests"""
     t = npy.arange(nt*1.)
-    p0 = 23.
     p1 = p0*3.6
     p2 = p0/10.
     return npy.cos(t/p0*2*npy.pi)+npy.sin(t/p1*2*npy.pi+1.3)+npy.cos(t/p2*2*npy.pi+1.4)
 
+SMALL_DATA0_UNMASKED = setup_data0(7, p0=3.45)
 
 def pca_numpy(var, nmode, cov=None, evsum=False):
     """PCA using numpy library"""
