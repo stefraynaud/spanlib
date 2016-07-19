@@ -36,8 +36,8 @@ with open(os.path.join(base, 'requirements.txt')) as f:
 
 
 # Gather up all the files we need
-spanlib_files = ['lib/spanlib/spanlib.pyf', 'lib/spanli/spanlib_pywrap.f90',
-    'lib/spanlib/spanlib.f90',  'lib/spanli/anaxv.f90']
+spanlib_files = ['lib/spanlib/spanlib.pyf', 'lib/spanlib/spanlib_pywrap.f90',
+    'lib/spanlib/spanlib.f90',  'lib/spanlib/anaxv.f90']
 anaxv_files = ['lib/spanlib/anaxv.pyf', 'lib/spanlib/anaxv.f90']
 
 
@@ -95,12 +95,12 @@ if __name__=='__main__':
 
     # Generate pyf files
     crackfortran.f77modulename = '_core'
-    pyfcode = crackfortran.crack2fortran(crackfortran.crackfortran(['src/spanlib_pywrap.f90']))
+    pyfcode = crackfortran.crack2fortran(crackfortran.crackfortran(['lib/spanlib/spanlib_pywrap.f90']))
     f = open('lib/spanlib/spanlib.pyf', 'w')
     f.write(pyfcode)
     f.close()
     crackfortran.f77modulename = 'anaxv'
-    pyfcode = crackfortran.crack2fortran(crackfortran.crackfortran(['src/anaxv.f90']))
+    pyfcode = crackfortran.crack2fortran(crackfortran.crackfortran(['lib/spanlib/anaxv.f90']))
     f = open('lib/spanlib/anaxv.pyf', 'w')
     f.write(pyfcode)
     f.close()
