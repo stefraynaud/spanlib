@@ -26,4 +26,5 @@ import analyzer
 del docs
 __version__ = "2.3.0"
 
-__all__ = ['Data', 'Dataset', 'Analyzer', 'SVDModel', 'RedNoise', 'Filler',  'freqfilter', 'SpanlibError', 'phase_composites']
+__all__ = ['Data', 'Dataset', 'Analyzer', 'SVDModel', 'RedNoise', 'Filler',
+    'freqfilter', 'SpanlibError', 'phase_composites']

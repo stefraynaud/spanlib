@@ -10,7 +10,7 @@ Python
 ------
 
 python==2.7
-numpy<=1.0
+numpy>=1.0
 
 
 Installation
