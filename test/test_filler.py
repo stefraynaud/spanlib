@@ -1,7 +1,10 @@
+import os
+import sys
 import unittest
-import numpy as npy
-import os, sys
-sys.path.insert(0, '../lib')
+import numpy as N
+
+import util
+
 from spanlib.analyzer import Analyzer
 from spanlib.filler import Filler
 from spanlib_extra import setup_data1, setup_data2, gensin2d

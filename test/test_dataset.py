@@ -1,7 +1,9 @@
+import os
+import sys
 import unittest
 import numpy as N
-import os, sys
-sys.path.insert(0, '../lib')
+
+import util
 
 from spanlib.data import Dataset
 

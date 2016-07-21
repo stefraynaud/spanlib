@@ -1,13 +1,15 @@
+import os
+import sys
 import unittest
 import numpy as N
-import os, sys
-sys.path.insert(0, '../lib')
+
+import util
 
 from spanlib.data import Data
 
 
-class TSF(unittest.TestCase):
-    
+class TestData(unittest.TestCase):
+
     def setup_data(self):
         self.d = Data(self.data, nvalid=20, weights=self.weights, norm=self.norm)
 
@@ -26,36 +28,36 @@ class TSF(unittest.TestCase):
     def test_nstot(self):
         self.setup_data()
         self.assertEqual(self.d.ns, 36)
-        
+
     def test_pack(self):
         self.setup_data()
         self.assertAlmostEqual(self.d.packed_data[:, 1].sum(), -698.4)
-        
+
     def test_repack(self):
         self.setup_data()
         self.assertTrue(N.ma.allclose(self.d.repack(self.data), self.d.packed_data))
-        
+
     def test_repack_notime(self):
         self.setup_data()
         self.assertTrue(N.ma.allclose(self.d.repack(self.data[1]), self.d.packed_data[:, 1]))
-        
+
     def test_weights(self):
         self.setup_data()
         self.assertAlmostEqual(self.d.packed_weights.sum(), 69.5)
-    
+
     def test_unpack(self):
         self.setup_data()
         self.assertTrue(N.ma.allclose(self.d.unpack(self.d.packed_data), self.data))
-        
+
     def test_unpack_notime(self):
         self.setup_data()
         self.assertTrue(N.ma.allclose(self.d.unpack(self.d.packed_data[:, 1]), self.data[1]))
-        
-         
+
+
 #    def test_invalid(self):
-        
+
 
 if __name__ == '__main__':
     unittest.main()
 #    ts = unittest.TestSuite()
-#    ts.addTest(TSF('test_unpack_notime'))
+#    ts.addTest(TestData('test_unpack_notime'))
