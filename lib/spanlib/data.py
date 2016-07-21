@@ -2,7 +2,7 @@
 # File: data.py
 #
 # This file is part of the SpanLib library.
-# Copyright (C) 2006-2012  Stephane Raynaud, Charles Doutriaux
+# Copyright (C) 2006-2016  Stephane Raynaud, Charles Doutriaux
 # Contact: stephane dot raynaud at gmail dot com
 #
 # This library is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@ except:
     has_cdat_support = False
 
 default_missing_value = npy.ma.default_fill_value(0.)
-from util import Logger, dict_filter, broadcast
+from .util import Logger, dict_filter, broadcast
 
 
 class Data(Logger):
@@ -99,9 +99,9 @@ class Data(Logger):
 
         # Weights ?
         if weights is None or weights is False:
-            if False and weights is not False and data.ndim == 3 and \
-                cdms2_isVariable(data) and \
-                'x' in data.getOrder() and 'y' in data.getOrder():
+            if (weights is not False and data.ndim == 3 and
+                    cdms2_isVariable(data) and
+                    'x' in data.getOrder() and 'y' in data.getOrder()):
                 import cdutil# FIXME: WARNING FALSE
                 weights = cdutil.area_weights(data[0]).data.astype('d') # Geographic weights
             elif self.nstot==1:
@@ -433,12 +433,16 @@ class Data(Logger):
         Input is sub_space:other, output is other:split_space.
         For MSSA: pdata(nchan,window,nmssa) (other = window:nmssa)
 
-        :Params:
-
-            - **pdata**: Packed data.
-            - **rescale**, optional: Rescale the variable (mean and norm).
-            - **format**, optional: Format the variable (see :meth:`create_array`).
-            - **firstaxes**, optional: First axis (see :meth:`create_array`).
+        Params
+        ------
+        pdata: 2D array
+            Packed data.
+        rescale: boolean, string
+            Rescale (mean and norm) using :meth:`rescale`?
+        format: int, "full"
+            Format the variable using :meth:`create_array`?
+        firstaxes: List of ints or 1d arrays
+            First axes as used by :meth:`create_array`
         """
 
 
@@ -454,16 +458,17 @@ class Data(Logger):
         # - check packed data shape
         firstdims = data.shape[:len(data.shape)-self.nsdim]
         if len(firstdims) > 1:
-            pdata.shape = firstdims + (-1, )
+            pdata = pdata.reshape(firstdims + (-1, ))
         # - uncompress
-        first_slices = (slice(None), )*max(1, len(firstdims))
+        first_slices = (slice(None), )*len(firstdims) # max(1, len(firstdims)) fix for notime case
         if self.compress:
             mdata = data.asma() if self.array_type=='MV2' else data
             slices = first_slices+(self.good, )
-            mdata[slices] = pdata
+            mdata[slices] = pdata # here?
             data[:] = mdata # just to be sure
         else:
-            if self.nsdim==0 and pdata.ndim>len(firstdims): pdata = pdata[first_slices+(0, )]
+            if self.nsdim==0 and pdata.ndim>len(firstdims):
+                pdata = pdata[first_slices+(0, )]
             data[:] = pdata.reshape(data.shape)
         del pdata
         # - mask
