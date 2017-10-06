@@ -5,7 +5,10 @@
 import os
 import sys
 import re
-from ConfigParser import SafeConfigParser
+try:
+    from configparser import SafeConfigParser
+except:
+    from ConfigParser import SafeConfigParser
 from numpy.distutils.core import setup, Extension
 from numpy.f2py import crackfortran
 

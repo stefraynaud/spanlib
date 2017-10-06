@@ -1,7 +1,7 @@
 import os
 import sys
 import unittest
-import numpy as N
+import numpy as npy
 
 import util
 

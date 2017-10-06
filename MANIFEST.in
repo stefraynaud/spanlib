@@ -1,5 +1,5 @@
-include COPYING setup.cfg.example 
+include LICENSE setup.cfg.example
 exclude test/test*.py
-include test/test_pca.py test/test_mssa.py test/test_data.py test/test_dataset.py test/util.py
+include test/test_pca.py test/test_mssa.py test/test_data.py test/test_dataset.py test/util.py test/test_filler.py
 include lib/spanlib_extra.py
 
