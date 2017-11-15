@@ -10,9 +10,10 @@ Short
    Commands:
 
      1) cd <package_directory>
-     2) ./configure
-     3) make
-     4) make install (as root)
+     2) autoconf
+     3) ./configure
+     4) make
+     5) make install (as root)
 
    Configure options:
 

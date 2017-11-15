@@ -32,7 +32,7 @@ except:
     has_cdat_support = False
 
 default_missing_value = npy.ma.default_fill_value(0.)
-from util import Logger, dict_filter, broadcast
+from spanlib.util import Logger, dict_filter, broadcast
 
 
 class Data(Logger):
@@ -177,7 +177,7 @@ class Data(Logger):
         count[count<minvalid] = 0 # <minvalid -> 0
         count = npy.clip(count, 0, 1)
         # - save as 0/1
-        self.ns = long(count.sum())
+        self.ns = int(count.sum())
         self.compress = count.size != self.ns
         self.good = count>0 # points in space where there are enough data in time
         self.minvalid = self.nvalid = minvalid
@@ -356,7 +356,10 @@ class Data(Logger):
                 elif not isinstance(firstaxes, list):
                     firstaxes = [firstaxes]
             if firstdims is None and firstaxes is not None:
-                firstdims = tuple([(isinstance(a, (int, long))  and a or len(a)) for a in firstaxes])
+                firstdims = tuple([(isinstance(a, int)  and a or a.size) for a in firstaxes])
+                #FIXME
+                # print(firstaxes)
+                # print(firstdims)
             shape = firstdims + shape
             if firstaxes and isinstance(firstaxes[0], int): # real axes, not ints
                 firstaxes = None
@@ -413,7 +416,7 @@ class Data(Logger):
                 data.setAxis(i+len(firstdims), axis)
             if firstdims is not False and firstaxes is not None:
                 for i, a in enumerate(firstaxes):
-                    if not isinstance(a, (int, long)):
+                    if not isinstance(a, int):
                         try:
                             data.setAxis(i, a)
                         except:
@@ -464,6 +467,8 @@ class Data(Logger):
             data[:] = mdata # just to be sure
         else:
             if self.nsdim==0 and pdata.ndim>len(firstdims): pdata = pdata[first_slices+(0, )]
+            #FIXME getting shape issues with pca in Python 3.
+            # print("data: {}, pdata: {}".format(data.shape, pdata.shape))
             data[:] = pdata.reshape(data.shape)
         del pdata
         # - mask
