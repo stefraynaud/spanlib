@@ -22,7 +22,7 @@
 from .analyzer import *
 from .filler import *
 from .util import *
-import .analyzer
+import spanlib.analyzer
 del docs
 __version__ = "2.3.0"
 
