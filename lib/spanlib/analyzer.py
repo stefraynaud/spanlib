@@ -1383,7 +1383,7 @@ class Analyzer(_BasicAnalyzer_, Dataset):
                 # Fake eigen values (EOFt.COV.EOF)
                 ce = npy.dot(cov, self._mssa_raw_eof) #; del cov
                 evmat = npy.dot(self._mssa_raw_eof.T, ce) #; del ce
-                mcev[iens] = npy.diag(evmat)[:nmssa] ; del evmat
+                mcev[iens] = npy.diag(evmat)[:self.nmssa] ; del evmat
 
             mcev.sort(axis=0) # Sort by value inside ensemble
 
