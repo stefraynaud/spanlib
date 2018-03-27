@@ -39,7 +39,6 @@ Documentation
 
 Quick installation
 ------------------
-Execute::
 
     $ python setup.py install # basic install
     $ python setup.py install --user # install in user home

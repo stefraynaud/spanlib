@@ -19,10 +19,10 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #################################################################################
-from analyzer import *
-from filler import *
-from util import *
-import analyzer
+from .analyzer import *
+from .filler import *
+from .util import *
+import spanlib.analyzer
 del docs
 __version__ = "2.3.0"
 

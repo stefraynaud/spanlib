@@ -2,7 +2,7 @@
 # File: dual.py
 #
 # This file is part of the SpanLib library.
-# Copyright (C) 2006-2016  Stephane Raynaud, Charles Doutriaux
+# Copyright (C) 2006-2018  Stephane Raynaud, Charles Doutriaux
 # Contact: stephane dot raynaud at gmail dot com
 #
 # This library is free software; you can redistribute it and/or
@@ -24,14 +24,14 @@
 import copy
 import gc
 from warnings import warn
-import _core
+import spanlib._core as _core
 import numpy as N
 npy = N
-from data import has_cdat_support, cdms2_isVariable, Data, Dataset, default_missing_value
+from spanlib.data import has_cdat_support, cdms2_isVariable, Data, Dataset, default_missing_value
 if has_cdat_support: import MV2, cdms2
 import pylab as P
 from spanlib.util import Logger, broadcast, SpanlibIter, dict_filter, SpanlibError
-from analyzer import _BasicAnalyzer_, Analyzer, docs, _filldocs_
+from spanlib.analyzer import _BasicAnalyzer_, Analyzer, docs, _filldocs_
 
 class DualSpanlibError(SpanlibError):
     pass
@@ -111,7 +111,7 @@ class DualAnalyzer(_BasicAnalyzer_, Logger):
         # Number of SVD modes
         if self._nsvd is None: # Initialization
             self._nsvd = self._nsvd_default # Default value
-        for iset in xrange(2): # Check values
+        for iset in range(2): # Check values
             if self[iset].prepca:
                 nchanmax = self[iset].prepca # Input channels are from pre-PCA
             else:
@@ -227,7 +227,7 @@ class DualAnalyzer(_BasicAnalyzer_, Logger):
         self.update_params('svd', **kwargs)
 
         # Loop on first two datasets (left and right)
-        for iset in xrange(2):
+        for iset in range(2):
 
             # Check if old results can be used when nsvd is lower
             if self._svd_raw_pc is not None and \
@@ -318,7 +318,7 @@ class DualAnalyzer(_BasicAnalyzer_, Logger):
 
         # Of, let's format the variable
         fmt_eof = []
-        for iset in xrange(2): # (window*nchan,nsvd)
+        for iset in range(2): # (window*nchan,nsvd)
 
 #            # EOF already available
 #            if not raw and self._svd_fmt_eof is not None:
@@ -406,7 +406,7 @@ class DualAnalyzer(_BasicAnalyzer_, Logger):
 
         # Of, let's format the variable
         fmt_pc = []
-        for iset in xrange(2):
+        for iset in range(2):
 
             # Raw?
             raw_pc = self._svd_raw_pc[iset][:,:self._nsvd]
@@ -616,7 +616,7 @@ class DualAnalyzer(_BasicAnalyzer_, Logger):
 
         # Loop on left and right
         fmt_rec = []
-        for iset in xrange(2):
+        for iset in range(2):
 
             # ST-EOFs used for projection
             if xeof[iset] is None:
