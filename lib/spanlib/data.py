@@ -356,10 +356,7 @@ class Data(Logger):
                 elif not isinstance(firstaxes, list):
                     firstaxes = [firstaxes]
             if firstdims is None and firstaxes is not None:
-                firstdims = tuple([(isinstance(a, int)  and a or a.size) for a in firstaxes])
-                #FIXME
-                # print(firstaxes)
-                # print(firstdims)
+                firstdims = tuple([((isinstance(a, int)  and a) or a[:].size) for a in firstaxes])
             shape = firstdims + shape
             if firstaxes and isinstance(firstaxes[0], int): # real axes, not ints
                 firstaxes = None
