@@ -97,24 +97,24 @@ class Data(Logger):
             if not order.startswith('t'):
                 warn('Time axis is not the first axis of input variable (order="%s")'%order)
 
-        # Weights ?
-        if weights is None or weights is False:
-            if (weights is not False and data.ndim == 3 and
-                    cdms2_isVariable(data) and
-                    'x' in data.getOrder() and 'y' in data.getOrder()):
-                import cdutil# FIXME: WARNING FALSE
-                weights = cdutil.area_weights(data[0]).data.astype('d') # Geographic weights
-            elif self.nstot==1:
-                weights = npy.ones(1)
-            else:
-                weights = npy.ones(self.shape[1:])
-        elif npy.ma.isMA(weights):
-            weights = weight.astype('d').filled(0.)
-        else:
-            weights = npy.asarray(weights, dtype='d')
-        if data.ndim>1 and self.shape[1:] != weights.shape:
-            self.error('Weights must be of shape %s (instead of %s)'
-                %(self.shape[1:],  weights.shape))
+#        # Weights ?
+#        if weights is None or weights is False:
+#            if (weights is not False and data.ndim == 3 and
+#                    cdms2_isVariable(data) and
+#                    'x' in data.getOrder() and 'y' in data.getOrder()):
+#                import cdutil# FIXME: WARNING FALSE
+#                weights = cdutil.area_weights(data[0]).data.astype('d') # Geographic weights
+#            elif self.nstot==1:
+#                weights = npy.ones(1)
+#            else:
+#                weights = npy.ones(self.shape[1:])
+#        elif npy.ma.isMA(weights):
+#            weights = weight.astype('d').filled(0.)
+#        else:
+#            weights = npy.asarray(weights, dtype='d')
+#        if data.ndim>1 and self.shape[1:] != weights.shape:
+#            self.error('Weights must be of shape %s (instead of %s)'
+#                %(self.shape[1:],  weights.shape))
 
         # Store some info
         # - time
@@ -166,9 +166,9 @@ class Data(Logger):
         # - first from data (integrate) => 1D
         count = npy.atleast_1d(good.sum(axis=0))
         del good
-        # - now remove channels where weight is zero
-        if clean_weights:
-            count[npy.atleast_1d(weights==0.)] = 0
+#        # - now remove channels where weight is zero
+#        if clean_weights:
+#            count[npy.atleast_1d(weights==0.)] = 0
         # - check number of valid data along time
         minvalid = kwargs.pop('nvalid', minvalid)
         if minvalid is not None and minvalid < 0:
@@ -227,7 +227,7 @@ class Data(Logger):
         self.packed_data = self.core_pack(data_num, force2d=True)
         self.masked = npy.isclose(self.packed_data, default_missing_value).any()
         # - weights
-        self.packed_weights = self.core_pack(weights)
+#        self.packed_weights = self.core_pack(weights)
 
 
 
@@ -544,7 +544,7 @@ class Dataset(Logger):
         # Other inits
         self.data = []
         self.nt = None
-        weights = self.remap(weights, reshape=True)
+#        weights = self.remap(weights, reshape=True)
         norms = self.remap(norms, reshape=True)
         if self.ndataset==1 and norms[0] is None: norms = [False]
         self._invalids = []
@@ -554,8 +554,8 @@ class Dataset(Logger):
         for idata,data in enumerate(dataset):
 
             # Create the Data instance and pack array
-            dd = Data(data, norm=norms[idata], weights=weights[idata],
-                keep_invalids=keep_invalids, minvalid=minvalid, clean_weights=clean_weights,
+            dd = Data(data, norm=norms[idata], #weights=weights[idata],
+                keep_invalids=keep_invalids, minvalid=minvalid, #clean_weights=clean_weights,
                 zerofill=zerofill)
             self.data.append(dd)
             self._invalids.append(dd.invalids)
@@ -570,7 +570,7 @@ class Dataset(Logger):
         # Merge
         self.stacked_data = npy.asfortranarray(npy.vstack([d.packed_data for d in self.data]))
         self.splits = npy.cumsum([d.packed_data.shape[0] for d in self.data[:-1]])
-        self.stacked_weights = npy.hstack([d.packed_weights for d in self.data])
+#        self.stacked_weights = npy.hstack([d.packed_weights for d in self.data])
         self.ns = self.stacked_data.shape[0]
         self.ntv = (self.stacked_data!=default_missing_value).any(axis=0).sum()
 
